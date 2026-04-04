@@ -17,6 +17,7 @@ class QuotationItem extends BaseModel
             'quantity'             => 'decimal:3',
             'status'               => QuotationItemStatusEnum::class,
             'engineering_required' => 'boolean',
+            'is_selected'          => 'boolean',
             'confidence'           => 'decimal:2',
             'raw_data'             => 'array',
             'ai_extracted'         => 'boolean',

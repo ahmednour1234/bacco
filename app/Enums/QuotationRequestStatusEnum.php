@@ -6,6 +6,7 @@ enum QuotationRequestStatusEnum: string
 {
     case Draft      = 'draft';
     case Submitted  = 'submitted';
+    case Tender     = 'tender';
     case InReview   = 'in_review';
     case Quoted     = 'quoted';
     case Accepted   = 'accepted';
@@ -17,6 +18,7 @@ enum QuotationRequestStatusEnum: string
         return match($this) {
             self::Draft     => 'Draft',
             self::Submitted => 'Submitted',
+            self::Tender    => 'Tender',
             self::InReview  => 'In Review',
             self::Quoted    => 'Quoted',
             self::Accepted  => 'Accepted',

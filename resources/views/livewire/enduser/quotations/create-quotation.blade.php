@@ -7,6 +7,8 @@
         selectedFileSize: null,
         tempUploading: false,
         uploadReady: false,
+        submitting: false,
+        progressPct: 0,
         showToast(message, type = 'success') {
             this.toast = { message, type };
             setTimeout(() => this.toast = null, 4000);
@@ -60,9 +62,65 @@
         </button>
     </div>
 
-    {{-- ───── Loading overlay ───────────────────────────────────────────────── --}}
+    {{-- ───── Submit / Calculating loading overlay ────────────────────────────── --}}
+    <div
+        x-show="submitting"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100"
+        style="display:none"
+    >
+        <div class="w-full max-w-sm rounded-3xl bg-white px-10 py-12 shadow-2xl text-center">
+
+            {{-- Logo --}}
+            <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500 shadow-lg">
+                <svg class="h-9 w-9 text-white" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+            </div>
+
+            {{-- Animated ring --}}
+            <div class="mx-auto mb-6 h-16 w-16 relative">
+                <svg class="h-16 w-16 -rotate-90" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#e2e8f0" stroke-width="5"/>
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#10b981" stroke-width="5"
+                        stroke-dasharray="176"
+                        stroke-dashoffset="176"
+                        stroke-linecap="round"
+                        style="animation: qimta-ring 2.5s ease forwards;"/>
+                </svg>
+                <svg class="absolute inset-0 m-auto h-7 w-7 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                </svg>
+            </div>
+
+            <h2 class="text-lg font-bold text-slate-900 mb-1">Calculating Quotation</h2>
+            <p class="text-sm text-slate-500 mb-8">AI is calculating your quotation prices...<br>please wait a few seconds</p>
+
+            {{-- Progress bar --}}
+            <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <span>Processing Data</span>
+                <span x-text="progressPct + '%'"></span>
+            </div>
+            <div class="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                    :style="'width:' + progressPct + '%'"></div>
+            </div>
+
+            <p class="mt-6 text-xs text-slate-400">Our AI engine is analyzing current market rates and supplier availability.</p>
+        </div>
+
+        <style>
+            @keyframes qimta-ring {
+                0%   { stroke-dashoffset: 176; }
+                100% { stroke-dashoffset: 0; }
+            }
+        </style>
+    </div>
+
+    {{-- ───── Generic wire:loading overlay (non-submit actions) ──────────────── --}}
     <div
         wire:loading.flex
+        wire:loading.except.target="submit"
         class="fixed inset-0 z-40 flex items-center justify-center bg-white/60 backdrop-blur-sm"
     >
         <div class="flex flex-col items-center gap-3">
@@ -70,7 +128,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
-            <span class="text-sm font-medium text-slate-600" wire:loading.attr="class">Processing…</span>
+            <span class="text-sm font-medium text-slate-600">Processing…</span>
         </div>
     </div>
 
@@ -114,22 +172,29 @@
                     <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Project Status
                     </label>
-                    <select
-                        wire:model="projectStatus"
-                        class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition
-                            @error('projectStatus') border-red-400 focus:ring-2 focus:ring-red-100
-                            @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"
-                    >
-                        <option value="">Select status…</option>
-                        @foreach($projectStatuses as $ps)
-                            <option value="{{ $ps->value }}" @selected($projectStatus === $ps->value)>
-                                {{ $ps->label() }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('projectStatus')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+
+                    @if($isEditMode)
+                        <select
+                            wire:model="projectStatus"
+                            class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition
+                                @error('projectStatus') border-red-400 focus:ring-2 focus:ring-red-100
+                                @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"
+                        >
+                            <option value="">Select status…</option>
+                            @foreach($projectStatuses as $ps)
+                                <option value="{{ $ps->value }}" @selected($projectStatus === $ps->value)>
+                                    {{ $ps->label() }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('projectStatus')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
+                    @else
+                        <div class="h-11 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700">
+                            Pending
+                        </div>
+                    @endif
                 </div>
 
             </div>
@@ -250,16 +315,32 @@
                         <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
                             Sub-Section B: Add Item Manually
                         </p>
-                        <button
-                            type="button"
-                            wire:click="addManualItem"
-                            class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
-                        >
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                            </svg>
-                            Add New Row
-                        </button>
+                        <div class="flex items-center gap-2">
+                            @if(!empty($items))
+                                <button
+                                    type="button"
+                                    wire:click="clearAllItems"
+                                    wire:confirm="Remove all items from this table?"
+                                    class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                    Remove All Rows
+                                </button>
+                            @endif
+
+                            <button
+                                type="button"
+                                wire:click="addManualItem"
+                                class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                            >
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add New Row
+                            </button>
+                        </div>
                     </div>
 
                     @if(empty($items))
@@ -460,6 +541,189 @@
         </div>
 
         {{-- ─────────────────────────────────────────────────────────────────── --}}
+        {{-- Section 2b: Pricing Review (shown after "Get Pricing" is clicked)   --}}
+        {{-- ─────────────────────────────────────────────────────────────────── --}}
+        @if($showPricing && !empty($items))
+        <div class="rounded-2xl border border-indigo-200 bg-white shadow-sm">
+
+            <div class="flex items-center gap-3 border-b border-indigo-100 px-6 py-4">
+                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </span>
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-800">Section 2b: Pricing Review — تسعير</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Review each unit price, approve or reject, then submit the quotation.</p>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-5">
+
+                {{-- Pricing table --}}
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50">
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[180px]">Description</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-16">QTY</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">Unit</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Category</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Brand</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Engineering</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Status</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Price (SAR)</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Total (SAR)</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-8">Source</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($items as $index => $item)
+                                @php
+                                    $priceStatus  = $item['price_status'] ?? 'pending';
+                                    $unitPrice    = is_numeric($item['unit_price'] ?? null) ? (float) $item['unit_price'] : null;
+                                    $lineTotal    = $unitPrice !== null ? $unitPrice * (float) ($item['quantity'] ?? 0) : null;
+                                    $priceSource  = $item['price_source'] ?? null;
+
+                                    $rowClass = match($priceStatus) {
+                                        'approved' => 'bg-emerald-50/40',
+                                        'rejected' => 'opacity-50 bg-red-50/20',
+                                        default    => '',
+                                    };
+                                    $badgeClass = match($priceStatus) {
+                                        'approved' => 'bg-emerald-100 text-emerald-700',
+                                        'rejected' => 'bg-red-100 text-red-700',
+                                        default    => 'bg-amber-100 text-amber-700',
+                                    };
+                                    $badgeLabel = match($priceStatus) {
+                                        'approved' => 'APPROVED',
+                                        'rejected' => 'REJECTED',
+                                        default    => 'PENDING',
+                                    };
+                                @endphp
+                                <tr class="transition-colors {{ $rowClass }}">
+                                    <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ $item['description'] ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-600">{{ number_format((float)($item['quantity'] ?? 0)) }}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">{{ $item['unit'] ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">{{ $item['category'] ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">{{ $item['brand'] ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if(!empty($item['engineering_required']))
+                                            <span class="inline-flex h-5 w-5 items-center justify-center rounded bg-emerald-100">
+                                                <svg class="h-3 w-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            </span>
+                                        @else
+                                            <span class="inline-block h-5 w-5 rounded border border-slate-200 bg-slate-50"></span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $badgeClass }}">
+                                            {{ $badgeLabel }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-mono text-sm text-slate-700">
+                                        @if($unitPrice !== null)
+                                            {{ number_format($unitPrice, 2) }}
+                                        @else
+                                            <span class="text-xs text-slate-400 italic">Not found</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-mono text-sm font-medium text-slate-800">
+                                        @if($lineTotal !== null)
+                                            {{ number_format($lineTotal, 2) }}
+                                        @else
+                                            <span class="text-xs text-slate-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if($priceSource === 'products')
+                                            <span title="Price from Products Table" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold">P</span>
+                                        @elseif($priceSource === 'gemini')
+                                            <span title="Price estimated by AI (Gemini)" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-600 text-xs font-bold">AI</span>
+                                        @else
+                                            <span class="text-slate-300">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            @if($priceStatus !== 'approved')
+                                                <button
+                                                    type="button"
+                                                    wire:click="approvePriceItem({{ $index }})"
+                                                    title="Approve price"
+                                                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
+                                                >
+                                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                            @if($priceStatus !== 'rejected')
+                                                <button
+                                                    type="button"
+                                                    wire:click="rejectPriceItem({{ $index }})"
+                                                    title="Reject price"
+                                                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 transition hover:bg-red-100"
+                                                >
+                                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                            @if($priceStatus === 'rejected')
+                                                <span class="text-xs text-slate-400 italic">Rejected</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Financial Summary --}}
+                @php
+                    $taxRate   = 0.15;
+                    $subtotal  = collect($items)
+                        ->filter(fn($i) => ($i['price_status'] ?? 'pending') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
+                        ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
+                    $taxAmount = $subtotal * $taxRate;
+                    $total     = $subtotal + $taxAmount;
+                @endphp
+                <div class="flex justify-end">
+                    <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
+                        <h3 class="text-sm font-semibold text-slate-700">Financial Summary</h3>
+
+                        <div class="flex justify-between text-sm text-slate-600">
+                            <span>Subtotal</span>
+                            <span class="font-mono font-medium">{{ number_format($subtotal, 2) }} SAR</span>
+                        </div>
+
+                        <div class="flex justify-between text-sm text-slate-600">
+                            <span>Tax/VAT (15%)</span>
+                            <span class="font-mono font-medium">{{ number_format($taxAmount, 2) }} SAR</span>
+                        </div>
+
+                        <div class="border-t border-slate-200 pt-3 flex justify-between">
+                            <span class="text-sm font-bold text-slate-800">Total Amount</span>
+                            <span class="font-mono text-lg font-bold text-emerald-600">{{ number_format($total, 2) }} SAR</span>
+                        </div>
+
+                        <div class="pt-1 text-xs text-slate-400">
+                            * Includes only non-rejected items that have been priced.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        @endif
+
+        {{-- ─────────────────────────────────────────────────────────────────── --}}
         {{-- Section 3: Review & Submit                                          --}}
         {{-- ─────────────────────────────────────────────────────────────────── --}}
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -526,15 +790,22 @@
 
                     <button
                         type="button"
-                        wire:click="submit"
-                        wire:loading.attr="disabled"
+                        @click="
+                            submitting = true;
+                            progressPct = 0;
+                            let target = 92;
+                            let iv = setInterval(() => {
+                                if (progressPct < target) {
+                                    progressPct = Math.min(progressPct + Math.random() * 8 + 2, target);
+                                } else {
+                                    clearInterval(iv);
+                                }
+                            }, 250);
+                            $wire.submit();
+                        "
                         @if($processing) disabled @endif
                         class="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"
                     >
-                        <svg wire:loading wire:target="submit" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                        </svg>
                         Submit Quotation &rarr;
                     </button>
                 </div>

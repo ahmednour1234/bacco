@@ -531,35 +531,96 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            <th class="px-4 py-3 text-left">Product Name</th>
-                            <th class="px-4 py-3 text-left">Division</th>
-                            <th class="px-4 py-3 text-left">Brand</th>
-                            <th class="px-4 py-3 text-left">Model/Type</th>
-                            <th class="px-4 py-3 text-left">Unit</th>
-                            <th class="px-4 py-3 text-right">Price</th>
-                            <th class="px-4 py-3 text-right">Eng.</th>
-                            <th class="px-4 py-3 text-right">Inst.</th>
-                            <th class="px-4 py-3 text-center">Margin %</th>
-                            <th class="px-4 py-3 text-right">Total</th>
+                            <th class="px-3 py-3 text-left whitespace-nowrap">Product Name</th>
+                            <th class="px-3 py-3 text-left whitespace-nowrap">Division</th>
+                            <th class="px-3 py-3 text-left whitespace-nowrap">Brand</th>
+                            <th class="px-3 py-3 text-left whitespace-nowrap">Category</th>
+                            <th class="px-3 py-3 text-left whitespace-nowrap">Model / Type</th>
+                            <th class="px-3 py-3 text-right whitespace-nowrap">Price</th>
+                            <th class="px-3 py-3 text-right whitespace-nowrap">Eng.</th>
+                            <th class="px-3 py-3 text-right whitespace-nowrap">Inst.</th>
+                            <th class="px-3 py-3 text-center whitespace-nowrap">Margin %</th>
+                            <th class="px-3 py-3 text-right whitespace-nowrap">Total</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        @foreach ($aiExtractedProducts as $item)
-                            <tr class="hover:bg-slate-50">
-                                <td class="px-4 py-3 font-medium text-slate-900">{{ $item['name'] }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ $item['division'] ?? '—' }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ $item['brand'] ?? '—' }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ $item['model_type'] ?? '—' }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ $item['unit'] ?? '—' }}</td>
-                                <td class="px-4 py-3 text-right">{{ number_format($item['unit_price'] ?? 0, 2) }}</td>
-                                <td class="px-4 py-3 text-right">{{ number_format($item['engineering_price'] ?? 0, 2) }}</td>
-                                <td class="px-4 py-3 text-right">{{ number_format($item['installation_price'] ?? 0, 2) }}</td>
-                                <td class="px-4 py-3 text-center">
+                        @foreach ($aiExtractedProducts as $idx => $item)
+                            <tr class="align-top hover:bg-slate-50/70">
+
+                                {{-- Name --}}
+                                <td class="px-3 py-2 min-w-[160px]">
+                                    <input type="text"
+                                           wire:model.blur="aiExtractedProducts.{{ $idx }}.name"
+                                           class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                                  focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
+                                </td>
+
+                                {{-- Division --}}
+                                <td class="px-3 py-2 min-w-[110px]">
+                                    <select wire:model.live="aiExtractedProducts.{{ $idx }}.division"
+                                            class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                                   focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
+                                        <option value="">— none —</option>
+                                        @foreach (['HVAC','Electrical','Automation','Mechanical','Plumbing','Fire & Safety','Networking','ICT','Other'] as $div)
+                                            <option value="{{ $div }}" @selected(($item['division'] ?? '') === $div)>{{ $div }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+
+                                {{-- Brand (dropdown) --}}
+                                <td class="px-3 py-2 min-w-[130px]">
+                                    <select wire:model.live="aiExtractedProducts.{{ $idx }}.brand_id"
+                                            class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                                   focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
+                                        <option value="">— none —</option>
+                                        @foreach ($brands as $brand)
+                                            <option value="{{ $brand->id }}" @selected(($item['brand_id'] ?? '') == $brand->id)>{{ $brand->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @if (!empty($item['brand']))
+                                        <p class="mt-0.5 text-[10px] text-slate-400 truncate" title="{{ $item['brand'] }}">
+                                            AI: {{ $item['brand'] }}
+                                        </p>
+                                    @endif
+                                </td>
+
+                                {{-- Category (dropdown) --}}
+                                <td class="px-3 py-2 min-w-[130px]">
+                                    <select wire:model.live="aiExtractedProducts.{{ $idx }}.category_id"
+                                            class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                                   focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
+                                        <option value="">— none —</option>
+                                        @foreach ($categories as $cat)
+                                            <option value="{{ $cat->id }}" @selected(($item['category_id'] ?? '') == $cat->id)>{{ $cat->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+
+                                {{-- Model / Type --}}
+                                <td class="px-3 py-2 min-w-[110px]">
+                                    <input type="text"
+                                           wire:model.blur="aiExtractedProducts.{{ $idx }}.model_type"
+                                           placeholder="Model"
+                                           class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                                  focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
+                                </td>
+
+                                {{-- Prices (read-only) --}}
+                                <td class="px-3 py-2 text-right text-xs font-mono text-slate-700 whitespace-nowrap">
+                                    {{ number_format($item['unit_price'] ?? 0, 2) }}
+                                </td>
+                                <td class="px-3 py-2 text-right text-xs font-mono text-slate-700 whitespace-nowrap">
+                                    {{ number_format($item['engineering_price'] ?? 0, 2) }}
+                                </td>
+                                <td class="px-3 py-2 text-right text-xs font-mono text-slate-700 whitespace-nowrap">
+                                    {{ number_format($item['installation_price'] ?? 0, 2) }}
+                                </td>
+                                <td class="px-3 py-2 text-center">
                                     <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                                         {{ $item['margin_percentage'] ?? 20 }}%
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-right font-semibold text-slate-800">
+                                <td class="px-3 py-2 text-right text-xs font-semibold text-slate-800 whitespace-nowrap">
                                     {{ number_format($item['total'] ?? 0, 2) }}
                                 </td>
                             </tr>
@@ -567,10 +628,10 @@
                     </tbody>
                     <tfoot>
                         <tr class="border-t-2 border-slate-200 bg-slate-50 font-semibold">
-                            <td colspan="9" class="px-4 py-3 text-right text-sm text-slate-700 uppercase tracking-wide">
+                            <td colspan="9" class="px-3 py-3 text-right text-sm text-slate-700 uppercase tracking-wide">
                                 Total Est. Inventory Value (SAR)
                             </td>
-                            <td class="px-4 py-3 text-right text-base font-bold text-emerald-600">
+                            <td class="px-3 py-3 text-right text-base font-bold text-emerald-600">
                                 {{ number_format(array_sum(array_column($aiExtractedProducts, 'total')), 2) }}
                             </td>
                         </tr>

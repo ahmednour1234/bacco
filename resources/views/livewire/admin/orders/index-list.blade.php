@@ -1,0 +1,486 @@
+<div x-data="{ statusOpen: false, dateOpen: false, typeOpen: false }">
+
+    {{-- ═══════════════════════════════════════════════════════
+         PAGE HEADER
+    ═══════════════════════════════════════════════════════ --}}
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">CRM Projects</h1>
+            <p class="mt-1 text-sm text-slate-400">Track orders, engineering updates, and logistics progress across all active sites.</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+            <a href="{{ route('admin.orders.index') }}?export=csv"
+               class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition">
+                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Export CSV
+            </a>
+            <button onclick="window.print()"
+                class="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 transition">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════
+         STAT CARDS
+    ═══════════════════════════════════════════════════════ --}}
+    <div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+
+        {{-- Total Orders --}}
+        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+                    <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">+12%</span>
+            </div>
+            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">Total Orders</p>
+        </div>
+
+        {{-- Engineering --}}
+        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50">
+                    <svg class="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">Active</span>
+            </div>
+            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['engineering'] }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">Engineering</p>
+        </div>
+
+        {{-- Waiting --}}
+        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50">
+                    <svg class="h-5 w-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-500">-5%</span>
+            </div>
+            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['waiting'] }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">Waiting</p>
+        </div>
+
+        {{-- Logistics --}}
+        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50">
+                    <svg class="h-5 w-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                <span class="rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-semibold text-cyan-600">In-Transit</span>
+            </div>
+            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['logistics'] }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">Logistics</p>
+        </div>
+
+        {{-- Delivered --}}
+        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
+                    <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">+8%</span>
+            </div>
+            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['delivered'] }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">Delivered</p>
+        </div>
+
+        {{-- Closed --}}
+        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
+                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                </div>
+                <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">Fixed</span>
+            </div>
+            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['closed'] }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">Closed</p>
+        </div>
+
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════
+         TABLE CARD
+    ═══════════════════════════════════════════════════════ --}}
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+        {{-- Filters row --}}
+        <div class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center">
+
+            {{-- Search --}}
+            <div class="relative flex-1 min-w-[240px]">
+                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                    </svg>
+                </span>
+                <input
+                    type="search"
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search orders, projects, or clients..."
+                    class="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                >
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+
+                {{-- Status dropdown --}}
+                <div class="relative">
+                    <button type="button" @click="statusOpen = !statusOpen"
+                        class="inline-flex items-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+                        :class="statusOpen || @js($status !== '') ? 'border-emerald-400 text-emerald-700' : 'border-slate-200 text-slate-600'">
+                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                        </svg>
+                        {{ $status !== '' ? collect($statuses)->first(fn($s) => $s->value === $status)?->label() ?? 'Status' : 'All Statuses' }}
+                        <svg class="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="statusOpen" x-cloak @click.outside="statusOpen = false"
+                        class="absolute left-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
+                        <button type="button" wire:click="$set('status', '')" @click="statusOpen = false"
+                            class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                            All Statuses
+                        </button>
+                        @foreach($statuses as $s)
+                            <button type="button" wire:click="$set('status', '{{ $s->value }}')" @click="statusOpen = false"
+                                class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === $s->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                                {{ $s->label() }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Date range dropdown --}}
+                <div class="relative">
+                    <button type="button" @click="dateOpen = !dateOpen"
+                        class="inline-flex items-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+                        :class="dateOpen || @js($dateRange !== '30') ? 'border-emerald-400 text-emerald-700' : 'border-slate-200 text-slate-600'">
+                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        @php $dateLabel = match($dateRange) { '7'=>'Last 7 Days','30'=>'Last 30 Days','90'=>'Last 90 Days',default=>'All Time' }; @endphp
+                        {{ $dateLabel }}
+                        <svg class="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="dateOpen" x-cloak @click.outside="dateOpen = false"
+                        class="absolute left-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
+                        @foreach([['7','Last 7 Days'],['30','Last 30 Days'],['90','Last 90 Days'],['','All Time']] as [$val,$lbl])
+                            <button type="button" wire:click="$set('dateRange', '{{ $val }}')" @click="dateOpen = false"
+                                class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $dateRange === $val ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                                {{ $lbl }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Type dropdown --}}
+                <div class="relative">
+                    <button type="button" @click="typeOpen = !typeOpen"
+                        class="inline-flex items-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+                        :class="typeOpen || @js($type !== '') ? 'border-emerald-400 text-emerald-700' : 'border-slate-200 text-slate-600'">
+                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        {{ $type !== '' ? collect($types)->first(fn($t) => $t->value === $type)?->label() ?? 'Type' : 'All Types' }}
+                        <svg class="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="typeOpen" x-cloak @click.outside="typeOpen = false"
+                        class="absolute left-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
+                        <button type="button" wire:click="$set('type', '')" @click="typeOpen = false"
+                            class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                            All Types
+                        </button>
+                        @foreach($types as $t)
+                            <button type="button" wire:click="$set('type', '{{ $t->value }}')" @click="typeOpen = false"
+                                class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === $t->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                                {{ $t->label() }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                @if($hasActiveFilters)
+                    <button type="button" wire:click="clearFilters"
+                        class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100">
+                        Clear
+                    </button>
+                @endif
+
+            </div>
+
+            {{-- Showing count --}}
+            <p class="shrink-0 whitespace-nowrap text-sm text-slate-400 sm:ml-auto">
+                Showing
+                <span class="font-semibold text-slate-700">
+                    {{ $orders->isEmpty() ? '0' : $orders->firstItem() . '-' . $orders->lastItem() }}
+                </span>
+                of
+                <span class="font-semibold text-slate-700">{{ $orders->total() }}</span>
+                projects
+            </p>
+
+        </div>
+
+        {{-- ───── Table ────────────────────────────────────────────────────────── --}}
+        <div class="overflow-x-auto">
+            @if($orders->isEmpty())
+                <div class="py-24 text-center">
+                    <svg class="mx-auto mb-4 h-12 w-12 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    <p class="text-sm font-medium text-slate-400">No orders found</p>
+                    <p class="mt-1 text-xs text-slate-300">Try adjusting your search or filters</p>
+                </div>
+            @else
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50/70 text-left">
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">Order #</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Project</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Client</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">Type</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-40">
+                                Amount<br><span class="normal-case font-normal">(SAR)</span>
+                            </th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">Status</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-32">Date</th>
+                            <th class="px-4 py-3 w-12"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($orders as $order)
+                            @php
+                                $sv = $order->status->value ?? 'pending';
+
+                                $dotClass = match($sv) {
+                                    'pending'    => 'bg-amber-400',
+                                    'confirmed'  => 'bg-blue-400',
+                                    'processing' => 'bg-indigo-400',
+                                    'shipped'    => 'bg-violet-400',
+                                    'delivered'  => 'bg-emerald-500',
+                                    'completed'  => 'bg-green-500',
+                                    'cancelled'  => 'bg-red-400',
+                                    'refunded'   => 'bg-slate-400',
+                                    default      => 'bg-slate-400',
+                                };
+                                $statusTextClass = match($sv) {
+                                    'pending'    => 'text-amber-600',
+                                    'confirmed'  => 'text-blue-600',
+                                    'processing' => 'text-indigo-600',
+                                    'shipped'    => 'text-violet-600',
+                                    'delivered'  => 'text-emerald-600',
+                                    'completed'  => 'text-green-700',
+                                    'cancelled'  => 'text-red-600',
+                                    'refunded'   => 'text-slate-500',
+                                    default      => 'text-slate-500',
+                                };
+
+                                $typeLabel     = $order->quotationRequest?->project_status?->label() ?? '—';
+                                $itemsTotal    = $order->items->sum(fn($i) => (float) ($i->total_price ?? 0));
+                                $displayAmount = $itemsTotal > 0 ? $itemsTotal : (float) $order->total_amount;
+                                $clientCompany = $order->client?->clientProfile?->company_name ?? $order->client?->name ?? '—';
+                            @endphp
+                            <tr class="hover:bg-slate-50/60 transition-colors">
+
+                                {{-- ORDER # --}}
+                                <td class="px-5 py-4">
+                                    <span class="font-bold text-slate-800">#{{ $order->order_no }}</span>
+                                </td>
+
+                                {{-- PROJECT --}}
+                                <td class="px-5 py-4 max-w-[220px]">
+                                    <p class="font-semibold text-slate-800 leading-tight truncate">
+                                        {{ $order->quotationRequest?->project_name ?? '—' }}
+                                    </p>
+                                    @if($order->client?->clientProfile?->city)
+                                        <p class="mt-0.5 text-xs text-slate-400 truncate">
+                                            {{ $order->client->clientProfile->city }}
+                                        </p>
+                                    @endif
+                                </td>
+
+                                {{-- CLIENT --}}
+                                <td class="px-5 py-4">
+                                    <span class="text-slate-700">{{ $clientCompany }}</span>
+                                </td>
+
+                                {{-- TYPE --}}
+                                <td class="px-5 py-4">
+                                    @if($typeLabel !== '—')
+                                        <span class="inline-flex items-center rounded border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                                            {{ $typeLabel }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-xs">—</span>
+                                    @endif
+                                </td>
+
+                                {{-- AMOUNT --}}
+                                <td class="px-5 py-4">
+                                    <span class="font-semibold text-slate-800">
+                                        {{ number_format($displayAmount, 0) }}
+                                    </span>
+                                </td>
+
+                                {{-- STATUS --}}
+                                <td class="px-5 py-4">
+                                    <span class="inline-flex items-center gap-1.5 text-sm font-medium {{ $statusTextClass }}">
+                                        <span class="inline-block h-2 w-2 rounded-full shrink-0 {{ $dotClass }}"></span>
+                                        {{ $order->status->label() }}
+                                    </span>
+                                </td>
+
+                                {{-- DATE --}}
+                                <td class="px-5 py-4">
+                                    <span class="whitespace-nowrap text-xs text-slate-500">
+                                        {{ $order->created_at?->format('M d, Y') }}
+                                    </span>
+                                </td>
+
+                                {{-- ACTIONS --}}
+                                <td class="px-4 py-4">
+                                    <div class="relative" x-data="{ open: false }">
+                                        <button @click="open = !open"
+                                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
+                                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <circle cx="12" cy="5" r="1.5"/>
+                                                <circle cx="12" cy="12" r="1.5"/>
+                                                <circle cx="12" cy="19" r="1.5"/>
+                                            </svg>
+                                        </button>
+                                        <div x-show="open" x-cloak @click.outside="open = false"
+                                            x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="opacity-0 scale-95"
+                                            x-transition:enter-end="opacity-100 scale-100"
+                                            x-transition:leave="transition ease-in duration-75"
+                                            x-transition:leave-start="opacity-100 scale-100"
+                                            x-transition:leave-end="opacity-0 scale-95"
+                                            class="absolute right-0 top-full z-30 mt-1 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
+                                            <a href="{{ route('admin.orders.show', $order->uuid) }}"
+                                                class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                                View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+
+        {{-- ───── Pagination ───────────────────────────────────────────────────── --}}
+        @if($orders->hasPages())
+        <div class="flex items-center justify-between border-t border-slate-100 px-5 py-4">
+
+            @if($orders->onFirstPage())
+                <span class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-300">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Previous
+                </span>
+            @else
+                <button wire:click="previousPage"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Previous
+                </button>
+            @endif
+
+            <nav class="flex items-center gap-1">
+                @php
+                    $cp    = $orders->currentPage();
+                    $lp    = $orders->lastPage();
+                    $pStart = max(1, $cp - 2);
+                    $pEnd   = min($lp, $cp + 2);
+                @endphp
+                @if($pStart > 1)
+                    <button wire:click="gotoPage(1)"
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50">1</button>
+                    @if($pStart > 2)<span class="px-1 text-slate-400 text-sm">...</span>@endif
+                @endif
+                @for($pg = $pStart; $pg <= $pEnd; $pg++)
+                    @if($pg === $cp)
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-sm font-semibold text-white">{{ $pg }}</span>
+                    @else
+                        <button wire:click="gotoPage({{ $pg }})"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50">{{ $pg }}</button>
+                    @endif
+                @endfor
+                @if($pEnd < $lp)
+                    @if($pEnd < $lp - 1)<span class="px-1 text-slate-400 text-sm">...</span>@endif
+                    <button wire:click="gotoPage({{ $lp }})"
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50">{{ $lp }}</button>
+                @endif
+            </nav>
+
+            @if($orders->hasMorePages())
+                <button wire:click="nextPage"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50">
+                    Next
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            @else
+                <span class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-300">
+                    Next
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </span>
+            @endif
+
+        </div>
+        @endif
+
+    </div>
+
+</div>

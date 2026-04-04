@@ -1,7 +1,7 @@
 @extends('layouts.enduser-app')
 
-@section('title', 'Edit Quotation – Qimta')
-@section('page-title', 'Edit Quotation')
+@section('title', 'Quotation – Qimta')
+@section('page-title', 'Quotation')
 
 @section('breadcrumb')
     <span class="text-xs text-slate-400">Home</span>
@@ -17,19 +17,6 @@
 
 @section('content')
 
-<div class="mb-6 flex items-center justify-between">
-    <div>
-        <h1 class="text-xl font-bold text-slate-900">{{ $quotation->quotation_no }}</h1>
-        <p class="mt-1 text-sm text-slate-500">{{ $quotation->project_name }}</p>
-    </div>
-    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold
-        @if($quotation->status->value === 'draft') bg-amber-100 text-amber-700
-        @elseif($quotation->status->value === 'submitted') bg-blue-100 text-blue-700
-        @else bg-slate-100 text-slate-600 @endif">
-        {{ $quotation->status->label() }}
-    </span>
-</div>
-
-<livewire:enduser.quotations.create-quotation :quotationId="$quotation->id" />
+<livewire:enduser.quotations.show-quotation :uuid="$quotation->uuid" />
 
 @endsection

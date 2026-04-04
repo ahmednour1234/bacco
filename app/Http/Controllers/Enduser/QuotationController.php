@@ -27,5 +27,15 @@ class QuotationController extends Controller
 
         return view('enduser.quotations.show', compact('quotation'));
     }
+
+    public function edit(string $uuid): View
+    {
+        $quotation = QuotationRequest::where('uuid', $uuid)
+            ->where('client_id', Auth::id())
+            ->whereIn('status', ['draft', 'tender'])
+            ->firstOrFail();
+
+        return view('enduser.quotations.edit', compact('quotation'));
+    }
 }
 

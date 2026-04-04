@@ -2,14 +2,22 @@
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\QuotationController as AdminQuotationController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
+use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Enduser\OrderController as EnduserOrderController;
 use App\Http\Controllers\Enduser\AuthController as EnduserAuthController;
 use App\Http\Controllers\Enduser\DashboardController as EnduserDashboardController;
 use App\Http\Controllers\Enduser\ProfileController as EnduserProfileController;
 use App\Http\Controllers\Enduser\QuotationController as EnduserQuotationController;
+use App\Http\Controllers\Supplier\AuthController as SupplierAuthController;
+use App\Http\Controllers\Supplier\DashboardController as SupplierDashboardController;
+use App\Http\Controllers\Supplier\ProductController as SupplierProductController;
+use App\Http\Controllers\Supplier\ProfileController as SupplierProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -48,9 +56,14 @@ Route::prefix('enduser')->name('enduser.')->group(function () {
         Route::put('/profile',          [EnduserProfileController::class, 'update'])->name('profile.update');
 
         // Quotations
-        Route::get('/quotations',        [EnduserQuotationController::class, 'index'])->name('quotations.index');
-        Route::get('/quotations/create', [EnduserQuotationController::class, 'create'])->name('quotations.create');
-        Route::get('/quotations/{uuid}', [EnduserQuotationController::class, 'show'])->name('quotations.show');
+        Route::get('/quotations',              [EnduserQuotationController::class, 'index'])->name('quotations.index');
+        Route::get('/quotations/create',        [EnduserQuotationController::class, 'create'])->name('quotations.create');
+        Route::get('/quotations/{uuid}/edit',   [EnduserQuotationController::class, 'edit'])->name('quotations.edit');
+        Route::get('/quotations/{uuid}',        [EnduserQuotationController::class, 'show'])->name('quotations.show');
+
+        // Orders
+        Route::get('/orders',        [EnduserOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{uuid}', [EnduserOrderController::class, 'show'])->name('orders.show');
     });
 });
 
@@ -72,6 +85,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/profile',   [AdminProfileController::class, 'show'])->name('profile');
         Route::put('/profile',   [AdminProfileController::class, 'update'])->name('profile.update');
 
+        // Quotations (read-only)
+        Route::get('/quotations', [AdminQuotationController::class, 'index'])->name('quotations.index');
+        Route::get('/quotations/{uuid}', [AdminQuotationController::class, 'show'])->name('quotations.show');
+
         // Catalog – Brands
         Route::resource('brands', AdminBrandController::class)->except(['show']);
 
@@ -80,5 +97,50 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Catalog – Products
         Route::resource('products', AdminProductController::class)->except(['show', 'store', 'update', 'destroy']);
+
+        // Orders
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{uuid}', [AdminOrderController::class, 'show'])->name('orders.show');
+
+        // Suppliers
+        Route::resource('suppliers', AdminSupplierController::class)->except(['destroy']);
+        Route::post('/suppliers/{uuid}/toggle-status', [AdminSupplierController::class, 'toggleStatus'])->name('suppliers.toggle-status');
+    });
+});
+
+// ─── Supplier Portal ──────────────────────────────────────────────────────────
+Route::prefix('supplier')->name('supplier.')->group(function () {
+
+    // Guest only
+    Route::middleware('guest')->group(function () {
+        Route::get('/register',            [SupplierAuthController::class, 'showRegister'])->name('register');
+        Route::post('/register',           [SupplierAuthController::class, 'register'])->name('register.store');
+
+        Route::get('/login',               [SupplierAuthController::class, 'showLogin'])->name('login');
+        Route::post('/login',              [SupplierAuthController::class, 'login'])->name('login.store');
+
+        Route::get('/forgot-password',       [SupplierAuthController::class, 'showForgotPassword'])->name('forgot-password');
+        Route::post('/forgot-password/send', [SupplierAuthController::class, 'sendOtp'])->name('forgot-password.send');
+
+        Route::get('/otp',                   [SupplierAuthController::class, 'showOtp'])->name('otp');
+        Route::post('/otp/verify',           [SupplierAuthController::class, 'verifyOtp'])->name('otp.verify');
+
+        Route::get('/reset-password',        [SupplierAuthController::class, 'showResetPassword'])->name('reset-password');
+        Route::post('/reset-password',       [SupplierAuthController::class, 'updatePassword'])->name('reset-password.update');
+    });
+
+    // Authenticated suppliers only
+    Route::middleware(['auth', 'supplier'])->group(function () {
+        Route::get('/logout',    [SupplierAuthController::class, 'logout'])->name('logout');
+        Route::get('/dashboard', [SupplierDashboardController::class, 'index'])->name('dashboard');
+
+        // Profile
+        Route::get('/profile',   [SupplierProfileController::class, 'show'])->name('profile');
+        Route::put('/profile',   [SupplierProfileController::class, 'update'])->name('profile.update');
+
+        // Products catalogue
+        Route::get('/products',                         [SupplierProductController::class, 'index'])->name('products.index');
+        Route::get('/products/create',                  [SupplierProductController::class, 'create'])->name('products.create');
+        Route::get('/products/{supplierProduct}/edit',  [SupplierProductController::class, 'edit'])->name('products.edit');
     });
 });

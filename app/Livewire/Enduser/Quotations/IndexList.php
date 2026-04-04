@@ -26,9 +26,9 @@ class IndexList extends Component
 
     public string $updated_to = '';
 
-    public int $perPage = 10;
+    public int $perPage = 5;
 
-    protected array $allowedPerPage = [10, 50, 25, 5];
+    protected array $allowedPerPage = [5, 10, 25, 50];
 
     public function updating($name): void
     {
@@ -46,6 +46,21 @@ class IndexList extends Component
         $this->resetPage();
     }
 
+    public function deleteQuotation(int $id): void
+    {
+        $quotation = QuotationRequest::where('id', $id)
+            ->where('client_id', Auth::id())
+            ->firstOrFail();
+
+        if (! in_array($quotation->status->value, ['draft', 'tender'], true)) {
+            $this->dispatch('toast', message: 'Only draft or tender quotations can be deleted.', type: 'error');
+            return;
+        }
+
+        $quotation->delete();
+        $this->dispatch('toast', message: 'Quotation deleted successfully.', type: 'success');
+    }
+
     public function clearFilters(): void
     {
         $this->search = '';
@@ -55,7 +70,7 @@ class IndexList extends Component
         $this->created_to = '';
         $this->updated_from = '';
         $this->updated_to = '';
-        $this->perPage = 10;
+        $this->perPage = 5;
         $this->resetPage();
     }
 
@@ -71,14 +86,22 @@ class IndexList extends Component
         ];
 
         $query = QuotationRequest::query()
+            ->with([
+                'client.clientProfile',
+                'items'  => fn($q) => $q->select('id', 'quotation_request_id', 'unit_price', 'quantity'),
+                'orders' => fn($q) => $q->select('id', 'uuid', 'order_no', 'quotation_request_id'),
+            ])
             ->where('client_id', $clientId)
             ->latest();
 
         if ($this->search !== '') {
-            $query->where(function ($builder): void {
+            $search = $this->search;
+            $query->where(function ($builder) use ($search): void {
                 $builder
-                    ->where('quotation_no', 'like', '%' . $this->search . '%')
-                    ->orWhere('notes', 'like', '%' . $this->search . '%');
+                    ->where('quotation_no', 'like', '%' . $search . '%')
+                    ->orWhere('project_name', 'like', '%' . $search . '%')
+                    ->orWhereHas('client', fn($q) => $q->where('name', 'like', '%' . $search . '%'))
+                    ->orWhereHas('client.clientProfile', fn($q) => $q->where('company_name', 'like', '%' . $search . '%'));
             });
         }
 

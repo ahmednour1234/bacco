@@ -8,7 +8,9 @@ use App\Enums\QuotationRequestStatusEnum;
 use App\Enums\QuotationSourceTypeEnum;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
+use App\Models\Unit;
 use App\Models\UploadedDocument;
+use App\Services\PricingService;
 use App\Services\QuotationAiService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,11 +31,13 @@ class CreateQuotation extends Component
 
     public ?int $quotationId = null;
 
+    public bool $isEditMode = false;
+
     #[Validate('required|string|max:255')]
     public string $projectName = '';
 
     #[Validate('required|string')]
-    public string $projectStatus = '';
+    public string $projectStatus = QuotationProjectStatusEnum::Pending->value;
 
     /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
     public $boqFile = null;
@@ -45,6 +49,10 @@ class CreateQuotation extends Component
 
     public string $boqFileName = '';
 
+    public bool $showPricing = false;
+
+    public bool $pricingLoading = false;
+
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------
@@ -55,8 +63,12 @@ class CreateQuotation extends Component
     public function mount(?int $quotationId = null): void
     {
         if ($quotationId === null) {
+            $this->isEditMode = false;
+            $this->projectStatus = QuotationProjectStatusEnum::Pending->value;
             return;
         }
+
+        $this->isEditMode = true;
 
         $quotation = QuotationRequest::where('client_id', Auth::id())
             ->findOrFail($quotationId);
@@ -91,6 +103,9 @@ class CreateQuotation extends Component
                 'engineering_required' => (bool) $item->engineering_required,
                 'confidence'           => $item->confidence,
                 'ai_extracted'         => (bool) $item->ai_extracted,
+                'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
+                'price_source'         => $item->price_source,
+                'price_status'         => $item->price_status ?? 'pending',
             ])
             ->toArray();
     }
@@ -169,6 +184,10 @@ class CreateQuotation extends Component
             } elseif (empty($result['items'])) {
                 $this->dispatch('toast', message: 'The AI service could not extract any items from the uploaded file. Please add items manually.', type: 'warning');
             } else {
+                // Replace current table rows with the latest AI response.
+                QuotationItem::where('quotation_request_id', $quotation->id)->delete();
+                $this->items = [];
+
                 foreach ($result['items'] as $aiItem) {
                     $this->items[] = array_merge([
                         'id'                   => null,
@@ -181,6 +200,9 @@ class CreateQuotation extends Component
                         'engineering_required' => false,
                         'confidence'           => null,
                         'ai_extracted'         => true,
+                        'unit_price'           => null,
+                        'price_source'         => null,
+                        'price_status'         => 'pending',
                     ], $aiItem);
                 }
 
@@ -204,6 +226,55 @@ class CreateQuotation extends Component
     }
 
     // -------------------------------------------------------------------------
+    // Pricing
+    // -------------------------------------------------------------------------
+
+    public function fetchPricing(): void
+    {
+        if (empty($this->items)) {
+            $this->dispatch('toast', message: 'Add items first before fetching prices.', type: 'warning');
+            return;
+        }
+
+        $this->pricingLoading = true;
+
+        try {
+            $this->items      = app(PricingService::class)->fetchPrices($this->items);
+            $this->showPricing = true;
+        } catch (\Throwable $e) {
+            Log::error('CreateQuotation::fetchPricing failed.', ['message' => $e->getMessage()]);
+            $this->dispatch('toast', message: 'Pricing fetch failed. Please try again.', type: 'error');
+        } finally {
+            $this->pricingLoading = false;
+        }
+
+        $found  = collect($this->items)->filter(fn($i) => ! empty($i['unit_price']))->count();
+        $missed = count($this->items) - $found;
+
+        $msg = "{$found} item(s) priced successfully.";
+        if ($missed > 0) {
+            $msg .= " {$missed} item(s) could not be priced automatically.";
+        }
+        $this->dispatch('toast', message: $msg, type: $found > 0 ? 'success' : 'warning');
+    }
+
+    public function approvePriceItem(int $index): void
+    {
+        if (! array_key_exists($index, $this->items)) {
+            return;
+        }
+        $this->items[$index]['price_status'] = 'approved';
+    }
+
+    public function rejectPriceItem(int $index): void
+    {
+        if (! array_key_exists($index, $this->items)) {
+            return;
+        }
+        $this->items[$index]['price_status'] = 'rejected';
+    }
+
+    // -------------------------------------------------------------------------
     // Manual item management
     // -------------------------------------------------------------------------
 
@@ -220,6 +291,9 @@ class CreateQuotation extends Component
             'engineering_required' => false,
             'confidence'           => null,
             'ai_extracted'         => false,
+            'unit_price'           => null,
+            'price_source'         => null,
+            'price_status'         => 'pending',
         ];
     }
 
@@ -283,6 +357,17 @@ class CreateQuotation extends Component
         array_splice($this->items, $index, 1);
     }
 
+    public function clearAllItems(): void
+    {
+        if ($this->quotationId !== null) {
+            QuotationItem::where('quotation_request_id', $this->quotationId)->delete();
+        }
+
+        $this->items = [];
+
+        $this->dispatch('toast', message: 'All items removed successfully.', type: 'success');
+    }
+
     // -------------------------------------------------------------------------
     // Save draft / Submit
     // -------------------------------------------------------------------------
@@ -320,13 +405,11 @@ class CreateQuotation extends Component
             return;
         }
 
-        $quotation = $this->persistQuotation(QuotationRequestStatusEnum::Submitted);
+        $quotation = $this->persistQuotation(QuotationRequestStatusEnum::Tender);
         $this->persistItems($quotation);
         $this->quotationId = $quotation->id;
 
-        session()->flash('success', 'Quotation submitted successfully.');
-
-        $this->redirect(route('enduser.quotations.index'));
+        $this->redirect(route('enduser.quotations.show', $quotation->uuid));
     }
 
     // -------------------------------------------------------------------------
@@ -347,6 +430,10 @@ class CreateQuotation extends Component
 
     private function persistQuotation(QuotationRequestStatusEnum $status): QuotationRequest
     {
+        if (! $this->isEditMode) {
+            $this->projectStatus = QuotationProjectStatusEnum::Pending->value;
+        }
+
         $attributes = [
             'project_name'   => $this->projectName,
             'project_status' => $this->projectStatus,
@@ -357,8 +444,8 @@ class CreateQuotation extends Component
                 ->findOrFail($this->quotationId);
 
             // Only allow updating status forward (draft → submitted), never backward
-            if ($status === QuotationRequestStatusEnum::Submitted) {
-                $attributes['status'] = QuotationRequestStatusEnum::Submitted;
+            if (in_array($status, [QuotationRequestStatusEnum::Submitted, QuotationRequestStatusEnum::Tender], true)) {
+                $attributes['status'] = $status;
             }
 
             $quotation->update($attributes);
@@ -381,10 +468,20 @@ class CreateQuotation extends Component
     private function persistItems(QuotationRequest $quotation): void
     {
         foreach ($this->items as $index => $row) {
+            $unitName = trim((string) ($row['unit'] ?? ''));
+            $unitId   = null;
+            if ($unitName !== '') {
+                $unitId = Unit::firstOrCreate(
+                    ['name' => $unitName],
+                    ['symbol' => mb_strtolower(mb_substr($unitName, 0, 20))]
+                )->id;
+            }
+
             $data = [
                 'quotation_request_id' => $quotation->id,
                 'description'          => (string) ($row['description'] ?? ''),
                 'quantity'             => is_numeric($row['quantity'] ?? null) ? (float) $row['quantity'] : 0,
+                'unit_id'              => $unitId,
                 'category'             => (string) ($row['category'] ?? ''),
                 'brand'                => (string) ($row['brand'] ?? ''),
                 'status'               => $row['status'] ?? 'pending',
@@ -392,6 +489,9 @@ class CreateQuotation extends Component
                 'confidence'           => is_numeric($row['confidence'] ?? null) ? (float) $row['confidence'] : null,
                 'raw_data'             => $row['raw_data'] ?? null,
                 'ai_extracted'         => (bool) ($row['ai_extracted'] ?? false),
+                'unit_price'           => is_numeric($row['unit_price'] ?? null) ? (float) $row['unit_price'] : null,
+                'price_source'         => $row['price_source'] ?? null,
+                'price_status'         => $row['price_status'] ?? 'pending',
             ];
 
             if (! empty($row['id'])) {

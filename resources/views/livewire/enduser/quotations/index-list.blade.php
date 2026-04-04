@@ -1,137 +1,459 @@
-<div x-data="{ filterOpen: false }">
-    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Total</p>
-            <p class="mt-2 text-3xl font-bold text-slate-900">{{ $stats['total'] }}</p>
-        </div>
-        <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Active</p>
-            <p class="mt-2 text-3xl font-bold text-slate-900">{{ $stats['active'] }}</p>
-        </div>
-        <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Completed</p>
-            <p class="mt-2 text-3xl font-bold text-slate-900">{{ $stats['completed'] }}</p>
+<div
+    x-data="{
+        statusOpen: false,
+        dateOpen: false,
+        toast: null,
+        deleteModal: { open: false, id: null, no: '' },
+        showToast(message, type = 'success') {
+            this.toast = { message, type };
+            setTimeout(() => this.toast = null, 4000);
+        },
+        openDelete(id, no) {
+            this.deleteModal = { open: true, id, no };
+        },
+        confirmDelete() {
+            if (this.deleteModal.id) {
+                $wire.deleteQuotation(this.deleteModal.id);
+            }
+            this.deleteModal = { open: false, id: null, no: '' };
+        }
+    }"
+    x-on:toast.window="showToast($event.detail.message, $event.detail.type)"
+>
+
+    {{-- ───── Toast ────────────────────────────────────────────────────────────── --}}
+    <div
+        x-show="toast !== null"
+        x-cloak
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl px-5 py-3.5 shadow-lg text-sm font-medium"
+        :class="{
+            'bg-emerald-50 text-emerald-700 border border-emerald-200': toast?.type === 'success',
+            'bg-red-50 text-red-700 border border-red-200':             toast?.type === 'error',
+            'bg-amber-50 text-amber-700 border border-amber-200':       toast?.type === 'warning',
+        }"
+    >
+        <span x-text="toast?.message"></span>
+        <button @click="toast = null" class="ml-1 opacity-60 hover:opacity-100">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    {{-- ───── Delete Confirmation Modal ─────────────────────────────────────────── --}}
+    <div
+        x-show="deleteModal.open"
+        x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style="display:none"
+    >
+        {{-- Backdrop --}}
+        <div
+            class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            @click="deleteModal.open = false"
+        ></div>
+
+        {{-- Panel --}}
+        <div
+            x-show="deleteModal.open"
+            x-transition:enter="transition ease-out duration-250"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5"
+        >
+            {{-- Top accent bar --}}
+            <div class="h-1.5 w-full rounded-t-2xl bg-gradient-to-r from-red-400 to-rose-500"></div>
+
+            <div class="px-6 pb-6 pt-5">
+                {{-- Icon --}}
+
+
+                {{-- Title & message --}}
+                <h3 class="text-center text-base font-bold text-slate-900">Delete Quotation</h3>
+                <p class="mt-1.5 text-center text-sm text-slate-500">
+                    Are you sure you want to permanently delete
+                    <span class="font-semibold text-slate-800" x-text="'#' + deleteModal.no"></span>?
+                    <br>This action <span class="font-semibold text-red-600">cannot be undone</span>.
+                </p>
+
+                {{-- Buttons --}}
+                <div class="mt-6 flex items-center gap-3">
+                    <button
+                        type="button"
+                        @click="deleteModal.open = false"
+                        class="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >Cancel</button>
+                    <button
+                        type="button"
+                        @click="confirmDelete()"
+                        class="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
+                    >Yes, Delete</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    {{-- ───── Page Header ───────────────────────────────────────────────────────── --}}
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-            <h3 class="text-base font-semibold text-slate-800">Recent Quotations</h3>
-            <p class="mt-0.5 text-xs text-slate-400">{{ $quotations->total() }} {{ \Illuminate\Support\Str::plural('quotation', $quotations->total()) }} found</p>
+            <h1 class="text-2xl font-bold text-slate-900">Track Quotations</h1>
+            <p class="mt-1 text-sm text-slate-500">Manage and monitor your construction project bids</p>
         </div>
+        <a
+            href="{{ route('enduser.quotations.create') }}"
+            class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
+        >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            New Quotation
+        </a>
+    </div>
 
-        <div class="flex flex-wrap items-center gap-3">
-            <div class="relative w-full sm:w-72">
-                <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </span>
-                <input type="search" wire:model.live.debounce.300ms="search" placeholder="Search quotations" class="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-11 text-sm text-slate-700 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
+    {{-- ───── Stat Cards ────────────────────────────────────────────────────────── --}}
+    <div class="mb-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+        <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+            <div>
+                <p class="text-xs font-medium text-slate-400">Total Quotations</p>
+                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
             </div>
-
-            <label class="text-sm font-medium text-slate-500">Per page</label>
-            <select wire:model.live="perPage" class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
-                @foreach ([10, 50, 25, 5] as $option)
-                    <option value="{{ $option }}">{{ $option }}</option>
-                @endforeach
-            </select>
-
-            <button type="button" @click="filterOpen = !filterOpen" class="relative inline-flex h-11 items-center gap-2 rounded-2xl border px-4 text-sm font-medium transition" :class="filterOpen ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'">
-                Filter
-                @if ($hasActiveFilters)
-                    <span class="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white"></span>
-                @endif
-            </button>
-
-            <a href="{{ route('enduser.quotations.create') }}" class="inline-flex h-11 items-center gap-2 rounded-2xl bg-emerald-500 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-600">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                <svg class="h-6 w-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                New Quotation
-            </a>
+            </div>
         </div>
+
+        <div class="flex items-center justify-between rounded-2xl border border-emerald-100 bg-white px-6 py-5 shadow-sm">
+            <div>
+                <p class="text-xs font-medium text-slate-400">Active Quotations</p>
+                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['active'] }}</p>
+            </div>
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
+                <svg class="h-6 w-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between rounded-2xl border border-blue-100 bg-white px-6 py-5 shadow-sm">
+            <div>
+                <p class="text-xs font-medium text-slate-400">Completed Quotations</p>
+                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['completed'] }}</p>
+            </div>
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
+                <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+        </div>
+
     </div>
 
-    <div x-show="filterOpen" x-cloak class="mb-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div>
-                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Quotation No</label>
-                <input type="text" wire:model.live.debounce.300ms="quotation_no" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400">
-            </div>
+    {{-- ───── Section Header + Search ─────────────────────────────────────────── --}}
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+        <h2 class="flex-1 text-base font-bold text-slate-900">Recent Quotations</h2>
 
-            <div>
-                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Status</label>
-                <select wire:model.live="status" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400">
-                    <option value="">All statuses</option>
-                    @foreach ($statuses as $statusItem)
-                        <option value="{{ $statusItem->value }}">{{ $statusItem->label() }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div>
-                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Created From</label>
-                <input type="date" wire:model.live="created_from" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400">
-            </div>
-
-            <div>
-                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Created To</label>
-                <input type="date" wire:model.live="created_to" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400">
-            </div>
-
-            <div>
-                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Updated From</label>
-                <input type="date" wire:model.live="updated_from" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400">
-            </div>
-
-            <div>
-                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Updated To</label>
-                <input type="date" wire:model.live="updated_to" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400">
-            </div>
+        {{-- Search --}}
+        <div class="relative min-w-[220px]">
+            <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                </svg>
+            </span>
+            <input
+                type="search"
+                wire:model.live.debounce.300ms="search"
+                placeholder="Search quotations..."
+                class="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+            >
         </div>
 
-        <div class="mt-4 border-t border-slate-100 pt-4">
-            <button wire:click="clearFilters" type="button" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
-                Clear Filters
+        {{-- Status filter --}}
+        <div class="relative">
+            <button
+                type="button"
+                @click="statusOpen = !statusOpen"
+                class="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+                :class="statusOpen || @js($status !== '') ? 'border-emerald-400 text-emerald-700' : 'border-slate-200 text-slate-600'"
+            >
+                @if($status !== '')
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                @endif
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                </svg>
             </button>
+            <div
+                x-show="statusOpen"
+                x-cloak
+                @click.outside="statusOpen = false"
+                class="absolute right-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
+            >
+                <button type="button" wire:click="$set('status', '')" @click="statusOpen = false"
+                    class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                    All Statuses
+                </button>
+                @foreach($statuses as $statusItem)
+                    <button type="button" wire:click="$set('status', '{{ $statusItem->value }}')" @click="statusOpen = false"
+                        class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === $statusItem->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                        {{ $statusItem->label() }}
+                    </button>
+                @endforeach
+            </div>
         </div>
-    </div>
 
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        @if ($quotations->isEmpty())
-            <div class="px-6 py-16 text-center text-sm text-slate-500">No quotations found for the selected filters.</div>
-        @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50">
-                            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Quotation No</th>
-                            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
-                            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Source</th>
-                            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Created</th>
-                            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Updated</th>
-                            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @foreach ($quotations as $quotation)
-                            <tr class="transition-colors hover:bg-slate-50">
-                                <td class="px-5 py-4 font-medium text-slate-900">{{ $quotation->quotation_no }}</td>
-                                <td class="px-5 py-4 text-slate-700">{{ $quotation->status->label() }}</td>
-                                <td class="px-5 py-4 text-slate-600">{{ $quotation->source_type?->value ?? 'manual' }}</td>
-                                <td class="px-5 py-4 text-slate-500">{{ $quotation->created_at?->format('Y-m-d') }}</td>
-                                <td class="px-5 py-4 text-slate-500">{{ $quotation->updated_at?->format('Y-m-d') }}</td>
-                                <td class="max-w-sm truncate px-5 py-4 text-slate-500">{{ $quotation->notes ?? '—' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        {{-- Date filter --}}
+        <div class="relative">
+            <button
+                type="button"
+                @click="dateOpen = !dateOpen"
+                class="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+                :class="dateOpen || @js($created_from !== '' || $created_to !== '') ? 'border-emerald-400 text-emerald-700' : 'border-slate-200 text-slate-600'"
+            >
+                @if($created_from !== '' || $created_to !== '')
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                @endif
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </button>
+            <div
+                x-show="dateOpen"
+                x-cloak
+                @click.outside="dateOpen = false"
+                class="absolute right-0 top-full z-20 mt-1.5 w-56 rounded-xl border border-slate-200 bg-white p-4 shadow-lg"
+            >
+                <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Date Range</p>
+                <div class="flex flex-col gap-2">
+                    <div>
+                        <label class="mb-1 block text-xs text-slate-500">From</label>
+                        <input type="date" wire:model.live="created_from"
+                            class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 outline-none focus:border-emerald-400">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs text-slate-500">To</label>
+                        <input type="date" wire:model.live="created_to"
+                            class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 outline-none focus:border-emerald-400">
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <div class="px-5 py-4">
-                {{ $quotations->links('livewire::tailwind') }}
-            </div>
+        @if($hasActiveFilters)
+            <button type="button" wire:click="clearFilters"
+                class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100">
+                Clear
+            </button>
         @endif
     </div>
+
+    {{-- ───── Quotation Cards ────────────────────────────────────────────────────── --}}
+    @if($quotations->isEmpty())
+        <div class="rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
+            <svg class="mx-auto mb-4 h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="text-sm font-medium text-slate-400">No quotations found</p>
+            <p class="mt-1 text-xs text-slate-300">Try adjusting your filters or create a new quotation</p>
+        </div>
+    @else
+        <div class="space-y-6">
+            @foreach($quotations as $quotation)
+                @php
+                    $sv = $quotation->status->value ?? '';
+
+                    $badgeClass = match($sv) {
+                        'tender'    => 'bg-blue-50 text-blue-600 ring-1 ring-blue-200',
+                        'submitted' => 'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200',
+                        'in_review' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-200',
+                        'quoted'    => 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200',
+                        'accepted'  => 'bg-green-50 text-green-700 ring-1 ring-green-200',
+                        'rejected'  => 'bg-red-50 text-red-600 ring-1 ring-red-200',
+                        'draft'     => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+                        default     => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+                    };
+
+                    $leftBorder = match($sv) {
+                        'tender'    => 'border-l-blue-400',
+                        'submitted' => 'border-l-indigo-400',
+                        'in_review' => 'border-l-amber-400',
+                        'quoted'    => 'border-l-emerald-400',
+                        'accepted'  => 'border-l-green-500',
+                        'rejected'  => 'border-l-red-400',
+                        'draft'     => 'border-l-slate-300',
+                        default     => 'border-l-slate-300',
+                    };
+
+                    $statusMsg = match($sv) {
+                        'draft'     => 'Draft saved. Complete your quotation and submit when ready.',
+                        'tender'    => 'Quotation is ready for review. Select products and submit for approval.',
+                        'submitted' => 'Quotation submitted. Qimta team is reviewing your request.',
+                        'in_review' => 'Qimta team is working on your quote.',
+                        'quoted'    => 'Price quotation is ready. Please review and accept.',
+                        'accepted'  => 'Final quotation delivered and approved.',
+                        'rejected'  => 'Quotation was rejected. Please contact support.',
+                        default     => 'Status update pending.',
+                    };
+
+                    $msgIconClass = match($sv) {
+                        'rejected'  => 'text-red-400',
+                        'draft'     => 'text-slate-400',
+                        default     => 'text-emerald-500',
+                    };
+
+                    $canEdit = in_array($sv, ['draft', 'tender'], true);
+                    $amount  = $quotation->items->sum(fn($i) => ($i->unit_price ?? 0) * $i->quantity);
+                @endphp
+
+                <div class="group flex flex-col gap-4 rounded-2xl border border-slate-200 border-l-4 {{ $leftBorder }} bg-white px-6 py-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
+
+                    {{-- Left: info --}}
+                    <div class="flex-1 min-w-0">
+
+                        {{-- Badge + ID --}}
+                        <div class="mb-2 flex flex-wrap items-center gap-2">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide {{ $badgeClass }}">
+                                {{ $quotation->status->label() }}
+                            </span>
+                            <span class="text-xs text-slate-400 font-mono">ID: #{{ $quotation->quotation_no }}</span>
+                        </div>
+
+                        {{-- Project name --}}
+                        <h3 class="text-base font-bold text-slate-900 truncate">
+                            {{ $quotation->project_name ?? '(Untitled Project)' }}
+                        </h3>
+
+                        {{-- Meta line --}}
+                        <p class="mt-0.5 text-xs text-slate-400">
+                            {{ $quotation->project_status?->label() ?? 'General' }}
+                            &middot;
+                            Submitted: {{ $quotation->created_at?->format('M d, Y') }}
+                            @if($amount > 0)
+                                &middot;
+                                <span class="font-semibold text-slate-600">{{ number_format($amount, 2) }} SAR</span>
+                            @endif
+                        </p>
+
+                        {{-- Status message --}}
+                        <p class="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
+                            @if($sv === 'rejected')
+                                <svg class="h-4 w-4 shrink-0 {{ $msgIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            @else
+                                <svg class="h-4 w-4 shrink-0 {{ $msgIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            @endif
+                            {{ $statusMsg }}
+                        </p>
+                    </div>
+
+                    {{-- Right: actions --}}
+                    <div class="flex shrink-0 items-center gap-2">
+
+                        @if($canEdit)
+                            <button
+                                type="button"
+                                @click="openDelete({{ $quotation->id }}, '{{ $quotation->quotation_no }}')"
+                                title="Delete"
+                                class="rounded-lg p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        @endif
+
+                        <a
+                            href="{{ route('enduser.quotations.show', $quotation->uuid) }}"
+                            class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
+                        >
+                            View Details
+                        </a>
+                    </div>
+
+                </div>
+            @endforeach
+        </div>
+
+        {{-- Pagination --}}
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm text-slate-500">
+                Showing
+                <span class="font-semibold text-slate-700">{{ $quotations->firstItem() }}</span>
+                to
+                <span class="font-semibold text-slate-700">{{ $quotations->lastItem() }}</span>
+                of
+                <span class="font-semibold text-slate-700">{{ $quotations->total() }}</span>
+                results
+            </p>
+
+            @if($quotations->hasPages())
+            <nav class="flex items-center gap-1">
+                @if($quotations->onFirstPage())
+                    <span class="inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 text-slate-300">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </span>
+                @else
+                    <button wire:click="previousPage" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                @endif
+
+                @foreach($quotations->getUrlRange(max(1, $quotations->currentPage() - 2), min($quotations->lastPage(), $quotations->currentPage() + 2)) as $page => $url)
+                    @if($page == $quotations->currentPage())
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">{{ $page }}</span>
+                    @else
+                        <button wire:click="gotoPage({{ $page }})" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50">{{ $page }}</button>
+                    @endif
+                @endforeach
+
+                @if($quotations->hasMorePages())
+                    <button wire:click="nextPage" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                @else
+                    <span class="inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 text-slate-300">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </span>
+                @endif
+            </nav>
+            @endif
+        </div>
+    @endif
+
 </div>

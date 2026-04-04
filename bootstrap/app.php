@@ -13,13 +13,18 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(function (Request $request): string {
-            return $request->is('admin') || $request->is('admin/*')
-                ? route('admin.login')
-                : route('enduser.login');
+            if ($request->is('admin') || $request->is('admin/*')) {
+                return route('admin.login');
+            }
+            if ($request->is('supplier') || $request->is('supplier/*')) {
+                return route('supplier.login');
+            }
+            return route('enduser.login');
         });
 
         $middleware->alias([
             'employee' => \App\Http\Middleware\EnsureUserIsEmployee::class,
+            'supplier' => \App\Http\Middleware\EnsureUserIsSupplier::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
