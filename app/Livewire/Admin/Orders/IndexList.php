@@ -40,9 +40,9 @@ class IndexList extends Component
 
         $stats = [
             'total'       => (clone $allOrders)->count(),
-            'engineering' => (clone $allOrders)->whereHas('projects.engineeringUpdates')->count(),
+            'engineering' => (clone $allOrders)->whereHas('engineeringUpdates')->count(),
             'waiting'     => (clone $allOrders)->whereIn('status', ['pending', 'confirmed'])->count(),
-            'logistics'   => (clone $allOrders)->whereHas('projects.logisticsUpdates')->count(),
+            'logistics'   => (clone $allOrders)->whereHas('logisticsUpdates')->count(),
             'delivered'   => (clone $allOrders)->where('status', 'delivered')->count(),
             'closed'      => (clone $allOrders)->whereIn('status', ['completed', 'cancelled', 'refunded'])->count(),
         ];

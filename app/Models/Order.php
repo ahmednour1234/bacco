@@ -66,4 +66,14 @@ class Order extends BaseModel
     {
         return $this->hasMany(UploadedDocument::class);
     }
+
+    public function engineeringUpdates(): HasMany
+    {
+        return $this->hasMany(EngineeringUpdate::class);
+    }
+
+    public function logisticsUpdates(): HasMany
+    {
+        return $this->hasMany(LogisticsUpdate::class);
+    }
 }

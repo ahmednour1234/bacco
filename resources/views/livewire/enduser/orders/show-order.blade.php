@@ -111,9 +111,8 @@
 
     {{-- ───── BOQ Table ────────────────────────────────────────────────────────── --}}
     @php
-        $project    = $order->projects->first();
-        $logUpdates = $project?->logisticsUpdates->sortByDesc('created_at') ?? collect();
-        $engUpdates = $project?->engineeringUpdates->sortByDesc('created_at') ?? collect();
+        $logUpdates = $order->logisticsUpdates->sortByDesc('created_at');
+        $engUpdates = $order->engineeringUpdates->sortByDesc('created_at');
         $latestLog  = $logUpdates->first();
         $latestEng  = $engUpdates->first();
 

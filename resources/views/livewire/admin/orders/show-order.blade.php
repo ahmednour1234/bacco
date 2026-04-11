@@ -408,19 +408,38 @@
                                     <span class="h-2 w-2 rounded-full bg-blue-500"></span>
                                 </span>
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">{{ $eu['label'] }}</span>
-                                        <span class="text-xs text-slate-400">{{ $eu['date'] }}</span>
-                                        <span class="text-xs text-slate-400">· {{ $eu['user'] }}</span>
-                                    </div>
+                                    @if($editingEngId === $eu['id'])
+                                        <div class="flex items-center gap-2">
+                                            <select wire:model="editingEngStatus" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition">
+                                                @foreach(\App\Enums\EngineeringStatusEnum::cases() as $case)
+                                                    <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button wire:click="updateEngStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">Save</button>
+                                            <button wire:click="cancelEditEng" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">Cancel</button>
+                                        </div>
+                                    @else
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">{{ $eu['label'] }}</span>
+                                            <span class="text-xs text-slate-400">{{ $eu['date'] }}</span>
+                                            <span class="text-xs text-slate-400">· {{ $eu['user'] }}</span>
+                                        </div>
+                                    @endif
                                     @if($eu['notes'])
                                         <p class="mt-1 text-xs text-slate-600 leading-relaxed">{{ $eu['notes'] }}</p>
                                     @endif
                                 </div>
                             </div>
-                            <button wire:click="deleteEngUpdate({{ $eu['id'] }})" wire:confirm="Delete this engineering update?" class="shrink-0 text-slate-300 hover:text-red-500 transition">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            </button>
+                            <div class="flex items-center gap-1 shrink-0">
+                                @if($editingEngId !== $eu['id'])
+                                    <button wire:click="startEditEng({{ $eu['id'] }}, '{{ $eu['status'] }}')" class="text-slate-300 hover:text-blue-500 transition">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3.414a2 2 0 01.586-1.414z"/></svg>
+                                    </button>
+                                @endif
+                                <button wire:click="deleteEngUpdate({{ $eu['id'] }})" wire:confirm="Delete this engineering update?" class="text-slate-300 hover:text-red-500 transition">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -460,24 +479,43 @@
                                     <span class="h-2 w-2 rounded-full bg-orange-400"></span>
                                 </span>
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-700 ring-1 ring-inset ring-orange-200">{{ $lu['label'] }}</span>
-                                        @if($lu['tracking'] !== '—')
-                                            <span class="text-xs font-mono text-slate-500 bg-slate-50 rounded px-1.5 py-0.5">{{ $lu['tracking'] }}</span>
-                                        @endif
-                                        @if($lu['carrier'] !== '—')
-                                            <span class="text-xs text-slate-400">{{ $lu['carrier'] }}</span>
-                                        @endif
-                                        <span class="text-xs text-slate-400">· {{ $lu['date'] }}</span>
-                                    </div>
+                                    @if($editingLogId === $lu['id'])
+                                        <div class="flex items-center gap-2">
+                                            <select wire:model="editingLogStatus" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition">
+                                                @foreach(\App\Enums\LogisticsStatusEnum::cases() as $case)
+                                                    <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button wire:click="updateLogStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">Save</button>
+                                            <button wire:click="cancelEditLog" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">Cancel</button>
+                                        </div>
+                                    @else
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-700 ring-1 ring-inset ring-orange-200">{{ $lu['label'] }}</span>
+                                            @if($lu['tracking'] !== '—')
+                                                <span class="text-xs font-mono text-slate-500 bg-slate-50 rounded px-1.5 py-0.5">{{ $lu['tracking'] }}</span>
+                                            @endif
+                                            @if($lu['carrier'] !== '—')
+                                                <span class="text-xs text-slate-400">{{ $lu['carrier'] }}</span>
+                                            @endif
+                                            <span class="text-xs text-slate-400">· {{ $lu['date'] }}</span>
+                                        </div>
+                                    @endif
                                     @if($lu['notes'])
                                         <p class="mt-1 text-xs text-slate-600 leading-relaxed">{{ $lu['notes'] }}</p>
                                     @endif
                                 </div>
                             </div>
-                            <button wire:click="deleteLogUpdate({{ $lu['id'] }})" wire:confirm="Delete this logistics update?" class="shrink-0 text-slate-300 hover:text-red-500 transition">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            </button>
+                            <div class="flex items-center gap-1 shrink-0">
+                                @if($editingLogId !== $lu['id'])
+                                    <button wire:click="startEditLog({{ $lu['id'] }}, '{{ $lu['status'] }}')" class="text-slate-300 hover:text-orange-500 transition">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3.414a2 2 0 01.586-1.414z"/></svg>
+                                    </button>
+                                @endif
+                                <button wire:click="deleteLogUpdate({{ $lu['id'] }})" wire:confirm="Delete this logistics update?" class="text-slate-300 hover:text-red-500 transition">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -563,48 +601,48 @@
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
-            class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-200"
+            class="w-full max-w-sm rounded-xl bg-white p-4 shadow-xl ring-1 ring-slate-200"
         >
-            <div class="flex items-center justify-between mb-5">
-                <div class="flex items-center gap-3">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50">
-                        <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50">
+                        <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-bold text-slate-800">Add Engineering Update</h3>
+                        <h3 class="text-sm font-bold text-slate-800">Add Engineering Update</h3>
                         <p class="text-xs text-slate-400">Upload a new engineering update related to this project.</p>
                     </div>
                 </div>
-                <button wire:click="$set('showEngModal', false)" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <button wire:click="$set('showEngModal', false)" class="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-3">
                 <div>
-                    <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">Update Type</label>
-                    <select wire:model="engStatus" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition">
+                    <label class="block mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">Update Type</label>
+                    <select wire:model="engStatus" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition">
                         @foreach(\App\Enums\EngineeringStatusEnum::cases() as $case)
                             <option value="{{ $case->value }}">{{ $case->label() }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+                    <label class="block mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">
                         Note <span class="normal-case font-normal text-slate-400">(Optional)</span>
                     </label>
-                    <textarea wire:model="engNotes" rows="3" placeholder="Enter any additional details here..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition resize-none"></textarea>
+                    <textarea wire:model="engNotes" rows="2" placeholder="Enter any additional details here..." class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition resize-none"></textarea>
                 </div>
             </div>
 
-            <div class="mt-5 flex gap-3">
-                <button wire:click="saveEngUpdate" wire:loading.attr="disabled" class="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 transition">
+            <div class="mt-3 flex gap-2">
+                <button wire:click="saveEngUpdate" wire:loading.attr="disabled" class="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 transition">
                     <span wire:loading.remove wire:target="saveEngUpdate">Save Update</span>
                     <span wire:loading wire:target="saveEngUpdate">Saving…</span>
                 </button>
-                <button wire:click="$set('showEngModal', false)" class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
+                <button wire:click="$set('showEngModal', false)" class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
             </div>
         </div>
     </div>
@@ -620,58 +658,58 @@
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
-            class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-200"
+            class="w-full max-w-sm rounded-xl bg-white p-4 shadow-xl ring-1 ring-slate-200"
         >
-            <div class="flex items-center justify-between mb-5">
-                <div class="flex items-center gap-3">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50">
-                        <svg class="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-50">
+                        <svg class="h-4 w-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                         </svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-bold text-slate-800">Add Logistics Update</h3>
+                        <h3 class="text-sm font-bold text-slate-800">Add Logistics Update</h3>
                         <p class="text-xs text-slate-400">Add a new logistics update for the selected project item.</p>
                     </div>
                 </div>
-                <button wire:click="$set('showLogModal', false)" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <button wire:click="$set('showLogModal', false)" class="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-3">
                 <div>
-                    <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">Stage</label>
-                    <select wire:model="logStatus" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition">
+                    <label class="block mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">Stage</label>
+                    <select wire:model="logStatus" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition">
                         @foreach(\App\Enums\LogisticsStatusEnum::cases() as $case)
                             <option value="{{ $case->value }}">{{ $case->label() }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">Carrier / Supplier</label>
-                        <input wire:model="logCarrier" type="text" placeholder="e.g. Al-Futtaim Engineering" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition"/>
+                        <label class="block mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">Carrier / Supplier</label>
+                        <input wire:model="logCarrier" type="text" placeholder="e.g. Al-Futtaim Engineering" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition"/>
                     </div>
                     <div>
-                        <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">Tracking Number</label>
-                        <input wire:model="logTracking" type="text" placeholder="e.g. TRK99201122" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition"/>
+                        <label class="block mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">Tracking Number</label>
+                        <input wire:model="logTracking" type="text" placeholder="e.g. TRK99201122" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition"/>
                     </div>
                 </div>
                 <div>
-                    <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+                    <label class="block mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">
                         Note <span class="normal-case font-normal text-slate-400">(Optional)</span>
                     </label>
-                    <textarea wire:model="logNotes" rows="3" placeholder="Add any specific instructions or observations..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition resize-none"></textarea>
+                    <textarea wire:model="logNotes" rows="2" placeholder="Add any specific instructions or observations..." class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition resize-none"></textarea>
                 </div>
             </div>
 
-            <div class="mt-5 flex gap-3">
-                <button wire:click="saveLogUpdate" wire:loading.attr="disabled" class="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 transition">
+            <div class="mt-3 flex gap-2">
+                <button wire:click="saveLogUpdate" wire:loading.attr="disabled" class="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 transition">
                     <span wire:loading.remove wire:target="saveLogUpdate">Save Update</span>
                     <span wire:loading wire:target="saveLogUpdate">Saving…</span>
                 </button>
-                <button wire:click="$set('showLogModal', false)" class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
+                <button wire:click="$set('showLogModal', false)" class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
             </div>
         </div>
     </div>

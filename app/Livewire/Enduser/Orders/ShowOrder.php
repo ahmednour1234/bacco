@@ -21,8 +21,8 @@ class ShowOrder extends Component
             'items.unit',
             'quotationRequest',
             'client.clientProfile',
-            'projects.logisticsUpdates',
-            'projects.engineeringUpdates',
+            'logisticsUpdates',
+            'engineeringUpdates',
         ])
             ->where('uuid', $uuid)
             ->where('client_id', Auth::id())

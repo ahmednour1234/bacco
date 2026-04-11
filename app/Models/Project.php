@@ -37,16 +37,6 @@ class Project extends BaseModel
         return $this->belongsTo(User::class, 'client_id');
     }
 
-    public function engineeringUpdates(): HasMany
-    {
-        return $this->hasMany(EngineeringUpdate::class);
-    }
-
-    public function logisticsUpdates(): HasMany
-    {
-        return $this->hasMany(LogisticsUpdate::class);
-    }
-
     public function uploadedDocuments(): HasMany
     {
         return $this->hasMany(UploadedDocument::class);

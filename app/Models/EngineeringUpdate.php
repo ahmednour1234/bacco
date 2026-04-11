@@ -21,9 +21,9 @@ class EngineeringUpdate extends BaseModel
     // Relationships
     // -------------------------------------------------------------------------
 
-    public function project(): BelongsTo
+    public function order(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Order::class);
     }
 
     public function updatedBy(): BelongsTo

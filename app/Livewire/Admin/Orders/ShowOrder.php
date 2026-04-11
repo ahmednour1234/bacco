@@ -24,18 +24,22 @@ class ShowOrder extends Component
     public bool   $showStatusModal = false;
 
     // Engineering
-    public array  $engUpdates    = [];
-    public bool   $showEngModal  = false;
-    public string $engStatus     = 'pending';
-    public string $engNotes      = '';
+    public array  $engUpdates      = [];
+    public bool   $showEngModal    = false;
+    public string $engStatus       = 'pending';
+    public string $engNotes        = '';
+    public ?int   $editingEngId    = null;
+    public string $editingEngStatus = '';
 
     // Logistics
-    public array  $logUpdates    = [];
-    public bool   $showLogModal  = false;
-    public string $logStatus     = 'pending';
-    public string $logCarrier    = '';
-    public string $logTracking   = '';
-    public string $logNotes      = '';
+    public array  $logUpdates       = [];
+    public bool   $showLogModal     = false;
+    public string $logStatus        = 'pending';
+    public string $logCarrier       = '';
+    public string $logTracking      = '';
+    public string $logNotes         = '';
+    public ?int   $editingLogId     = null;
+    public string $editingLogStatus = '';
 
     public function mount(string $uuid): void
     {
@@ -118,16 +122,9 @@ class ShowOrder extends Component
             'engNotes'  => 'nullable|string|max:2000',
         ]);
 
-        $project = $this->order->projects->first();
-
-        if (! $project) {
-            $this->dispatch('toast', message: 'No project linked to this order.', type: 'error');
-            return;
-        }
-
         EngineeringUpdate::create([
             'uuid'       => (string) Str::uuid(),
-            'project_id' => $project->id,
+            'order_id'   => $this->order->id,
             'updated_by' => Auth::id(),
             'status'     => $this->engStatus,
             'notes'      => $this->engNotes ?: null,
@@ -143,6 +140,31 @@ class ShowOrder extends Component
         EngineeringUpdate::where('id', $id)->delete();
         $this->loadEngUpdates();
         $this->dispatch('toast', message: 'Engineering update deleted.', type: 'success');
+    }
+
+    public function startEditEng(int $id, string $currentStatus): void
+    {
+        $this->editingEngId     = $id;
+        $this->editingEngStatus = $currentStatus;
+    }
+
+    public function cancelEditEng(): void
+    {
+        $this->editingEngId     = null;
+        $this->editingEngStatus = '';
+    }
+
+    public function updateEngStatus(): void
+    {
+        if (! $this->editingEngId || ! in_array($this->editingEngStatus, EngineeringStatusEnum::values())) {
+            return;
+        }
+
+        EngineeringUpdate::where('id', $this->editingEngId)->update(['status' => $this->editingEngStatus]);
+        $this->editingEngId     = null;
+        $this->editingEngStatus = '';
+        $this->loadEngUpdates();
+        $this->dispatch('toast', message: 'Engineering status updated.', type: 'success');
     }
 
     // -------------------------------------------------------------------------
@@ -165,16 +187,9 @@ class ShowOrder extends Component
             'logNotes'    => 'nullable|string|max:2000',
         ]);
 
-        $project = $this->order->projects->first();
-
-        if (! $project) {
-            $this->dispatch('toast', message: 'No project linked to this order.', type: 'error');
-            return;
-        }
-
         LogisticsUpdate::create([
             'uuid'             => (string) Str::uuid(),
-            'project_id'       => $project->id,
+            'order_id'         => $this->order->id,
             'updated_by'       => Auth::id(),
             'status'           => $this->logStatus,
             'carrier'          => $this->logCarrier ?: null,
@@ -194,14 +209,37 @@ class ShowOrder extends Component
         $this->dispatch('toast', message: 'Logistics update deleted.', type: 'success');
     }
 
+    public function startEditLog(int $id, string $currentStatus): void
+    {
+        $this->editingLogId     = $id;
+        $this->editingLogStatus = $currentStatus;
+    }
+
+    public function cancelEditLog(): void
+    {
+        $this->editingLogId     = null;
+        $this->editingLogStatus = '';
+    }
+
+    public function updateLogStatus(): void
+    {
+        if (! $this->editingLogId || ! in_array($this->editingLogStatus, LogisticsStatusEnum::values())) {
+            return;
+        }
+
+        LogisticsUpdate::where('id', $this->editingLogId)->update(['status' => $this->editingLogStatus]);
+        $this->editingLogId     = null;
+        $this->editingLogStatus = '';
+        $this->loadLogUpdates();
+        $this->dispatch('toast', message: 'Logistics status updated.', type: 'success');
+    }
+
     // -------------------------------------------------------------------------
 
     private function loadEngUpdates(): void
     {
-        $projectIds = $this->order->projects->pluck('id');
-
         $this->engUpdates = EngineeringUpdate::with('updatedBy')
-            ->whereIn('project_id', $projectIds)
+            ->where('order_id', $this->order->id)
             ->latest()
             ->get()
             ->map(fn ($u) => [
@@ -217,10 +255,8 @@ class ShowOrder extends Component
 
     private function loadLogUpdates(): void
     {
-        $projectIds = $this->order->projects->pluck('id');
-
         $this->logUpdates = LogisticsUpdate::with('updatedBy')
-            ->whereIn('project_id', $projectIds)
+            ->where('order_id', $this->order->id)
             ->latest()
             ->get()
             ->map(fn ($u) => [
