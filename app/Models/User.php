@@ -80,6 +80,11 @@ class User extends Authenticatable
         return $this->hasMany(Project::class, 'client_id');
     }
 
+    public function boqs(): HasMany
+    {
+        return $this->hasMany(Boq::class, 'client_id');
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'client_id');

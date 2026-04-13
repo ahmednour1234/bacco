@@ -36,6 +36,34 @@ class Project extends BaseModel
     {
         return $this->belongsTo(User::class, 'client_id');
     }
+    public function boqs(): HasMany
+    {
+        return $this->hasMany(Boq::class);
+    }
+
+    public function quotationRequests(): HasMany
+    {
+        return $this->hasMany(QuotationRequest::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+    public function boqs(): HasMany
+    {
+        return $this->hasMany(Boq::class);
+    }
+
+    public function quotationRequests(): HasMany
+    {
+        return $this->hasMany(QuotationRequest::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 
     public function uploadedDocuments(): HasMany
     {

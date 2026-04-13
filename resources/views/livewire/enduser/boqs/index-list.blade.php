@@ -13,7 +13,7 @@
         },
         confirmDelete() {
             if (this.deleteModal.id) {
-                $wire.deleteQuotation(this.deleteModal.id);
+                $wire.deleteBoq(this.deleteModal.id);
             }
             this.deleteModal = { open: false, id: null, no: '' };
         }
@@ -59,13 +59,7 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4"
         style="display:none"
     >
-        {{-- Backdrop --}}
-        <div
-            class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            @click="deleteModal.open = false"
-        ></div>
-
-        {{-- Panel --}}
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="deleteModal.open = false"></div>
         <div
             x-show="deleteModal.open"
             x-transition:enter="transition ease-out duration-250"
@@ -76,33 +70,23 @@
             x-transition:leave-end="opacity-0 scale-95"
             class="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5"
         >
-            {{-- Top accent bar --}}
             <div class="h-1.5 w-full rounded-t-2xl bg-gradient-to-r from-red-400 to-rose-500"></div>
-
             <div class="px-6 pb-6 pt-5">
-                {{-- Icon --}}
-
-
-                {{-- Title & message --}}
-                <h3 class="text-center text-base font-bold text-slate-900">Delete Quotation</h3>
+                <h3 class="text-center text-base font-bold text-slate-900">Delete BOQ</h3>
                 <p class="mt-1.5 text-center text-sm text-slate-500">
                     Are you sure you want to permanently delete
                     <span class="font-semibold text-slate-800" x-text="'#' + deleteModal.no"></span>?
                     <br>This action <span class="font-semibold text-red-600">cannot be undone</span>.
                 </p>
-
-                {{-- Buttons --}}
                 <div class="mt-6 flex items-center gap-3">
-                    <button
-                        type="button"
-                        @click="deleteModal.open = false"
-                        class="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >Cancel</button>
-                    <button
-                        type="button"
-                        @click="confirmDelete()"
-                        class="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
-                    >Yes, Delete</button>
+                    <button type="button" @click="deleteModal.open = false"
+                        class="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                        Cancel
+                    </button>
+                    <button type="button" @click="confirmDelete()"
+                        class="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600">
+                        Yes, Delete
+                    </button>
                 </div>
             </div>
         </div>
@@ -111,58 +95,71 @@
     {{-- ───── Page Header ───────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Track Quotations</h1>
-            <p class="mt-1 text-sm text-slate-500">Manage and monitor your construction project bids</p>
+            <h1 class="text-2xl font-bold text-slate-900">Bills of Quantities</h1>
+            <p class="mt-1 text-sm text-slate-500">Manage your BOQs and create quotations from them</p>
         </div>
         <a
-            href="{{ route('enduser.boqs.index') }}"
+            href="{{ route('enduser.boqs.create') }}"
             class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
         >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            New Quotation from BOQ
+            New BOQ
         </a>
     </div>
 
     {{-- ───── Stat Cards ────────────────────────────────────────────────────────── --}}
-    <div class="mb-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div class="mb-7 grid grid-cols-1 gap-4 sm:grid-cols-4">
 
         <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Total Quotations</p>
+                <p class="text-xs font-medium text-slate-400">Total BOQs</p>
                 <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
                 <svg class="h-6 w-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+            <div>
+                <p class="text-xs font-medium text-slate-400">Draft</p>
+                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['draft'] }}</p>
+            </div>
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
             </div>
         </div>
 
         <div class="flex items-center justify-between rounded-2xl border border-emerald-100 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Active Quotations</p>
-                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['active'] }}</p>
+                <p class="text-xs font-medium text-slate-400">Submitted</p>
+                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['submitted'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
                 <svg class="h-6 w-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
         </div>
 
         <div class="flex items-center justify-between rounded-2xl border border-blue-100 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Completed Quotations</p>
+                <p class="text-xs font-medium text-slate-400">Completed</p>
                 <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['completed'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
                 <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        d="M5 13l4 4L19 7"/>
                 </svg>
             </div>
         </div>
@@ -171,7 +168,7 @@
 
     {{-- ───── Section Header + Search ─────────────────────────────────────────── --}}
     <div class="mb-4 flex flex-wrap items-center gap-3">
-        <h2 class="flex-1 text-base font-bold text-slate-900">Recent Quotations</h2>
+        <h2 class="flex-1 text-base font-bold text-slate-900">Recent BOQs</h2>
 
         {{-- Search --}}
         <div class="relative min-w-[220px]">
@@ -184,7 +181,7 @@
             <input
                 type="search"
                 wire:model.live.debounce.300ms="search"
-                placeholder="Search quotations..."
+                placeholder="Search BOQs..."
                 class="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
             >
         </div>
@@ -270,63 +267,53 @@
         @endif
     </div>
 
-    {{-- ───── Quotation Cards ────────────────────────────────────────────────────── --}}
-    @if($quotations->isEmpty())
+    {{-- ───── BOQ Cards ────────────────────────────────────────────────────────── --}}
+    @if($boqs->isEmpty())
         <div class="rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
             <svg class="mx-auto mb-4 h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
             </svg>
-            <p class="text-sm font-medium text-slate-400">No quotations found</p>
-            <p class="mt-1 text-xs text-slate-300">Try adjusting your filters or create a new quotation</p>
+            <p class="text-sm font-medium text-slate-400">No BOQs found</p>
+            <p class="mt-1 text-xs text-slate-300">Create a new BOQ to get started</p>
         </div>
     @else
         <div class="space-y-6">
-            @foreach($quotations as $quotation)
+            @foreach($boqs as $boq)
                 @php
-                    $sv = $quotation->status->value ?? '';
+                    $sv = $boq->status->value ?? '';
 
                     $badgeClass = match($sv) {
-                        'tender'    => 'bg-blue-50 text-blue-600 ring-1 ring-blue-200',
-                        'submitted' => 'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200',
-                        'in_review' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-200',
-                        'quoted'    => 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200',
-                        'accepted'  => 'bg-green-50 text-green-700 ring-1 ring-green-200',
-                        'rejected'  => 'bg-red-50 text-red-600 ring-1 ring-red-200',
                         'draft'     => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+                        'submitted' => 'bg-blue-50 text-blue-600 ring-1 ring-blue-200',
+                        'completed' => 'bg-green-50 text-green-700 ring-1 ring-green-200',
+                        'cancelled' => 'bg-red-50 text-red-600 ring-1 ring-red-200',
                         default     => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
                     };
 
                     $leftBorder = match($sv) {
-                        'tender'    => 'border-l-blue-400',
-                        'submitted' => 'border-l-indigo-400',
-                        'in_review' => 'border-l-amber-400',
-                        'quoted'    => 'border-l-emerald-400',
-                        'accepted'  => 'border-l-green-500',
-                        'rejected'  => 'border-l-red-400',
                         'draft'     => 'border-l-slate-300',
+                        'submitted' => 'border-l-blue-400',
+                        'completed' => 'border-l-green-500',
+                        'cancelled' => 'border-l-red-400',
                         default     => 'border-l-slate-300',
                     };
 
                     $statusMsg = match($sv) {
-                        'draft'     => 'Draft saved. Complete your quotation and submit when ready.',
-                        'tender'    => 'Quotation is ready for review. Select products and submit for approval.',
-                        'submitted' => 'Quotation submitted. Qimta team is reviewing your request.',
-                        'in_review' => 'Qimta team is working on your quote.',
-                        'quoted'    => 'Price quotation is ready. Please review and accept.',
-                        'accepted'  => 'Final quotation delivered and approved.',
-                        'rejected'  => 'Quotation was rejected. Please contact support.',
+                        'draft'     => 'Draft saved. Complete your BOQ and submit when ready.',
+                        'submitted' => 'BOQ submitted. Select items to create a quotation.',
+                        'completed' => 'BOQ completed. Quotation has been created from this BOQ.',
+                        'cancelled' => 'BOQ was cancelled.',
                         default     => 'Status update pending.',
                     };
 
                     $msgIconClass = match($sv) {
-                        'rejected'  => 'text-red-400',
+                        'cancelled' => 'text-red-400',
                         'draft'     => 'text-slate-400',
                         default     => 'text-emerald-500',
                     };
 
-                    $canEdit = in_array($sv, ['draft', 'tender'], true);
-                    $amount  = $quotation->items->sum(fn($i) => ($i->unit_price ?? 0) * $i->quantity);
+                    $itemCount = $boq->items->count();
                 @endphp
 
                 <div class="group flex flex-col gap-4 rounded-2xl border border-slate-200 border-l-4 {{ $leftBorder }} bg-white px-6 py-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
@@ -337,30 +324,26 @@
                         {{-- Badge + ID --}}
                         <div class="mb-2 flex flex-wrap items-center gap-2">
                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide {{ $badgeClass }}">
-                                {{ $quotation->status->label() }}
+                                {{ $boq->status->label() }}
                             </span>
-                            <span class="text-xs text-slate-400 font-mono">ID: #{{ $quotation->quotation_no }}</span>
+                            <span class="text-xs text-slate-400 font-mono">ID: #{{ $boq->boq_no }}</span>
                         </div>
 
                         {{-- Project name --}}
                         <h3 class="text-base font-bold text-slate-900 truncate">
-                            {{ $quotation->project_name ?? '(Untitled Project)' }}
+                            {{ $boq->project?->name ?? '(No Project)' }}
                         </h3>
 
                         {{-- Meta line --}}
                         <p class="mt-0.5 text-xs text-slate-400">
-                            {{ $quotation->project_status?->label() ?? 'General' }}
+                            {{ $itemCount }} {{ $itemCount === 1 ? 'item' : 'items' }}
                             &middot;
-                            Submitted: {{ $quotation->created_at?->format('M d, Y') }}
-                            @if($amount > 0)
-                                &middot;
-                                <span class="font-semibold text-slate-600">{{ number_format($amount, 2) }} SAR</span>
-                            @endif
+                            Created: {{ $boq->created_at?->format('M d, Y') }}
                         </p>
 
                         {{-- Status message --}}
                         <p class="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
-                            @if($sv === 'rejected')
+                            @if($sv === 'cancelled')
                                 <svg class="h-4 w-4 shrink-0 {{ $msgIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
@@ -376,10 +359,10 @@
                     {{-- Right: actions --}}
                     <div class="flex shrink-0 items-center gap-2">
 
-                        @if($canEdit)
+                        @if($sv === 'draft')
                             <button
                                 type="button"
-                                @click="openDelete({{ $quotation->id }}, '{{ $quotation->quotation_no }}')"
+                                @click="openDelete({{ $boq->id }}, '{{ $boq->boq_no }}')"
                                 title="Delete"
                                 class="rounded-lg p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
                             >
@@ -391,7 +374,7 @@
                         @endif
 
                         <a
-                            href="{{ route('enduser.quotations.show', $quotation->uuid) }}"
+                            href="{{ route('enduser.boqs.show', $boq->uuid) }}"
                             class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
                         >
                             View Details
@@ -406,17 +389,17 @@
         <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-sm text-slate-500">
                 Showing
-                <span class="font-semibold text-slate-700">{{ $quotations->firstItem() }}</span>
+                <span class="font-semibold text-slate-700">{{ $boqs->firstItem() }}</span>
                 to
-                <span class="font-semibold text-slate-700">{{ $quotations->lastItem() }}</span>
+                <span class="font-semibold text-slate-700">{{ $boqs->lastItem() }}</span>
                 of
-                <span class="font-semibold text-slate-700">{{ $quotations->total() }}</span>
+                <span class="font-semibold text-slate-700">{{ $boqs->total() }}</span>
                 results
             </p>
 
-            @if($quotations->hasPages())
+            @if($boqs->hasPages())
             <nav class="flex items-center gap-1">
-                @if($quotations->onFirstPage())
+                @if($boqs->onFirstPage())
                     <span class="inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 text-slate-300">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -430,15 +413,15 @@
                     </button>
                 @endif
 
-                @foreach($quotations->getUrlRange(max(1, $quotations->currentPage() - 2), min($quotations->lastPage(), $quotations->currentPage() + 2)) as $page => $url)
-                    @if($page == $quotations->currentPage())
+                @foreach($boqs->getUrlRange(max(1, $boqs->currentPage() - 2), min($boqs->lastPage(), $boqs->currentPage() + 2)) as $page => $url)
+                    @if($page == $boqs->currentPage())
                         <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">{{ $page }}</span>
                     @else
                         <button wire:click="gotoPage({{ $page }})" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50">{{ $page }}</button>
                     @endif
                 @endforeach
 
-                @if($quotations->hasMorePages())
+                @if($boqs->hasMorePages())
                     <button wire:click="nextPage" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>

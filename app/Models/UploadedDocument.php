@@ -25,6 +25,11 @@ class UploadedDocument extends BaseModel
         return $this->belongsTo(QuotationRequest::class);
     }
 
+    public function boq(): BelongsTo
+    {
+        return $this->belongsTo(Boq::class);
+    }
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

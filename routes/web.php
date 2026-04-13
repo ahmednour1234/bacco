@@ -9,10 +9,12 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Enduser\BoqController as EnduserBoqController;
 use App\Http\Controllers\Enduser\OrderController as EnduserOrderController;
 use App\Http\Controllers\Enduser\AuthController as EnduserAuthController;
 use App\Http\Controllers\Enduser\DashboardController as EnduserDashboardController;
 use App\Http\Controllers\Enduser\ProfileController as EnduserProfileController;
+use App\Http\Controllers\Enduser\ProjectController as EnduserProjectController;
 use App\Http\Controllers\Enduser\QuotationController as EnduserQuotationController;
 use App\Http\Controllers\Supplier\AuthController as SupplierAuthController;
 use App\Http\Controllers\Supplier\DashboardController as SupplierDashboardController;
@@ -60,6 +62,16 @@ Route::prefix('enduser')->name('enduser.')->group(function () {
         Route::get('/quotations/create',        [EnduserQuotationController::class, 'create'])->name('quotations.create');
         Route::get('/quotations/{uuid}/edit',   [EnduserQuotationController::class, 'edit'])->name('quotations.edit');
         Route::get('/quotations/{uuid}',        [EnduserQuotationController::class, 'show'])->name('quotations.show');
+
+        // Projects
+        Route::get('/projects',        [EnduserProjectController::class, 'index'])->name('projects.index');
+        Route::get('/projects/{uuid}', [EnduserProjectController::class, 'show'])->name('projects.show');
+
+        // BOQs
+        Route::get('/boqs',                     [EnduserBoqController::class, 'index'])->name('boqs.index');
+        Route::get('/boqs/create',              [EnduserBoqController::class, 'create'])->name('boqs.create');
+        Route::get('/boqs/create/{projectUuid}', [EnduserBoqController::class, 'create'])->name('boqs.create.project');
+        Route::get('/boqs/{uuid}',              [EnduserBoqController::class, 'show'])->name('boqs.show');
 
         // Orders
         Route::get('/orders',        [EnduserOrderController::class, 'index'])->name('orders.index');

@@ -33,6 +33,16 @@ class QuotationRequest extends BaseModel
         return $this->belongsTo(User::class, 'client_id');
     }
 
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function boq(): BelongsTo
+    {
+        return $this->belongsTo(Boq::class);
+    }
+
     public function assignedEmployee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_employee_id');

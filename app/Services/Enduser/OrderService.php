@@ -33,6 +33,7 @@ class OrderService
                 'quotation_request_id'  => $quotation->id,
                 'quotation_version_id'  => $quotation->latestVersion?->id ?? $this->ensureDummyVersionId($quotation),
                 'client_id'             => $quotation->client_id,
+                'project_id'            => $quotation->project_id,
                 'status'                => 'pending',
                 'total_amount'          => $subtotal,
                 'vat_amount'            => $vatAmount,

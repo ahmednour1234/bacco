@@ -37,6 +37,11 @@ class Order extends BaseModel
         return $this->belongsTo(QuotationVersion::class);
     }
 
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(User::class, 'client_id');
