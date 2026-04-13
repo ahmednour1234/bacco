@@ -132,7 +132,7 @@
                     </label>
                     <input
                         type="text"
-                        wire:model="projectName"
+                        wire:model.live="projectName"
                         placeholder="e.g., Al-Majd Tower Refurbishment"
                         class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition
                             @error('projectName') border-red-400 focus:ring-2 focus:ring-red-100
@@ -145,10 +145,10 @@
 
                 <div>
                     <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Project Description
+                        Project Description <span class="normal-case font-normal text-slate-400">(optional)</span>
                     </label>
                     <textarea
-                        wire:model="projectDescription"
+                        wire:model.live="projectDescription"
                         placeholder="Describe the project scope, location, requirements…"
                         rows="3"
                         class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition resize-none

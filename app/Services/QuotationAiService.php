@@ -17,12 +17,83 @@ class QuotationAiService
 
     private int $timeout;
 
+    private bool $testMode;
+
     public function __construct()
     {
         $this->baseUrl       = rtrim((string) config('services.ai_quotation.base_url', ''), '/');
         $this->parseEndpoint = ltrim((string) config('services.ai_quotation.parse_endpoint', 'parse'), '/');
         $this->apiKey        = (string) config('services.ai_quotation.api_key', '');
-        $this->timeout       = (int) config('services.ai_quotation.timeout', 120);
+        $this->timeout       = (int) config('services.ai_quotation.timeout', 180);
+        $this->testMode      = (bool) config('services.ai_quotation.test_mode', false);
+    }
+
+    /**
+     * Return a hardcoded dummy response for local testing.
+     * Activated when AI_QUOTATION_TEST_MODE=true in .env.
+     *
+     * @return array{success: bool, items: array<int, array<string, mixed>>, error: string|null}
+     */
+    private function mockResponse(): array
+    {
+        sleep(2); // Simulate network delay so the UI spinner feels real.
+
+        return [
+            'success' => true,
+            'error'   => null,
+            'items'   => [
+                [
+                    'product_name'         => 'Steel Square Hollow Section 100×100×4mm',
+                    'quantity'             => 50,
+                    'unit'                 => 'pcs',
+                    'category'             => 'Structural Steel',
+                    'brand'                => '',
+                    'engineering_required' => false,
+                    'unit_price'           => 0,
+                    'ai_extracted'         => true,
+                ],
+                [
+                    'product_name'         => 'Cement OPC 42.5 (50 kg bag)',
+                    'quantity'             => 200,
+                    'unit'                 => 'bag',
+                    'category'             => 'Concrete Works',
+                    'brand'                => 'Lafarge',
+                    'engineering_required' => false,
+                    'unit_price'           => 0,
+                    'ai_extracted'         => true,
+                ],
+                [
+                    'product_name'         => 'Ceramic Floor Tile 60×60 cm (Beige)',
+                    'quantity'             => 300,
+                    'unit'                 => 'm2',
+                    'category'             => 'Flooring',
+                    'brand'                => 'RAK Ceramics',
+                    'engineering_required' => false,
+                    'unit_price'           => 0,
+                    'ai_extracted'         => true,
+                ],
+                [
+                    'product_name'         => 'UPVC Window 120×150 cm Double Glazed',
+                    'quantity'             => 12,
+                    'unit'                 => 'set',
+                    'category'             => 'Windows & Doors',
+                    'brand'                => '',
+                    'engineering_required' => true,
+                    'unit_price'           => 0,
+                    'ai_extracted'         => true,
+                ],
+                [
+                    'product_name'         => 'Electrical Conduit PVC 25mm (3m)',
+                    'quantity'             => 100,
+                    'unit'                 => 'pcs',
+                    'category'             => 'Electrical',
+                    'brand'                => '',
+                    'engineering_required' => false,
+                    'unit_price'           => 0,
+                    'ai_extracted'         => true,
+                ],
+            ],
+        ];
     }
 
     /**
@@ -35,6 +106,16 @@ class QuotationAiService
      */
     public function parseBoq(UploadedFile|string $file, array $context = []): array
     {
+        // ── Test / offline mode — never calls any external API ───────────────
+        if ($this->testMode) {
+            Log::info('QuotationAiService: Running in TEST MODE — returning mock data.');
+
+            $mock = $this->mockResponse();
+            $mock['items'] = array_map([$this, 'normaliseItem'], $mock['items']);
+
+            return $mock;
+        }
+
         $result = $this->callPrimaryApi($file, $context);
 
         if ($result['success']) {
@@ -193,8 +274,11 @@ class QuotationAiService
      */
     private function parseBoqWithGemini(UploadedFile|string $file, array $context = []): array
     {
-        $geminiKey   = (string) config('services.gemini.key', '');
-        $geminiModel = (string) config('services.gemini.model', 'gemini-2.5-flash');
+        $geminiKey     = (string) config('services.gemini.key', '');
+        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.0-flash-lite');
+        // Ordered list of models to try — all confirmed available for this API key
+        $geminiModels  = array_unique(array_filter([$primaryModel, 'gemini-2.0-flash-lite', 'gemini-flash-lite-latest', 'gemini-flash-latest']));
+        $geminiModel   = $primaryModel;
 
         try {
             if ($file instanceof UploadedFile) {
@@ -216,11 +300,26 @@ class QuotationAiService
             $prompt = $this->buildGeminiPrompt($context);
 
             // Files > 20 MB must go through the Gemini Files API.
-            if (strlen($bytes) > 20 * 1024 * 1024) {
-                return $this->geminiViaFilesApi($bytes, $mime, $filename, $prompt, $geminiKey, $geminiModel);
+            $lastResult = $this->failure('Gemini AI fallback encountered an unexpected error.');
+
+            foreach ($geminiModels as $attemptModel) {
+                if (strlen($bytes) > 20 * 1024 * 1024) {
+                    $lastResult = $this->geminiViaFilesApi($bytes, $mime, $filename, $prompt, $geminiKey, $attemptModel);
+                } else {
+                    $lastResult = $this->geminiViaInlineData($bytes, $mime, $prompt, $geminiKey, $attemptModel);
+                }
+
+                if ($lastResult['success']) {
+                    return $lastResult;
+                }
+
+                Log::info('QuotationAiService: Gemini model failed, trying next.', [
+                    'model' => $attemptModel,
+                    'error' => $lastResult['error'],
+                ]);
             }
 
-            return $this->geminiViaInlineData($bytes, $mime, $prompt, $geminiKey, $geminiModel);
+            return $lastResult;
 
         } catch (\Throwable $e) {
             Log::error('QuotationAiService: Gemini fallback threw an exception.', [
@@ -249,6 +348,7 @@ class QuotationAiService
 
         if (! $response->successful()) {
             Log::error('QuotationAiService: Gemini generateContent failed.', [
+                'model'  => $model,
                 'status' => $response->status(),
                 'body'   => $response->body(),
             ]);

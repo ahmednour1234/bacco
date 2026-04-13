@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Enduser;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Repositories\Enduser\OrderRepository;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -16,12 +20,37 @@ class OrderController extends Controller
         return view('enduser.orders.index');
     }
 
-    public function show(string $uuid): View
+    public function show(Request $request, string $uuid): View|Response
     {
-        $order = $this->repo->findByUuidForClient($uuid, Auth::id());
+        $order = Order::with([
+            'items.product.brand',
+            'items.unit',
+            'quotationRequest',
+            'client.clientProfile',
+            'logisticsUpdates',
+            'engineeringUpdates',
+        ])
+            ->where('uuid', $uuid)
+            ->where('client_id', Auth::id())
+            ->firstOrFail();
 
-        abort_if($order === null, 404);
+        if ($request->query('export') === 'pdf') {
+            $items = $order->items->map(fn($item) => [
+                'description' => (string) $item->description,
+                'quantity'    => (float) $item->quantity,
+                'unit'        => $item->unit?->name ?? '—',
+                'brand'       => $item->product?->brand?->name ?? '—',
+                'unit_price'  => (float) $item->unit_price,
+                'total_price' => (float) $item->total_price,
+            ])->toArray();
+
+            $pdf = Pdf::loadView('enduser.orders.pdf', compact('order', 'items'))
+                ->setPaper('a4', 'portrait');
+
+            return $pdf->download('Order-' . $order->order_no . '.pdf');
+        }
 
         return view('enduser.orders.show', compact('order'));
     }
 }
+

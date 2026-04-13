@@ -3,8 +3,15 @@
 namespace App\Livewire\Enduser\Boqs;
 
 use App\Enums\BoqStatusEnum;
+use App\Enums\QuotationRequestStatusEnum;
+use App\Enums\QuotationSourceTypeEnum;
 use App\Models\Boq;
+use App\Models\QuotationItem;
+use App\Models\QuotationRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -40,6 +47,67 @@ class IndexList extends Component
         $this->resetPage();
     }
 
+    public function convertToQuotation(string $uuid): void
+    {
+        $boq = Boq::with(['project', 'items'])
+            ->where('uuid', $uuid)
+            ->where('client_id', Auth::id())
+            ->firstOrFail();
+
+        if ($boq->status !== BoqStatusEnum::Draft) {
+            $this->dispatch('toast', message: 'Only draft BOQs can be converted.', type: 'error');
+            return;
+        }
+
+        $items = $boq->items;
+
+        if ($items->isEmpty()) {
+            $this->dispatch('toast', message: 'This BOQ has no items. Add items before converting.', type: 'error');
+            return;
+        }
+
+        try {
+            $quotation = DB::transaction(function () use ($boq, $items) {
+                $quotation = QuotationRequest::create([
+                    'client_id'    => Auth::id(),
+                    'project_id'   => $boq->project_id,
+                    'boq_id'       => $boq->id,
+                    'quotation_no' => $this->generateQuotationNo(),
+                    'project_name' => $boq->project?->name,
+                    'status'       => QuotationRequestStatusEnum::Tender,
+                    'source_type'  => QuotationSourceTypeEnum::Manual,
+                ]);
+
+                foreach ($items as $item) {
+                    QuotationItem::create([
+                        'quotation_request_id' => $quotation->id,
+                        'product_id'           => $item->product_id,
+                        'description'          => (string) $item->description,
+                        'quantity'             => (float) $item->quantity,
+                        'unit_id'              => $item->unit_id,
+                        'category'             => (string) ($item->category ?? ''),
+                        'brand'                => (string) ($item->brand ?? ''),
+                        'status'               => 'pending',
+                        'engineering_required' => (bool) $item->engineering_required,
+                        'confidence'           => $item->confidence,
+                        'ai_extracted'         => (bool) $item->ai_extracted,
+                        'is_selected'          => true,
+                    ]);
+                }
+
+                $boq->update(['status' => BoqStatusEnum::Completed]);
+
+                return $quotation;
+            });
+
+            $this->redirect(route('enduser.quotations.show', $quotation->uuid));
+
+        } catch (\Throwable $e) {
+            Log::error('IndexList::convertToQuotation failed.', ['message' => $e->getMessage()]);
+            $this->dispatch('toast', message: 'Failed to create quotation. Please try again.', type: 'error');
+        }
+    }
+
     public function deleteBoq(int $id): void
     {
         $boq = Boq::where('id', $id)
@@ -53,6 +121,16 @@ class IndexList extends Component
 
         $boq->delete();
         $this->dispatch('toast', message: 'BOQ deleted successfully.', type: 'success');
+    }
+
+    private function generateQuotationNo(): string
+    {
+        $prefix = 'QR-' . now()->format('Ymd') . '-';
+        do {
+            $candidate = $prefix . strtoupper(Str::random(4));
+        } while (QuotationRequest::where('quotation_no', $candidate)->exists());
+
+        return $candidate;
     }
 
     public function clearFilters(): void

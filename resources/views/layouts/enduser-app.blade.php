@@ -104,7 +104,7 @@
             </a>
 
             {{-- Projects --}}
-            <a href="#"
+            <a href="{{ route('enduser.projects.index') }}" wire:navigate
                class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
                       {{ request()->routeIs('enduser.projects*')
                             ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'

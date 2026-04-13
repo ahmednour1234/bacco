@@ -61,6 +61,7 @@ Route::prefix('enduser')->name('enduser.')->group(function () {
         Route::get('/quotations',              [EnduserQuotationController::class, 'index'])->name('quotations.index');
         Route::get('/quotations/create',        [EnduserQuotationController::class, 'create'])->name('quotations.create');
         Route::get('/quotations/{uuid}/edit',   [EnduserQuotationController::class, 'edit'])->name('quotations.edit');
+        Route::get('/quotations/{uuid}/pdf',    [EnduserQuotationController::class, 'pdf'])->name('quotations.pdf');
         Route::get('/quotations/{uuid}',        [EnduserQuotationController::class, 'show'])->name('quotations.show');
 
         // Projects

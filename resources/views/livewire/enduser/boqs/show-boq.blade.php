@@ -130,8 +130,25 @@
                                                 @if(($item['status'] ?? '') === 'rejected') disabled @endif>
                                         </td>
 
-                                        <td class="px-4 py-2.5 text-sm text-slate-700 font-medium">{{ $item['description'] ?? '—' }}</td>
-                                        <td class="px-4 py-2.5 text-sm text-slate-600">{{ number_format((float)($item['quantity'] ?? 0), 0) }}</td>
+                                        <td class="px-4 py-2.5 text-sm text-slate-700 font-medium">
+                                            <input
+                                                type="text"
+                                                wire:model="items.{{ $index }}.description"
+                                                wire:blur="updateItem({{ $index }}, 'description')"
+                                                placeholder="Enter description"
+                                                class="w-full min-w-[180px] rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 font-medium placeholder-slate-300 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-400 hover:border-slate-300"
+                                            >
+                                        </td>
+                                        <td class="px-4 py-2.5 text-sm text-slate-600">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="any"
+                                                wire:model="items.{{ $index }}.quantity"
+                                                wire:blur="updateItem({{ $index }}, 'quantity')"
+                                                class="w-20 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-600 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-400 hover:border-slate-300"
+                                            >
+                                        </td>
                                         <td class="px-4 py-2.5 text-sm text-slate-500">{{ $item['unit'] ?? '—' }}</td>
                                         <td class="px-4 py-2.5 text-sm text-slate-500">{{ $item['category'] ?? '—' }}</td>
                                         <td class="px-4 py-2.5 text-sm text-slate-500">{{ $item['brand'] ?? '—' }}</td>
@@ -158,15 +175,25 @@
                                         </td>
 
                                         <td class="px-4 py-2.5 text-center">
-                                            @if(!empty($item['engineering_required']))
-                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded bg-emerald-100">
-                                                    <svg class="h-3 w-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <button
+                                                type="button"
+                                                wire:click="toggleEngineering({{ $item['id'] }})"
+                                                title="Toggle engineering required"
+                                                class="inline-flex items-center justify-center h-7 w-7 rounded-lg border transition
+                                                    @if(!empty($item['engineering_required']))
+                                                        border-emerald-300 bg-emerald-100 hover:bg-emerald-200
+                                                    @else
+                                                        border-slate-200 bg-slate-50 hover:bg-slate-100
+                                                    @endif"
+                                            >
+                                                @if(!empty($item['engineering_required']))
+                                                    <svg class="h-3.5 w-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                                     </svg>
-                                                </span>
-                                            @else
-                                                <span class="inline-block h-5 w-5 rounded border border-slate-200 bg-slate-50"></span>
-                                            @endif
+                                                @else
+                                                    <span class="h-3 w-3"></span>
+                                                @endif
+                                            </button>
                                         </td>
                                     </tr>
                                 @endforeach

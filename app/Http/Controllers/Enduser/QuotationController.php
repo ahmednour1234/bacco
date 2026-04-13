@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Enduser;
 
 use App\Http\Controllers\Controller;
 use App\Models\QuotationRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -36,6 +38,19 @@ class QuotationController extends Controller
             ->firstOrFail();
 
         return view('enduser.quotations.edit', compact('quotation'));
+    }
+
+    public function pdf(string $uuid): Response
+    {
+        $quotation = QuotationRequest::with(['client', 'project', 'items.unit'])
+            ->where('uuid', $uuid)
+            ->where('client_id', Auth::id())
+            ->firstOrFail();
+
+        $pdf = Pdf::loadView('enduser.quotations.pdf', compact('quotation'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('quotation-' . $quotation->quotation_no . '.pdf');
     }
 }
 

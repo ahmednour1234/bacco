@@ -4,7 +4,9 @@ namespace App\Livewire\Enduser\Quotations;
 
 use App\Enums\QuotationRequestStatusEnum;
 use App\Models\QuotationRequest;
+use App\Services\Enduser\OrderService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -44,6 +46,57 @@ class IndexList extends Component
         }
 
         $this->resetPage();
+    }
+
+    public function convertToOrder(string $uuid): void
+    {
+        $quotation = QuotationRequest::with(['items.unit'])
+            ->where('uuid', $uuid)
+            ->where('client_id', Auth::id())
+            ->firstOrFail();
+
+        if ($quotation->status->value !== 'tender') {
+            $this->dispatch('toast', message: 'Only tender quotations can be converted to an order.', type: 'error');
+            return;
+        }
+
+        $items = $quotation->items;
+
+        if ($items->isEmpty()) {
+            $this->dispatch('toast', message: 'This quotation has no items.', type: 'error');
+            return;
+        }
+
+        $selectedItems = $items->map(fn($i) => [
+            'id'          => $i->id,
+            'product_id'  => $i->product_id,
+            'description' => (string) $i->description,
+            'quantity'    => (float) $i->quantity,
+            'unit_id'     => $i->unit_id,
+            'unit_price'  => (float) ($i->unit_price ?? 0),
+            'category'    => (string) ($i->category ?? ''),
+            'brand'       => (string) ($i->brand ?? ''),
+            'status'      => $i->status->value ?? 'pending',
+            'selected'    => true,
+        ])->values()->toArray();
+
+        $subtotal = collect($selectedItems)
+            ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price']))
+            ->sum(fn($i) => (float) $i['unit_price'] * (float) $i['quantity']);
+
+        if ($subtotal <= 0) {
+            $this->dispatch('toast', message: 'Total amount must be greater than 0 before converting.', type: 'error');
+            return;
+        }
+
+        try {
+            $order = app(OrderService::class)->createFromQuotation($quotation, $selectedItems);
+            $quotation->update(['status' => QuotationRequestStatusEnum::Submitted]);
+            $this->redirect(route('enduser.orders.show', $order->uuid));
+        } catch (\Throwable $e) {
+            Log::error('IndexList::convertToOrder failed.', ['message' => $e->getMessage()]);
+            $this->dispatch('toast', message: 'Failed to create order. Please try again.', type: 'error');
+        }
     }
 
     public function deleteQuotation(int $id): void

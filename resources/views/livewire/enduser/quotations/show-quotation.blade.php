@@ -190,9 +190,8 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">Brand</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Engineering</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Status</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-10">Src</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Price (SAR)</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-44">Selected Product</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Unit Price (SAR)</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Total (SAR)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -259,13 +258,16 @@
                                             {{ $badgeLabel }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-center">
-                                        @if(($item['price_source'] ?? null) === 'products')
-                                            <span title="Matched from Products catalogue" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">P</span>
-                                        @elseif(($item['price_source'] ?? null) === 'gemini')
-                                            <span title="Estimated by Gemini AI" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 text-xs font-bold">AI</span>
+                                    <td class="px-4 py-3 text-right font-mono font-medium text-slate-800">
+                                        @if($fetchingPrices && empty($item['unit_price']))
+                                            <svg class="ml-auto h-4 w-4 animate-spin text-slate-300" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                            </svg>
+                                        @elseif(is_numeric($item['unit_price'] ?? null))
+                                            {{ number_format((float)$item['unit_price'], 2) }}
                                         @else
-                                            <span class="text-slate-300 text-xs">—</span>
+                                            <span class="text-xs italic text-slate-400">Not priced</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono font-medium text-slate-800">
@@ -280,117 +282,7 @@
                                             <span class="text-xs italic text-slate-400">Not priced</span>
                                         @endif
                                     </td>
-
-                                    {{-- Selected Product (always visible; picker actions for editable) --}}
-                                    <td class="px-4 py-3">
-                                        @if($canEdit)
-                                            <div class="flex items-center gap-1.5">
-                                                @if($hasProduct)
-                                                    <span class="flex-1 min-w-0 truncate text-xs font-semibold text-emerald-700" title="{{ $item['product_name'] ?? '' }}">{{ $item['product_name'] ?? '—' }}</span>
-                                                    <button
-                                                        type="button"
-                                                        wire:click="removeProduct({{ $item['id'] }})"
-                                                        title="Remove product"
-                                                        class="shrink-0 inline-flex items-center justify-center h-5 w-5 rounded bg-red-50 text-red-400 hover:bg-red-100 transition"
-                                                    >
-                                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                        </svg>
-                                                    </button>
-                                                @else
-                                                    @if($isPickerOpen)
-                                                        <button
-                                                            type="button"
-                                                            wire:click="closePicker"
-                                                            class="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
-                                                        >
-                                                            Close
-                                                        </button>
-                                                    @else
-                                                        <button
-                                                            type="button"
-                                                            wire:click="openPicker({{ $item['id'] }})"
-                                                            class="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition"
-                                                        >
-                                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
-                                                            </svg>
-                                                            Select
-                                                        </button>
-                                                    @endif
-                                                @endif
-                                            </div>
-                                        @else
-                                            {{-- Read-only: just show the product name --}}
-                                            @if(!empty($item['product_name']))
-                                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                                    <svg class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                                    </svg>
-                                                    {{ $item['product_name'] }}
-                                                </span>
-                                            @else
-                                                <span class="text-xs text-slate-300">Not selected</span>
-                                            @endif
-                                        @endif
-                                    </td>
                                 </tr>
-
-                                {{-- Product picker panel --}}
-                                @if($isPickerOpen && $canEdit)
-                                <tr class="bg-slate-50 border-b border-slate-200">
-                                    <td colspan="12" class="px-4 py-4">
-                                        <div class="max-w-xl space-y-3">
-                                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Search products catalogue</p>
-                                            <div class="relative">
-                                                <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
-                                                </svg>
-                                                <input
-                                                    type="text"
-                                                    wire:model.live.debounce.300ms="productSearch"
-                                                    placeholder="Type product name…"
-                                                    autofocus
-                                                    class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-800 shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                                                />
-                                                <div wire:loading wire:target="updatedProductSearch" class="absolute right-3 top-1/2 -translate-y-1/2">
-                                                    <svg class="h-4 w-4 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                            @if(strlen(trim($productSearch)) >= 2)
-                                                @if(empty($productResults))
-                                                    <p class="text-sm italic text-slate-400 px-1">No products found for "{{ $productSearch }}".</p>
-                                                @else
-                                                    <ul class="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                                                        @foreach($productResults as $product)
-                                                            <li>
-                                                                <button
-                                                                    type="button"
-                                                                    wire:click="selectProduct({{ $item['id'] }}, {{ $product['id'] }})"
-                                                                    class="w-full flex items-center justify-between px-4 py-3 text-left text-sm hover:bg-emerald-50 transition group"
-                                                                >
-                                                                    <div class="min-w-0">
-                                                                        <p class="font-medium text-slate-800 truncate group-hover:text-emerald-700">{{ $product['name'] }}</p>
-                                                                        <p class="text-xs text-slate-400 mt-0.5">Unit: <span class="font-semibold text-slate-600">{{ $product['unit_name'] ?: '—' }}</span></p>
-                                                                    </div>
-                                                                    <span class="ml-4 shrink-0 font-mono text-sm font-semibold text-emerald-600">
-                                                                        {{ number_format($product['unit_price'], 2) }} SAR
-                                                                    </span>
-                                                                </button>
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
-                                                @endif
-                                            @else
-                                                <p class="text-xs text-slate-400 px-1">Type at least 2 characters to search.</p>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                                @endif
 
                             @endforeach
                         </tbody>

@@ -81,6 +81,44 @@ class ShowBoq extends Component
     }
 
     // -------------------------------------------------------------------------
+    // Inline item editing
+    // -------------------------------------------------------------------------
+
+    public function updateItem(int $index, string $field): void
+    {
+        $item = $this->items[$index] ?? null;
+        if (! $item) {
+            return;
+        }
+
+        $allowed = ['description', 'quantity', 'engineering_required'];
+        if (! in_array($field, $allowed, true)) {
+            return;
+        }
+
+        $value = $item[$field];
+
+        if ($field === 'quantity') {
+            $value = max(0, (float) $value);
+            $this->items[$index]['quantity'] = $value;
+        }
+
+        BoqItem::where('id', $item['id'])->update([$field => $value]);
+    }
+
+    public function toggleEngineering(int $itemId): void
+    {
+        foreach ($this->items as $index => $item) {
+            if ((int) $item['id'] === $itemId) {
+                $newState = ! ($item['engineering_required'] ?? false);
+                $this->items[$index]['engineering_required'] = $newState;
+                BoqItem::where('id', $itemId)->update(['engineering_required' => $newState]);
+                break;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Create Quotation from selected items
     // -------------------------------------------------------------------------
 

@@ -36,7 +36,7 @@ class CreateBoq extends Component
     #[Validate('required|string|max:255')]
     public string $projectName = '';
 
-    #[Validate('required|string|max:5000')]
+    #[Validate('nullable|string|max:5000')]
     public string $projectDescription = '';
 
     /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
@@ -75,7 +75,7 @@ class CreateBoq extends Component
     {
         $this->validate([
             'projectName'        => 'required|string|max:255',
-            'projectDescription' => 'required|string|max:5000',
+            'projectDescription' => 'nullable|string|max:5000',
         ]);
 
         if (! $this->boqFile) {
@@ -273,7 +273,7 @@ class CreateBoq extends Component
     {
         $this->validate([
             'projectName'        => 'required|string|max:255',
-            'projectDescription' => 'required|string|max:5000',
+            'projectDescription' => 'nullable|string|max:5000',
         ]);
 
         $project = $this->persistProject();
@@ -292,7 +292,7 @@ class CreateBoq extends Component
 
         $this->validate([
             'projectName'        => 'required|string|max:255',
-            'projectDescription' => 'required|string|max:5000',
+            'projectDescription' => 'nullable|string|max:5000',
         ]);
 
         if (empty($this->items)) {

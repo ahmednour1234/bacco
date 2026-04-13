@@ -39,7 +39,8 @@ return [
         'base_url'        => env('AI_QUOTATION_BASE_URL', ''),
         'parse_endpoint'  => env('AI_QUOTATION_PARSE_ENDPOINT', 'parse'),
         'api_key'         => env('AI_QUOTATION_API_KEY', ''),
-        'timeout'         => env('AI_QUOTATION_TIMEOUT', 120),
+        'timeout'         => env('AI_QUOTATION_TIMEOUT', 180),
+        'test_mode'       => env('AI_QUOTATION_TEST_MODE', false),
     ],
 
     'gemini' => [
