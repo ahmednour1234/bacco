@@ -154,7 +154,7 @@
                 Pricing &amp; Margin
             </h2>
 
-            <div class="grid grid-cols-2 gap-5 sm:grid-cols-4">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
 
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-slate-700">Unit Price (SAR)</label>
@@ -180,14 +180,6 @@
                     @error('installation_price') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
-                <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Margin (%)</label>
-                    <input type="number" wire:model.live="margin_percentage" step="0.01" min="0" max="100"
-                           class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
-                                  transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                    @error('margin_percentage') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-
             </div>
 
             {{-- Estimated Final Price banner --}}
@@ -200,8 +192,8 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Estimated Final Price</p>
-                        <p class="text-xs text-emerald-600">Total = Unit + Engineering + Installation + Margin</p>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Estimated Total Price</p>
+                        <p class="text-xs text-emerald-600">Total = Unit + Engineering + Installation</p>
                     </div>
                 </div>
                 <div class="text-right">

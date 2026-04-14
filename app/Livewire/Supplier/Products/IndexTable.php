@@ -50,10 +50,8 @@ class IndexTable extends Component
             $query->whereHas('product', fn($q) => $q->where('name', 'like', $term));
         }
 
-        if ($this->status === 'active') {
-            $query->where('active', true);
-        } elseif ($this->status === 'inactive') {
-            $query->where('active', false);
+        if (in_array($this->status, ['pending', 'approved', 'rejected'])) {
+            $query->where('approval_status', $this->status);
         }
 
         $supplierProducts = $query->paginate($this->perPage);

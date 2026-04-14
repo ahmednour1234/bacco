@@ -110,9 +110,26 @@
                 <span>{{ __('app.suppliers') }}</span>
             </a>
 
-
-
-            {{-- Divider --}}
+            {{-- Supplier Product Approvals --}}
+            <a href="{{ route('admin.suppliers.products') }}" wire:navigate
+               class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                      {{ request()->routeIs('admin.suppliers.products')
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ __('app.supplier_products_approval') }}</span>
+                @php
+                    $pendingProductCount = \App\Models\SupplierProduct::where('approval_status', 'pending')->count();
+                @endphp
+                @if($pendingProductCount > 0)
+                    <span class="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white">
+                        {{ $pendingProductCount }}
+                    </span>
+                @endif
+            </a>
 
             {{-- Catalog section label --}}
 
@@ -245,17 +262,6 @@
 
                 {{-- Right actions --}}
                 <div class="flex items-center gap-2 sm:gap-3">
-
-                    {{-- Search --}}
-                    <div class="hidden sm:flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2 w-48 lg:w-60">
-                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
-                        </svg>
-                        <input type="text" placeholder="{{ __('app.search') }}"
-                               class="bg-transparent text-sm text-slate-700 placeholder-slate-400
-                                      focus:outline-none w-full">
-                    </div>
 
                     {{-- Notifications --}}
                     @livewire('notification-dropdown')

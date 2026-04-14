@@ -11,6 +11,9 @@ enum NotificationTypeEnum: string
     case OrderCreated        = 'order_created';
     case OrderUpdated        = 'order_updated';
     case ProjectMilestone    = 'project_milestone';
+    case ProductSubmitted    = 'product_submitted';
+    case ProductApproved     = 'product_approved';
+    case ProductRejected     = 'product_rejected';
     case General             = 'general';
 
     public function label(): string
@@ -23,6 +26,9 @@ enum NotificationTypeEnum: string
             self::OrderCreated        => 'Order Created',
             self::OrderUpdated        => 'Order Updated',
             self::ProjectMilestone    => 'Project Milestone',
+            self::ProductSubmitted    => 'Product Submitted for Approval',
+            self::ProductApproved     => 'Product Approved',
+            self::ProductRejected     => 'Product Rejected',
             self::General             => 'General',
         };
     }
@@ -37,6 +43,9 @@ enum NotificationTypeEnum: string
             self::OrderCreated        => 'success',
             self::OrderUpdated        => 'info',
             self::ProjectMilestone    => 'warning',
+            self::ProductSubmitted    => 'info',
+            self::ProductApproved     => 'success',
+            self::ProductRejected     => 'warning',
             self::General             => 'info',
         };
     }

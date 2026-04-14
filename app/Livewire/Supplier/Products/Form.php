@@ -7,6 +7,9 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\SupplierProduct;
 use App\Models\Unit;
+use App\Enums\NotificationTypeEnum;
+use App\Enums\UserTypeEnum;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -32,7 +35,6 @@ class Form extends Component
     public string $unit_price         = '0.00';
     public string $engineering_price  = '0.00';
     public string $installation_price = '0.00';
-    public string $margin_percentage  = '15';
     public string $description        = '';
     public $datasheet                 = null;
     public ?string $existingDatasheet = null;
@@ -83,7 +85,6 @@ class Form extends Component
             $this->unit_price         = number_format((float) ($p->unit_price ?? 0), 2, '.', '');
             $this->engineering_price  = number_format((float) ($p->engineering_price ?? 0), 2, '.', '');
             $this->installation_price = number_format((float) ($p->installation_price ?? 0), 2, '.', '');
-            $this->margin_percentage  = number_format((float) ($p->margin_percentage ?? 15), 2, '.', '');
             $this->description        = (string) ($p->description ?? '');
             $this->existingDatasheet  = $p->datasheet_path;
 
@@ -101,7 +102,7 @@ class Form extends Component
         $base   = (float) $this->unit_price
                 + (float) $this->engineering_price
                 + (float) $this->installation_price;
-        return $base * (1 + (float) $this->margin_percentage / 100);
+        return $base;
     }
 
     private function generateSku(): string
@@ -135,7 +136,6 @@ class Form extends Component
             'unit_price'         => ['required', 'numeric', 'min:0'],
             'engineering_price'  => ['nullable', 'numeric', 'min:0'],
             'installation_price' => ['nullable', 'numeric', 'min:0'],
-            'margin_percentage'  => ['nullable', 'numeric', 'min:0', 'max:100'],
             'description'        => ['nullable', 'string'],
             'datasheet'          => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx', 'max:10240'],
             'leadTimeDays'       => ['nullable', 'integer', 'min:0'],
@@ -153,9 +153,9 @@ class Form extends Component
             'unit_price'         => $this->unit_price,
             'engineering_price'  => $this->engineering_price ?: 0,
             'installation_price' => $this->installation_price ?: 0,
-            'margin_percentage'  => $this->margin_percentage ?: 0,
+            'margin_percentage'  => 0,
             'description'        => $this->description ?: null,
-            'active'             => $this->active,
+            'active'             => false,
         ];
 
         if ($this->datasheet) {
@@ -170,24 +170,47 @@ class Form extends Component
         if ($this->isEditing) {
             $this->supplierProduct->product->update($productData);
             $this->supplierProduct->update([
-                'price'          => $this->unit_price,
-                'lead_time_days' => $this->leadTimeDays ?: null,
-                'min_order_qty'  => $this->minOrderQty ?: null,
-                'notes'          => $this->notes ?: null,
-                'active'         => $this->active,
+                'price'           => $this->unit_price,
+                'lead_time_days'  => $this->leadTimeDays ?: null,
+                'min_order_qty'   => $this->minOrderQty ?: null,
+                'notes'           => $this->notes ?: null,
+                'active'          => $this->active,
+                'approval_status' => 'pending',
+                'approved_at'     => null,
+                'approved_by'     => null,
+                'rejection_reason'=> null,
             ]);
+
+            // Notify admins about the updated product
+            app(NotificationService::class)->sendToUserType(
+                title: 'Product Updated – Needs Re-approval',
+                body: Auth::user()->name . ' updated product "' . $this->name . '" and it needs re-approval.',
+                type: NotificationTypeEnum::ProductSubmitted,
+                userType: UserTypeEnum::Admin,
+                actionUrl: route('admin.suppliers.products'),
+            );
         } else {
             $productData['sku'] = $this->generateSku();
             $product = Product::create($productData);
             SupplierProduct::create([
-                'supplier_id'    => Auth::id(),
-                'product_id'     => $product->id,
-                'price'          => $this->unit_price,
-                'lead_time_days' => $this->leadTimeDays ?: null,
-                'min_order_qty'  => $this->minOrderQty ?: null,
-                'notes'          => $this->notes ?: null,
-                'active'         => $this->active,
+                'supplier_id'     => Auth::id(),
+                'product_id'      => $product->id,
+                'price'           => $this->unit_price,
+                'lead_time_days'  => $this->leadTimeDays ?: null,
+                'min_order_qty'   => $this->minOrderQty ?: null,
+                'notes'           => $this->notes ?: null,
+                'active'          => true,
+                'approval_status' => 'pending',
             ]);
+
+            // Notify admins about the new product
+            app(NotificationService::class)->sendToUserType(
+                title: 'New Product Submitted for Approval',
+                body: Auth::user()->name . ' submitted a new product "' . $this->name . '" for approval.',
+                type: NotificationTypeEnum::ProductSubmitted,
+                userType: UserTypeEnum::Admin,
+                actionUrl: route('admin.suppliers.products'),
+            );
         }
 
         $this->redirect(route('supplier.products.index'), navigate: true);
@@ -349,23 +372,35 @@ PROMPT;
                 'unit_price'         => $item['unit_price'],
                 'engineering_price'  => $item['engineering_price'],
                 'installation_price' => $item['installation_price'],
-                'margin_percentage'  => $item['margin_percentage'],
-                'active'             => true,
+                'margin_percentage'  => 0,
+                'active'             => false,
             ]);
 
             SupplierProduct::create([
-                'supplier_id'    => $supplierId,
-                'product_id'     => $product->id,
-                'price'          => $item['unit_price'],
-                'lead_time_days' => $item['lead_time_days'] ?: null,
-                'notes'          => $item['notes'] ?: null,
-                'active'         => true,
+                'supplier_id'     => $supplierId,
+                'product_id'      => $product->id,
+                'price'           => $item['unit_price'],
+                'lead_time_days'  => $item['lead_time_days'] ?: null,
+                'notes'           => $item['notes'] ?: null,
+                'active'          => true,
+                'approval_status' => 'pending',
             ]);
 
             $imported++;
         }
 
         session()->flash('success', "{$imported} product(s) imported to your catalogue.");
+
+        if ($imported > 0) {
+            app(NotificationService::class)->sendToUserType(
+                title: 'New Products Submitted for Approval',
+                body: Auth::user()->name . ' submitted ' . $imported . ' product(s) via AI import for approval.',
+                type: NotificationTypeEnum::ProductSubmitted,
+                userType: UserTypeEnum::Admin,
+                actionUrl: route('admin.suppliers.products'),
+            );
+        }
+
         $this->redirect(route('supplier.products.index'), navigate: true);
     }
 

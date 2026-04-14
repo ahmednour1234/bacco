@@ -15,8 +15,9 @@
             <select wire:model.live="status"
                 class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                 <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="pending">Pending Approval</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
             </select>
         </div>
 
@@ -85,14 +86,21 @@
 
                             {{-- Status --}}
                             <td class="whitespace-nowrap px-5 py-4">
-                                @if($sp->active)
+                                @if($sp->approval_status === 'pending')
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>Pending Approval
+                                    </span>
+                                @elseif($sp->approval_status === 'approved')
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Active
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Approved
                                     </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Inactive
+                                @elseif($sp->approval_status === 'rejected')
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Rejected
                                     </span>
+                                    @if($sp->rejection_reason)
+                                        <p class="mt-1 text-xs text-red-500 max-w-[150px] truncate" title="{{ $sp->rejection_reason }}">{{ $sp->rejection_reason }}</p>
+                                    @endif
                                 @endif
                             </td>
 

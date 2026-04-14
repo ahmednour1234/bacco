@@ -130,6 +130,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Suppliers
         Route::resource('suppliers', AdminSupplierController::class)->except(['destroy']);
         Route::post('/suppliers/{uuid}/toggle-status', [AdminSupplierController::class, 'toggleStatus'])->name('suppliers.toggle-status');
+
+        // Supplier Products Approval
+        Route::get('/supplier-products', fn() => view('admin.supplier-products'))->name('suppliers.products');
     });
 });
 
