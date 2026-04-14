@@ -180,7 +180,7 @@
                             {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}
                         @endif
                     </div>
-                    <div class="flex-1 text-left min-w-0">
+                    <div class="flex-1 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }} min-w-0">
                         <p class="text-sm font-medium text-slate-900 truncate">{{ auth()->user()->name ?? 'User' }}</p>
                         <p class="text-xs text-slate-500 truncate">{{ auth()->user()->email ?? '' }}</p>
                     </div>
