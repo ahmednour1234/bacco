@@ -13,6 +13,9 @@
     <style>
         * { font-family: 'IBM Plex Sans Arabic', sans-serif; }
         [x-cloak] { display: none !important; }
+        @media (min-width: 1024px) {
+            .sidebar-offset { margin-inline-start: 16rem; }
+        }
     </style>
 </head>
 <body class="min-h-screen bg-slate-100 antialiased" x-data="{ sidebarOpen: false }">
@@ -213,7 +216,7 @@
     {{-- ══════════════════════════════════════════════════════════
          MAIN WRAPPER (pushes right of sidebar)
     ══════════════════════════════════════════════════════════ --}}
-    <div class="lg:ms-64 flex flex-col min-h-screen">
+    <div class="sidebar-offset flex flex-col min-h-screen">
 
         {{-- ── TOP NAVBAR ─────────────────────────────────────── --}}
         <header class="sticky top-0 z-10 bg-white border-b border-slate-200/80 shadow-sm">
