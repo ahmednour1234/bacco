@@ -422,9 +422,16 @@ return [
     'arabic'      => 'العربية',
 
     // Notifications
-    'no_notifications'        => 'لا توجد إشعارات بعد',
-    'view_all_notifications'  => 'عرض جميع الإشعارات',
-    'mark_all_read'           => 'تعيين الكل كمقروء',
+    'no_notifications'          => 'لا توجد إشعارات بعد',
+    'no_notifications_desc'     => 'عندما تتلقى إشعارات، ستظهر هنا.',
+    'view_all_notifications'    => 'عرض جميع الإشعارات',
+    'mark_all_read'             => 'تعيين الكل كمقروء',
+    'mark_as_read'              => 'تعيين كمقروء',
+    'unread_notifications'      => 'إشعارات غير مقروءة',
+    'unread'                    => 'غير مقروء',
+    'read'                      => 'مقروء',
+    'all'                       => 'الكل',
+    'view_details'              => 'عرض التفاصيل',
 
     // Admin Dashboard
     'welcome_back'            => 'مرحباً بعودتك،',

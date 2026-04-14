@@ -62,6 +62,9 @@ Route::prefix('enduser')->name('enduser.')->group(function () {
         Route::get('/logout',           [EnduserAuthController::class, 'logout'])->name('logout');
         Route::get('/dashboard',        [EnduserDashboardController::class, 'index'])->name('dashboard');
 
+        // Notifications
+        Route::get('/notifications', fn() => view('enduser.notifications'))->name('notifications');
+
         // Profile
         Route::get('/profile',          [EnduserProfileController::class, 'show'])->name('profile');
         Route::put('/profile',          [EnduserProfileController::class, 'update'])->name('profile.update');
@@ -105,6 +108,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth', 'employee'])->group(function () {
         Route::get('/logout',    [AdminAuthController::class, 'logout'])->name('logout');
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // Notifications
+        Route::get('/notifications', fn() => view('admin.notifications'))->name('notifications');
 
         // Profile
         Route::get('/profile',   [AdminProfileController::class, 'show'])->name('profile');
@@ -161,6 +167,9 @@ Route::prefix('supplier')->name('supplier.')->group(function () {
     Route::middleware(['auth', 'supplier'])->group(function () {
         Route::get('/logout',    [SupplierAuthController::class, 'logout'])->name('logout');
         Route::get('/dashboard', [SupplierDashboardController::class, 'index'])->name('dashboard');
+
+        // Notifications
+        Route::get('/notifications', fn() => view('supplier.notifications'))->name('notifications');
 
         // Profile
         Route::get('/profile',   [SupplierProfileController::class, 'show'])->name('profile');

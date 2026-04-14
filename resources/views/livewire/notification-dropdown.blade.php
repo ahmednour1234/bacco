@@ -104,7 +104,15 @@
         {{-- Footer --}}
         @if($notifications->count() > 0)
             <div class="px-4 py-3 border-t border-slate-100">
-                <a href="#" class="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
+                @php
+                    $userType = auth()->user()->type ?? null;
+                    $notifRoute = match($userType?->value ?? $userType) {
+                        'admin', 'employee' => route('admin.notifications'),
+                        'supplier' => route('supplier.notifications'),
+                        default => route('enduser.notifications'),
+                    };
+                @endphp
+                <a href="{{ $notifRoute }}" wire:navigate class="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
                     {{ __('app.view_all_notifications') }} →
                 </a>
             </div>

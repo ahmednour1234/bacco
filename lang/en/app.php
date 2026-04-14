@@ -420,9 +420,16 @@ return [
     'arabic'      => 'العربية',
 
     // Notifications
-    'no_notifications'        => 'No notifications yet',
-    'view_all_notifications'  => 'View all notifications',
-    'mark_all_read'           => 'Mark all as read',
+    'no_notifications'          => 'No notifications yet',
+    'no_notifications_desc'     => 'When you receive notifications, they will appear here.',
+    'view_all_notifications'    => 'View all notifications',
+    'mark_all_read'             => 'Mark all as read',
+    'mark_as_read'              => 'Mark as read',
+    'unread_notifications'      => 'unread notifications',
+    'unread'                    => 'Unread',
+    'read'                      => 'Read',
+    'all'                       => 'All',
+    'view_details'              => 'View details',
 
     // Admin Dashboard
     'welcome_back'            => 'Welcome back,',
