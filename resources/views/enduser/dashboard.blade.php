@@ -87,10 +87,10 @@
     {{-- ─────────────────────────────────────────────────────
          TRACK QUOTATIONS (wider column)
     ───────────────────────────────────────────────────────── --}}
-    <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100">
 
         {{-- Header --}}
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 rounded-t-2xl">
             <div>
                 <h2 class="text-base font-semibold text-slate-900">{{ __('app.track_quotations') }}</h2>
                 <p class="text-xs text-slate-400 mt-0.5">{{ __('app.latest_quotation_req') }}</p>
@@ -126,7 +126,7 @@
                         <td class="px-4 py-4 text-slate-500">
                             {{ __('app.items_count', ['count' => $quotation->items_count]) }}
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-4 py-4">
                             @php
                                 $status = $quotation->status?->value ?? 'pending';
                                 $badge = match($status) {
@@ -167,10 +167,10 @@
     {{-- ─────────────────────────────────────────────────────
          ACCEPTED QUOTATIONS (narrower column)
     ───────────────────────────────────────────────────────── --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
 
         {{-- Header --}}
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 rounded-t-2xl">
             <div>
                 <h2 class="text-base font-semibold text-slate-900">{{ __('app.accepted_quotations') }}</h2>
                 <p class="text-xs text-slate-400 mt-0.5">{{ __('app.ready_for_order') }}</p>
@@ -219,9 +219,9 @@
 {{-- ══════════════════════════════════════════════════════════
      RECENT ORDERS
 ══════════════════════════════════════════════════════════ --}}
-<div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+<div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-100">
 
-    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 rounded-t-2xl">
         <div>
             <h2 class="text-base font-semibold text-slate-900">{{ __('app.recent_orders') }}</h2>
             <p class="text-xs text-slate-400 mt-0.5">{{ __('app.your_latest_orders') }}</p>
@@ -256,7 +256,7 @@
                     <td class="px-4 py-4 font-medium text-slate-900">
                         {{ $order->currency ?? 'SAR' }} {{ number_format($order->grand_total, 2) }}
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-4">
                         @php
                             $orderStatus = $order->status?->value ?? 'pending';
                             $orderBadge = match($orderStatus) {
@@ -296,9 +296,9 @@
 {{-- ══════════════════════════════════════════════════════════
      ACTIVE PROJECTS ROW
 ══════════════════════════════════════════════════════════ --}}
-<div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+<div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-100">
 
-    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 rounded-t-2xl">
         <div>
             <h2 class="text-base font-semibold text-slate-900">{{ __('app.active_projects_section') }}</h2>
             <p class="text-xs text-slate-400 mt-0.5">{{ __('app.ongoing_projects') }}</p>
@@ -330,7 +330,7 @@
                     <td class="px-4 py-4 text-slate-500">
                         {{ $project->start_date ? $project->start_date->format('M d, Y') : '—' }}
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-4">
                         @php
                             $projStatus = $project->status?->value ?? 'pending';
                             $projBadge = match($projStatus) {
