@@ -16,7 +16,7 @@
 {{-- ══════════════════════════════════════════════════════════
      STATS CARDS
 ══════════════════════════════════════════════════════════ --}}
-<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
 
     {{-- Total Quotations --}}
     <a href="{{ route('enduser.quotations.index') }}" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
@@ -107,23 +107,23 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-slate-50 text-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}">
-                        <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.quotation_id') }}</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.date') }}</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.items') }}</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.status') }}</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.action') }}</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.quotation_id') }}</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.date') }}</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.items') }}</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.status') }}</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.action') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($recentQuotations as $quotation)
                     <tr class="hover:bg-slate-50/60 transition-colors">
-                        <td class="px-6 py-4">
+                        <td class="px-4 py-4">
                             <span class="font-medium text-slate-900">#{{ $quotation->id }}</span>
                         </td>
-                        <td class="px-6 py-4 text-slate-500">
+                        <td class="px-4 py-4 text-slate-500">
                             {{ $quotation->created_at->format('M d, Y') }}
                         </td>
-                        <td class="px-6 py-4 text-slate-500">
+                        <td class="px-4 py-4 text-slate-500">
                             {{ __('app.items_count', ['count' => $quotation->items_count]) }}
                         </td>
                         <td class="px-6 py-4">
@@ -145,7 +145,7 @@
                                 {{ $badge[1] }}
                             </span>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-4 py-4">
                             <a href="{{ route('enduser.quotations.show', $quotation->uuid) }}" class="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
                                 {{ __('app.view') }} →
                             </a>
@@ -153,7 +153,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-8 text-center text-sm text-slate-400">
+                        <td colspan="5" class="px-4 py-8 text-center text-sm text-slate-400">
                             {{ __('app.no_quotations_yet') }}
                             <a href="{{ route('enduser.quotations.create') }}" class="text-emerald-600 hover:text-emerald-700 font-medium">{{ __('app.create_one') }} →</a>
                         </td>
@@ -237,23 +237,23 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="bg-slate-50 text-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}">
-                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.order_no') }}</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.date') }}</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.total') }}</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.status') }}</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.action') }}</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.order_no') }}</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.date') }}</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.total') }}</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.status') }}</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.action') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
                 @forelse($recentOrders as $order)
                 <tr class="hover:bg-slate-50/60 transition-colors">
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-4">
                         <span class="font-medium text-slate-900">{{ $order->order_no }}</span>
                     </td>
-                    <td class="px-6 py-4 text-slate-500">
+                    <td class="px-4 py-4 text-slate-500">
                         {{ $order->created_at->format('M d, Y') }}
                     </td>
-                    <td class="px-6 py-4 font-medium text-slate-900">
+                    <td class="px-4 py-4 font-medium text-slate-900">
                         {{ $order->currency ?? 'SAR' }} {{ number_format($order->grand_total, 2) }}
                     </td>
                     <td class="px-6 py-4">
@@ -275,7 +275,7 @@
                             {{ $orderBadge[1] }}
                         </span>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-4">
                         <a href="{{ route('enduser.orders.show', $order->uuid) }}" class="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
                             {{ __('app.view') }} →
                         </a>
@@ -283,7 +283,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="px-6 py-8 text-center text-sm text-slate-400">
+                    <td colspan="5" class="px-4 py-8 text-center text-sm text-slate-400">
                         {{ __('app.no_orders_yet') }}
                     </td>
                 </tr>
@@ -314,20 +314,20 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="bg-slate-50 text-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}">
-                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.project') }}</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.start_date') }}</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.status') }}</th>
-                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.action') }}</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.project') }}</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.start_date') }}</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.status') }}</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{{ __('app.action') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
                 @forelse($activeProjects as $project)
                 <tr class="hover:bg-slate-50/60 transition-colors">
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-4">
                         <p class="font-medium text-slate-900">{{ $project->name }}</p>
                         <p class="text-xs text-slate-400 mt-0.5">#{{ $project->project_no }}</p>
                     </td>
-                    <td class="px-6 py-4 text-slate-500">
+                    <td class="px-4 py-4 text-slate-500">
                         {{ $project->start_date ? $project->start_date->format('M d, Y') : '—' }}
                     </td>
                     <td class="px-6 py-4">
@@ -346,7 +346,7 @@
                             {{ $projBadge[1] }}
                         </span>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-4">
                         <a href="{{ route('enduser.projects.show', $project->uuid) }}" class="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
                             {{ __('app.view') }} →
                         </a>
@@ -354,7 +354,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="px-6 py-8 text-center text-sm text-slate-400">
+                    <td colspan="4" class="px-4 py-8 text-center text-sm text-slate-400">
                         {{ __('app.no_active_projects') }}
                     </td>
                 </tr>
