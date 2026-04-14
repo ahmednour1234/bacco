@@ -9,7 +9,7 @@
 
             <dl class="mt-3 flex flex-wrap gap-x-8 gap-y-2">
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Status</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.status') }}</dt>
                     <dd class="mt-0.5 flex items-center gap-1.5">
                         @php
                             $statusVal = $quotation->status->value ?? '';
@@ -29,31 +29,31 @@
                 </div>
 
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Submitted Date</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.submitted_date') }}</dt>
                     <dd class="mt-0.5 text-sm text-slate-700">
                         {{ $quotation->created_at?->format('M j, Y') ?? '—' }}
                     </dd>
                 </div>
 
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Project Type</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.project_type') }}</dt>
                     <dd class="mt-0.5 text-sm text-slate-700">{{ $quotation->project_type ?? '—' }}</dd>
                 </div>
 
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Quotation ID</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.quotation_id') }}</dt>
                     <dd class="mt-0.5 text-sm font-mono text-slate-700">{{ $quotation->quotation_no ?? '#' . $quotation->id }}</dd>
                 </div>
 
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Client</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.client') }}</dt>
                     <dd class="mt-0.5 text-sm text-slate-700">
                         {{ $quotation->client?->clientProfile?->full_name ?? $quotation->client?->name ?? '—' }}
                     </dd>
                 </div>
 
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Company</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.company') }}</dt>
                     <dd class="mt-0.5 text-sm text-slate-700">
                         {{ $quotation->client?->clientProfile?->company_name ?? '—' }}
                     </dd>
@@ -71,7 +71,7 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
-                Back
+                {{ __('app.back') }}
             </a>
             <button
                 type="button"
@@ -81,7 +81,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                Export PDF
+                {{ __('app.export_pdf') }}
             </button>
         </div>
     </div>
@@ -90,31 +90,31 @@
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
 
         <div class="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 class="text-sm font-semibold text-slate-800">Bill of Quantities (BOQ)</h2>
-            <span class="text-xs text-slate-400">Read-only view</span>
+            <h2 class="text-sm font-semibold text-slate-800">{{ __('app.boq_full') }}</h2>
+            <span class="text-xs text-slate-400">{{ __('app.read_only_view') }}</span>
         </div>
 
         <div class="p-6">
             @if(empty($items))
                 <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center text-sm text-slate-400">
-                    No items found for this quotation.
+                    {{ __('app.no_items_quotation') }}
                 </div>
             @else
                 <div class="overflow-x-auto rounded-xl border border-slate-200">
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="border-b border-slate-100 bg-slate-50">
-                                <th class="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-14">Selected</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">Description</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">QTY</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">Unit</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">Category</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">Brand</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Engineering</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Status</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-10">Src</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Price (SAR)</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-44">Selected Product</th>
+                                <th class="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-14">{{ __('app.selected') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">{{ __('app.description') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.unit') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">{{ __('app.category') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">{{ __('app.brand') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.engineering') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.status') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-10">{{ __('app.src') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.price_sar') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-44">{{ __('app.selected_product') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -181,7 +181,7 @@
                                         @if(is_numeric($item['unit_price'] ?? null))
                                             {{ number_format((float)$item['unit_price'] * (float)($item['quantity'] ?? 0), 2) }}
                                         @else
-                                            <span class="text-xs italic text-slate-400">Not priced</span>
+                                            <span class="text-xs italic text-slate-400">{{ __('app.not_priced') }}</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3">
@@ -193,7 +193,7 @@
                                                 {{ $item['product_name'] }}
                                             </span>
                                         @else
-                                            <span class="text-xs text-slate-300">Not selected</span>
+                                            <span class="text-xs text-slate-300">{{ __('app.not_selected') }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -221,24 +221,24 @@
         <div class="w-full max-w-sm">
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="mb-4 flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-slate-700">Financial Summary</h3>
+                    <h3 class="text-sm font-semibold text-slate-700">{{ __('app.financial_summary') }}</h3>
                     <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-                        {{ $selectedCount }} item{{ $selectedCount !== 1 ? 's' : '' }} selected
+                        {{ $selectedCount }} {{ __('app.items_selected') }}
                     </span>
                 </div>
 
                 <div class="space-y-2.5">
                     <div class="flex justify-between text-sm text-slate-600">
-                        <span>Subtotal</span>
-                        <span class="font-mono font-medium">{{ number_format($subtotal, 2) }} SAR</span>
+                        <span>{{ __('app.subtotal') }}</span>
+                        <span class="font-mono font-medium">{{ number_format($subtotal, 2) }} {{ __('app.sar') }}</span>
                     </div>
                     <div class="flex justify-between text-sm text-slate-600">
-                        <span>Tax/VAT (15%)</span>
-                        <span class="font-mono font-medium">{{ number_format($tax, 2) }} SAR</span>
+                        <span>{{ __('app.tax_vat_15') }}</span>
+                        <span class="font-mono font-medium">{{ number_format($tax, 2) }} {{ __('app.sar') }}</span>
                     </div>
                     <div class="border-t border-slate-200 pt-3 flex justify-between">
-                        <span class="text-sm font-bold text-slate-800">Total Amount</span>
-                        <span class="font-mono text-lg font-bold text-emerald-600">{{ number_format($total, 2) }} SAR</span>
+                        <span class="text-sm font-bold text-slate-800">{{ __('app.total_amount') }}</span>
+                        <span class="font-mono text-lg font-bold text-emerald-600">{{ number_format($total, 2) }} {{ __('app.sar') }}</span>
                     </div>
                 </div>
             </div>

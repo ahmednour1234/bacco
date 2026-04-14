@@ -63,11 +63,11 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900">Order #{{ $order->order_no }}</h1>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900">{{ __('app.order_hash') }}{{ $order->order_no }}</h1>
                 <nav class="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
-                    <a href="{{ route('admin.dashboard') }}" class="hover:text-slate-600">Dashboard</a>
+                    <a href="{{ route('admin.dashboard') }}" class="hover:text-slate-600">{{ __('app.dashboard') }}</a>
                     <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    <a href="{{ route('admin.orders.index') }}" class="hover:text-slate-600">Orders</a>
+                    <a href="{{ route('admin.orders.index') }}" class="hover:text-slate-600">{{ __('app.orders') }}</a>
                     <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     <span class="font-medium text-slate-600">{{ $order->order_no }}</span>
                 </nav>
@@ -81,7 +81,7 @@
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a1 1 0 001-1v-4H8v4a1 1 0 001 1zm1-10V4a1 1 0 00-1-1H9a1 1 0 00-1 1v3"/>
             </svg>
-            Print
+            {{ __('app.print') }}
         </button>
     </div>
 
@@ -95,8 +95,8 @@
                 {{ $order->status->label() }}
             </span>
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Current Status</p>
-                <p class="mt-0.5 text-sm font-semibold text-slate-700">Last updated {{ $order->updated_at->diffForHumans() }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.current_status') }}</p>
+                <p class="mt-0.5 text-sm font-semibold text-slate-700">{{ __('app.last_updated') }} {{ $order->updated_at->diffForHumans() }}</p>
             </div>
         </div>
 
@@ -109,7 +109,7 @@
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
-            Change Status
+            {{ __('app.change_order_status') }}
         </button>
     </div>
 
@@ -132,7 +132,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                     </span>
-                    <h3 class="text-base font-bold text-slate-800">Change Order Status</h3>
+                    <h3 class="text-base font-bold text-slate-800">{{ __('app.change_order_status') }}</h3>
                 </div>
                 <button wire:click="$set('showStatusModal', false)" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,10 +142,10 @@
             </div>
 
             <p class="mb-4 text-sm text-slate-500">
-                Select the new status for order <span class="font-semibold text-slate-700">{{ $order->order_no }}</span>.
+                {{ __('app.select_new_status_order') }} <span class="font-semibold text-slate-700">{{ $order->order_no }}</span>.
             </p>
 
-            <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">New Status</label>
+            <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.new_status') }}</label>
             <select
                 wire:model="newStatus"
                 class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-800 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
@@ -161,14 +161,14 @@
                     wire:loading.attr="disabled"
                     class="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 transition"
                 >
-                    <span wire:loading.remove wire:target="updateStatus">Confirm Change</span>
+                    <span wire:loading.remove wire:target="updateStatus">{{ __('app.confirm_change') }}</span>
                     <span wire:loading wire:target="updateStatus">Updating…</span>
                 </button>
                 <button
                     wire:click="$set('showStatusModal', false)"
                     class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
                 >
-                    Cancel
+                    {{ __('app.cancel') }}
                 </button>
             </div>
         </div>
@@ -179,7 +179,7 @@
     {{-- PROGRESS STEPPER                                                       --}}
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
     <div class="mb-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm overflow-x-auto">
-        <h2 class="mb-6 text-xs font-bold uppercase tracking-widest text-slate-400">Order Progress</h2>
+        <h2 class="mb-6 text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('app.order_progress') }}</h2>
 
         <div class="relative flex items-start justify-between min-w-[600px]">
             @foreach($steps as $step)
@@ -208,9 +208,9 @@
                             {{ $step['label'] }}
                         </p>
                         <p class="mt-0.5 text-[10px] leading-none {{ $step['state'] === 'completed' ? 'text-emerald-500' : ($step['state'] === 'in_progress' ? 'text-indigo-500 font-semibold' : 'text-slate-300') }}">
-                            @if($step['state'] === 'completed') Completed
-                            @elseif($step['state'] === 'in_progress') In Progress
-                            @else Pending
+                            @if($step['state'] === 'completed') {{ __('app.status_completed') }}
+                            @elseif($step['state'] === 'in_progress') {{ __('app.in_progress') }}
+                            @else {{ __('app.status_pending') }}
                             @endif
                         </p>
                     </div>
@@ -232,29 +232,29 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                 </span>
-                <h3 class="text-sm font-bold text-slate-700">Order Details</h3>
+                <h3 class="text-sm font-bold text-slate-700">{{ __('app.order_details') }}</h3>
             </div>
             <dl class="space-y-3">
                 <div class="flex justify-between text-sm">
-                    <dt class="text-slate-400">Order #</dt>
+                    <dt class="text-slate-400">{{ __('app.order_hash') }}</dt>
                     <dd class="font-semibold text-slate-800">{{ $order->order_no }}</dd>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <dt class="text-slate-400">Project</dt>
+                    <dt class="text-slate-400">{{ __('app.project') }}</dt>
                     <dd class="font-semibold text-slate-800 text-right max-w-[200px] truncate" title="{{ $order->quotationRequest?->project_name ?? '—' }}">
                         {{ $order->quotationRequest?->project_name ?? '—' }}
                     </dd>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <dt class="text-slate-400">Order Date</dt>
+                    <dt class="text-slate-400">{{ __('app.order_date') }}</dt>
                     <dd class="font-semibold text-slate-800">{{ $order->created_at->format('d M Y') }}</dd>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <dt class="text-slate-400">Items</dt>
+                    <dt class="text-slate-400">{{ __('app.items') }}</dt>
                     <dd class="font-semibold text-slate-800">{{ count($items) }}</dd>
                 </div>
                 <div class="flex justify-between text-sm border-t border-slate-100 pt-3 mt-1">
-                    <dt class="font-bold text-slate-600">Grand Total</dt>
+                    <dt class="font-bold text-slate-600">{{ __('app.grand_total') }}</dt>
                     <dd class="font-mono font-bold text-slate-900 text-base">{{ number_format((float)$order->grand_total, 2) }} SAR</dd>
                 </div>
             </dl>
@@ -268,7 +268,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
                 </span>
-                <h3 class="text-sm font-bold text-slate-700">Client</h3>
+                <h3 class="text-sm font-bold text-slate-700">{{ __('app.client') }}</h3>
             </div>
             <div class="mb-3 flex items-center gap-3">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 text-sm font-bold text-white">
@@ -281,15 +281,15 @@
             </div>
             <dl class="space-y-2.5 border-t border-slate-100 pt-3">
                 <div class="flex justify-between text-sm">
-                    <dt class="text-slate-400">Company</dt>
+                    <dt class="text-slate-400">{{ __('app.company') }}</dt>
                     <dd class="font-semibold text-slate-800">{{ $order->client?->clientProfile?->company_name ?? '—' }}</dd>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <dt class="text-slate-400">Phone</dt>
+                    <dt class="text-slate-400">{{ __('app.phone') }}</dt>
                     <dd class="font-semibold text-slate-800">{{ $order->client?->clientProfile?->phone ?? '—' }}</dd>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <dt class="text-slate-400">City</dt>
+                    <dt class="text-slate-400">{{ __('app.city') }}</dt>
                     <dd class="font-semibold text-slate-800">{{ $order->client?->clientProfile?->city ?? '—' }}</dd>
                 </div>
             </dl>
@@ -308,26 +308,26 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                 </span>
-                <h2 class="text-sm font-bold text-slate-800">Bill of Quantities</h2>
+                <h2 class="text-sm font-bold text-slate-800">{{ __('app.bill_of_quantities') }}</h2>
             </div>
             <span class="rounded-full bg-violet-50 px-3 py-0.5 text-xs font-bold uppercase tracking-wide text-violet-600">
-                {{ count($items) }} {{ count($items) === 1 ? 'Item' : 'Items' }}
+                {{ count($items) }} {{ count($items) === 1 ? __('app.item') : __('app.items') }}
             </span>
         </div>
         <div class="overflow-x-auto">
             @if(empty($items))
-                <div class="px-6 py-12 text-center text-sm text-slate-400">No items on this order.</div>
+                <div class="px-6 py-12 text-center text-sm text-slate-400">{{ __('app.no_items_order') }}</div>
             @else
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50 text-left">
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">#</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 min-w-[220px]">Description</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28">Qty / Unit</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28">Brand</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-right">Unit Price</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-16 text-right">Disc%</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-32 text-right">Total (SAR)</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 min-w-[220px]">{{ __('app.description') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28">{{ __('app.qty_unit') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28">{{ __('app.brand') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-right">{{ __('app.unit_price_sar') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-16 text-right">{{ __('app.disc_percent') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-32 text-right">{{ __('app.total_sar') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
@@ -353,15 +353,15 @@
                     </tbody>
                     <tfoot>
                         <tr class="border-t-2 border-slate-200 bg-slate-50">
-                            <td colspan="6" class="px-5 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Subtotal</td>
+                            <td colspan="6" class="px-5 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.subtotal') }}</td>
                             <td class="px-5 py-3 text-right font-mono font-bold text-slate-800">{{ number_format((float)$order->total_amount, 2) }}</td>
                         </tr>
                         <tr class="bg-slate-50">
-                            <td colspan="6" class="px-5 py-2 text-right text-xs font-bold uppercase tracking-wide text-slate-500">VAT (15%)</td>
+                            <td colspan="6" class="px-5 py-2 text-right text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.vat_15') }}</td>
                             <td class="px-5 py-2 text-right font-mono font-bold text-slate-800">{{ number_format((float)$order->vat_amount, 2) }}</td>
                         </tr>
                         <tr class="border-t border-slate-200 bg-emerald-50">
-                            <td colspan="6" class="px-5 py-3 text-right text-sm font-bold text-emerald-700">Grand Total</td>
+                            <td colspan="6" class="px-5 py-3 text-right text-sm font-bold text-emerald-700">{{ __('app.grand_total') }}</td>
                             <td class="px-5 py-3 text-right font-mono text-lg font-bold text-emerald-700">{{ number_format((float)$order->grand_total, 2) }} SAR</td>
                         </tr>
                     </tfoot>
@@ -384,12 +384,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                     </span>
-                    <h3 class="text-sm font-bold text-slate-700">Engineering Updates</h3>
+                    <h3 class="text-sm font-bold text-slate-700">{{ __('app.engineering_updates') }}</h3>
                     <span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-600">{{ count($engUpdates) }}</span>
                 </div>
                 <button wire:click="openEngModal" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition">
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    Add Update
+                    {{ __('app.add_update') }}
                 </button>
             </div>
             @if(empty($engUpdates))
@@ -397,7 +397,7 @@
                     <svg class="h-9 w-9 text-slate-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
-                    <p class="text-sm text-slate-400">No engineering updates yet</p>
+                    <p class="text-sm text-slate-400">{{ __('app.no_engineering_updates') }}</p>
                 </div>
             @else
                 <div class="divide-y divide-slate-50">
@@ -455,12 +455,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                         </svg>
                     </span>
-                    <h3 class="text-sm font-bold text-slate-700">Logistics Updates</h3>
+                    <h3 class="text-sm font-bold text-slate-700">{{ __('app.logistics_updates') }}</h3>
                     <span class="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-bold text-orange-600">{{ count($logUpdates) }}</span>
                 </div>
                 <button wire:click="openLogModal" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition">
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    Add Update
+                    {{ __('app.add_update') }}
                 </button>
             </div>
             @if(empty($logUpdates))
@@ -468,7 +468,7 @@
                     <svg class="h-9 w-9 text-slate-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                     </svg>
-                    <p class="text-sm text-slate-400">No logistics updates yet</p>
+                    <p class="text-sm text-slate-400">{{ __('app.no_logistics_updates') }}</p>
                 </div>
             @else
                 <div class="divide-y divide-slate-50">

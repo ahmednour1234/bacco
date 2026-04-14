@@ -20,13 +20,13 @@
             <input
                 type="search"
                 wire:model.live.debounce.300ms="search"
-                placeholder="Search by name, SKU or division…"
+                placeholder="{{ __('app.search_products') }}"
                 class="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-11 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
             >
         </div>
 
         <div class="flex items-center gap-3 self-end sm:self-auto">
-            <label for="products-per-page" class="text-sm font-medium text-slate-500">Per page</label>
+            <label for="products-per-page" class="text-sm font-medium text-slate-500">{{ __('app.per_page') }}</label>
             <select
                 id="products-per-page"
                 wire:model.live="perPage"
@@ -45,9 +45,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                       d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
-            <p class="text-sm font-medium">No products found.</p>
+            <p class="text-sm font-medium">{{ __('app.no_products_found') }}</p>
             @if ($search)
-                <p class="mt-1 text-xs">Try adjusting your search.</p>
+                <p class="mt-1 text-xs">{{ __('app.try_adjusting_search') }}</p>
             @endif
         </div>
     @else
@@ -55,15 +55,15 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 bg-slate-50">
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Product Name</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">Division</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">Brand</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">Category</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">Model / Type</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 xl:table-cell">Unit</th>
-                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Price (SAR)</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
-                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.product_name') }}</th>
+                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">{{ __('app.division') }}</th>
+                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.brand') }}</th>
+                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.category') }}</th>
+                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.model_type') }}</th>
+                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 xl:table-cell">{{ __('app.unit') }}</th>
+                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.price_sar') }}</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -72,7 +72,7 @@
                             <td class="px-5 py-4">
                                 <p class="font-medium text-slate-900">{{ $product->name }}</p>
                                 @if ($product->sku)
-                                    <p class="mt-0.5 text-xs text-slate-400">SKU: {{ $product->sku }}</p>
+                                    <p class="mt-0.5 text-xs text-slate-400">{{ __('app.sku_label') }} {{ $product->sku }}</p>
                                 @endif
                             </td>
                             <td class="hidden px-5 py-4 text-slate-600 sm:table-cell">
@@ -96,11 +96,11 @@
                             <td class="px-5 py-4 text-center">
                                 @if ($product->active)
                                     <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Active
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> {{ __('app.active') }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span> Inactive
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span> {{ __('app.inactive') }}
                                     </span>
                                 @endif
                             </td>
@@ -108,14 +108,14 @@
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('admin.products.edit', $product) }}" wire:navigate
                                        class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200">
-                                        Edit
+                                        {{ __('app.edit') }}
                                     </a>
                                     <button
                                         type="button"
                                         wire:click="delete('{{ $product->uuid }}')"
-                                        wire:confirm="Delete product '{{ addslashes($product->name) }}'? This cannot be undone."
+                                        wire:confirm="{{ __('app.delete_product') }} '{{ addslashes($product->name) }}'? {{ __('app.this_cannot_be_undone') }}"
                                         class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100">
-                                        Delete
+                                        {{ __('app.delete') }}
                                     </button>
                                 </div>
                             </td>

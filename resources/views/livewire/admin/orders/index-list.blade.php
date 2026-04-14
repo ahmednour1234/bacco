@@ -5,8 +5,8 @@
     ═══════════════════════════════════════════════════════ --}}
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">CRM Projects</h1>
-            <p class="mt-1 text-sm text-slate-400">Track orders, engineering updates, and logistics progress across all active sites.</p>
+            <h1 class="text-2xl font-bold text-slate-900">{{ __('app.crm_projects') }}</h1>
+            <p class="mt-1 text-sm text-slate-400">{{ __('app.track_orders_engineering') }}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
             <a href="{{ route('admin.orders.index') }}?export=csv"
@@ -15,7 +15,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
-                Export CSV
+                {{ __('app.export_csv') }}
             </a>
             <button onclick="window.print()"
                 class="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 transition">
@@ -44,7 +44,7 @@
                 <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">+12%</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">Total Orders</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.total_orders') }}</p>
         </div>
 
         {{-- Engineering --}}
@@ -56,10 +56,10 @@
                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                 </div>
-                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">Active</span>
+                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">{{ __('app.active') }}</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['engineering'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">Engineering</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.engineering') }}</p>
         </div>
 
         {{-- Waiting --}}
@@ -74,7 +74,7 @@
                 <span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-500">-5%</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['waiting'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">Waiting</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.waiting') }}</p>
         </div>
 
         {{-- Logistics --}}
@@ -86,10 +86,10 @@
                             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
                 </div>
-                <span class="rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-semibold text-cyan-600">In-Transit</span>
+                <span class="rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-semibold text-cyan-600">{{ __('app.in_transit') }}</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['logistics'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">Logistics</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.logistics_updates') }}</p>
         </div>
 
         {{-- Delivered --}}
@@ -104,7 +104,7 @@
                 <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">+8%</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['delivered'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">Delivered</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.status_delivered') }}</p>
         </div>
 
         {{-- Closed --}}
@@ -119,7 +119,7 @@
                 <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">Fixed</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['closed'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">Closed</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.closed') }}</p>
         </div>
 
     </div>
@@ -143,7 +143,7 @@
                 <input
                     type="search"
                     wire:model.live.debounce.300ms="search"
-                    placeholder="Search orders, projects, or clients..."
+                    placeholder="{{ __('app.search_orders_projects_clients') }}"
                     class="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
                 >
             </div>
@@ -159,7 +159,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                         </svg>
-                        {{ $status !== '' ? collect($statuses)->first(fn($s) => $s->value === $status)?->label() ?? 'Status' : 'All Statuses' }}
+                        {{ $status !== '' ? collect($statuses)->first(fn($s) => $s->value === $status)?->label() ?? __('app.status') : __('app.all_statuses') }}
                         <svg class="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
@@ -168,7 +168,7 @@
                         class="absolute left-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
                         <button type="button" wire:click="$set('status', '')" @click="statusOpen = false"
                             class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
-                            All Statuses
+                            {{ __('app.all_statuses') }}
                         </button>
                         @foreach($statuses as $s)
                             <button type="button" wire:click="$set('status', '{{ $s->value }}')" @click="statusOpen = false"
@@ -188,7 +188,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
-                        @php $dateLabel = match($dateRange) { '7'=>'Last 7 Days','30'=>'Last 30 Days','90'=>'Last 90 Days',default=>'All Time' }; @endphp
+                        @php $dateLabel = match($dateRange) { '7'=>__('app.last_7_days'),'30'=>__('app.last_30_days'),'90'=>__('app.last_90_days'),default=>__('app.all_time') }; @endphp
                         {{ $dateLabel }}
                         <svg class="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -196,7 +196,7 @@
                     </button>
                     <div x-show="dateOpen" x-cloak @click.outside="dateOpen = false"
                         class="absolute left-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
-                        @foreach([['7','Last 7 Days'],['30','Last 30 Days'],['90','Last 90 Days'],['','All Time']] as [$val,$lbl])
+                        @foreach([['7',__('app.last_7_days')],['30',__('app.last_30_days')],['90',__('app.last_90_days')],['',__('app.all_time')]] as [$val,$lbl])
                             <button type="button" wire:click="$set('dateRange', '{{ $val }}')" @click="dateOpen = false"
                                 class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $dateRange === $val ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                                 {{ $lbl }}
@@ -214,7 +214,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
-                        {{ $type !== '' ? collect($types)->first(fn($t) => $t->value === $type)?->label() ?? 'Type' : 'All Types' }}
+                        {{ $type !== '' ? collect($types)->first(fn($t) => $t->value === $type)?->label() ?? __('app.type') : __('app.all_types') }}
                         <svg class="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
@@ -223,7 +223,7 @@
                         class="absolute left-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
                         <button type="button" wire:click="$set('type', '')" @click="typeOpen = false"
                             class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
-                            All Types
+                            {{ __('app.all_types') }}
                         </button>
                         @foreach($types as $t)
                             <button type="button" wire:click="$set('type', '{{ $t->value }}')" @click="typeOpen = false"
@@ -237,7 +237,7 @@
                 @if($hasActiveFilters)
                     <button type="button" wire:click="clearFilters"
                         class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100">
-                        Clear
+                        {{ __('app.clear') }}
                     </button>
                 @endif
 
@@ -245,13 +245,13 @@
 
             {{-- Showing count --}}
             <p class="shrink-0 whitespace-nowrap text-sm text-slate-400 sm:ml-auto">
-                Showing
+                {{ __('app.showing') }}
                 <span class="font-semibold text-slate-700">
                     {{ $orders->isEmpty() ? '0' : $orders->firstItem() . '-' . $orders->lastItem() }}
                 </span>
-                of
+                {{ __('app.of') }}
                 <span class="font-semibold text-slate-700">{{ $orders->total() }}</span>
-                projects
+                {{ __('app.results') }}
             </p>
 
         </div>
@@ -264,22 +264,22 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                     </svg>
-                    <p class="text-sm font-medium text-slate-400">No orders found</p>
-                    <p class="mt-1 text-xs text-slate-300">Try adjusting your search or filters</p>
+                    <p class="text-sm font-medium text-slate-400">{{ __('app.no_orders_found') }}</p>
+                    <p class="mt-1 text-xs text-slate-300">{{ __('app.try_adjusting_search_filters') }}</p>
                 </div>
             @else
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50/70 text-left">
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">Order #</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Project</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Client</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">Type</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.order_hash') }}</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ __('app.project') }}</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ __('app.client') }}</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.type') }}</th>
                             <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-40">
-                                Amount<br><span class="normal-case font-normal">(SAR)</span>
+                                {{ __('app.amount_sar') }}
                             </th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">Status</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-32">Date</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.status') }}</th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-32">{{ __('app.date') }}</th>
                             <th class="px-4 py-3 w-12"></th>
                         </tr>
                     </thead>
@@ -400,7 +400,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                 </svg>
-                                                View Details
+                                                {{ __('app.view_details') }}
                                             </a>
                                         </div>
                                     </div>
@@ -422,7 +422,7 @@
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
-                    Previous
+                    {{ __('app.previous') }}
                 </span>
             @else
                 <button wire:click="previousPage"
@@ -430,7 +430,7 @@
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
-                    Previous
+                    {{ __('app.previous') }}
                 </button>
             @endif
 
@@ -464,14 +464,14 @@
             @if($orders->hasMorePages())
                 <button wire:click="nextPage"
                     class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50">
-                    Next
+                    {{ __('app.next') }}
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </button>
             @else
                 <span class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-300">
-                    Next
+                    {{ __('app.next') }}
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>

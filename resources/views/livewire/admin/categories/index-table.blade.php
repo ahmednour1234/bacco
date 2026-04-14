@@ -15,11 +15,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </span>
-            <input type="search" wire:model.live.debounce.300ms="search" placeholder="Search categories by name" class="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-11 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
+            <input type="search" wire:model.live.debounce.300ms="search" placeholder="{{ __('app.search_categories') }}" class="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-11 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
         </div>
 
         <div class="flex items-center gap-3 self-end sm:self-auto">
-            <label for="categories-per-page" class="text-sm font-medium text-slate-500">Per page</label>
+            <label for="categories-per-page" class="text-sm font-medium text-slate-500">{{ __('app.per_page') }}</label>
             <select id="categories-per-page" wire:model.live="perPage" class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
                 @foreach ([10, 50, 25, 5] as $option)
                     <option value="{{ $option }}">{{ $option }}</option>
@@ -33,20 +33,20 @@
             <svg class="mb-3 h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
             </svg>
-            <p class="text-sm font-medium">No categories found.</p>
+            <p class="text-sm font-medium">{{ __('app.no_categories_found') }}</p>
         </div>
     @else
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 bg-slate-50">
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Name</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">Slug</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">Parent</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">Websites</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">Products</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
-                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">{{ __('app.slug') }}</th>
+                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.parent') }}</th>
+                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.websites') }}</th>
+                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">{{ __('app.products') }}</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -57,7 +57,7 @@
                             <td class="hidden px-5 py-4 text-slate-500 md:table-cell">{{ $category->parent?->name ?? '—' }}</td>
                             <td class="hidden px-5 py-4 lg:table-cell">
                                 @if ($category->websites->isEmpty())
-                                    <span class="text-xs text-slate-400">None</span>
+                                    <span class="text-xs text-slate-400">{{ __('app.none') }}</span>
                                 @else
                                     <div class="flex flex-wrap gap-1">
                                         @foreach ($category->websites->take(3) as $website)
@@ -71,22 +71,22 @@
                                 @if ($category->active)
                                     <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                        Active
+                                        {{ __('app.active') }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
                                         <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-                                        Inactive
+                                        {{ __('app.inactive') }}
                                     </span>
                                 @endif
                             </td>
                             <td class="px-5 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('admin.categories.edit', $category) }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200">
-                                        Edit
+                                        {{ __('app.edit') }}
                                     </a>
                                     <button type="button" onclick="if(!confirm('Delete category {{ addslashes($category->name) }}?')) return;" wire:click="delete('{{ $category->uuid }}')" class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100">
-                                        Delete
+                                        {{ __('app.delete') }}
                                     </button>
                                 </div>
                             </td>
