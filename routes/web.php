@@ -16,6 +16,7 @@ use App\Http\Controllers\Enduser\DashboardController as EnduserDashboardControll
 use App\Http\Controllers\Enduser\ProfileController as EnduserProfileController;
 use App\Http\Controllers\Enduser\ProjectController as EnduserProjectController;
 use App\Http\Controllers\Enduser\QuotationController as EnduserQuotationController;
+use App\Http\Controllers\Enduser\ReportController as EnduserReportController;
 use App\Http\Controllers\Supplier\AuthController as SupplierAuthController;
 use App\Http\Controllers\Supplier\DashboardController as SupplierDashboardController;
 use App\Http\Controllers\Supplier\ProductController as SupplierProductController;
@@ -77,6 +78,9 @@ Route::prefix('enduser')->name('enduser.')->group(function () {
         // Orders
         Route::get('/orders',        [EnduserOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{uuid}', [EnduserOrderController::class, 'show'])->name('orders.show');
+
+        // Reports
+        Route::get('/reports', [EnduserReportController::class, 'index'])->name('reports.index');
     });
 });
 

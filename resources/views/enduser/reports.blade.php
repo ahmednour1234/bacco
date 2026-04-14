@@ -1,0 +1,332 @@
+@extends('layouts.enduser-app')
+
+@section('title', 'Reports – Qimta')
+@section('page-title', 'Reports')
+
+@section('breadcrumb')
+    <span class="text-xs text-slate-400">Home</span>
+    <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-xs text-slate-500 font-medium">Reports</span>
+@endsection
+
+@section('content')
+
+{{-- ══════════════════════════════════════════════════════════
+     FINANCIAL SUMMARY CARDS
+══════════════════════════════════════════════════════════ --}}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+
+    {{-- Total Order Value --}}
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Orders Value</p>
+        </div>
+        <p class="text-2xl font-bold text-slate-900">SAR {{ number_format($financials['total_order_value'], 2) }}</p>
+    </div>
+
+    {{-- Total Paid --}}
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Paid</p>
+        </div>
+        <p class="text-2xl font-bold text-emerald-600">SAR {{ number_format($financials['total_paid'], 2) }}</p>
+    </div>
+
+    {{-- Pending Payments --}}
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Pending Payments</p>
+        </div>
+        <p class="text-2xl font-bold text-amber-600">SAR {{ number_format($financials['pending_payments'], 2) }}</p>
+    </div>
+
+    {{-- Outstanding Balance --}}
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>
+                </svg>
+            </div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Outstanding</p>
+        </div>
+        <p class="text-2xl font-bold text-red-600">SAR {{ number_format($financials['outstanding'], 2) }}</p>
+    </div>
+</div>
+
+{{-- ══════════════════════════════════════════════════════════
+     STATUS BREAKDOWNS: Quotations + Orders + Projects
+══════════════════════════════════════════════════════════ --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+    {{-- Quotations by Status --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+            <h2 class="text-base font-semibold text-slate-900">Quotations by Status</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Breakdown of all your quotation requests</p>
+        </div>
+        <div class="px-6 py-4 space-y-3">
+            @php
+                $quotationStatuses = [
+                    'draft'      => ['label' => 'Draft',      'color' => 'bg-slate-400'],
+                    'submitted'  => ['label' => 'Submitted',  'color' => 'bg-yellow-400'],
+                    'tender'     => ['label' => 'Tender',     'color' => 'bg-orange-400'],
+                    'in_review'  => ['label' => 'In Review',  'color' => 'bg-blue-400'],
+                    'quoted'     => ['label' => 'Quoted',     'color' => 'bg-indigo-400'],
+                    'accepted'   => ['label' => 'Accepted',   'color' => 'bg-emerald-400'],
+                    'rejected'   => ['label' => 'Rejected',   'color' => 'bg-red-400'],
+                    'cancelled'  => ['label' => 'Cancelled',  'color' => 'bg-red-300'],
+                ];
+                $totalQuotations = array_sum($quotationsByStatus);
+            @endphp
+            @if($totalQuotations > 0)
+                @foreach($quotationStatuses as $key => $meta)
+                    @php $count = $quotationsByStatus[$key] ?? 0; @endphp
+                    @if($count > 0)
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <span class="text-slate-600">{{ $meta['label'] }}</span>
+                            <span class="font-semibold text-slate-900">{{ $count }}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="{{ $meta['color'] }} h-2 rounded-full transition-all" style="width: {{ round(($count / $totalQuotations) * 100) }}%"></div>
+                        </div>
+                    </div>
+                    @endif
+                @endforeach
+                <div class="pt-2 border-t border-slate-100 flex justify-between text-sm">
+                    <span class="font-medium text-slate-500">Total</span>
+                    <span class="font-bold text-slate-900">{{ $totalQuotations }}</span>
+                </div>
+            @else
+                <div class="py-6 text-center text-sm text-slate-400">No quotations yet.</div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Orders by Status --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+            <h2 class="text-base font-semibold text-slate-900">Orders by Status</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Breakdown of all your orders</p>
+        </div>
+        <div class="px-6 py-4 space-y-3">
+            @php
+                $orderStatuses = [
+                    'pending'    => ['label' => 'Pending',    'color' => 'bg-yellow-400'],
+                    'confirmed'  => ['label' => 'Confirmed',  'color' => 'bg-blue-400'],
+                    'processing' => ['label' => 'Processing', 'color' => 'bg-indigo-400'],
+                    'shipped'    => ['label' => 'Shipped',    'color' => 'bg-cyan-400'],
+                    'delivered'  => ['label' => 'Delivered',  'color' => 'bg-emerald-400'],
+                    'completed'  => ['label' => 'Completed',  'color' => 'bg-green-400'],
+                    'cancelled'  => ['label' => 'Cancelled',  'color' => 'bg-red-400'],
+                    'refunded'   => ['label' => 'Refunded',   'color' => 'bg-red-300'],
+                ];
+                $totalOrders = array_sum($ordersByStatus);
+            @endphp
+            @if($totalOrders > 0)
+                @foreach($orderStatuses as $key => $meta)
+                    @php $count = $ordersByStatus[$key] ?? 0; @endphp
+                    @if($count > 0)
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <span class="text-slate-600">{{ $meta['label'] }}</span>
+                            <span class="font-semibold text-slate-900">{{ $count }}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="{{ $meta['color'] }} h-2 rounded-full transition-all" style="width: {{ round(($count / $totalOrders) * 100) }}%"></div>
+                        </div>
+                    </div>
+                    @endif
+                @endforeach
+                <div class="pt-2 border-t border-slate-100 flex justify-between text-sm">
+                    <span class="font-medium text-slate-500">Total</span>
+                    <span class="font-bold text-slate-900">{{ $totalOrders }}</span>
+                </div>
+            @else
+                <div class="py-6 text-center text-sm text-slate-400">No orders yet.</div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Projects by Status --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+            <h2 class="text-base font-semibold text-slate-900">Projects by Status</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Breakdown of all your projects</p>
+        </div>
+        <div class="px-6 py-4 space-y-3">
+            @php
+                $projectStatuses = [
+                    'pending'   => ['label' => 'Pending',   'color' => 'bg-amber-400'],
+                    'active'    => ['label' => 'Active',    'color' => 'bg-blue-400'],
+                    'on_hold'   => ['label' => 'On Hold',   'color' => 'bg-orange-400'],
+                    'completed' => ['label' => 'Completed', 'color' => 'bg-green-400'],
+                    'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-red-400'],
+                ];
+                $totalProjects = array_sum($projectsByStatus);
+            @endphp
+            @if($totalProjects > 0)
+                @foreach($projectStatuses as $key => $meta)
+                    @php $count = $projectsByStatus[$key] ?? 0; @endphp
+                    @if($count > 0)
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <span class="text-slate-600">{{ $meta['label'] }}</span>
+                            <span class="font-semibold text-slate-900">{{ $count }}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="{{ $meta['color'] }} h-2 rounded-full transition-all" style="width: {{ round(($count / $totalProjects) * 100) }}%"></div>
+                        </div>
+                    </div>
+                    @endif
+                @endforeach
+                <div class="pt-2 border-t border-slate-100 flex justify-between text-sm">
+                    <span class="font-medium text-slate-500">Total</span>
+                    <span class="font-bold text-slate-900">{{ $totalProjects }}</span>
+                </div>
+            @else
+                <div class="py-6 text-center text-sm text-slate-400">No projects yet.</div>
+            @endif
+        </div>
+    </div>
+</div>
+
+{{-- ══════════════════════════════════════════════════════════
+     MONTHLY ORDER TREND
+══════════════════════════════════════════════════════════ --}}
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-slate-100">
+        <h2 class="text-base font-semibold text-slate-900">Monthly Orders</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Order count and value over the last 6 months</p>
+    </div>
+    @if($monthlyOrders->isNotEmpty())
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-slate-50 text-left">
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Month</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Orders</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Value</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Trend</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                @php $maxTotal = $monthlyOrders->max('total') ?: 1; @endphp
+                @foreach($monthlyOrders as $month)
+                <tr class="hover:bg-slate-50/60 transition-colors">
+                    <td class="px-6 py-4 font-medium text-slate-900">
+                        {{ \Carbon\Carbon::parse($month->month . '-01')->format('M Y') }}
+                    </td>
+                    <td class="px-6 py-4 text-slate-700">{{ $month->count }}</td>
+                    <td class="px-6 py-4 font-medium text-slate-900">SAR {{ number_format($month->total, 2) }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-slate-100 rounded-full h-2 min-w-[100px]">
+                                <div class="bg-emerald-500 h-2 rounded-full transition-all" style="width: {{ round(($month->total / $maxTotal) * 100) }}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @else
+    <div class="px-6 py-8 text-center text-sm text-slate-400">No orders in the last 6 months.</div>
+    @endif
+</div>
+
+{{-- ══════════════════════════════════════════════════════════
+     RECENT PAYMENTS
+══════════════════════════════════════════════════════════ --}}
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100">
+        <h2 class="text-base font-semibold text-slate-900">Recent Payments</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Your latest payment transactions</p>
+    </div>
+    @if($recentPayments->isNotEmpty())
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-slate-50 text-left">
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Reference</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Order</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Method</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                @foreach($recentPayments as $payment)
+                <tr class="hover:bg-slate-50/60 transition-colors">
+                    <td class="px-6 py-4 font-medium text-slate-900">
+                        {{ $payment->reference_number ?? '—' }}
+                    </td>
+                    <td class="px-6 py-4">
+                        @if($payment->order)
+                            <a href="{{ route('enduser.orders.show', $payment->order->uuid) }}" class="text-emerald-600 hover:text-emerald-700 font-medium">
+                                {{ $payment->order->order_no }}
+                            </a>
+                        @else
+                            <span class="text-slate-400">—</span>
+                        @endif
+                    </td>
+                    <td class="px-6 py-4 font-medium text-slate-900">
+                        {{ $payment->currency ?? 'SAR' }} {{ number_format($payment->amount, 2) }}
+                    </td>
+                    <td class="px-6 py-4 text-slate-500">
+                        {{ ucfirst($payment->payment_method ?? '—') }}
+                    </td>
+                    <td class="px-6 py-4">
+                        @php
+                            $payStatus = $payment->status?->value ?? 'pending';
+                            $payBadge = match($payStatus) {
+                                'pending'   => ['bg-amber-100 text-amber-700',   'Pending'],
+                                'submitted' => ['bg-blue-100 text-blue-700',     'Submitted'],
+                                'approved'  => ['bg-emerald-100 text-emerald-700','Approved'],
+                                'rejected'  => ['bg-red-100 text-red-700',       'Rejected'],
+                                'refunded'  => ['bg-red-100 text-red-700',       'Refunded'],
+                                default     => ['bg-slate-100 text-slate-600',    ucfirst($payStatus)],
+                            };
+                        @endphp
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $payBadge[0] }}">
+                            {{ $payBadge[1] }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-slate-500">
+                        {{ $payment->paid_at ? $payment->paid_at->format('M d, Y') : $payment->created_at->format('M d, Y') }}
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @else
+    <div class="px-6 py-8 text-center text-sm text-slate-400">No payments recorded yet.</div>
+    @endif
+</div>
+
+@endsection
