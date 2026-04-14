@@ -6,11 +6,11 @@
     <title>@yield('title', 'Qimta')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <style>
-        * { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+        * { font-family: 'Cairo', sans-serif; }
         [x-cloak] { display: none !important; }
         @media (min-width: 1024px) {
             .sidebar-offset { margin-inline-start: 16rem; }
