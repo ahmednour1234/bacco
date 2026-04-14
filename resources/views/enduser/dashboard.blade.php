@@ -138,7 +138,7 @@
                         </td>
                         <td class="px-6 py-4">
                             @php
-                                $status = $quotation->status ?? 'pending';
+                                $status = $quotation->status?->value ?? 'pending';
                                 $badge = match($status) {
                                     'accepted', 'approved' => ['bg-emerald-100 text-emerald-700', 'Accepted'],
                                     'pending'              => ['bg-amber-100 text-amber-700',   'Pending'],
