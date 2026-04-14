@@ -633,4 +633,14 @@ return [
     'supplier_notes'                => 'Supplier Notes',
     'supplier_notes_placeholder'    => 'Optional notes about availability, packaging, lead time…',
     'add_to_catalogue'              => 'Add to Catalogue',
+
+    // Supplier approval & misc
+    'pending_approval'              => 'Pending Approval',
+    'days'                          => 'days',
+    'estimated_total_price'         => 'Estimated Total Price',
+    'total_formula_supplier'        => 'Total = Unit + Engineering + Installation',
+    'confirm_import_catalogue'      => 'Confirm & Import to Catalogue',
+    'activate'                      => 'Activate',
+    'showing_range'                 => 'Showing :from–:to of :total products',
+    'specs_placeholder'             => 'Enter detailed product specifications and features…',
 ];

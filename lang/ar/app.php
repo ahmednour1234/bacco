@@ -635,4 +635,14 @@ return [
     'supplier_notes'                => 'ملاحظات المورد',
     'supplier_notes_placeholder'    => 'ملاحظات اختيارية حول التوفر والتعبئة ومدة التسليم…',
     'add_to_catalogue'              => 'إضافة للكتالوج',
+
+    // Supplier approval & misc
+    'pending_approval'              => 'في انتظار الموافقة',
+    'days'                          => 'أيام',
+    'estimated_total_price'         => 'السعر الإجمالي المقدر',
+    'total_formula_supplier'        => 'الإجمالي = سعر الوحدة + الهندسة + التركيب',
+    'confirm_import_catalogue'      => 'تأكيد واستيراد إلى الكتالوج',
+    'activate'                      => 'تفعيل',
+    'showing_range'                 => 'عرض :from–:to من :total منتج',
+    'specs_placeholder'             => 'أدخل مواصفات المنتج والميزات التفصيلية…',
 ];

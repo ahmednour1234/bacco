@@ -14,7 +14,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
             </svg>
-            Manual Entry
+            {{ __('app.manual_entry') }}
         </button>
         @if(!$isEditing)
         <button
@@ -27,7 +27,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
             </svg>
-            AI-Assisted Import
+            {{ __('app.ai_assisted_import') }}
         </button>
         @endif
     </div>
@@ -48,7 +48,7 @@
                               d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                     </svg>
                 </span>
-                Product Details
+                {{ __('app.product_details') }}
             </h2>
 
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -56,7 +56,7 @@
                 {{-- Product Name --}}
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                        Product Name <span class="text-red-500">*</span>
+                        {{ __('app.product_name') }} <span class="text-red-500">*</span>
                     </label>
                     <input type="text" wire:model.blur="name"
                            placeholder="e.g. Industrial Pressure Sensor X-100"
@@ -67,11 +67,11 @@
 
                 {{-- Division --}}
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Division</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.division') }}</label>
                     <select wire:model="division"
                             class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                    transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                        <option value="">Select Division</option>
+                        <option value="">{{ __('app.select_division') }}</option>
                         @foreach($divisions as $d)
                             <option value="{{ $d }}">{{ $d }}</option>
                         @endforeach
@@ -81,11 +81,11 @@
 
                 {{-- Brand --}}
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Brand</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.brand') }}</label>
                     <select wire:model="brand_id"
                             class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                    transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                        <option value="">Brand name</option>
+                        <option value="">{{ __('app.brand_name_placeholder') }}</option>
                         @foreach($brands as $brand)
                             <option value="{{ $brand->id }}">{{ $brand->name }}</option>
                         @endforeach
@@ -95,11 +95,11 @@
 
                 {{-- Classification --}}
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Classification</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.classification') }}</label>
                     <select wire:model="category_id"
                             class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                    transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                        <option value="">Product category</option>
+                        <option value="">{{ __('app.product_category') }}</option>
                         @foreach($categories as $cat)
                             <option value="{{ $cat->id }}">{{ $cat->name }}</option>
                         @endforeach
@@ -109,8 +109,8 @@
 
                 {{-- Type / Model --}}
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Type / Model</label>
-                    <input type="text" wire:model.blur="model_type" placeholder="Model number"
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.type_model') }}</label>
+                    <input type="text" wire:model.blur="model_type" placeholder="{{ __('app.model_number') }}"
                            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                   placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                     @error('model_type') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -118,11 +118,11 @@
 
                 {{-- Unit --}}
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Unit</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.unit') }}</label>
                     <select wire:model="unit_id"
                             class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                    transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                        <option value="">Select Unit</option>
+                        <option value="">{{ __('app.select_unit') }}</option>
                         @foreach($units as $unit)
                             <option value="{{ $unit->id }}">{{ $unit->name }}</option>
                         @endforeach
@@ -135,7 +135,7 @@
                     <label class="inline-flex cursor-pointer items-center gap-2.5">
                         <input type="checkbox" wire:model="active"
                                class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm font-medium text-slate-700">Active product</span>
+                        <span class="text-sm font-medium text-slate-700">{{ __('app.active_product') }}</span>
                     </label>
                 </div>
 
@@ -157,7 +157,7 @@
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
 
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Unit Price (SAR)</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.unit_price_sar') }}</label>
                     <input type="number" wire:model.live="unit_price" step="0.01" min="0"
                            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                   transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
@@ -165,7 +165,7 @@
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Engineering Price (SAR)</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.engineering_price') }}</label>
                     <input type="number" wire:model.live="engineering_price" step="0.01" min="0"
                            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                   transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
@@ -173,7 +173,7 @@
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Installation Price (SAR)</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.installation_price') }}</label>
                     <input type="number" wire:model.live="installation_price" step="0.01" min="0"
                            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                   transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
@@ -192,8 +192,8 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Estimated Total Price</p>
-                        <p class="text-xs text-emerald-600">Total = Unit + Engineering + Installation</p>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">{{ __('app.estimated_total_price') }}</p>
+                        <p class="text-xs text-emerald-600">{{ __('app.total_formula_supplier') }}</p>
                     </div>
                 </div>
                 <div class="text-right">
@@ -201,7 +201,7 @@
                         {{ number_format($finalPrice, 2) }}
                     </span>
                     <span class="ml-1 text-sm font-medium text-emerald-600">SAR</span>
-                    <p class="text-xs text-emerald-500">VAT inclusive</p>
+                    <p class="text-xs text-emerald-500">{{ __('app.vat_inclusive') }}</p>
                 </div>
             </div>
         </div>
@@ -215,22 +215,22 @@
                               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </span>
-                Availability
+                {{ __('app.availability') }}
             </h2>
 
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Lead Time (days)</label>
-                    <input type="number" wire:model="leadTimeDays" min="0" placeholder="e.g. 7"
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.lead_time_days') }}</label>
+                    <input type="number" wire:model="leadTimeDays" min="0" placeholder="{{ __('app.eg_7') }}"
                            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                   transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                     @error('leadTimeDays') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Minimum Order Qty</label>
-                    <input type="number" wire:model="minOrderQty" min="0" placeholder="e.g. 10"
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.min_order_qty') }}</label>
+                    <input type="number" wire:model="minOrderQty" min="0" placeholder="{{ __('app.eg_10') }}"
                            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                   transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                     @error('minOrderQty') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -248,14 +248,14 @@
                               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                 </span>
-                Documentation
+                {{ __('app.documentation') }}
             </h2>
 
             {{-- Technical Specifications --}}
             <div class="mb-5">
-                <label class="mb-1.5 block text-sm font-medium text-slate-700">Technical Specifications</label>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.technical_specifications') }}</label>
                 <textarea wire:model.blur="description" rows="5"
-                          placeholder="Enter detailed product specifications and features…"
+                          placeholder="{{ __('app.specs_placeholder') }}"
                           class="w-full resize-y rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                  placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"></textarea>
                 @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -263,9 +263,9 @@
 
             {{-- Notes --}}
             <div class="mb-5">
-                <label class="mb-1.5 block text-sm font-medium text-slate-700">Supplier Notes</label>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.supplier_notes') }}</label>
                 <textarea wire:model.blur="notes" rows="3"
-                          placeholder="Optional notes about availability, packaging, lead time…"
+                          placeholder="{{ __('app.supplier_notes_placeholder') }}"
                           class="w-full resize-y rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                  placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"></textarea>
                 @error('notes') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -273,7 +273,7 @@
 
             {{-- Datasheet Upload --}}
             <div>
-                <label class="mb-1.5 block text-sm font-medium text-slate-700">Datasheet Upload</label>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.datasheet_upload') }}</label>
 
                 @if ($existingDatasheet)
                     <div class="mb-3 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -283,7 +283,7 @@
                         </svg>
                         <span class="flex-1 truncate text-sm text-slate-700">{{ basename($existingDatasheet) }}</span>
                         <button type="button" wire:click="removeDatasheet"
-                                class="text-xs font-medium text-red-500 hover:text-red-700 transition-colors">Remove</button>
+                                class="text-xs font-medium text-red-500 hover:text-red-700 transition-colors">{{ __('app.remove') }}</button>
                     </div>
                 @endif
 
@@ -294,7 +294,7 @@
                         </svg>
                         <span class="flex-1 truncate text-sm text-emerald-700">{{ $datasheet->getClientOriginalName() }}</span>
                         <button type="button" wire:click="$set('datasheet', null)"
-                                class="text-xs font-medium text-red-500 hover:text-red-700 transition-colors">Remove</button>
+                                class="text-xs font-medium text-red-500 hover:text-red-700 transition-colors">{{ __('app.remove') }}</button>
                     </div>
                 @endif
 
@@ -306,8 +306,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                               d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                     </svg>
-                    <p class="text-sm font-medium text-slate-700">Click to upload or drag and drop</p>
-                    <p class="mt-1 text-xs text-slate-400">PDF, DOC, DOCX up to 10 MB</p>
+                    <p class="text-sm font-medium text-slate-700">{{ __('app.click_upload_drag') }}</p>
+                    <p class="mt-1 text-xs text-slate-400">{{ __('app.file_formats_pdf') }}</p>
                     <input id="datasheet-input" type="file" wire:model="datasheet"
                            accept=".pdf,.doc,.docx,.xls,.xlsx" class="hidden">
                 </label>
@@ -327,12 +327,12 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                 </svg>
-                {{ $isEditing ? 'Save Changes' : 'Add to Catalogue' }}
+                {{ $isEditing ? __('app.save_changes') : __('app.add_to_catalogue') }}
             </button>
             <a href="{{ route('supplier.products.index') }}" wire:navigate
                class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-6 py-2.5
                       text-sm font-medium text-slate-600 transition hover:bg-slate-50">
-                Cancel
+                {{ __('app.cancel') }}
             </a>
         </div>
 
@@ -359,16 +359,16 @@
                               d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
-                    <h3 class="text-sm font-semibold text-slate-800">Pricing Context</h3>
+                    <h3 class="text-sm font-semibold text-slate-800">{{ __('app.pricing_context') }}</h3>
                 </div>
 
                 <div class="px-4 py-3">
-                    <p class="mb-2 text-xs font-medium text-slate-600">What does this document represent?</p>
+                    <p class="mb-2 text-xs font-medium text-slate-600">{{ __('app.what_document_represent') }}</p>
                     <div class="space-y-2.5">
                         @foreach ([
-                            'vendor' => 'Vendor quotation',
-                            'client' => 'Selling price to client',
-                            'mixed'  => 'Not sure / Mixed',
+                            'vendor' => __('app.vendor_quotation'),
+                            'client' => __('app.selling_price_client'),
+                            'mixed'  => __('app.not_sure_mixed'),
                         ] as $val => $label)
                             <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 transition
                                           {{ $aiPriceContext === $val
@@ -383,9 +383,9 @@
                 </div>
 
                 <div class="px-4 py-3">
-                    <p class="mb-2 text-xs font-medium text-slate-600">Does the price include engineering?</p>
+                    <p class="mb-2 text-xs font-medium text-slate-600">{{ __('app.price_include_engineering') }}</p>
                     <div class="flex gap-1.5">
-                        @foreach (['yes' => 'Yes', 'no' => 'No', 'not_sure' => 'Not sure'] as $val => $label)
+                        @foreach (['yes' => __('app.yes'), 'no' => __('app.no'), 'not_sure' => __('app.not_sure')] as $val => $label)
                             <button type="button" wire:click="$set('aiIncludesEng', '{{ $val }}')"
                                     class="flex-1 rounded-lg border px-2 py-2 text-xs font-medium transition
                                            {{ $aiIncludesEng === $val
@@ -398,9 +398,9 @@
                 </div>
 
                 <div class="px-4 py-3">
-                    <p class="mb-2 text-xs font-medium text-slate-600">Does the price include installation?</p>
+                    <p class="mb-2 text-xs font-medium text-slate-600">{{ __('app.price_include_installation') }}</p>
                     <div class="flex gap-1.5">
-                        @foreach (['yes' => 'Yes', 'no' => 'No', 'not_sure' => 'Not sure'] as $val => $label)
+                        @foreach (['yes' => __('app.yes'), 'no' => __('app.no'), 'not_sure' => __('app.not_sure')] as $val => $label)
                             <button type="button" wire:click="$set('aiIncludesInst', '{{ $val }}')"
                                     class="flex-1 rounded-lg border px-2 py-2 text-xs font-medium transition
                                            {{ $aiIncludesInst === $val
@@ -413,23 +413,23 @@
                 </div>
 
                 <div class="px-4 py-3">
-                    <label class="mb-1.5 block text-xs font-medium text-slate-600">Profit / Margin Handling</label>
+                    <label class="mb-1.5 block text-xs font-medium text-slate-600">{{ __('app.profit_margin_handling') }}</label>
                     <select wire:model="aiMarginHandling"
                             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-800
                                    transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                        <option value="auto_20">Apply automatically (20%)</option>
-                        <option value="auto_15">Apply automatically (15%)</option>
-                        <option value="keep">Keep original price</option>
-                        <option value="override">Override manually</option>
+                        <option value="auto_20">{{ __('app.apply_auto_20') }}</option>
+                        <option value="auto_15">{{ __('app.apply_auto_15') }}</option>
+                        <option value="keep">{{ __('app.keep_original_price') }}</option>
+                        <option value="override">{{ __('app.override_manually') }}</option>
                     </select>
                 </div>
 
                 <div class="px-4 py-3">
-                    <label class="mb-1.5 block text-xs font-medium text-slate-600">Document Currency</label>
+                    <label class="mb-1.5 block text-xs font-medium text-slate-600">{{ __('app.document_currency') }}</label>
                     <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                         <span class="text-base leading-none">🇸🇦</span>
                         <span class="text-xs font-semibold text-slate-800">SAR</span>
-                        <span class="text-xs text-slate-500">— Saudi Riyal</span>
+                        <span class="text-xs text-slate-500">— {{ __('app.saudi_riyal') }}</span>
                     </div>
                     <input type="hidden" wire:model="aiCurrency" value="SAR">
                 </div>
@@ -448,13 +448,13 @@
                                   d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
-                    <p class="mb-1.5 text-base font-bold text-slate-900">Upload document for AI analysis</p>
+                    <p class="mb-1.5 text-base font-bold text-slate-900">{{ __('app.upload_document_ai') }}</p>
                     <p class="mb-6 text-sm text-slate-500 leading-relaxed">
-                        Support for PDF, Excel (.xlsx, .csv), Word (.docx), and<br>high-resolution images (JPG, PNG).
+                        {{ __('app.file_support_formats') }}
                     </p>
                     <div class="flex items-center gap-3">
-                        <span class="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm">Select File</span>
-                        <span class="rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm">Connect Cloud Drive</span>
+                        <span class="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm">{{ __('app.select_file') }}</span>
+                        <span class="rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm">{{ __('app.connect_cloud_drive') }}</span>
                     </div>
                     <input type="file" wire:model="aiFile" class="hidden"
                            accept=".pdf,.xlsx,.csv,.docx,.jpg,.jpeg,.png">
@@ -467,13 +467,13 @@
                         </svg>
                         <span class="flex-1 truncate text-sm text-emerald-700">{{ $aiFile->getClientOriginalName() }}</span>
                         <button type="button" wire:click="$set('aiFile', null)"
-                                class="text-xs font-medium text-red-500 hover:text-red-700 transition-colors">Remove</button>
+                                class="text-xs font-medium text-red-500 hover:text-red-700 transition-colors">{{ __('app.remove') }}</button>
                     </div>
                 @endif
 
                 <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                     <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
-                        <p class="text-sm font-semibold text-slate-800">Or paste product list details</p>
+                        <p class="text-sm font-semibold text-slate-800">{{ __('app.paste_product_details') }}</p>
                         <button type="button"
                                 x-data
                                 x-on:click="navigator.clipboard.readText().then(t => $wire.set('aiPastedText', t))"
@@ -482,7 +482,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                             </svg>
-                            Paste from clipboard
+                            {{ __('app.paste_from_clipboard') }}
                         </button>
                     </div>
                     <div class="p-5">
@@ -510,7 +510,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
-                            Analyze Text
+                            {{ __('app.analyze_text') }}
                         </button>
                     </div>
                 </div>
@@ -523,12 +523,12 @@
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-5 py-3">
                 <div class="flex items-center gap-2">
-                    <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Extraction Preview</span>
-                    <span class="text-sm font-semibold text-slate-800">Review Extracted Products</span>
+                    <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">{{ __('app.extraction_preview') }}</span>
+                    <span class="text-sm font-semibold text-slate-800">{{ __('app.review_extracted_products') }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                        {{ count($aiExtractedProducts) }} products identified
+                        {{ count($aiExtractedProducts) }} {{ __('app.products_identified') }}
                     </span>
                     <button type="button" wire:click="analyzeText" wire:loading.attr="disabled"
                             class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
@@ -634,7 +634,7 @@
                     <tfoot>
                         <tr class="border-t-2 border-slate-200 bg-slate-50 font-semibold">
                             <td colspan="9" class="px-3 py-3 text-right text-sm text-slate-700 uppercase tracking-wide">
-                                Total Est. Inventory Value (SAR)
+                                {{ __('app.total_est_inventory') }}
                             </td>
                             <td class="px-3 py-3 text-right text-base font-bold text-emerald-600">
                                 {{ number_format(array_sum(array_column($aiExtractedProducts, 'total')), 2) }}
@@ -648,12 +648,12 @@
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
-                    AI accuracy for this document: {{ $aiAccuracy }}%
+                    {{ __('app.ai_accuracy_doc') }} {{ $aiAccuracy }}%
                 </span>
                 <div class="flex gap-3">
                     <button type="button" wire:click="$set('aiExtractedProducts', [])"
                             class="rounded-xl border border-slate-200 px-5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-                        Cancel
+                        {{ __('app.cancel') }}
                     </button>
                     <button type="button" wire:click="confirmImport"
                             wire:loading.attr="disabled"
@@ -662,7 +662,7 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                         </svg>
-                        Confirm &amp; Import to Catalogue
+                        {{ __('app.confirm_import_catalogue') }}
                         <svg wire:loading.remove wire:target="confirmImport" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                         </svg>
