@@ -30,6 +30,8 @@ return [
     'active_orders'        => 'الطلبات النشطة',
     'active_projects'      => 'المشاريع النشطة',
     'completed_projects'   => 'المشاريع المكتملة',
+    'welcome_back'         => 'مرحباً',
+    'welcome_desc'         => 'إليك نظرة عامة على نشاطك اليوم',
 
     // ── Dashboard Sections ───────────────────────────────────────────────────
     'track_quotations'        => 'تتبع عروض الأسعار',
