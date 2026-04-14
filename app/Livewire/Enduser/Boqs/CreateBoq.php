@@ -3,6 +3,7 @@
 namespace App\Livewire\Enduser\Boqs;
 
 use App\Enums\BoqStatusEnum;
+use App\Enums\NotificationTypeEnum;
 use App\Enums\ProjectStatusEnum;
 use App\Enums\QuotationItemStatusEnum;
 use App\Models\Boq;
@@ -11,6 +12,7 @@ use App\Models\Project;
 use App\Models\Unit;
 use App\Models\UploadedDocument;
 use App\Services\QuotationAiService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -303,6 +305,14 @@ class CreateBoq extends Component
         $project = $this->persistProject();
         $boq     = $this->persistBoq($project, BoqStatusEnum::Submitted);
         $this->persistItems($boq);
+
+        app(NotificationService::class)->sendToUserAndAdmins(
+            title: 'BOQ Submitted',
+            body: 'BOQ for "' . $this->projectName . '" has been submitted with ' . count($this->items) . ' items.',
+            type: NotificationTypeEnum::BoqSubmitted,
+            userId: Auth::id(),
+            actionUrl: route('enduser.boqs.show', $boq->uuid),
+        );
 
         $this->redirect(route('enduser.boqs.show', $boq->uuid));
     }

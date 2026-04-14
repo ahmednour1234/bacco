@@ -420,4 +420,9 @@ return [
     'language'    => 'اللغة',
     'english'     => 'English',
     'arabic'      => 'العربية',
+
+    // Notifications
+    'no_notifications'        => 'لا توجد إشعارات بعد',
+    'view_all_notifications'  => 'عرض جميع الإشعارات',
+    'mark_all_read'           => 'تعيين الكل كمقروء',
 ];

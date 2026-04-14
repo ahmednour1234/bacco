@@ -6,12 +6,14 @@ use App\Enums\QuotationItemStatusEnum;
 use App\Enums\QuotationProjectStatusEnum;
 use App\Enums\QuotationRequestStatusEnum;
 use App\Enums\QuotationSourceTypeEnum;
+use App\Enums\NotificationTypeEnum;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
 use App\Models\UploadedDocument;
 use App\Services\PricingService;
 use App\Services\QuotationAiService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -408,6 +410,14 @@ class CreateQuotation extends Component
         $quotation = $this->persistQuotation(QuotationRequestStatusEnum::Tender);
         $this->persistItems($quotation);
         $this->quotationId = $quotation->id;
+
+        app(NotificationService::class)->sendToUserAndAdmins(
+            title: 'Quotation Submitted',
+            body: 'Quotation #' . $quotation->id . ' for "' . $this->projectName . '" has been submitted.',
+            type: NotificationTypeEnum::QuotationSubmitted,
+            userId: Auth::id(),
+            actionUrl: route('enduser.quotations.show', $quotation->uuid),
+        );
 
         $this->redirect(route('enduser.quotations.show', $quotation->uuid));
     }

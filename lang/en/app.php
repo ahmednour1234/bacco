@@ -418,4 +418,9 @@ return [
     'language'    => 'Language',
     'english'     => 'English',
     'arabic'      => 'العربية',
+
+    // Notifications
+    'no_notifications'        => 'No notifications yet',
+    'view_all_notifications'  => 'View all notifications',
+    'mark_all_read'           => 'Mark all as read',
 ];
