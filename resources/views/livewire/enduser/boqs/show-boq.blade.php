@@ -46,8 +46,8 @@
                     </svg>
                 </span>
                 <div>
-                    <h2 class="text-sm font-semibold text-slate-800">BOQ: {{ $boq->boq_no }}</h2>
-                    <p class="text-xs text-slate-400">Project: {{ $boq->project?->name ?? '—' }}</p>
+                    <h2 class="text-sm font-semibold text-slate-800">{{ __('app.boq_colon') }} {{ $boq->boq_no }}</h2>
+                    <p class="text-xs text-slate-400">{{ __('app.project_colon') }} {{ $boq->project?->name ?? '—' }}</p>
                 </div>
                 <div class="ml-auto">
                     @php
@@ -66,7 +66,7 @@
 
             @if($boq->project?->description)
                 <div class="px-6 py-4 text-sm text-slate-600">
-                    <span class="font-medium text-slate-700">Project Description:</span>
+                    <span class="font-medium text-slate-700">{{ __('app.project_description') }}</span>
                     {{ $boq->project->description }}
                 </div>
             @endif
@@ -82,17 +82,17 @@
                     </svg>
                 </span>
                 <div>
-                    <h2 class="text-sm font-semibold text-slate-800">BOQ Items</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Select items to include in a quotation, then click "Create Quotation".</p>
+                    <h2 class="text-sm font-semibold text-slate-800">{{ __('app.boq_items') }}</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ __('app.select_items_quotation') }}</p>
                 </div>
                 <div class="ml-auto flex items-center gap-2">
                     <button type="button" wire:click="selectAll"
                         class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
-                        Select All
+                        {{ __('app.select_all') }}
                     </button>
                     <button type="button" wire:click="deselectAll"
                         class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100">
-                        Deselect All
+                        {{ __('app.deselect_all') }}
                     </button>
                 </div>
             </div>
@@ -100,21 +100,21 @@
             <div class="p-6">
                 @if(empty($items))
                     <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center text-sm text-slate-400">
-                        No items in this BOQ.
+                        {{ __('app.no_items_boq') }}
                     </div>
                 @else
                     <div class="overflow-x-auto rounded-xl border border-slate-200">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-slate-100 bg-slate-50">
-                                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-12">Select</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">Description</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">QTY</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Unit</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">Category</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Brand</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Status</th>
-                                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Engineering</th>
+                                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-12">{{ __('app.select') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">{{ __('app.description') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.unit') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">{{ __('app.category') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.brand') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.status') }}</th>
+                                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.engineering') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -135,7 +135,7 @@
                                                 type="text"
                                                 wire:model="items.{{ $index }}.description"
                                                 wire:blur="updateItem({{ $index }}, 'description')"
-                                                placeholder="Enter description"
+                                                placeholder="{{ __('app.enter_description') }}"
                                                 class="w-full min-w-[180px] rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 font-medium placeholder-slate-300 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-400 hover:border-slate-300"
                                             >
                                         </td>
@@ -163,10 +163,10 @@
                                                     default    => 'bg-amber-100 text-amber-700',
                                                 };
                                                 $badgeLabel = match($statusVal) {
-                                                    'sourcing' => 'Confirmed',
-                                                    'sourced'  => 'Sourced',
-                                                    'rejected' => 'Rejected',
-                                                    default    => 'Pending',
+                                                    'sourcing' => __('app.status_confirmed'),
+                                                    'sourced'  => __('app.status_sourced'),
+                                                    'rejected' => __('app.status_rejected'),
+                                                    default    => __('app.status_pending'),
                                                 };
                                             @endphp
                                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $badgeClass }}">
@@ -178,7 +178,7 @@
                                             <button
                                                 type="button"
                                                 wire:click="toggleEngineering({{ $item['id'] }})"
-                                                title="Toggle engineering required"
+                                                title="{{ __('app.toggle_engineering') }}"
                                                 class="inline-flex items-center justify-center h-7 w-7 rounded-lg border transition
                                                     @if(!empty($item['engineering_required']))
                                                         border-emerald-300 bg-emerald-100 hover:bg-emerald-200
@@ -209,11 +209,11 @@
             <div class="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex flex-wrap gap-6">
                     <div class="text-center">
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Total Items</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ __('app.total_items') }}</p>
                         <p class="mt-1 text-2xl font-bold text-slate-900">{{ count($items) }}</p>
                     </div>
                     <div class="text-center">
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Selected</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ __('app.selected') }}</p>
                         <p class="mt-1 text-2xl font-bold text-emerald-600">{{ $selectedCount }}</p>
                     </div>
                 </div>
@@ -221,14 +221,14 @@
                 <div class="flex items-center gap-3">
                     <a href="{{ route('enduser.projects.show', $boq->project?->uuid ?? '') }}"
                         class="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                        &larr; Back to Project
+                        &larr; {{ __('app.back_to_project') }}
                     </a>
 
                     <button
                         type="button"
                         wire:click="createQuotation"
                         wire:loading.attr="disabled"
-                        wire:confirm="Create a quotation from {{ $selectedCount }} selected item(s)?"
+                        wire:confirm="{{ __('app.create_quotation') }} {{ $selectedCount }} {{ __('app.selected_items_q') }}"
                         @if($selectedCount === 0) disabled @endif
                         class="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"
                     >
@@ -236,7 +236,7 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                         </svg>
-                        Create Quotation ({{ $selectedCount }} items) &rarr;
+                        {{ __('app.create_quotation') }} ({{ $selectedCount }} {{ __('app.items') }}) &rarr;
                     </button>
                 </div>
             </div>

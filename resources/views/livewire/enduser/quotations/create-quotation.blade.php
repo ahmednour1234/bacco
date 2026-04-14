@@ -24,7 +24,7 @@
                 'boqFile',
                 file,
                 () => { this.tempUploading = false; this.uploadReady = true; },
-                () => { this.tempUploading = false; this.uploadReady = false; this.selectedFileName = null; this.selectedFileSize = null; this.showToast('File upload failed. Please try again.', 'error'); },
+                () => { this.tempUploading = false; this.uploadReady = false; this.selectedFileName = null; this.selectedFileSize = null; this.showToast('{{ __('app.file_upload_failed') }}', 'error'); },
                 () => {}
             );
         }
@@ -93,12 +93,12 @@
                 </svg>
             </div>
 
-            <h2 class="text-lg font-bold text-slate-900 mb-1">Calculating Quotation</h2>
-            <p class="text-sm text-slate-500 mb-8">AI is calculating your quotation prices...<br>please wait a few seconds</p>
+            <h2 class="text-lg font-bold text-slate-900 mb-1">{{ __('app.calculating_quotation') }}</h2>
+            <p class="text-sm text-slate-500 mb-8">{{ __('app.ai_calculating_prices') }}<br>{{ __('app.please_wait_seconds') }}</p>
 
             {{-- Progress bar --}}
             <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-400">
-                <span>Processing Data</span>
+                <span>{{ __('app.processing_data') }}</span>
                 <span x-text="progressPct + '%'"></span>
             </div>
             <div class="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
@@ -106,7 +106,7 @@
                     :style="'width:' + progressPct + '%'"></div>
             </div>
 
-            <p class="mt-6 text-xs text-slate-400">Our AI engine is analyzing current market rates and supplier availability.</p>
+            <p class="mt-6 text-xs text-slate-400">{{ __('app.ai_analyzing_rates') }}</p>
         </div>
 
         <style>
@@ -128,7 +128,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
-            <span class="text-sm font-medium text-slate-600">Processing…</span>
+            <span class="text-sm font-medium text-slate-600">{{ __('app.processing') }}</span>
         </div>
     </div>
 
@@ -146,19 +146,19 @@
                             d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
                     </svg>
                 </span>
-                <h2 class="text-sm font-semibold text-slate-800">Section 1: Quotation Information</h2>
+                <h2 class="text-sm font-semibold text-slate-800">{{ __('app.section_quotation_info') }}</h2>
             </div>
 
             <div class="grid grid-cols-1 gap-5 p-6 sm:grid-cols-2">
 
                 <div>
                     <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Project Name
+                        {{ __('app.project_name') }}
                     </label>
                     <input
                         type="text"
                         wire:model="projectName"
-                        placeholder="e.g., Al-Majd Tower Refurbishment"
+                        placeholder="{{ __('app.project_name_placeholder') }}"
                         class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition
                             @error('projectName') border-red-400 focus:ring-2 focus:ring-red-100
                             @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"
@@ -170,7 +170,7 @@
 
                 <div>
                     <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Project Status
+                        {{ __('app.project_status') }}
                     </label>
 
                     @if($isEditMode)
@@ -180,7 +180,7 @@
                                 @error('projectStatus') border-red-400 focus:ring-2 focus:ring-red-100
                                 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"
                         >
-                            <option value="">Select status…</option>
+                            <option value="">{{ __('app.select_status') }}</option>
                             @foreach($projectStatuses as $ps)
                                 <option value="{{ $ps->value }}" @selected($projectStatus === $ps->value)>
                                     {{ $ps->label() }}
@@ -192,7 +192,7 @@
                         @enderror
                     @else
                         <div class="h-11 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700">
-                            Pending
+                            {{ __('app.status_pending') }}
                         </div>
                     @endif
                 </div>
@@ -212,7 +212,7 @@
                             d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                     </svg>
                 </span>
-                <h2 class="text-sm font-semibold text-slate-800">Section 2: BOQ Upload &amp; Management</h2>
+                <h2 class="text-sm font-semibold text-slate-800">{{ __('app.section_boq_upload') }}</h2>
             </div>
 
             <div class="p-6 space-y-6">
@@ -220,7 +220,7 @@
                 {{-- Sub-section A: Upload --}}
                 <div>
                     <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Sub-Section A: Upload BOQ File
+                        {{ __('app.subsection_upload_boq') }}
                     </p>
 
                     <label
@@ -260,19 +260,19 @@
                             </span>
                         </template>
                         <template x-if="selectedFileName && tempUploading">
-                            <span class="text-xs text-slate-400">Uploading… please wait.</span>
+                            <span class="text-xs text-slate-400">{{ __('app.uploading_please_wait') }}</span>
                         </template>
                         <template x-if="selectedFileName && uploadReady">
-                            <span class="text-xs text-slate-400">File ready. Click "Extract Items" to proceed.</span>
+                            <span class="text-xs text-slate-400">{{ __('app.file_ready_extract') }}</span>
                         </template>
                         <template x-if="!selectedFileName">
                             <div class="space-y-1">
                                 @if($boqFileName)
                                     <span class="block text-sm font-medium text-slate-600">{{ $boqFileName }}</span>
-                                    <span class="block text-xs text-slate-400">Previously uploaded. Select a new file to re-extract.</span>
+                                    <span class="block text-xs text-slate-400">{{ __('app.previously_uploaded') }}</span>
                                 @else
-                                    <span class="block text-sm font-medium text-slate-700">Click to upload or drag and drop</span>
-                                    <span class="block text-xs text-slate-400">Excel (.xlsx), CSV, and PDF supported. Max: 50MB</span>
+                                    <span class="block text-sm font-medium text-slate-700">{{ __('app.click_upload_drag') }}</span>
+                                    <span class="block text-xs text-slate-400">{{ __('app.file_formats_supported') }}</span>
                                 @endif
                             </div>
                         </template>
@@ -303,8 +303,8 @@
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                             </svg>
-                            <span wire:loading.remove wire:target="uploadBoq">Extract Items via AI</span>
-                            <span wire:loading wire:target="uploadBoq">Extracting…</span>
+                            <span wire:loading.remove wire:target="uploadBoq">{{ __('app.extract_items_ai') }}</span>
+                            <span wire:loading wire:target="uploadBoq">{{ __('app.extracting') }}</span>
                         </button>
                     </div>
                 </div>
@@ -313,20 +313,20 @@
                 <div>
                     <div class="mb-3 flex items-center justify-between">
                         <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                            Sub-Section B: Add Item Manually
+                            {{ __('app.subsection_add_manually') }}
                         </p>
                         <div class="flex items-center gap-2">
                             @if(!empty($items))
                                 <button
                                     type="button"
                                     wire:click="clearAllItems"
-                                    wire:confirm="Remove all items from this table?"
+                                    wire:confirm="{{ __('app.remove_all_items_confirm') }}"
                                     class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100"
                                 >
                                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
-                                    Remove All Rows
+                                    {{ __('app.remove_all_rows') }}
                                 </button>
                             @endif
 
@@ -338,28 +338,28 @@
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                 </svg>
-                                Add New Row
+                                {{ __('app.add_new_row') }}
                             </button>
                         </div>
                     </div>
 
                     @if(empty($items))
                         <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center text-sm text-slate-400">
-                            No items yet. Upload a BOQ file or add items manually.
+                            {{ __('app.no_items_upload_or_add') }}
                         </div>
                     @else
                         <div class="overflow-x-auto rounded-xl border border-slate-200">
                             <table class="w-full text-sm">
                                 <thead>
                                     <tr class="border-b border-slate-100 bg-slate-50">
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">Description</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">QTY</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Unit</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">Category</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Brand</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Status</th>
-                                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Engineering</th>
-                                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Actions</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">{{ __('app.description') }}</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.unit') }}</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">{{ __('app.category') }}</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.brand') }}</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.status') }}</th>
+                                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.engineering') }}</th>
+                                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.actions') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -373,7 +373,7 @@
                                                     type="text"
                                                     value="{{ $item['description'] }}"
                                                     wire:change="updateItem({{ $index }}, 'description', $event.target.value)"
-                                                    placeholder="Item description…"
+                                                    placeholder="{{ __('app.item_description_placeholder') }}"
                                                     class="w-full rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-1 focus:ring-emerald-200 group-hover:border-slate-200"
                                                     @if(($item['status'] ?? '') === 'rejected') disabled @endif
                                                 >
@@ -398,7 +398,7 @@
                                                     type="text"
                                                     value="{{ $item['unit'] }}"
                                                     wire:change="updateItem({{ $index }}, 'unit', $event.target.value)"
-                                                    placeholder="pcs"
+                                                    placeholder="{{ __('app.pcs') }}"
                                                     class="w-full rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-1 focus:ring-emerald-200 group-hover:border-slate-200"
                                                     @if(($item['status'] ?? '') === 'rejected') disabled @endif
                                                 >
@@ -410,7 +410,7 @@
                                                     type="text"
                                                     value="{{ $item['category'] }}"
                                                     wire:change="updateItem({{ $index }}, 'category', $event.target.value)"
-                                                    placeholder="Category"
+                                                    placeholder="{{ __('app.category') }}"
                                                     class="w-full rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-1 focus:ring-emerald-200 group-hover:border-slate-200"
                                                     @if(($item['status'] ?? '') === 'rejected') disabled @endif
                                                 >
@@ -422,7 +422,7 @@
                                                     type="text"
                                                     value="{{ $item['brand'] }}"
                                                     wire:change="updateItem({{ $index }}, 'brand', $event.target.value)"
-                                                    placeholder="Brand"
+                                                    placeholder="{{ __('app.brand') }}"
                                                     class="w-full rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-1 focus:ring-emerald-200 group-hover:border-slate-200"
                                                     @if(($item['status'] ?? '') === 'rejected') disabled @endif
                                                 >
@@ -469,7 +469,7 @@
                                                         <button
                                                             type="button"
                                                             wire:click="approveItem({{ $index }})"
-                                                            title="Approve"
+                                                            title="{{ __('app.approve') }}"
                                                             class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
                                                         >
                                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -480,7 +480,7 @@
                                                         <button
                                                             type="button"
                                                             wire:click="rejectItem({{ $index }})"
-                                                            title="Reject"
+                                                            title="{{ __('app.reject') }}"
                                                             class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 transition hover:bg-red-100"
                                                         >
                                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -492,7 +492,7 @@
                                                         <button
                                                             type="button"
                                                             wire:click="rejectItem({{ $index }})"
-                                                            title="Reject"
+                                                            title="{{ __('app.reject') }}"
                                                             class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 transition hover:bg-red-100"
                                                         >
                                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -504,7 +504,7 @@
                                                         <button
                                                             type="button"
                                                             wire:click="approveItem({{ $index }})"
-                                                            title="Restore"
+                                                            title="{{ __('app.restore') }}"
                                                             class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-600"
                                                         >
                                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -517,8 +517,8 @@
                                                     <button
                                                         type="button"
                                                         wire:click="deleteItem({{ $index }})"
-                                                        wire:confirm="Delete this item?"
-                                                        title="Delete"
+                                                        wire:confirm="{{ __('app.delete_this_item') }}"
+                                                        title="{{ __('app.delete') }}"
                                                         class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-slate-400 transition hover:bg-red-50 hover:text-red-500"
                                                     >
                                                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -554,8 +554,8 @@
                     </svg>
                 </span>
                 <div>
-                    <h2 class="text-sm font-semibold text-slate-800">Section 2b: Pricing Review — تسعير</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Review each unit price, approve or reject, then submit the quotation.</p>
+                    <h2 class="text-sm font-semibold text-slate-800">{{ __('app.section_pricing_review') }}</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ __('app.review_prices_desc') }}</p>
                 </div>
             </div>
 
@@ -566,17 +566,17 @@
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="border-b border-slate-100 bg-slate-50">
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[180px]">Description</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-16">QTY</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">Unit</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Category</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Brand</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Engineering</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Status</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Price (SAR)</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Total (SAR)</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-8">Source</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Actions</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[180px]">{{ __('app.description') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-16">{{ __('app.qty') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.unit') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.category') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.brand') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.engineering') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.status') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.price_sar') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.total_sar') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-8">{{ __('app.source') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -598,9 +598,9 @@
                                         default    => 'bg-amber-100 text-amber-700',
                                     };
                                     $badgeLabel = match($priceStatus) {
-                                        'approved' => 'APPROVED',
-                                        'rejected' => 'REJECTED',
-                                        default    => 'PENDING',
+                                        'approved' => __('app.status_approved'),
+                                        'rejected' => __('app.status_rejected'),
+                                        default    => __('app.status_pending'),
                                     };
                                 @endphp
                                 <tr class="transition-colors {{ $rowClass }}">
@@ -629,7 +629,7 @@
                                         @if($unitPrice !== null)
                                             {{ number_format($unitPrice, 2) }}
                                         @else
-                                            <span class="text-xs text-slate-400 italic">Not found</span>
+                                            <span class="text-xs text-slate-400 italic">{{ __('app.not_found') }}</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono text-sm font-medium text-slate-800">
@@ -641,9 +641,9 @@
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         @if($priceSource === 'products')
-                                            <span title="Price from Products Table" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold">P</span>
+                                            <span title="{{ __('app.price_from_products') }}" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold">P</span>
                                         @elseif($priceSource === 'gemini')
-                                            <span title="Price estimated by AI (Gemini)" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-600 text-xs font-bold">AI</span>
+                                            <span title="{{ __('app.price_estimated_ai') }}" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-600 text-xs font-bold">AI</span>
                                         @else
                                             <span class="text-slate-300">—</span>
                                         @endif
@@ -654,7 +654,7 @@
                                                 <button
                                                     type="button"
                                                     wire:click="approvePriceItem({{ $index }})"
-                                                    title="Approve price"
+                                                    title="{{ __('app.approve_price') }}"
                                                     class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
                                                 >
                                                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -666,7 +666,7 @@
                                                 <button
                                                     type="button"
                                                     wire:click="rejectPriceItem({{ $index }})"
-                                                    title="Reject price"
+                                                    title="{{ __('app.reject_price') }}"
                                                     class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 transition hover:bg-red-100"
                                                 >
                                                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -675,7 +675,7 @@
                                                 </button>
                                             @endif
                                             @if($priceStatus === 'rejected')
-                                                <span class="text-xs text-slate-400 italic">Rejected</span>
+                                                <span class="text-xs text-slate-400 italic">{{ __('app.status_rejected') }}</span>
                                             @endif
                                         </div>
                                     </td>
@@ -696,25 +696,25 @@
                 @endphp
                 <div class="flex justify-end">
                     <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
-                        <h3 class="text-sm font-semibold text-slate-700">Financial Summary</h3>
+                        <h3 class="text-sm font-semibold text-slate-700">{{ __('app.financial_summary') }}</h3>
 
                         <div class="flex justify-between text-sm text-slate-600">
-                            <span>Subtotal</span>
-                            <span class="font-mono font-medium">{{ number_format($subtotal, 2) }} SAR</span>
+                            <span>{{ __('app.subtotal') }}</span>
+                            <span class="font-mono font-medium">{{ number_format($subtotal, 2) }} {{ __('app.sar') }}</span>
                         </div>
 
                         <div class="flex justify-between text-sm text-slate-600">
-                            <span>Tax/VAT (15%)</span>
-                            <span class="font-mono font-medium">{{ number_format($taxAmount, 2) }} SAR</span>
+                            <span>{{ __('app.tax_vat_15') }}</span>
+                            <span class="font-mono font-medium">{{ number_format($taxAmount, 2) }} {{ __('app.sar') }}</span>
                         </div>
 
                         <div class="border-t border-slate-200 pt-3 flex justify-between">
-                            <span class="text-sm font-bold text-slate-800">Total Amount</span>
-                            <span class="font-mono text-lg font-bold text-emerald-600">{{ number_format($total, 2) }} SAR</span>
+                            <span class="text-sm font-bold text-slate-800">{{ __('app.total_amount') }}</span>
+                            <span class="font-mono text-lg font-bold text-emerald-600">{{ number_format($total, 2) }} {{ __('app.sar') }}</span>
                         </div>
 
                         <div class="pt-1 text-xs text-slate-400">
-                            * Includes only non-rejected items that have been priced.
+                            {{ __('app.includes_non_rejected') }}
                         </div>
                     </div>
                 </div>
@@ -735,7 +735,7 @@
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </span>
-                <h2 class="text-sm font-semibold text-slate-800">Section 3: Review &amp; Submit</h2>
+                <h2 class="text-sm font-semibold text-slate-800">{{ __('app.section_review_submit') }}</h2>
             </div>
 
             <div class="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -744,12 +744,12 @@
                 <div class="flex flex-wrap gap-6">
 
                     <div class="text-center">
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Total Items</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ __('app.total_items') }}</p>
                         <p class="mt-1 text-2xl font-bold text-slate-900">{{ count($items) }}</p>
                     </div>
 
                     <div class="text-center">
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Status</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ __('app.status') }}</p>
                         <p class="mt-1 text-sm font-semibold text-slate-700">
                             {{ $projectStatus
                                 ? \App\Enums\QuotationProjectStatusEnum::tryFrom($projectStatus)?->label() ?? $projectStatus
@@ -758,16 +758,16 @@
                     </div>
 
                     <div class="text-center">
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Project Name</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ __('app.project_name') }}</p>
                         <p class="mt-1 max-w-[180px] truncate text-sm font-semibold text-slate-700">
                             {{ $projectName ?: '—' }}
                         </p>
                     </div>
 
                     <div class="text-center">
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">BOQ Attachment</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">{{ __('app.boq_attachment') }}</p>
                         <p class="mt-1 text-sm font-semibold {{ $boqFileName ? 'text-emerald-600' : 'text-slate-400' }}">
-                            {{ $boqFileName ?: 'No file' }}
+                            {{ $boqFileName ?: __('app.no_file') }}
                         </p>
                     </div>
 
@@ -785,7 +785,7 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                         </svg>
-                        Save Draft
+                        {{ __('app.save_draft') }}
                     </button>
 
                     <button
@@ -806,7 +806,7 @@
                         @if($processing) disabled @endif
                         class="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"
                     >
-                        Submit Quotation &rarr;
+                        {{ __('app.submit_quotation') }} &rarr;
                     </button>
                 </div>
 

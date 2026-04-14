@@ -84,11 +84,11 @@
 
 
                 {{-- Title & message --}}
-                <h3 class="text-center text-base font-bold text-slate-900">Delete Quotation</h3>
+                <h3 class="text-center text-base font-bold text-slate-900">{{ __('app.delete_quotation') }}</h3>
                 <p class="mt-1.5 text-center text-sm text-slate-500">
-                    Are you sure you want to permanently delete
+                    {{ __('app.sure_permanently_delete') }}
                     <span class="font-semibold text-slate-800" x-text="'#' + deleteModal.no"></span>?
-                    <br>This action <span class="font-semibold text-red-600">cannot be undone</span>.
+                    <br>{{ __('app.cannot_be_undone') }}
                 </p>
 
                 {{-- Buttons --}}
@@ -97,12 +97,12 @@
                         type="button"
                         @click="deleteModal.open = false"
                         class="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >Cancel</button>
+                    >{{ __('app.cancel') }}</button>
                     <button
                         type="button"
                         @click="confirmDelete()"
                         class="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
-                    >Yes, Delete</button>
+                    >{{ __('app.yes_delete') }}</button>
                 </div>
             </div>
         </div>
@@ -111,8 +111,8 @@
     {{-- ───── Page Header ───────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Track Quotations</h1>
-            <p class="mt-1 text-sm text-slate-500">Manage and monitor your construction project bids</p>
+            <h1 class="text-2xl font-bold text-slate-900">{{ __('app.track_quotations') }}</h1>
+            <p class="mt-1 text-sm text-slate-500">{{ __('app.manage_monitor_bids') }}</p>
         </div>
         <a
             href="{{ route('enduser.boqs.index') }}"
@@ -121,7 +121,7 @@
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            New Quotation from BOQ
+            {{ __('app.new_quotation_from_boq') }}
         </a>
     </div>
 
@@ -130,7 +130,7 @@
 
         <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Total Quotations</p>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.total_quotations') }}</p>
                 <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
@@ -143,7 +143,7 @@
 
         <div class="flex items-center justify-between rounded-2xl border border-emerald-100 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Active Quotations</p>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.active_quotations') }}</p>
                 <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['active'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
@@ -156,7 +156,7 @@
 
         <div class="flex items-center justify-between rounded-2xl border border-blue-100 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Completed Quotations</p>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.completed_quotations') }}</p>
                 <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['completed'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
@@ -171,7 +171,7 @@
 
     {{-- ───── Section Header + Search ─────────────────────────────────────────── --}}
     <div class="mb-4 flex flex-wrap items-center gap-3">
-        <h2 class="flex-1 text-base font-bold text-slate-900">Recent Quotations</h2>
+        <h2 class="flex-1 text-base font-bold text-slate-900">{{ __('app.recent_quotations') }}</h2>
 
         {{-- Search --}}
         <div class="relative min-w-[220px]">
@@ -184,7 +184,7 @@
             <input
                 type="search"
                 wire:model.live.debounce.300ms="search"
-                placeholder="Search quotations..."
+                placeholder="{{ __('app.search_quotations') }}"
                 class="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
             >
         </div>
@@ -213,7 +213,7 @@
             >
                 <button type="button" wire:click="$set('status', '')" @click="statusOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
-                    All Statuses
+                    {{ __('app.all_statuses') }}
                 </button>
                 @foreach($statuses as $statusItem)
                     <button type="button" wire:click="$set('status', '{{ $statusItem->value }}')" @click="statusOpen = false"
@@ -246,15 +246,15 @@
                 @click.outside="dateOpen = false"
                 class="absolute right-0 top-full z-20 mt-1.5 w-56 rounded-xl border border-slate-200 bg-white p-4 shadow-lg"
             >
-                <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Date Range</p>
+                <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.date_range') }}</p>
                 <div class="flex flex-col gap-2">
                     <div>
-                        <label class="mb-1 block text-xs text-slate-500">From</label>
+                        <label class="mb-1 block text-xs text-slate-500">{{ __('app.from') }}</label>
                         <input type="date" wire:model.live="created_from"
                             class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 outline-none focus:border-emerald-400">
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs text-slate-500">To</label>
+                        <label class="mb-1 block text-xs text-slate-500">{{ __('app.to') }}</label>
                         <input type="date" wire:model.live="created_to"
                             class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 outline-none focus:border-emerald-400">
                     </div>
@@ -265,7 +265,7 @@
         @if($hasActiveFilters)
             <button type="button" wire:click="clearFilters"
                 class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100">
-                Clear
+                {{ __('app.clear') }}
             </button>
         @endif
     </div>
@@ -277,8 +277,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            <p class="text-sm font-medium text-slate-400">No quotations found</p>
-            <p class="mt-1 text-xs text-slate-300">Try adjusting your filters or create a new quotation</p>
+            <p class="text-sm font-medium text-slate-400">{{ __('app.no_quotations_found') }}</p>
+            <p class="mt-1 text-xs text-slate-300">{{ __('app.try_adjust_filters_quotation') }}</p>
         </div>
     @else
         <div class="space-y-6">
@@ -309,14 +309,14 @@
                     };
 
                     $statusMsg = match($sv) {
-                        'draft'     => 'Draft saved. Complete your quotation and submit when ready.',
-                        'tender'    => 'Quotation is ready for review. Select products and submit for approval.',
-                        'submitted' => 'Quotation submitted. Qimta team is reviewing your request.',
-                        'in_review' => 'Qimta team is working on your quote.',
-                        'quoted'    => 'Price quotation is ready. Please review and accept.',
-                        'accepted'  => 'Final quotation delivered and approved.',
-                        'rejected'  => 'Quotation was rejected. Please contact support.',
-                        default     => 'Status update pending.',
+                        'draft'     => __('app.draft_saved_complete'),
+                        'tender'    => __('app.quotation_ready_review'),
+                        'submitted' => __('app.quotation_submitted_review'),
+                        'in_review' => __('app.qimta_working_quote'),
+                        'quoted'    => __('app.price_quotation_ready'),
+                        'accepted'  => __('app.final_quotation_delivered'),
+                        'rejected'  => __('app.quotation_rejected_support'),
+                        default     => __('app.status_update_pending'),
                     };
 
                     $msgIconClass = match($sv) {
@@ -344,17 +344,17 @@
 
                         {{-- Project name --}}
                         <h3 class="text-base font-bold text-slate-900 truncate">
-                            {{ $quotation->project_name ?? '(Untitled Project)' }}
+                            {{ $quotation->project_name ?? __('app.untitled_project') }}
                         </h3>
 
                         {{-- Meta line --}}
                         <p class="mt-0.5 text-xs text-slate-400">
                             {{ $quotation->project_status?->label() ?? 'General' }}
                             &middot;
-                            Submitted: {{ $quotation->created_at?->format('M d, Y') }}
+                            {{ __('app.submitted_colon') }} {{ $quotation->created_at?->format('M d, Y') }}
                             @if($amount > 0)
                                 &middot;
-                                <span class="font-semibold text-slate-600">{{ number_format($amount, 2) }} SAR</span>
+                                <span class="font-semibold text-slate-600">{{ number_format($amount, 2) }} {{ __('app.sar') }}</span>
                             @endif
                         </p>
 
@@ -402,7 +402,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>
-                                Convert to Order
+                                {{ __('app.convert_to_order') }}
                             </button>
                         @endif
 
@@ -410,7 +410,7 @@
                             href="{{ route('enduser.quotations.show', $quotation->uuid) }}"
                             class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
                         >
-                            View Details
+                            {{ __('app.view_details') }}
                         </a>
                     </div>
 
@@ -421,13 +421,13 @@
         {{-- Pagination --}}
         <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-sm text-slate-500">
-                Showing
+                {{ __('app.showing') }}
                 <span class="font-semibold text-slate-700">{{ $quotations->firstItem() }}</span>
-                to
+                {{ __('app.to') }}
                 <span class="font-semibold text-slate-700">{{ $quotations->lastItem() }}</span>
-                of
+                {{ __('app.of') }}
                 <span class="font-semibold text-slate-700">{{ $quotations->total() }}</span>
-                results
+                {{ __('app.results') }}
             </p>
 
             @if($quotations->hasPages())

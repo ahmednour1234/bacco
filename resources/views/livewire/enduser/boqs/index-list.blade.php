@@ -72,20 +72,20 @@
         >
             <div class="h-1.5 w-full rounded-t-2xl bg-gradient-to-r from-red-400 to-rose-500"></div>
             <div class="px-6 pb-6 pt-5">
-                <h3 class="text-center text-base font-bold text-slate-900">Delete BOQ</h3>
+                <h3 class="text-center text-base font-bold text-slate-900">{{ __('app.delete_boq') }}</h3>
                 <p class="mt-1.5 text-center text-sm text-slate-500">
-                    Are you sure you want to permanently delete
+                    {{ __('app.sure_permanently_delete') }}
                     <span class="font-semibold text-slate-800" x-text="'#' + deleteModal.no"></span>?
-                    <br>This action <span class="font-semibold text-red-600">cannot be undone</span>.
+                    <br>{{ __('app.cannot_be_undone') }}
                 </p>
                 <div class="mt-6 flex items-center gap-3">
                     <button type="button" @click="deleteModal.open = false"
                         class="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-                        Cancel
+                        {{ __('app.cancel') }}
                     </button>
                     <button type="button" @click="confirmDelete()"
                         class="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600">
-                        Yes, Delete
+                        {{ __('app.yes_delete') }}
                     </button>
                 </div>
             </div>
@@ -95,8 +95,8 @@
     {{-- ───── Page Header ───────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Bills of Quantities</h1>
-            <p class="mt-1 text-sm text-slate-500">Manage your BOQs and create quotations from them</p>
+            <h1 class="text-2xl font-bold text-slate-900">{{ __('app.bills_of_quantities') }}</h1>
+            <p class="mt-1 text-sm text-slate-500">{{ __('app.manage_boqs_desc') }}</p>
         </div>
         <a
             href="{{ route('enduser.boqs.create') }}"
@@ -105,7 +105,7 @@
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            New BOQ
+            {{ __('app.new_boq') }}
         </a>
     </div>
 
@@ -114,7 +114,7 @@
 
         <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Total BOQs</p>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.total_boqs') }}</p>
                 <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
@@ -127,7 +127,7 @@
 
         <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Draft</p>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.status_draft') }}</p>
                 <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['draft'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
@@ -140,7 +140,7 @@
 
         <div class="flex items-center justify-between rounded-2xl border border-emerald-100 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Submitted</p>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.status_submitted') }}</p>
                 <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['submitted'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
@@ -153,7 +153,7 @@
 
         <div class="flex items-center justify-between rounded-2xl border border-blue-100 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">Completed</p>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.status_completed') }}</p>
                 <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['completed'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
@@ -168,7 +168,7 @@
 
     {{-- ───── Section Header + Search ─────────────────────────────────────────── --}}
     <div class="mb-4 flex flex-wrap items-center gap-3">
-        <h2 class="flex-1 text-base font-bold text-slate-900">Recent BOQs</h2>
+        <h2 class="flex-1 text-base font-bold text-slate-900">{{ __('app.recent_boqs') }}</h2>
 
         {{-- Search --}}
         <div class="relative min-w-[220px]">
@@ -181,7 +181,7 @@
             <input
                 type="search"
                 wire:model.live.debounce.300ms="search"
-                placeholder="Search BOQs..."
+                placeholder="{{ __('app.search_boqs') }}"
                 class="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
             >
         </div>
@@ -210,7 +210,7 @@
             >
                 <button type="button" wire:click="$set('status', '')" @click="statusOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
-                    All Statuses
+                    {{ __('app.all_statuses') }}
                 </button>
                 @foreach($statuses as $statusItem)
                     <button type="button" wire:click="$set('status', '{{ $statusItem->value }}')" @click="statusOpen = false"
@@ -243,15 +243,15 @@
                 @click.outside="dateOpen = false"
                 class="absolute right-0 top-full z-20 mt-1.5 w-56 rounded-xl border border-slate-200 bg-white p-4 shadow-lg"
             >
-                <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Date Range</p>
+                <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.date_range') }}</p>
                 <div class="flex flex-col gap-2">
                     <div>
-                        <label class="mb-1 block text-xs text-slate-500">From</label>
+                        <label class="mb-1 block text-xs text-slate-500">{{ __('app.from') }}</label>
                         <input type="date" wire:model.live="created_from"
                             class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 outline-none focus:border-emerald-400">
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs text-slate-500">To</label>
+                        <label class="mb-1 block text-xs text-slate-500">{{ __('app.to') }}</label>
                         <input type="date" wire:model.live="created_to"
                             class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 outline-none focus:border-emerald-400">
                     </div>
@@ -262,7 +262,7 @@
         @if($hasActiveFilters)
             <button type="button" wire:click="clearFilters"
                 class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100">
-                Clear
+                {{ __('app.clear') }}
             </button>
         @endif
     </div>
@@ -274,8 +274,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
             </svg>
-            <p class="text-sm font-medium text-slate-400">No BOQs found</p>
-            <p class="mt-1 text-xs text-slate-300">Create a new BOQ to get started</p>
+            <p class="text-sm font-medium text-slate-400">{{ __('app.no_boqs_found') }}</p>
+            <p class="mt-1 text-xs text-slate-300">{{ __('app.create_boq_get_started') }}</p>
         </div>
     @else
         <div class="space-y-6">
@@ -300,11 +300,11 @@
                     };
 
                     $statusMsg = match($sv) {
-                        'draft'     => 'Draft saved. Complete your BOQ and submit when ready.',
-                        'submitted' => 'BOQ submitted. Select items to create a quotation.',
-                        'completed' => 'BOQ completed. Quotation has been created from this BOQ.',
-                        'cancelled' => 'BOQ was cancelled.',
-                        default     => 'Status update pending.',
+                        'draft'     => __('app.draft_saved_boq'),
+                        'submitted' => __('app.boq_submitted_select'),
+                        'completed' => __('app.boq_completed_quotation'),
+                        'cancelled' => __('app.boq_cancelled'),
+                        default     => __('app.status_update_pending'),
                     };
 
                     $msgIconClass = match($sv) {
@@ -331,14 +331,14 @@
 
                         {{-- Project name --}}
                         <h3 class="text-base font-bold text-slate-900 truncate">
-                            {{ $boq->project?->name ?? '(No Project)' }}
+                            {{ $boq->project?->name ?? __('app.no_project') }}
                         </h3>
 
                         {{-- Meta line --}}
                         <p class="mt-0.5 text-xs text-slate-400">
-                            {{ $itemCount }} {{ $itemCount === 1 ? 'item' : 'items' }}
+                            {{ $itemCount }} {{ $itemCount === 1 ? __('app.item') : __('app.items') }}
                             &middot;
-                            Created: {{ $boq->created_at?->format('M d, Y') }}
+                            {{ __('app.created_colon') }} {{ $boq->created_at?->format('M d, Y') }}
                         </p>
 
                         {{-- Status message --}}
@@ -363,7 +363,7 @@
                             <button
                                 type="button"
                                 @click="openDelete({{ $boq->id }}, '{{ $boq->boq_no }}')"
-                                title="Delete"
+                                title="{{ __('app.delete') }}"
                                 class="rounded-lg p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
                             >
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,7 +383,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/>
                                 </svg>
-                                Convert to Quotation
+                                {{ __('app.convert_to_quotation') }}
                             </button>
                         @endif
 
@@ -391,7 +391,7 @@
                             href="{{ route('enduser.boqs.show', $boq->uuid) }}"
                             class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
                         >
-                            View Details
+                            {{ __('app.view_details') }}
                         </a>
                     </div>
 
@@ -402,13 +402,13 @@
         {{-- Pagination --}}
         <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-sm text-slate-500">
-                Showing
+                {{ __('app.showing') }}
                 <span class="font-semibold text-slate-700">{{ $boqs->firstItem() }}</span>
-                to
+                {{ __('app.to') }}
                 <span class="font-semibold text-slate-700">{{ $boqs->lastItem() }}</span>
-                of
+                {{ __('app.of') }}
                 <span class="font-semibold text-slate-700">{{ $boqs->total() }}</span>
-                results
+                {{ __('app.results') }}
             </p>
 
             @if($boqs->hasPages())

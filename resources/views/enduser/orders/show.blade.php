@@ -1,14 +1,14 @@
 @extends('layouts.enduser-app')
 
-@section('title', 'Order – Qimta')
-@section('page-title', 'Order')
+@section('title', __('app.title_order'))
+@section('page-title', __('app.order'))
 
 @section('breadcrumb')
-    <span class="text-xs text-slate-400">Home</span>
+    <span class="text-xs text-slate-400">{{ __('app.home') }}</span>
     <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
     </svg>
-    <a href="{{ route('enduser.orders.index') }}" class="text-xs text-slate-400 hover:text-slate-600">Orders</a>
+    <a href="{{ route('enduser.orders.index') }}" class="text-xs text-slate-400 hover:text-slate-600">{{ __('app.orders') }}</a>
     <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
     </svg>

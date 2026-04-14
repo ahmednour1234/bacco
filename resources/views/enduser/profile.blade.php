@@ -1,14 +1,14 @@
 @extends('layouts.enduser-app')
 
-@section('title', 'My Profile – Qimta')
-@section('page-title', 'My Profile')
+@section('title', __('app.title_my_profile'))
+@section('page-title', __('app.my_profile'))
 
 @section('breadcrumb')
-    <span class="text-xs text-slate-400">Home</span>
+    <span class="text-xs text-slate-400">{{ __('app.home') }}</span>
     <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
     </svg>
-    <span class="text-xs text-slate-500 font-medium">My Profile</span>
+    <span class="text-xs text-slate-500 font-medium">{{ __('app.my_profile') }}</span>
 @endsection
 
 @section('content')
@@ -105,13 +105,13 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
-                        Client
+                        {{ __('app.client') }}
                     </span>
                     <span class="inline-flex items-center gap-1.5 text-xs bg-slate-100 text-slate-600 font-medium px-3 py-1 rounded-full">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
-                        Member since {{ $user->created_at->format('M Y') }}
+                        {{ __('app.member_since') }} {{ $user->created_at->format('M Y') }}
                     </span>
                     @if ($profile && $profile->company_name)
                         <span class="inline-flex items-center gap-1.5 text-xs bg-blue-50 text-blue-700 font-medium px-3 py-1 rounded-full">
@@ -126,8 +126,8 @@
 
             {{-- Upload hint --}}
             <div class="hidden sm:flex flex-col items-end gap-1 shrink-0">
-                <p class="text-xs text-slate-400">Click on photo to change</p>
-                <p class="text-xs text-slate-300">JPG, PNG, WebP · Max 2 MB</p>
+                <p class="text-xs text-slate-400">{{ __('app.click_photo_change') }}</p>
+                <p class="text-xs text-slate-300">{{ __('app.photo_formats') }}</p>
             </div>
         </div>
     </form>
@@ -153,15 +153,15 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-slate-900">Personal Information</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Update your name, email, and phone</p>
+                    <h3 class="text-sm font-semibold text-slate-900">{{ __('app.personal_information') }}</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ __('app.update_name_email_phone') }}</p>
                 </div>
             </div>
 
             <div class="px-6 py-5 space-y-4">
                 {{-- Full Name --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.full_name') }}</label>
                     <input type="text" name="name" value="{{ old('name', $user->name) }}"
                            placeholder="Your full name"
                            class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl
@@ -175,7 +175,7 @@
 
                 {{-- Email --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Email Address</label>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.email_address') }}</label>
                     <div class="relative">
                         <input type="email" name="email" value="{{ old('email', $user->email) }}"
                                placeholder="name@company.com"
@@ -197,7 +197,7 @@
 
                 {{-- Phone --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Phone Number</label>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.phone_number') }}</label>
                     <div class="relative">
                         <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
                                placeholder="+966 5x xxx xxxx"
@@ -231,8 +231,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-slate-900">Business Information</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Company & registration details</p>
+                    <h3 class="text-sm font-semibold text-slate-900">{{ __('app.business_information') }}</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ __('app.company_registration_details') }}</p>
                 </div>
             </div>
 
@@ -240,7 +240,7 @@
                 {{-- Company Name + Trade Name --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Company Name</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.company_name') }}</label>
                         <input type="text" name="company_name"
                                value="{{ old('company_name', $profile->company_name ?? '') }}"
                                placeholder="Acme Construction Co."
@@ -249,7 +249,7 @@
                                       focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Trade Name</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.trade_name') }}</label>
                         <input type="text" name="trade_name"
                                value="{{ old('trade_name', $profile->trade_name ?? '') }}"
                                placeholder="Acme"
@@ -262,7 +262,7 @@
                 {{-- CR Number + VAT Number --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">CR Number</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.cr_number') }}</label>
                         <input type="text" name="cr_number"
                                value="{{ old('cr_number', $profile->cr_number ?? '') }}"
                                placeholder="1010xxxxxx"
@@ -271,7 +271,7 @@
                                       focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">VAT Number</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.vat_number') }}</label>
                         <input type="text" name="vat_number"
                                value="{{ old('vat_number', $profile->vat_number ?? '') }}"
                                placeholder="300xxxxxxxxx"
@@ -283,7 +283,7 @@
 
                 {{-- Address --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Address</label>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.address') }}</label>
                     <input type="text" name="address"
                            value="{{ old('address', $profile->address ?? '') }}"
                            placeholder="Street address"
@@ -295,7 +295,7 @@
                 {{-- City + Country --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">City</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.city') }}</label>
                         <input type="text" name="city"
                                value="{{ old('city', $profile->city ?? '') }}"
                                placeholder="Riyadh"
@@ -304,7 +304,7 @@
                                       focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Country</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.country') }}</label>
                         <input type="text" name="country"
                                value="{{ old('country', $profile->country ?? '') }}"
                                placeholder="Saudi Arabia"
@@ -325,7 +325,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
-            Save Changes
+            {{ __('app.save_changes') }}
         </button>
     </div>
 </form>
@@ -350,8 +350,8 @@
                 </svg>
             </div>
             <div>
-                <h3 class="text-sm font-semibold text-slate-900">Change Password</h3>
-                <p class="text-xs text-slate-400 mt-0.5">Leave blank to keep your current password</p>
+                <h3 class="text-sm font-semibold text-slate-900">{{ __('app.change_password') }}</h3>
+                <p class="text-xs text-slate-400 mt-0.5">{{ __('app.leave_blank_password') }}</p>
             </div>
         </div>
 
@@ -360,7 +360,7 @@
 
                 {{-- Current Password --}}
                 <div x-data="{ show: false }">
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Current Password</label>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.current_password') }}</label>
                     <div class="relative">
                         <input :type="show ? 'text' : 'password'" name="current_password"
                                placeholder="••••••••"
@@ -385,7 +385,7 @@
 
                 {{-- New Password --}}
                 <div x-data="{ show: false }">
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">New Password</label>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.new_password') }}</label>
                     <div class="relative">
                         <input :type="show ? 'text' : 'password'" name="new_password"
                                placeholder="Min. 8 characters"
@@ -410,7 +410,7 @@
 
                 {{-- Confirm New Password --}}
                 <div x-data="{ show: false }">
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm New Password</label>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.confirm_new_password') }}</label>
                     <div class="relative">
                         <input :type="show ? 'text' : 'password'" name="new_password_confirmation"
                                placeholder="Repeat new password"
@@ -437,7 +437,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
-                    Update Password
+                    {{ __('app.update_password') }}
                 </button>
             </div>
         </div>

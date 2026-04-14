@@ -47,8 +47,8 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
         </svg>
         <div>
-            <p class="text-sm font-semibold text-emerald-800">Fetching prices…</p>
-            <p class="text-xs text-emerald-600">Looking up the products catalogue then estimating with AI for unmatched items. This may take a few seconds.</p>
+            <p class="text-sm font-semibold text-emerald-800">{{ __('app.fetching_prices') }}</p>
+            <p class="text-xs text-emerald-600">{{ __('app.looking_up_catalogue') }}</p>
         </div>
     </div>
     @endif
@@ -62,7 +62,7 @@
 
             <dl class="mt-3 flex flex-wrap gap-x-8 gap-y-2">
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Status</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.status') }}</dt>
                     <dd class="mt-0.5 flex items-center gap-1.5">
                         @php
                             $statusVal = $quotation->status->value ?? '';
@@ -82,17 +82,17 @@
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Submitted Date</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.submitted_date') }}</dt>
                     <dd class="mt-0.5 text-sm font-semibold text-slate-700">{{ $quotation->updated_at?->format('M d, Y') }}</dd>
                 </div>
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Project Type</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.project_type') }}</dt>
                     <dd class="mt-0.5 text-sm font-semibold text-slate-700">
                         {{ $quotation->project_status?->label() ?? '—' }}
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">ID</dt>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.id') }}</dt>
                     <dd class="mt-0.5 text-sm font-semibold text-slate-700 font-mono">{{ $quotation->quotation_no }}</dd>
                 </div>
             </dl>
@@ -109,7 +109,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                Export PDF
+                {{ __('app.export_pdf') }}
             </button>
 
             @if(in_array($quotation->status->value, ['draft', 'tender'], true))
@@ -121,7 +121,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
-                Edit Quotation
+                {{ __('app.edit_quotation') }}
             </a>
             @endif
         </div>
@@ -131,7 +131,7 @@
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
 
         <div class="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 class="text-sm font-semibold text-slate-800">Bill of Quantities (BOQ)</h2>
+            <h2 class="text-sm font-semibold text-slate-800">{{ __('app.boq_full') }}</h2>
 
             {{-- Edit toolbar — only while editable --}}
             @if(in_array($quotation->status->value, ['tender', 'draft'], true))
@@ -152,7 +152,7 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                     </svg>
-                    Re-fetch Prices
+                    {{ __('app.refetch_prices') }}
                 </button>
 
                 {{-- Remove All Products --}}
@@ -160,13 +160,13 @@
                     type="button"
                     wire:click="removeAllProducts"
                     wire:loading.attr="disabled"
-                    wire:confirm="Remove all product selections and prices?"
+                    wire:confirm="{{ __('app.remove_all_selections') }}"
                     class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 disabled:opacity-60 transition"
                 >
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    Remove All Products
+                    {{ __('app.remove_all_products') }}
                 </button>
             </div>
             @endif
@@ -175,7 +175,7 @@
         <div class="p-6">
             @if(empty($items))
                 <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center text-sm text-slate-400">
-                    No items found for this quotation.
+                    {{ __('app.no_items_quotation') }}
                 </div>
             @else
                 <div class="overflow-x-auto rounded-xl border border-slate-200">
@@ -183,15 +183,15 @@
                         <thead>
                             <tr class="border-b border-slate-100 bg-slate-50">
                                 <th class="px-3 py-3 w-10"></th>{{-- checkbox --}}
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">Description</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">QTY</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">Unit</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">Category</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">Brand</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">Engineering</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">Status</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Unit Price (SAR)</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">Total (SAR)</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">{{ __('app.description') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.unit') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">{{ __('app.category') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">{{ __('app.brand') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.engineering') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.status') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.unit_price_sar') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.total_sar') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -228,13 +228,13 @@
                                                 class="h-4 w-4 rounded border-slate-300 text-emerald-600 cursor-pointer focus:ring-emerald-500"
                                             />
                                         @elseif($isSelected)
-                                            <span title="Selected" class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
+                                            <span title="{{ __('app.selected') }}" class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
                                                 <svg class="h-3.5 w-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                                 </svg>
                                             </span>
                                         @else
-                                            <span title="Not selected" class="inline-block h-6 w-6 rounded-full border-2 border-slate-200 bg-white"></span>
+                                            <span title="{{ __('app.not_selected') }}" class="inline-block h-6 w-6 rounded-full border-2 border-slate-200 bg-white"></span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 font-medium text-slate-800">{{ $item['description'] ?: '—' }}</td>
@@ -267,7 +267,7 @@
                                         @elseif(is_numeric($item['unit_price'] ?? null))
                                             {{ number_format((float)$item['unit_price'], 2) }}
                                         @else
-                                            <span class="text-xs italic text-slate-400">Not priced</span>
+                                            <span class="text-xs italic text-slate-400">{{ __('app.not_priced') }}</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono font-medium text-slate-800">
@@ -279,7 +279,7 @@
                                         @elseif(is_numeric($item['unit_price'] ?? null))
                                             {{ number_format((float)$item['unit_price'] * (float)($item['quantity'] ?? 0), 2) }}
                                         @else
-                                            <span class="text-xs italic text-slate-400">Not priced</span>
+                                            <span class="text-xs italic text-slate-400">{{ __('app.not_priced') }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -310,24 +310,24 @@
             {{-- Summary card --}}
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="mb-4 flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-slate-700">Financial Summary</h3>
+                    <h3 class="text-sm font-semibold text-slate-700">{{ __('app.financial_summary') }}</h3>
                     <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-                        {{ $selectedCount }} item{{ $selectedCount !== 1 ? 's' : '' }} selected
+                        {{ $selectedCount }} {{ __('app.items_selected') }}
                     </span>
                 </div>
 
                 <div class="space-y-2.5">
                     <div class="flex justify-between text-sm text-slate-600">
-                        <span>Subtotal</span>
-                        <span class="font-mono font-medium">{{ number_format($subtotal, 2) }} SAR</span>
+                        <span>{{ __('app.subtotal') }}</span>
+                        <span class="font-mono font-medium">{{ number_format($subtotal, 2) }} {{ __('app.sar') }}</span>
                     </div>
                     <div class="flex justify-between text-sm text-slate-600">
-                        <span>Tax/VAT (15%)</span>
-                        <span class="font-mono font-medium">{{ number_format($tax, 2) }} SAR</span>
+                        <span>{{ __('app.tax_vat_15') }}</span>
+                        <span class="font-mono font-medium">{{ number_format($tax, 2) }} {{ __('app.sar') }}</span>
                     </div>
                     <div class="border-t border-slate-200 pt-3 flex justify-between">
-                        <span class="text-sm font-bold text-slate-800">Total Amount</span>
-                        <span class="font-mono text-lg font-bold text-emerald-600">{{ number_format($total, 2) }} SAR</span>
+                        <span class="text-sm font-bold text-slate-800">{{ __('app.total_amount') }}</span>
+                        <span class="font-mono text-lg font-bold text-emerald-600">{{ number_format($total, 2) }} {{ __('app.sar') }}</span>
                     </div>
                 </div>
             </div>
@@ -341,9 +341,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                     </svg>
                     @if($selectedCount === 0)
-                        Select at least one item to submit.
+                        {{ __('app.select_item_submit') }}
                     @else
-                        All selected items have no price yet. Cannot submit.
+                        {{ __('app.no_price_submit') }}
                     @endif
                 </div>
                 @endif
@@ -365,8 +365,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
-                    <span wire:loading.remove wire:target="submitForApproval">Submit for Approval</span>
-                    <span wire:loading wire:target="submitForApproval">Submitting…</span>
+                    <span wire:loading.remove wire:target="submitForApproval">{{ __('app.submit_for_approval') }}</span>
+                    <span wire:loading wire:target="submitForApproval">{{ __('app.submitting') }}</span>
                 </button>
 
                 {{-- ───── Confirmation Modal ────────────────────────────────────── --}}
@@ -403,9 +403,9 @@
                                 </svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-bold text-slate-900">Submit for Approval</h3>
+                                <h3 class="text-sm font-bold text-slate-900">{{ __('app.submit_for_approval') }}</h3>
                                 <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                                    This quotation will be sent to the team for review.
+                                    {{ __('app.quotation_sent_review') }}
                                 </p>
                             </div>
                             <button
@@ -421,8 +421,8 @@
 
                         {{-- Summary line --}}
                         <div class="mx-5 mb-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 flex items-center justify-between">
-                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total</span>
-                            <span class="font-mono text-sm font-bold text-emerald-600">{{ number_format($total, 2) }} SAR</span>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">{{ __('app.total') }}</span>
+                            <span class="font-mono text-sm font-bold text-emerald-600">{{ number_format($total, 2) }} {{ __('app.sar') }}</span>
                         </div>
 
                         {{-- Actions --}}
@@ -432,7 +432,7 @@
                                 @click="confirmOpen = false"
                                 class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
                             >
-                                Cancel
+                                {{ __('app.cancel') }}
                             </button>
                             <button
                                 type="button"
@@ -443,7 +443,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                 </svg>
-                                Yes, Submit
+                                {{ __('app.yes_submit') }}
                             </button>
                         </div>
                     </div>
