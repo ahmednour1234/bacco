@@ -38,7 +38,7 @@
     ══════════════════════════════════════════════════════════ --}}
     <aside
         :class="sidebarOpen ? 'translate-x-0' : '{{ app()->getLocale() === 'ar' ? 'translate-x-full' : '-translate-x-full' }}'"
-        class="fixed inset-y-0 {{ app()->getLocale() === 'ar' ? 'right-0' : 'left-0' }} z-30 w-64 bg-white {{ app()->getLocale() === 'ar' ? 'border-l' : 'border-r' }} border-slate-200 flex flex-col
+        class="fixed inset-y-0 start-0 z-30 w-64 bg-white border-e border-slate-200 flex flex-col
                transition-transform duration-300 ease-in-out
                lg:translate-x-0"
     >
@@ -213,7 +213,7 @@
     {{-- ══════════════════════════════════════════════════════════
          MAIN WRAPPER (pushes right of sidebar)
     ══════════════════════════════════════════════════════════ --}}
-    <div class="{{ app()->getLocale() === 'ar' ? 'lg:mr-64' : 'lg:ml-64' }} flex flex-col min-h-screen">
+    <div class="lg:ms-64 flex flex-col min-h-screen">
 
         {{-- ── TOP NAVBAR ─────────────────────────────────────── --}}
         <header class="sticky top-0 z-10 bg-white border-b border-slate-200/80 shadow-sm">
