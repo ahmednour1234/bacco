@@ -423,4 +423,12 @@ return [
     'no_notifications'        => 'No notifications yet',
     'view_all_notifications'  => 'View all notifications',
     'mark_all_read'           => 'Mark all as read',
+
+    // Admin Dashboard
+    'welcome_back'            => 'Welcome back,',
+    'signed_in_as'            => 'You are signed in as',
+    'use_sidebar_navigate'    => 'Use the sidebar to navigate.',
+    'clients'                 => 'Clients',
+    'no_orders_admin'         => 'No orders yet.',
+    'no_quotations_admin'     => 'No quotation requests yet.',
 ];

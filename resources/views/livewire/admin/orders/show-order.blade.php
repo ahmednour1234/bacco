@@ -88,7 +88,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
     {{-- STATUS BAR                                                             --}}
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
-    <div class="mb-5 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
         <div class="flex items-center gap-4">
             <span class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold ring-1 ring-inset {{ $sc['badge'] }}">
                 <span class="h-2.5 w-2.5 rounded-full {{ $sc['dot'] }}"></span>
@@ -178,10 +178,10 @@
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
     {{-- PROGRESS STEPPER                                                       --}}
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
-    <div class="mb-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm overflow-x-auto">
         <h2 class="mb-6 text-xs font-bold uppercase tracking-widest text-slate-400">Order Progress</h2>
 
-        <div class="relative flex items-start justify-between">
+        <div class="relative flex items-start justify-between min-w-[600px]">
             @foreach($steps as $step)
                 <div class="relative flex flex-1 flex-col items-center">
                     @if(!$loop->last)
@@ -222,7 +222,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
     {{-- ORDER INFO GRID — 2 cols (no Payment)                                  --}}
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
-    <div class="mb-5 grid grid-cols-2 gap-5">
+    <div class="mb-5 grid grid-cols-1 md:grid-cols-2 gap-5">
 
         {{-- Order Details --}}
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

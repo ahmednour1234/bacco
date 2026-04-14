@@ -425,4 +425,12 @@ return [
     'no_notifications'        => 'لا توجد إشعارات بعد',
     'view_all_notifications'  => 'عرض جميع الإشعارات',
     'mark_all_read'           => 'تعيين الكل كمقروء',
+
+    // Admin Dashboard
+    'welcome_back'            => 'مرحباً بعودتك،',
+    'signed_in_as'            => 'أنت مسجل الدخول كـ',
+    'use_sidebar_navigate'    => 'استخدم القائمة الجانبية للتنقل.',
+    'clients'                 => 'العملاء',
+    'no_orders_admin'         => 'لا توجد طلبات بعد.',
+    'no_quotations_admin'     => 'لا توجد طلبات عروض أسعار بعد.',
 ];

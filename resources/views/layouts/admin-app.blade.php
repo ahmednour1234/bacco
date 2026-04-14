@@ -234,7 +234,7 @@
                 {{-- Page title / breadcrumb --}}
                 <div class="flex-1 min-w-0">
                     <h1 class="text-base sm:text-lg font-semibold text-slate-900 truncate">
-                        @yield('page-title', 'Dashboard')
+                        @yield('page-title', __('app.dashboard'))
                     </h1>
                     @hasSection('breadcrumb')
                     <nav class="flex items-center gap-1.5 mt-0.5">

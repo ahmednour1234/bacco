@@ -1,7 +1,7 @@
 @extends('layouts.admin-app')
 
-@section('title', 'Dashboard – Qimta Admin')
-@section('page-title', 'Dashboard')
+@section('title', __('app.dashboard') . ' – Qimta')
+@section('page-title', __('app.dashboard'))
 
 @section('content')
     {{-- Stats grid --}}
@@ -16,7 +16,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Quotations</p>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">{{ __('app.quotations') }}</p>
                 <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ number_format($totalQuotations) }}</p>
             </div>
         </a>
@@ -30,7 +30,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Active Orders</p>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">{{ __('app.active_orders') }}</p>
                 <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ number_format($activeOrders) }}</p>
             </div>
         </a>
@@ -44,7 +44,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Clients</p>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">{{ __('app.clients') }}</p>
                 <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ number_format($totalClients) }}</p>
             </div>
         </div>
@@ -58,7 +58,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Projects</p>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">{{ __('app.projects') }}</p>
                 <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ number_format($activeProjects) }}</p>
             </div>
         </div>
@@ -70,12 +70,12 @@
         {{-- Recent Orders --}}
         <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-900">Recent Orders</h2>
-                <a href="{{ route('admin.orders.index') }}" class="text-xs font-medium text-emerald-600 hover:text-emerald-700">View all</a>
+                <h2 class="text-sm font-semibold text-slate-900">{{ __('app.recent_orders') }}</h2>
+                <a href="{{ route('admin.orders.index') }}" class="text-xs font-medium text-emerald-600 hover:text-emerald-700">{{ __('app.view_all') }}</a>
             </div>
             @if($recentOrders->isEmpty())
                 <div class="px-6 py-8 text-center">
-                    <p class="text-sm text-slate-500">No orders yet.</p>
+                    <p class="text-sm text-slate-500">{{ __('app.no_orders_admin') }}</p>
                 </div>
             @else
                 <div class="divide-y divide-slate-100">
@@ -109,12 +109,12 @@
         {{-- Recent Quotations --}}
         <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-900">Recent Quotations</h2>
-                <a href="{{ route('admin.quotations.index') }}" class="text-xs font-medium text-emerald-600 hover:text-emerald-700">View all</a>
+                <h2 class="text-sm font-semibold text-slate-900">{{ __('app.recent_quotations') }}</h2>
+                <a href="{{ route('admin.quotations.index') }}" class="text-xs font-medium text-emerald-600 hover:text-emerald-700">{{ __('app.view_all') }}</a>
             </div>
             @if($recentQuotations->isEmpty())
                 <div class="px-6 py-8 text-center">
-                    <p class="text-sm text-slate-500">No quotation requests yet.</p>
+                    <p class="text-sm text-slate-500">{{ __('app.no_quotations_admin') }}</p>
                 </div>
             @else
                 <div class="divide-y divide-slate-100">
@@ -158,12 +158,12 @@
             </div>
             <div>
                 <h2 class="text-base font-semibold text-slate-900">
-                    Welcome back, {{ auth()->user()->name ?? 'Employee' }}
+                    {{ __('app.welcome_back') }} {{ auth()->user()->name ?? 'Employee' }}
                 </h2>
                 <p class="text-sm text-slate-500 mt-0.5">
-                    You are signed in as
+                    {{ __('app.signed_in_as') }}
                     <span class="font-medium text-slate-700">{{ auth()->user()->user_type?->label() ?? 'Employee' }}</span>.
-                    Use the sidebar to navigate.
+                    {{ __('app.use_sidebar_navigate') }}
                 </p>
             </div>
         </div>
