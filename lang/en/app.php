@@ -30,8 +30,6 @@ return [
     'active_orders'        => 'Active Orders',
     'active_projects'      => 'Active Projects',
     'completed_projects'   => 'Completed Projects',
-    'welcome_back'         => 'Welcome back',
-    'welcome_desc'         => "Here's an overview of your activity today",
 
     // ── Dashboard Sections ───────────────────────────────────────────────────
     'track_quotations'        => 'Track Quotations',
