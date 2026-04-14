@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,8 +37,8 @@
          SIDEBAR
     ══════════════════════════════════════════════════════════ --}}
     <aside
-        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-slate-200 flex flex-col
+        :class="sidebarOpen ? 'translate-x-0' : '{{ app()->getLocale() === 'ar' ? 'translate-x-full' : '-translate-x-full' }}'"
+        class="fixed inset-y-0 {{ app()->getLocale() === 'ar' ? 'right-0' : 'left-0' }} z-30 w-64 bg-white {{ app()->getLocale() === 'ar' ? 'border-l' : 'border-r' }} border-slate-200 flex flex-col
                transition-transform duration-300 ease-in-out
                lg:translate-x-0"
     >
@@ -49,7 +49,7 @@
             </div>
             <div>
                 <span class="block text-slate-900 text-lg font-bold tracking-tight leading-none">Qimta</span>
-                <p class="text-xs text-slate-400 font-medium mt-0.5">Admin Panel</p>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">{{ __('app.admin_panel') }}</p>
             </div>
         </div>
 
@@ -65,7 +65,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
-                <span>Dashboard</span>
+                <span>{{ __('app.dashboard') }}</span>
             </a>
 
             {{-- Quotations --}}
@@ -78,7 +78,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <span>Quotations</span>
+                <span>{{ __('app.quotations') }}</span>
             </a>
 
             {{-- Orders --}}
@@ -91,7 +91,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                 </svg>
-                <span>Orders</span>
+                <span>{{ __('app.orders') }}</span>
             </a>
 
             {{-- Suppliers --}}
@@ -104,7 +104,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
-                <span>Suppliers</span>
+                <span>{{ __('app.suppliers') }}</span>
             </a>
 
 
@@ -123,7 +123,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
                 </svg>
-                <span>Brands</span>
+                <span>{{ __('app.brands') }}</span>
             </a>
 
             {{-- Categories --}}
@@ -136,7 +136,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                 </svg>
-                <span>Categories</span>
+                <span>{{ __('app.categories') }}</span>
             </a>
 
             {{-- Products --}}
@@ -149,7 +149,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                 </svg>
-                <span>Products</span>
+                <span>{{ __('app.products') }}</span>
             </a>
 
             {{-- Profile --}}
@@ -203,7 +203,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
-                        Sign out
+                        {{ __('app.sign_out') }}
                     </a>
                 </div>
             </div>
@@ -213,7 +213,7 @@
     {{-- ══════════════════════════════════════════════════════════
          MAIN WRAPPER (pushes right of sidebar)
     ══════════════════════════════════════════════════════════ --}}
-    <div class="lg:ml-64 flex flex-col min-h-screen">
+    <div class="{{ app()->getLocale() === 'ar' ? 'lg:mr-64' : 'lg:ml-64' }} flex flex-col min-h-screen">
 
         {{-- ── TOP NAVBAR ─────────────────────────────────────── --}}
         <header class="sticky top-0 z-10 bg-white border-b border-slate-200/80 shadow-sm">
@@ -249,7 +249,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
                         </svg>
-                        <input type="text" placeholder="Search..."
+                        <input type="text" placeholder="{{ __('app.search') }}"
                                class="bg-transparent text-sm text-slate-700 placeholder-slate-400
                                       focus:outline-none w-full">
                     </div>
@@ -276,7 +276,7 @@
                              class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl
                                     border border-slate-200 shadow-xl overflow-hidden z-50">
                             <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                                <span class="text-sm font-semibold text-slate-900">Notifications</span>
+                                <span class="text-sm font-semibold text-slate-900">{{ __('app.notifications') }}</span>
                                 <span class="text-xs bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full">3 new</span>
                             </div>
                             <div class="divide-y divide-slate-100 max-h-72 overflow-y-auto">
@@ -325,6 +325,36 @@
                         </div>
                     </div>
 
+                    {{-- Language Switcher --}}
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-slate-600
+                                       hover:bg-slate-100 rounded-lg transition-colors">
+                            <span>{{ app()->getLocale() === 'ar' ? '🇸🇦' : '🇺🇸' }}</span>
+                            <span class="hidden sm:inline text-xs font-medium uppercase">{{ app()->getLocale() }}</span>
+                            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-cloak @click.outside="open = false"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} top-full mt-2 w-36 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-50">
+                            <a href="{{ route('locale.switch', 'en') }}"
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm {{ app()->getLocale() === 'en' ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-700 hover:bg-slate-50' }} transition-colors">
+                                <span>🇺🇸</span> {{ __('app.english') }}
+                            </a>
+                            <a href="{{ route('locale.switch', 'ar') }}"
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm {{ app()->getLocale() === 'ar' ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-700 hover:bg-slate-50' }} transition-colors">
+                                <span>🇸🇦</span> {{ __('app.arabic') }}
+                            </a>
+                        </div>
+                    </div>
+
                     {{-- Settings --}}
                             {{-- User avatar --}}
                     <div x-data="{ open: false }" class="relative">
@@ -368,7 +398,7 @@
                                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                     </svg>
-                                    My Profile
+                                    {{ __('app.my_profile') }}
                                 </a>
 
                             </div>
@@ -379,7 +409,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                     </svg>
-                                    Sign out
+                                    {{ __('app.sign_out') }}
                                 </a>
                             </div>
                         </div>
@@ -396,11 +426,11 @@
         {{-- ── FOOTER ────────────────────────────────────────── --}}
         <footer class="px-4 sm:px-6 lg:px-8 py-4 border-t border-slate-200 bg-white
                         flex flex-wrap items-center justify-between gap-2">
-            <span class="text-xs text-slate-400">© {{ date('Y') }} Qimta. All rights reserved.</span>
+            <span class="text-xs text-slate-400">© {{ date('Y') }} Qimta. {{ __('app.all_rights') }}</span>
             <div class="flex items-center gap-4">
-                <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">Privacy Policy</a>
+                <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">{{ __('app.privacy_policy') }}</a>
                 <span class="text-slate-300 text-xs">|</span>
-                <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">Terms & Conditions</a>
+                <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">{{ __('app.terms') }}</a>
             </div>
         </footer>
     </div>

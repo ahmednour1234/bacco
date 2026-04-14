@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,10 +36,10 @@
          SIDEBAR
     ══════════════════════════════════════════════════════════ --}}
     <aside
-        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-slate-200 flex flex-col
+        :class="sidebarOpen ? 'translate-x-0' : '{{ app()->getLocale() === 'ar' ? 'translate-x-full' : '-translate-x-full' }}'"
+        class="fixed inset-y-0 {{ app()->getLocale() === 'ar' ? 'right-0' : 'left-0' }} z-30 w-64 bg-white {{ app()->getLocale() === 'ar' ? 'border-l' : 'border-r' }} border-slate-200 flex flex-col
                transition-transform duration-300 ease-in-out
-               lg:translate-x-0"
+               {{ app()->getLocale() === 'ar' ? 'lg:translate-x-0' : 'lg:translate-x-0' }}"
     >
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-200">
@@ -61,7 +61,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
-                <span>Dashboard</span>
+                <span>{{ __('app.dashboard') }}</span>
             </a>
 
             {{-- Quotations --}}
@@ -74,7 +74,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <span>Quotations</span>
+                <span>{{ __('app.quotations') }}</span>
             </a>
 
             {{-- BOQ --}}
@@ -87,7 +87,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                 </svg>
-                <span>BOQ</span>
+                <span>{{ __('app.boq') }}</span>
             </a>
 
             {{-- Orders --}}
@@ -100,7 +100,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                 </svg>
-                <span>Orders</span>
+                <span>{{ __('app.orders') }}</span>
             </a>
 
             {{-- Projects --}}
@@ -113,7 +113,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                 </svg>
-                <span>Projects</span>
+                <span>{{ __('app.projects') }}</span>
             </a>
 
             {{-- Reports --}}
@@ -126,7 +126,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
-                <span>Reports</span>
+                <span>{{ __('app.reports') }}</span>
             </a>
         </nav>
 
@@ -174,7 +174,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
-                        Sign out
+                        {{ __('app.sign_out') }}
                     </a>
                 </div>
             </div>
@@ -184,7 +184,7 @@
     {{-- ══════════════════════════════════════════════════════════
          MAIN WRAPPER (pushes right of sidebar)
     ══════════════════════════════════════════════════════════ --}}
-    <div class="lg:ml-64 flex flex-col min-h-screen">
+    <div class="{{ app()->getLocale() === 'ar' ? 'lg:mr-64' : 'lg:ml-64' }} flex flex-col min-h-screen">
 
         {{-- ── TOP NAVBAR ─────────────────────────────────────── --}}
         <header class="sticky top-0 z-10 bg-white border-b border-slate-200/80 shadow-sm">
@@ -220,9 +220,48 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
                         </svg>
-                        <input type="text" placeholder="Search..."
+                        <input type="text" placeholder="{{ __('app.search') }}"
                                class="bg-transparent text-sm text-slate-700 placeholder-slate-400
                                       focus:outline-none w-full">
+                    </div>
+
+                    {{-- Language Switcher --}}
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium
+                                       text-slate-600 hover:text-slate-900 hover:bg-slate-100
+                                       rounded-lg transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+                            </svg>
+                            <span>{{ app()->getLocale() === 'ar' ? 'AR' : 'EN' }}</span>
+                            <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-cloak @click.outside="open = false"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} top-full mt-2 w-36 bg-white rounded-xl
+                                    border border-slate-200 shadow-xl overflow-hidden z-50">
+                            <a href="{{ route('locale.switch', 'en') }}"
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors
+                                      {{ app()->getLocale() === 'en' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                                <span class="text-base">🇺🇸</span>
+                                English
+                            </a>
+                            <a href="{{ route('locale.switch', 'ar') }}"
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors
+                                      {{ app()->getLocale() === 'ar' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                                <span class="text-base">🇸🇦</span>
+                                العربية
+                            </a>
+                        </div>
                     </div>
 
                     {{-- Notifications --}}
@@ -247,8 +286,8 @@
                              class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl
                                     border border-slate-200 shadow-xl overflow-hidden z-50">
                             <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                                <span class="text-sm font-semibold text-slate-900">Notifications</span>
-                                <span class="text-xs bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full">3 new</span>
+                                <span class="text-sm font-semibold text-slate-900">{{ __('app.notifications') }}</span>
+                                <span class="text-xs bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full">3 {{ __('app.new') }}</span>
                             </div>
                             <div class="divide-y divide-slate-100 max-h-72 overflow-y-auto">
                                 <a href="#" class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
@@ -342,7 +381,7 @@
                                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                     </svg>
-                                    My Profile
+                                    {{ __('app.my_profile') }}
                                 </a>
 
                             </div>
@@ -353,7 +392,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                     </svg>
-                                    Sign out
+                                    {{ __('app.sign_out') }}
                                 </a>
                             </div>
                         </div>
@@ -370,11 +409,11 @@
         {{-- ── FOOTER ────────────────────────────────────────── --}}
         <footer class="px-4 sm:px-6 lg:px-8 py-4 border-t border-slate-200 bg-white
                         flex flex-wrap items-center justify-between gap-2">
-            <span class="text-xs text-slate-400">© {{ date('Y') }} Qimta. All rights reserved.</span>
+            <span class="text-xs text-slate-400">© {{ date('Y') }} Qimta. {{ __('app.all_rights') }}</span>
             <div class="flex items-center gap-4">
-                <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">Privacy Policy</a>
+                <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">{{ __('app.privacy_policy') }}</a>
                 <span class="text-slate-300 text-xs">|</span>
-                <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">Terms & Conditions</a>
+                <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">{{ __('app.terms') }}</a>
             </div>
         </footer>
     </div>

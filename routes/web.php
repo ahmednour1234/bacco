@@ -27,6 +27,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// ─── Language Switch ──────────────────────────────────────────────────────────
+Route::get('/locale/{locale}', function (string $locale) {
+    if (in_array($locale, ['en', 'ar'])) {
+        session(['locale' => $locale]);
+    }
+    return redirect()->back();
+})->name('locale.switch');
+
 // ─── End-user (Client) Auth ──────────────────────────────────────────────────
 Route::prefix('enduser')->name('enduser.')->group(function () {
 
