@@ -80,50 +80,75 @@ class CreateBoq extends Component
             'projectDescription' => 'nullable|string|max:5000',
         ]);
 
+        // If the temporary file reference was lost (e.g. due to live wire:model updates
+        // re-hydrating the component), fall back to the last stored file for this BOQ.
+        $fallbackPath = null;
         if (! $this->boqFile) {
-            $this->addError('boqFile', 'Please select a file to upload.');
-            return;
+            if ($this->boqId !== null) {
+                $doc = \App\Models\UploadedDocument::where('boq_id', $this->boqId)
+                    ->latest()
+                    ->first();
+
+                if ($doc && Storage::disk('local')->exists($doc->file_path)) {
+                    $fallbackPath = Storage::disk('local')->path($doc->file_path);
+                }
+            }
+
+            if (! $fallbackPath) {
+                $this->addError('boqFile', 'Please select a file to upload.');
+                return;
+            }
         }
 
         $allowedExtensions = ['pdf', 'xlsx', 'xls', 'csv', 'jpg', 'jpeg', 'png'];
-        $extension         = strtolower($this->boqFile->getClientOriginalExtension());
-        if (! in_array($extension, $allowedExtensions, true)) {
-            $this->addError('boqFile', 'The file must be of type: pdf, xlsx, xls, csv, jpg, jpeg, or png.');
-            return;
+
+        if ($this->boqFile) {
+            $extension = strtolower($this->boqFile->getClientOriginalExtension());
+            if (! in_array($extension, $allowedExtensions, true)) {
+                $this->addError('boqFile', 'The file must be of type: pdf, xlsx, xls, csv, jpg, jpeg, or png.');
+                return;
+            }
         }
 
         $this->processing = true;
 
         try {
-            DB::transaction(function () use ($extension) {
+            DB::transaction(function () use ($fallbackPath) {
                 // Create or get the project
                 $project = $this->persistProject();
 
                 // Create the BOQ
                 $boq = $this->persistBoq($project);
 
-                $fileName   = $this->boqFile->getClientOriginalName();
-                $storedPath = $this->boqFile->storeAs('boq-uploads', Str::uuid() . '.' . $extension, 'local');
-                $fileSize   = Storage::disk('local')->size($storedPath);
-                $storedAbsPath = Storage::disk('local')->path($storedPath);
+                if ($this->boqFile) {
+                    // New file upload path
+                    $extension     = strtolower($this->boqFile->getClientOriginalExtension());
+                    $fileName      = $this->boqFile->getClientOriginalName();
+                    $storedPath    = $this->boqFile->storeAs('boq-uploads', Str::uuid() . '.' . $extension, 'local');
+                    $fileSize      = Storage::disk('local')->size($storedPath);
+                    $storedAbsPath = Storage::disk('local')->path($storedPath);
 
-                if ($fileSize > 50 * 1024 * 1024) {
-                    Storage::disk('local')->delete($storedPath);
-                    $this->addError('boqFile', 'The file must not be larger than 50 MB.');
-                    return;
+                    if ($fileSize > 50 * 1024 * 1024) {
+                        Storage::disk('local')->delete($storedPath);
+                        $this->addError('boqFile', 'The file must not be larger than 50 MB.');
+                        return;
+                    }
+
+                    UploadedDocument::create([
+                        'boq_id'      => $boq->id,
+                        'project_id'  => $project->id,
+                        'uploaded_by' => Auth::id(),
+                        'file_name'   => $fileName,
+                        'file_path'   => $storedPath,
+                        'file_type'   => 'boq',
+                        'file_size'   => $fileSize,
+                    ]);
+
+                    $this->boqFileName = $fileName;
+                } else {
+                    // Fallback: re-extract from the last stored file
+                    $storedAbsPath = $fallbackPath;
                 }
-
-                UploadedDocument::create([
-                    'boq_id'      => $boq->id,
-                    'project_id'  => $project->id,
-                    'uploaded_by' => Auth::id(),
-                    'file_name'   => $fileName,
-                    'file_path'   => $storedPath,
-                    'file_type'   => 'boq',
-                    'file_size'   => $fileSize,
-                ]);
-
-                $this->boqFileName = $fileName;
 
                 // AI extraction
                 $ai     = app(QuotationAiService::class);

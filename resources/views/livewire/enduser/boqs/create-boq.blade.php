@@ -132,7 +132,7 @@
                     </label>
                     <input
                         type="text"
-                        wire:model.live="projectName"
+                        wire:model.blur="projectName"
                         placeholder="{{ __('app.project_name_placeholder') }}"
                         class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition
                             @error('projectName') border-red-400 focus:ring-2 focus:ring-red-100
@@ -148,7 +148,7 @@
                         {{ __('app.project_description_label') }} <span class="normal-case font-normal text-slate-400">{{ __('app.optional') }}</span>
                     </label>
                     <textarea
-                        wire:model.live="projectDescription"
+                        wire:model.blur="projectDescription"
                         placeholder="{{ __('app.describe_project_scope') }}"
                         rows="3"
                         class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition resize-none

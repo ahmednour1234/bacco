@@ -217,55 +217,22 @@
                 {{-- Right actions --}}
                 <div class="flex items-center gap-2 sm:gap-3">
 
-                    {{-- Search --}}
-                    <div class="hidden sm:flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2 w-48 lg:w-60">
-                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
-                        </svg>
-                        <input type="text" placeholder="{{ __('app.search') }}"
-                               class="bg-transparent text-sm text-slate-700 placeholder-slate-400
-                                      focus:outline-none w-full">
-                    </div>
-
-                    {{-- Language Switcher --}}
-                    <div x-data="{ open: false }" class="relative">
-                        <button @click="open = !open"
-                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium
-                                       text-slate-600 hover:text-slate-900 hover:bg-slate-100
-                                       rounded-lg transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
-                            </svg>
-                            <span>{{ app()->getLocale() === 'ar' ? 'AR' : 'EN' }}</span>
-                            <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-                        <div x-show="open" x-cloak @click.outside="open = false"
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 scale-95"
-                             x-transition:enter-end="opacity-100 scale-100"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} top-full mt-2 w-36 bg-white rounded-xl
-                                    border border-slate-200 shadow-xl overflow-hidden z-50">
-                            <a href="{{ route('locale.switch', 'en') }}"
-                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors
-                                      {{ app()->getLocale() === 'en' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
-                                <span class="text-base">🇺🇸</span>
-                                English
-                            </a>
-                            <a href="{{ route('locale.switch', 'ar') }}"
-                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors
-                                      {{ app()->getLocale() === 'ar' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
-                                <span class="text-base">🇸🇦</span>
-                                العربية
-                            </a>
-                        </div>
-                    </div>
+                    {{-- Language Flag Toggle --}}
+                    @if(app()->getLocale() === 'ar')
+                        <a href="{{ route('locale.switch', 'en') }}"
+                           title="Switch to English"
+                           class="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
+                           style="font-size: 1.5rem; line-height: 1;">
+                            🇬🇧
+                        </a>
+                    @else
+                        <a href="{{ route('locale.switch', 'ar') }}"
+                           title="التبديل إلى العربية"
+                           class="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
+                           style="font-size: 1.5rem; line-height: 1;">
+                            🇸🇦
+                        </a>
+                    @endif
 
                     {{-- Notifications --}}
                     @livewire('notification-dropdown')
