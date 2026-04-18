@@ -483,75 +483,88 @@
                 <div
                     x-show="confirmOpen"
                     x-cloak
-                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter="transition ease-out duration-250"
                     x-transition:enter-start="opacity-0"
                     x-transition:enter-end="opacity-100"
                     x-transition:leave="transition ease-in duration-150"
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
                     class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    style="background: rgba(15,23,42,0.45); backdrop-filter: blur(4px);"
+                    style="background: rgba(15,23,42,0.55); backdrop-filter: blur(6px);"
                     @keydown.escape.window="confirmOpen = false"
                 >
                     <div
                         x-show="confirmOpen"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                        x-transition:enter="transition ease-out duration-250"
+                        x-transition:enter-start="opacity-0 scale-90 translate-y-4"
                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                         x-transition:leave="transition ease-in duration-150"
                         x-transition:leave-start="opacity-100 scale-100"
                         x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                         @click.stop
-                        class="w-full max-w-sm rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 overflow-hidden"
+                        class="w-full max-w-sm rounded-3xl bg-white shadow-2xl overflow-hidden"
+                        style="box-shadow: 0 25px 60px -10px rgba(5,150,105,0.25), 0 10px 30px -5px rgba(0,0,0,0.15);"
                     >
-                        {{-- Modal header --}}
-                        <div class="flex items-center gap-3 px-5 pt-5 pb-3">
-                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                                <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-bold text-slate-900">{{ __('app.submit_for_approval') }}</h3>
-                                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                                    {{ __('app.quotation_sent_review') }}
-                                </p>
-                            </div>
+                        {{-- Gradient hero area --}}
+                        <div class="relative flex flex-col items-center px-6 pt-8 pb-6 text-center" style="background: linear-gradient(135deg,#f0fdf4 0%,#dcfce7 60%,#d1fae5 100%);">
                             <button
                                 type="button"
                                 @click="confirmOpen = false"
-                                class="shrink-0 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                                class="absolute top-4 end-4 flex h-7 w-7 items-center justify-center rounded-full bg-white/70 text-slate-400 hover:bg-white hover:text-slate-600 transition shadow-sm"
                             >
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
+
+                            {{-- Icon --}}
+                            <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg" style="background: linear-gradient(135deg,#059669,#10b981);">
+                                <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+
+                            <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">{{ __('app.submit_for_approval') }}</h3>
+                            <p class="mt-1.5 text-sm text-slate-500 leading-relaxed max-w-[260px]">
+                                {{ __('app.quotation_sent_review') }}
+                            </p>
                         </div>
 
-                        {{-- Summary line --}}
-                        <div class="mx-5 mb-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 flex items-center justify-between">
-                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">{{ __('app.total') }}</span>
-                            <span class="font-mono text-sm font-bold text-emerald-600">{{ number_format($total, 2) }} {{ __('app.sar') }}</span>
+                        {{-- Summary card --}}
+                        <div class="mx-5 -mt-3 mb-4 rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 shadow-md">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50">
+                                        <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-700">{{ __('app.total') }}</p>
+                                        <p class="text-[10px] text-slate-400">{{ $selectedCount }} {{ __('app.items') }}</p>
+                                    </div>
+                                </div>
+                                <span class="font-mono text-xl font-extrabold text-emerald-600">{{ number_format($total, 2) }} <span class="text-sm font-bold">{{ __('app.sar') }}</span></span>
+                            </div>
                         </div>
 
                         {{-- Actions --}}
-                        <div class="flex gap-2 border-t border-slate-100 px-5 py-3">
+                        <div class="flex gap-3 px-5 pb-5">
                             <button
                                 type="button"
                                 @click="confirmOpen = false"
-                                class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
+                                class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition"
                             >
                                 {{ __('app.cancel') }}
                             </button>
                             <button
                                 type="button"
                                 @click="confirmOpen = false; $wire.submitForApproval()"
-                                class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
+                                class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-lg transition hover:opacity-90 active:scale-95"
+                                style="background: linear-gradient(135deg,#059669,#10b981); box-shadow: 0 4px 15px rgba(5,150,105,0.4);"
                             >
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                 </svg>
                                 {{ __('app.yes_submit') }}
                             </button>
