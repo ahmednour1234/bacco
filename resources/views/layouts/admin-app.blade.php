@@ -13,6 +13,7 @@
     <style>
         * { font-family: 'Cairo', sans-serif; }
         [x-cloak] { display: none !important; }
+        html { overflow-x: hidden; }
         @media (min-width: 1024px) {
             .sidebar-offset { margin-inline-start: 16rem; }
         }
@@ -233,7 +234,7 @@
     {{-- ══════════════════════════════════════════════════════════
          MAIN WRAPPER (pushes right of sidebar)
     ══════════════════════════════════════════════════════════ --}}
-    <div class="sidebar-offset flex flex-col min-h-screen overflow-x-hidden">
+    <div class="sidebar-offset flex flex-col min-h-screen">
 
         {{-- ── TOP NAVBAR ─────────────────────────────────────── --}}
         <header class="sticky top-0 z-10 bg-white border-b border-slate-200/80 shadow-sm">
