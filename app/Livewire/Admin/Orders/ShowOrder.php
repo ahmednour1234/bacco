@@ -4,11 +4,13 @@ namespace App\Livewire\Admin\Orders;
 
 use App\Enums\EngineeringStatusEnum;
 use App\Enums\LogisticsStatusEnum;
+use App\Enums\NotificationTypeEnum;
 use App\Enums\OrderStatusEnum;
 use App\Models\ActivityLog;
 use App\Models\EngineeringUpdate;
 use App\Models\LogisticsUpdate;
 use App\Models\Order;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -106,6 +108,16 @@ class ShowOrder extends Component
         $this->loadStatusLogs();
         $this->showStatusModal = false;
         $this->dispatch('toast', message: 'Order status updated.', type: 'success');
+
+        // Notify the client about the status change
+        $statusLabel = OrderStatusEnum::tryFrom($this->newStatus)?->label() ?? $this->newStatus;
+        app(NotificationService::class)->send(
+            title: 'Order Status Updated',
+            body: 'Your order ' . $this->order->order_no . ' status has been changed to: ' . $statusLabel . '.',
+            type: NotificationTypeEnum::OrderUpdated,
+            recipientIds: [$this->order->client_id],
+            actionUrl: route('enduser.orders.show', $this->order->uuid),
+        );
     }
 
     public function openEngModal(): void
@@ -133,6 +145,15 @@ class ShowOrder extends Component
         $this->showEngModal = false;
         $this->loadEngUpdates();
         $this->dispatch('toast', message: 'Engineering update added.', type: 'success');
+
+        // Notify the client about the engineering update
+        app(NotificationService::class)->send(
+            title: 'Engineering Update on Your Order',
+            body: 'An engineering update was added to order ' . $this->order->order_no . ($this->engNotes ? ': ' . $this->engNotes : '.'),
+            type: NotificationTypeEnum::OrderUpdated,
+            recipientIds: [$this->order->client_id],
+            actionUrl: route('enduser.orders.show', $this->order->uuid),
+        );
     }
 
     public function deleteEngUpdate(int $id): void
@@ -200,6 +221,16 @@ class ShowOrder extends Component
         $this->showLogModal = false;
         $this->loadLogUpdates();
         $this->dispatch('toast', message: 'Logistics update added.', type: 'success');
+
+        // Notify the client about the shipping/logistics update
+        $trackingInfo = $this->logTracking ? ' — Tracking: ' . $this->logTracking : '';
+        app(NotificationService::class)->send(
+            title: 'Shipping Update on Your Order',
+            body: 'A logistics update was added to order ' . $this->order->order_no . $trackingInfo . ($this->logNotes ? ': ' . $this->logNotes : '.'),
+            type: NotificationTypeEnum::OrderUpdated,
+            recipientIds: [$this->order->client_id],
+            actionUrl: route('enduser.orders.show', $this->order->uuid),
+        );
     }
 
     public function deleteLogUpdate(int $id): void
