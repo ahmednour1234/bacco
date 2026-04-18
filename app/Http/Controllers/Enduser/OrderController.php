@@ -9,6 +9,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -35,8 +36,17 @@ class OrderController extends Controller
             ->firstOrFail();
 
         if ($request->query('export') === 'pdf') {
-            $items = $order->items->map(fn($item) => [
-                'description' => (string) $item->description,
+            return $this->downloadPdf($order);
+        }
+
+        return view('enduser.orders.show', compact('order'));
+    }
+
+    private function downloadPdf(Order $order): Response
+    {
+        try {
+            $items = $order->items->map(fn ($item) => [
+                'description' => (string) ($item->description ?? ''),
                 'quantity'    => (float) $item->quantity,
                 'unit'        => $item->unit?->name ?? '—',
                 'brand'       => $item->product?->brand?->name ?? '—',
@@ -44,13 +54,29 @@ class OrderController extends Controller
                 'total_price' => (float) $item->total_price,
             ])->toArray();
 
-            $pdf = Pdf::loadView('enduser.orders.pdf', compact('order', 'items'))
-                ->setPaper('a4', 'portrait');
+            $statusLabel = $order->status?->label() ?? ($order->getRawOriginal('status') ?? 'pending');
+            $statusValue = $order->status?->value ?? ($order->getRawOriginal('status') ?? 'pending');
+
+            $pdf = Pdf::loadView('enduser.orders.pdf', [
+                'order'       => $order,
+                'items'       => $items,
+                'statusLabel' => $statusLabel,
+                'statusValue' => $statusValue,
+            ])->setPaper('a4', 'portrait');
 
             return $pdf->download('Order-' . $order->order_no . '.pdf');
-        }
 
-        return view('enduser.orders.show', compact('order'));
+        } catch (\Throwable $e) {
+            Log::error('OrderController: PDF generation failed.', [
+                'order_uuid' => $order->uuid,
+                'order_no'   => $order->order_no,
+                'error'      => $e->getMessage(),
+                'file'       => $e->getFile(),
+                'line'       => $e->getLine(),
+            ]);
+
+            abort(500, 'PDF generation failed: ' . $e->getMessage());
+        }
     }
 }
 
