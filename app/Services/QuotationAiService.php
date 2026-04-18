@@ -304,23 +304,32 @@ class QuotationAiService
 
             $prompt = $this->buildGeminiPrompt($context);
 
-            // Excel/CSV files: convert to CSV text so Gemini can read them
-            // (Gemini does not natively process xlsx/xls binary inline_data).
+            // Excel/CSV: convert to plain text so Gemini can parse rows.
+            // If PhpSpreadsheet fails for any reason, fall back to raw bytes
+            // (Gemini Files API accepts xlsx/xls via their native MIME types).
             if (in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
                 $csvText = $this->spreadsheetToCsvText($absPath);
-                if ($csvText === null) {
-                    return $this->failure('Could not read the spreadsheet file for AI processing.');
+                if ($csvText !== null) {
+                    $bytes = $csvText;
+                    $mime  = 'text/plain';
+                } else {
+                    Log::warning('QuotationAiService: PhpSpreadsheet failed — sending raw bytes to Gemini.', [
+                        'path' => $absPath,
+                    ]);
+                    $raw = file_get_contents($absPath);
+                    if ($raw === false || $raw === '') {
+                        return $this->failure('Could not read the uploaded file for AI processing.');
+                    }
+                    $bytes = $raw;
+                    $mime  = $this->mimeForExtension($ext);
                 }
-
-                $bytes = $csvText;
-                $mime  = 'text/plain';
             } else {
-                $bytes = file_get_contents($absPath);
+                $raw = file_get_contents($absPath);
+                if ($raw === false || $raw === '') {
+                    return $this->failure('Could not read the uploaded file for Gemini processing.');
+                }
+                $bytes = $raw;
                 $mime  = $this->mimeForExtension($ext);
-            }
-
-            if ($bytes === false || $bytes === '') {
-                return $this->failure('Could not read the uploaded file for Gemini processing.');
             }
 
             // Files > 20 MB must go through the Gemini Files API.
@@ -583,49 +592,79 @@ PROMPT);
      */
     private function spreadsheetToCsvText(string $absPath): ?string
     {
-        try {
-            $spreadsheet = IOFactory::load($absPath);
-            $output = '';
+        $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
 
-            foreach ($spreadsheet->getAllSheets() as $sheet) {
-                $sheetTitle = $sheet->getTitle();
-                $output .= "Sheet: {$sheetTitle}\n";
+        // CSV: read raw — no library needed.
+        if ($ext === 'csv') {
+            $content = file_get_contents($absPath);
+            return ($content !== false && $content !== '') ? $content : null;
+        }
 
-                foreach ($sheet->getRowIterator() as $row) {
-                    $cells = [];
-                    $cellIterator = $row->getCellIterator();
-                    $cellIterator->setIterateOnlyExistingCells(false);
+        // Try explicit PhpSpreadsheet readers in priority order.
+        $readerTypes = $ext === 'xls' ? ['Xls', 'Xlsx'] : ['Xlsx', 'Xls'];
 
-                    foreach ($cellIterator as $cell) {
-                        $cells[] = (string) $cell->getFormattedValue();
-                    }
+        foreach ($readerTypes as $readerType) {
+            try {
+                $reader = IOFactory::createReader($readerType);
+                $reader->setReadDataOnly(true);
 
-                    // Strip trailing empty cells
-                    while (count($cells) > 0 && trim(end($cells)) === '') {
-                        array_pop($cells);
-                    }
-
-                    if (count($cells) > 0) {
-                        $output .= implode(',', array_map(
-                            fn(string $v) => str_contains($v, ',') || str_contains($v, '"') || str_contains($v, "\n")
-                                ? '"' . str_replace('"', '""', $v) . '"'
-                                : $v,
-                            $cells
-                        )) . "\n";
-                    }
+                if (! $reader->canRead($absPath)) {
+                    continue;
                 }
 
-                $output .= "\n";
+                $spreadsheet   = $reader->load($absPath);
+                $output        = '';
+
+                foreach ($spreadsheet->getAllSheets() as $sheet) {
+                    $highestRow    = $sheet->getHighestDataRow();
+                    $highestColumn = $sheet->getHighestDataColumn();
+
+                    if ($highestRow < 1) {
+                        continue;
+                    }
+
+                    $output .= 'Sheet: ' . $sheet->getTitle() . "\n";
+
+                    $grid = $sheet->rangeToArray(
+                        "A1:{$highestColumn}{$highestRow}",
+                        null,
+                        true,   // calculateFormulas
+                        true,   // formatData
+                        false   // returnCellRef (false = numeric keys)
+                    );
+
+                    foreach ($grid as $rowCells) {
+                        // Strip trailing empty cells
+                        while (count($rowCells) > 0 && trim((string) end($rowCells)) === '') {
+                            array_pop($rowCells);
+                        }
+
+                        if (count($rowCells) > 0) {
+                            $output .= implode(',', array_map(function (mixed $v): string {
+                                $v = (string) $v;
+                                return (str_contains($v, ',') || str_contains($v, '"') || str_contains($v, "\n"))
+                                    ? '"' . str_replace('"', '""', $v) . '"'
+                                    : $v;
+                            }, $rowCells)) . "\n";
+                        }
+                    }
+
+                    $output .= "\n";
+                }
+
+                if ($output !== '') {
+                    return $output;
+                }
+
+            } catch (\Throwable $e) {
+                Log::warning('QuotationAiService: spreadsheetToCsvText reader failed, trying next.', [
+                    'reader'  => $readerType,
+                    'path'    => $absPath,
+                    'message' => $e->getMessage(),
+                ]);
             }
-
-            return $output !== '' ? $output : null;
-        } catch (\Throwable $e) {
-            Log::error('QuotationAiService: spreadsheetToCsvText failed.', [
-                'path'    => $absPath,
-                'message' => $e->getMessage(),
-            ]);
-
-            return null;
         }
+
+        return null;
     }
 }
