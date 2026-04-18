@@ -306,7 +306,7 @@ class QuotationAiService
                 $filename = basename($absPath);
             }
 
-            $prompt = $this->buildGeminiPrompt($context);
+            $prompt = $this->buildGeminiPrompt($context, $mime ?? 'application/octet-stream');
 
             // Excel/CSV: convert to plain text so Gemini can parse rows.
             // If PhpSpreadsheet fails for any reason, fall back to raw bytes
@@ -501,7 +501,7 @@ class QuotationAiService
     }
 
     /** Build the Gemini extraction prompt. */
-    private function buildGeminiPrompt(array $context = []): string
+    private function buildGeminiPrompt(array $context = [], string $mime = ''): string
     {
         $projectName   = $context['project_name'] ?? '';
         $projectStatus = $context['project_status'] ?? '';
@@ -510,9 +510,15 @@ class QuotationAiService
             ? "Project: {$projectName}" . ($projectStatus !== '' ? " (Status: {$projectStatus})" : '')
             : '';
 
+        $isImage = str_starts_with($mime, 'image/');
+        $sourceHint = $isImage
+            ? 'The input is an image (photo or scan) of a BOQ table or list. Use OCR to read every row carefully.'
+            : 'The input is a document file containing a BOQ table.';
+
         return trim(<<<PROMPT
 You are a BOQ (Bill of Quantities) extraction assistant.
 {$contextLine}
+{$sourceHint}
 
 Extract every line item from the provided document and return ONLY a valid JSON object with this exact structure:
 {
@@ -614,11 +620,15 @@ PROMPT);
     private function mimeForExtension(string $ext): string
     {
         return match (strtolower($ext)) {
-            'pdf'  => 'application/pdf',
-            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'xls'  => 'application/vnd.ms-excel',
-            'csv'  => 'text/csv',
-            default => 'application/octet-stream',
+            'pdf'          => 'application/pdf',
+            'xlsx'         => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xls'          => 'application/vnd.ms-excel',
+            'csv'          => 'text/csv',
+            'jpg', 'jpeg'  => 'image/jpeg',
+            'png'          => 'image/png',
+            'gif'          => 'image/gif',
+            'webp'         => 'image/webp',
+            default        => 'application/octet-stream',
         };
     }
 
