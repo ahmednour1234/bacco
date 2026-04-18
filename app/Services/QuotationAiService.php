@@ -6,6 +6,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class QuotationAiService
 {
@@ -134,7 +135,17 @@ class QuotationAiService
 
         $geminiResult = $this->parseBoqWithGemini($file, $context);
 
-        return $geminiResult['success'] ? $geminiResult : $result;
+        if ($geminiResult['success']) {
+            return $geminiResult;
+        }
+
+        // Both failed — return the most specific error message.
+        Log::error('QuotationAiService: Both primary API and Gemini fallback failed.', [
+            'primary_error' => $result['error'],
+            'gemini_error'  => $geminiResult['error'],
+        ]);
+
+        return $this->failure($geminiResult['error'] ?? $result['error']);
     }
 
     /**
@@ -282,22 +293,35 @@ class QuotationAiService
 
         try {
             if ($file instanceof UploadedFile) {
-                $bytes    = $file->getContent();
-                $mime     = $this->mimeForExtension($file->getClientOriginalExtension());
+                $absPath  = $file->getRealPath();
+                $ext      = strtolower($file->getClientOriginalExtension());
                 $filename = $file->getClientOriginalName();
             } else {
                 $absPath  = file_exists($file) ? $file : storage_path('app/' . $file);
                 $ext      = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
-                $mime     = $this->mimeForExtension($ext);
                 $filename = basename($absPath);
-                $bytes    = file_get_contents($absPath);
+            }
+
+            $prompt = $this->buildGeminiPrompt($context);
+
+            // Excel/CSV files: convert to CSV text so Gemini can read them
+            // (Gemini does not natively process xlsx/xls binary inline_data).
+            if (in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
+                $csvText = $this->spreadsheetToCsvText($absPath);
+                if ($csvText === null) {
+                    return $this->failure('Could not read the spreadsheet file for AI processing.');
+                }
+
+                $bytes = $csvText;
+                $mime  = 'text/plain';
+            } else {
+                $bytes = file_get_contents($absPath);
+                $mime  = $this->mimeForExtension($ext);
             }
 
             if ($bytes === false || $bytes === '') {
                 return $this->failure('Could not read the uploaded file for Gemini processing.');
             }
-
-            $prompt = $this->buildGeminiPrompt($context);
 
             // Files > 20 MB must go through the Gemini Files API.
             $lastResult = $this->failure('Gemini AI fallback encountered an unexpected error.');
@@ -551,5 +575,57 @@ PROMPT);
             'csv'  => 'text/csv',
             default => 'application/octet-stream',
         };
+    }
+
+    /**
+     * Read an xlsx, xls, or csv file and return all sheets as CSV text.
+     * Returns null on failure.
+     */
+    private function spreadsheetToCsvText(string $absPath): ?string
+    {
+        try {
+            $spreadsheet = IOFactory::load($absPath);
+            $output = '';
+
+            foreach ($spreadsheet->getAllSheets() as $sheet) {
+                $sheetTitle = $sheet->getTitle();
+                $output .= "Sheet: {$sheetTitle}\n";
+
+                foreach ($sheet->getRowIterator() as $row) {
+                    $cells = [];
+                    $cellIterator = $row->getCellIterator();
+                    $cellIterator->setIterateOnlyExistingCells(false);
+
+                    foreach ($cellIterator as $cell) {
+                        $cells[] = (string) $cell->getFormattedValue();
+                    }
+
+                    // Strip trailing empty cells
+                    while (count($cells) > 0 && trim(end($cells)) === '') {
+                        array_pop($cells);
+                    }
+
+                    if (count($cells) > 0) {
+                        $output .= implode(',', array_map(
+                            fn(string $v) => str_contains($v, ',') || str_contains($v, '"') || str_contains($v, "\n")
+                                ? '"' . str_replace('"', '""', $v) . '"'
+                                : $v,
+                            $cells
+                        )) . "\n";
+                    }
+                }
+
+                $output .= "\n";
+            }
+
+            return $output !== '' ? $output : null;
+        } catch (\Throwable $e) {
+            Log::error('QuotationAiService: spreadsheetToCsvText failed.', [
+                'path'    => $absPath,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 }
