@@ -39,16 +39,71 @@
         </button>
     </div>
 
-    {{-- ───── Pricing loading banner ──────────────────────────────────────────── --}}
+    {{-- ───── Pricing Loading Modal ────────────────────────────────────────────── --}}
     @if($fetchingPrices)
-    <div class="mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5">
-        <svg class="h-5 w-5 animate-spin shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-        </svg>
-        <div>
-            <p class="text-sm font-semibold text-emerald-800">{{ __('app.fetching_prices') }}</p>
-            <p class="text-xs text-emerald-600">{{ __('app.looking_up_catalogue') }}</p>
+    <div
+        x-data="{ dots: 0 }"
+        x-init="setInterval(() => dots = (dots + 1) % 4, 500)"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+        style="background: rgba(15,23,42,0.65); backdrop-filter: blur(6px);"
+    >
+        <div
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-90"
+            x-transition:enter-end="opacity-100 scale-100"
+            class="relative mx-4 w-full max-w-sm rounded-3xl bg-white px-8 py-10 shadow-2xl text-center"
+        >
+            {{-- Animated rings --}}
+            <div class="relative mx-auto mb-7 h-24 w-24">
+                <span class="absolute inset-0 rounded-full border-4 border-emerald-100"></span>
+                <span class="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-emerald-500" style="animation-duration:1s;"></span>
+                <span class="absolute inset-2 animate-spin rounded-full border-4 border-transparent border-t-emerald-300" style="animation-duration:1.5s; animation-direction:reverse;"></span>
+                <span class="absolute inset-0 flex items-center justify-center">
+                    <svg class="h-9 w-9 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                </span>
+            </div>
+
+            {{-- Title --}}
+            <h3 class="text-lg font-bold text-slate-800">جاري جلب الأسعار</h3>
+            <p class="mt-1 text-sm text-slate-500">Fetching prices from AI &amp; catalogue</p>
+
+            {{-- Animated dots progress --}}
+            <div class="mt-5 flex items-center justify-center gap-2">
+                <template x-for="n in 4" :key="n">
+                    <span
+                        class="h-2.5 w-2.5 rounded-full transition-all duration-300"
+                        :class="dots === (n - 1) ? 'bg-emerald-500 scale-125' : 'bg-slate-200'"
+                    ></span>
+                </template>
+            </div>
+
+            {{-- Steps --}}
+            <ul class="mt-6 space-y-2 text-left text-xs text-slate-500">
+                <li class="flex items-center gap-2">
+                    <svg class="h-3.5 w-3.5 shrink-0 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    البحث في كتالوج المنتجات
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="h-3.5 w-3.5 shrink-0 animate-spin text-emerald-400" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    تقدير الأسعار بالذكاء الاصطناعي
+                </li>
+                <li class="flex items-center gap-2 opacity-40">
+                    <svg class="h-3.5 w-3.5 shrink-0 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                    </svg>
+                    حفظ الأسعار وتحديث العرض
+                </li>
+            </ul>
+
+            <p class="mt-6 text-xs text-slate-400">قد يستغرق هذا دقيقة واحدة…</p>
         </div>
     </div>
     @endif

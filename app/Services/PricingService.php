@@ -9,10 +9,9 @@ use Illuminate\Support\Facades\Log;
 class PricingService
 {
     /**
-     * Maximum items sent to Gemini per request.
-     * Keeps token usage under control — items beyond this limit remain unpriced via Gemini.
+     * Items per Gemini call. Multiple calls are made so ALL unpriced items get a price.
      */
-    private const MAX_GEMINI_BATCH = 25;
+    private const GEMINI_CHUNK_SIZE = 50;
 
     /**
      * Fetch unit prices for an array of quotation items.
@@ -49,7 +48,10 @@ class PricingService
         }
 
         if (! empty($unmatched)) {
-            $items = $this->enrichWithGemini($items, $unmatched);
+            // Process ALL unmatched items — chunk into batches so we never drop any
+            foreach (array_chunk($unmatched, self::GEMINI_CHUNK_SIZE) as $chunk) {
+                $items = $this->enrichWithGemini($items, $chunk);
+            }
         }
 
         return $items;
@@ -127,8 +129,7 @@ class PricingService
             return $items;
         }
 
-        // Token protection: cap batch size
-        $batch = array_slice($unmatchedIndices, 0, self::MAX_GEMINI_BATCH);
+        $batch = $unmatchedIndices;
 
         // Compact payload — only essential fields to minimise input tokens
         $payload = [];

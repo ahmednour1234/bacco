@@ -380,6 +380,11 @@ class QuotationAiService
                 [
                     'contents' => [['parts' => $parts]],
                     // Do NOT set responseMimeType — not supported by all models (causes HTTP 400 on flash-lite).
+                    // Raise output token limit so large BOQs (100+ items) are not truncated mid-JSON.
+                    'generationConfig' => [
+                        'maxOutputTokens' => 65536,
+                        'temperature'     => 0.1,
+                    ],
                 ]
             );
 
