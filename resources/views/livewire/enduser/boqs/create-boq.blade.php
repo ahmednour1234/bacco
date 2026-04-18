@@ -101,59 +101,74 @@
         wire:loading
         wire:loading.except.target="submit"
         x-data="{
-            msgs: ['جاري القراءة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري المعالجة...', 'تقريباً خلصنا...'],
+            ar: ['جاري القراءة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري المعالجة...', 'تقريباً خلصنا...'],
+            en: ['Reading file...', 'Updating data...', 'Just a moment ⚡', 'Processing...', 'Almost done...'],
             idx: 0,
-            init() { setInterval(() => { this.idx = (this.idx + 1) % this.msgs.length; }, 1800); }
+            isAr: document.documentElement.dir === 'rtl',
+            init() { setInterval(() => { this.idx = (this.idx + 1) % this.ar.length; }, 1800); }
         }"
-        class="fixed inset-0 z-[9999]"
-        style="background:rgba(15,23,42,0.55); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; direction:rtl;"
+        style="
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(15,23,42,0.60);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+        "
     >
+        {{-- Centered card --}}
         <div style="
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #fff;
+            background: #ffffff;
             border-radius: 28px;
-            padding: 44px 48px 40px;
+            padding: 48px 52px 44px;
             text-align: center;
-            width: 320px;
-            box-shadow: 0 32px 80px rgba(0,0,0,0.22);
+            width: 340px;
+            max-width: calc(100vw - 40px);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.04);
             font-family: 'Cairo', sans-serif;
-        ">
-            {{-- Animated rings --}}
-            <div style="position:relative; width:80px; height:80px; margin:0 auto 28px;">
-                <svg style="position:absolute;inset:0;width:80px;height:80px;animation:gcw 1.4s linear infinite;" viewBox="0 0 80 80">
-                    <circle cx="40" cy="40" r="34" fill="none" stroke="#d1fae5" stroke-width="6"/>
-                    <circle cx="40" cy="40" r="34" fill="none" stroke="#10b981" stroke-width="6"
-                            stroke-linecap="round" stroke-dasharray="60 154"/>
+        " x-bind:dir="isAr ? 'rtl' : 'ltr'">
+
+            {{-- Double animated rings --}}
+            <div style="position:relative; width:88px; height:88px; margin:0 auto 32px;">
+                <svg style="position:absolute;inset:0;width:88px;height:88px;animation:gcw 1.4s linear infinite;" viewBox="0 0 88 88">
+                    <circle cx="44" cy="44" r="38" fill="none" stroke="#d1fae5" stroke-width="6"/>
+                    <circle cx="44" cy="44" r="38" fill="none" stroke="#10b981" stroke-width="6"
+                            stroke-linecap="round" stroke-dasharray="66 172"/>
                 </svg>
-                <svg style="position:absolute;inset:8px;width:64px;height:64px;animation:gccw 2s linear infinite;" viewBox="0 0 64 64">
-                    <circle cx="32" cy="32" r="26" fill="none" stroke="#a7f3d0" stroke-width="4"/>
-                    <circle cx="32" cy="32" r="26" fill="none" stroke="#34d399" stroke-width="4"
-                            stroke-linecap="round" stroke-dasharray="30 134"/>
+                <svg style="position:absolute;inset:10px;width:68px;height:68px;animation:gccw 2s linear infinite;" viewBox="0 0 68 68">
+                    <circle cx="34" cy="34" r="28" fill="none" stroke="#a7f3d0" stroke-width="4"/>
+                    <circle cx="34" cy="34" r="28" fill="none" stroke="#34d399" stroke-width="4"
+                            stroke-linecap="round" stroke-dasharray="34 142"/>
                 </svg>
                 <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-                    <div style="width:16px;height:16px;border-radius:50%;background:#10b981;animation:gpulse 1.4s ease-in-out infinite;"></div>
+                    <div style="width:18px;height:18px;border-radius:50%;background:#10b981;animation:gpulse 1.4s ease-in-out infinite;box-shadow:0 0 0 0 #10b98140;"></div>
                 </div>
             </div>
 
             {{-- Cycling message --}}
-            <p x-text="msgs[idx]" style="font-size:1.25rem;font-weight:700;color:#0f172a;margin-bottom:8px;min-height:2rem;"></p>
-            <p style="font-size:0.82rem;color:#94a3b8;font-weight:500;">يتم تنفيذ العملية، الرجاء الانتظار</p>
+            <p x-text="isAr ? ar[idx] : en[idx]"
+               style="font-size:1.3rem;font-weight:700;color:#0f172a;margin-bottom:10px;min-height:2.2rem;letter-spacing:-0.01em;"></p>
+            <p x-text="isAr ? 'يتم تنفيذ العملية، الرجاء الانتظار' : 'Operation in progress, please wait…'"
+               style="font-size:0.83rem;color:#94a3b8;font-weight:500;line-height:1.5;"></p>
 
             {{-- Bouncing dots --}}
-            <div style="display:flex;justify-content:center;gap:6px;margin-top:20px;">
-                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0s;display:inline-block;"></span>
-                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0.2s;display:inline-block;"></span>
-                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0.4s;display:inline-block;"></span>
+            <div style="display:flex;justify-content:center;gap:7px;margin-top:24px;">
+                <span style="width:9px;height:9px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0s;display:inline-block;"></span>
+                <span style="width:9px;height:9px;border-radius:50%;background:#34d399;animation:gbounce 1.2s ease-in-out infinite 0.2s;display:inline-block;"></span>
+                <span style="width:9px;height:9px;border-radius:50%;background:#6ee7b7;animation:gbounce 1.2s ease-in-out infinite 0.4s;display:inline-block;"></span>
             </div>
         </div>
+
         <style>
             @keyframes gcw    { to { transform: rotate(360deg); } }
             @keyframes gccw   { to { transform: rotate(-360deg); } }
-            @keyframes gpulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.4); opacity:0.6; } }
-            @keyframes gbounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+            @keyframes gpulse { 0%,100% { transform:scale(1);box-shadow:0 0 0 0 #10b98140; } 50% { transform:scale(1.35);box-shadow:0 0 0 10px #10b9810; } }
+            @keyframes gbounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-9px); } }
         </style>
     </div>
 

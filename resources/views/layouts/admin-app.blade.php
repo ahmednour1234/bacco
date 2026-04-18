@@ -13,7 +13,7 @@
     <style>
         * { font-family: 'Cairo', sans-serif; }
         [x-cloak] { display: none !important; }
-        html { overflow-x: hidden; }
+        html { overflow-x: clip; }
         @media (min-width: 1024px) {
             .sidebar-offset { margin-inline-start: 16rem; }
         }
