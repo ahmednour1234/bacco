@@ -1,14 +1,14 @@
 @extends('layouts.admin-app')
 
-@section('title', 'My Profile - Qimta Admin')
-@section('page-title', 'My Profile')
+@section('title', __('app.my_profile') . ' - Qimta Admin')
+@section('page-title', __('app.my_profile'))
 
 @section('breadcrumb')
-    <span class="text-xs text-slate-400">Home</span>
+    <span class="text-xs text-slate-400">{{ __('app.home') }}</span>
     <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
     </svg>
-    <span class="text-xs text-slate-500 font-medium">My Profile</span>
+    <span class="text-xs text-slate-500 font-medium">{{ __('app.my_profile') }}</span>
 @endsection
 
 @section('content')
@@ -83,7 +83,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0"/>
             </svg>
-            <p class="text-sm font-semibold text-red-700">Please fix the following errors:</p>
+            <p class="text-sm font-semibold text-red-700">{{ __('app.fix_errors') }}</p>
         </div>
         <ul class="text-sm text-red-600 space-y-1 list-disc list-inside">
             @foreach ($errors->all() as $error)
@@ -160,7 +160,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         </svg>
-                        {{ $isAdmin ? 'Admin' : 'Employee' }}
+                        {{ $isAdmin ? __('app.admin') : __('app.employee') }}
                     </span>
 
                     @if ($profile?->department)
@@ -188,14 +188,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
-                        Since {{ $user->created_at->format('M Y') }}
+                        {{ __('app.since') }} {{ $user->created_at->format('M Y') }}
                     </span>
                 </div>
 
                 {{-- Profile completeness bar --}}
                 <div class="mt-4 max-w-xs sm:max-w-sm">
                     <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-xs font-medium text-slate-500">Profile completeness</span>
+                        <span class="text-xs font-medium text-slate-500">{{ __('app.profile_completeness') }}</span>
                         <span class="text-xs font-bold
                             {{ $completeness >= 80 ? 'text-emerald-600' : ($completeness >= 50 ? 'text-amber-600' : 'text-red-500') }}">
                             {{ $completeness }}%
@@ -207,17 +207,17 @@
                              style="width: {{ $completeness }}%"></div>
                     </div>
                     @if ($completeness < 100)
-                        <p class="text-xs text-slate-400 mt-1">Fill in all fields to reach 100%</p>
+                        <p class="text-xs text-slate-400 mt-1">{{ __('app.fill_fields_100') }}</p>
                     @else
-                        <p class="text-xs text-emerald-500 mt-1 font-medium">Your profile is complete!</p>
+                        <p class="text-xs text-emerald-500 mt-1 font-medium">{{ __('app.profile_complete') }}</p>
                     @endif
                 </div>
             </div>
 
             {{-- Desktop upload hint --}}
             <div class="hidden sm:flex flex-col items-end gap-1 shrink-0">
-                <p class="text-xs text-slate-400">Click photo to change</p>
-                <p class="text-xs text-slate-300">JPG, PNG, WebP · Max 2 MB</p>
+                <p class="text-xs text-slate-400">{{ __('app.click_photo_change') }}</p>
+                <p class="text-xs text-slate-300">{{ __('app.photo_formats') }}</p>
             </div>
         </div>
     </form>
@@ -239,7 +239,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
-            Profile Info
+            {{ __('app.profile_info') }}
         </button>
 
         <button @click="tab = 'security'"
@@ -251,7 +251,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
             </svg>
-            Security
+            {{ __('app.security') }}
         </button>
 
         <button @click="tab = 'account'"
@@ -263,7 +263,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            Account
+            {{ __('app.account') }}
         </button>
     </div>
 
@@ -287,8 +287,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-sm font-semibold text-slate-900">Personal Information</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Update your name, email, and phone</p>
+                            <h3 class="text-sm font-semibold text-slate-900">{{ __('app.personal_information') }}</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">{{ __('app.update_name_email_phone') }}</p>
                         </div>
                     </div>
                     <div class="px-6 py-5 space-y-4">
@@ -296,7 +296,7 @@
                         {{-- Full Name --}}
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Full Name <span class="text-red-400">*</span>
+                                {{ __('app.full_name') }} <span class="text-red-400">*</span>
                             </label>
                             <input type="text" name="name" value="{{ old('name', $user->name) }}"
                                    placeholder="Your full name"
@@ -317,7 +317,7 @@
                         {{-- Email --}}
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Email Address <span class="text-red-400">*</span>
+                                {{ __('app.email_address') }} <span class="text-red-400">*</span>
                             </label>
                             <div class="relative">
                                 <input type="email" name="email" value="{{ old('email', $user->email) }}"
@@ -345,7 +345,7 @@
 
                         {{-- Phone --}}
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Phone Number</label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.phone_number') }}</label>
                             <div class="relative">
                                 <input type="text" name="phone" value="{{ old('phone', $user->phone ?? '') }}"
                                        placeholder="+966 5x xxx xxxx"
@@ -382,8 +382,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-sm font-semibold text-slate-900">Employee Information</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Department, position, and HR details</p>
+                            <h3 class="text-sm font-semibold text-slate-900">{{ __('app.employee_information') }}</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">{{ __('app.dept_position_hr_details') }}</p>
                         </div>
                     </div>
                     <div class="px-6 py-5 space-y-4">
@@ -391,7 +391,7 @@
                         {{-- Department + Position --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Department</label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.department') }}</label>
                                 <input type="text" name="department"
                                        value="{{ old('department', $profile?->department ?? '') }}"
                                        placeholder="e.g. Engineering"
@@ -400,7 +400,7 @@
                                               focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Position</label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.position') }}</label>
                                 <input type="text" name="position"
                                        value="{{ old('position', $profile?->position ?? '') }}"
                                        placeholder="e.g. Site Engineer"
@@ -412,7 +412,7 @@
 
                         {{-- National ID --}}
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">National ID</label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.national_id_label') }}</label>
                             <div class="relative">
                                 <input type="text" name="national_id"
                                        value="{{ old('national_id', $profile?->national_id ?? '') }}"
@@ -440,7 +440,7 @@
 
                         {{-- Hire Date --}}
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hire Date</label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.hire_date_label') }}</label>
                             <input type="date" name="hire_date"
                                    value="{{ old('hire_date', $profile?->hire_date?->format('Y-m-d') ?? '') }}"
                                    class="w-full px-4 py-2.5 text-sm bg-white border rounded-xl
@@ -463,7 +463,7 @@
             {{-- Save button row --}}
             <div class="flex items-center justify-between">
                 <p class="text-xs text-slate-400">
-                    Fields marked <span class="text-red-400 font-semibold">*</span> are required.
+                    {{ __('app.fields_required') }}
                 </p>
                 <button type="submit"
                         class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800
@@ -471,7 +471,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
-                    Save Changes
+                    {{ __('app.save_changes') }}
                 </button>
             </div>
         </form>
@@ -496,8 +496,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-900">Change Password</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Leave all fields blank to keep your current password</p>
+                            <h3 class="text-sm font-semibold text-slate-900">{{ __('app.change_password') }}</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">{{ __('app.leave_blank_all_keep_pwd') }}</p>
                     </div>
                 </div>
                 <div class="px-6 py-5">
@@ -509,11 +509,11 @@
                                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0"/>
                         </svg>
                         <div class="text-xs text-blue-700">
-                            <p class="font-semibold mb-1">Password requirements</p>
+                            <p class="font-semibold mb-1">{{ __('app.password_requirements') }}</p>
                             <ul class="list-disc list-inside space-y-0.5 text-blue-600">
-                                <li>Minimum 8 characters</li>
-                                <li>Mix of uppercase, lowercase, and numbers recommended</li>
-                                <li>Enter your current password to confirm the change</li>
+                                <li>{{ __('app.min_8_chars') }}</li>
+                                <li>{{ __('app.pwd_mix_recommended') }}</li>
+                                <li>{{ __('app.enter_current_pwd_confirm') }}</li>
                             </ul>
                         </div>
                     </div>
@@ -522,7 +522,7 @@
 
                         {{-- Current Password --}}
                         <div x-data="{ show: false }">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Current Password</label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.current_password') }}</label>
                             <div class="relative">
                                 <input :type="show ? 'text' : 'password'" name="current_password"
                                        placeholder="••••••••"
@@ -552,7 +552,7 @@
 
                         {{-- New Password --}}
                         <div x-data="{ show: false }">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">New Password</label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.new_password') }}</label>
                             <div class="relative">
                                 <input :type="show ? 'text' : 'password'" name="new_password"
                                        placeholder="Min. 8 characters"
@@ -582,7 +582,7 @@
 
                         {{-- Confirm New Password --}}
                         <div x-data="{ show: false }">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm New Password</label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('app.confirm_new_password') }}</label>
                             <div class="relative">
                                 <input :type="show ? 'text' : 'password'" name="new_password_confirmation"
                                        placeholder="Repeat new password"
@@ -610,7 +610,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                             </svg>
-                            Update Password
+                            {{ __('app.update_password') }}
                         </button>
                     </div>
                 </div>
@@ -634,24 +634,24 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-900">Account Details</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Read-only account information</p>
+                            <h3 class="text-sm font-semibold text-slate-900">{{ __('app.account_details') }}</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">{{ __('app.readonly_account_info') }}</p>
                     </div>
                 </div>
                 <div class="px-6 py-2 divide-y divide-slate-50">
 
                     {{-- Account Type --}}
                     <div class="flex items-center justify-between py-3.5">
-                        <span class="text-sm text-slate-500">Account Type</span>
+                        <span class="text-sm text-slate-500">{{ __('app.account_type') }}</span>
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full
                                     {{ $isAdmin ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700' }}">
-                            {{ $isAdmin ? 'Admin' : 'Employee' }}
+                            {{ $isAdmin ? __('app.admin') : __('app.employee') }}
                         </span>
                     </div>
 
                     {{-- User UUID --}}
                     <div class="flex items-center justify-between py-3.5 gap-4">
-                        <span class="text-sm text-slate-500 shrink-0">User ID</span>
+                        <span class="text-sm text-slate-500 shrink-0">{{ __('app.user_id') }}</span>
                         <span class="text-xs font-mono text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg truncate max-w-[200px]">
                             {{ $user->uuid ?? $user->id }}
                         </span>
@@ -659,43 +659,43 @@
 
                     {{-- Account Status --}}
                     <div class="flex items-center justify-between py-3.5">
-                        <span class="text-sm text-slate-500">Status</span>
+                        <span class="text-sm text-slate-500">{{ __('app.status') }}</span>
                         @if ($user->active ?? true)
                             <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Active
+                                {{ __('app.status_active') }}
                             </span>
                         @else
                             <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-700">
                                 <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                Inactive
+                                {{ __('app.inactive') }}
                             </span>
                         @endif
                     </div>
 
                     {{-- Email verified --}}
                     <div class="flex items-center justify-between py-3.5">
-                        <span class="text-sm text-slate-500">Email Verified</span>
+                        <span class="text-sm text-slate-500">{{ __('app.email_verified') }}</span>
                         @if ($user->email_verified_at)
                             <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                 </svg>
-                                Verified
+                                {{ __('app.verified') }}
                             </span>
                         @else
                             <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0"/>
                                 </svg>
-                                Not Verified
+                                {{ __('app.not_verified') }}
                             </span>
                         @endif
                     </div>
 
                     {{-- Member Since --}}
                     <div class="flex items-center justify-between py-3.5">
-                        <span class="text-sm text-slate-500">Member Since</span>
+                        <span class="text-sm text-slate-500">{{ __('app.member_since') }}</span>
                         <span class="text-sm font-medium text-slate-700">
                             {{ $user->created_at->format('d M Y') }}
                         </span>
@@ -703,7 +703,7 @@
 
                     {{-- Last Updated --}}
                     <div class="flex items-center justify-between py-3.5">
-                        <span class="text-sm text-slate-500">Last Updated</span>
+                        <span class="text-sm text-slate-500">{{ __('app.last_updated') }}</span>
                         <span class="text-sm text-slate-600">
                             {{ $user->updated_at->diffForHumans() }}
                         </span>
@@ -712,7 +712,7 @@
                     @if ($profile?->hire_date)
                     {{-- Hire Date --}}
                     <div class="flex items-center justify-between py-3.5">
-                        <span class="text-sm text-slate-500">Hire Date</span>
+                        <span class="text-sm text-slate-500">{{ __('app.hire_date_label') }}</span>
                         <span class="text-sm font-medium text-slate-700">
                             {{ $profile->hire_date->format('d M Y') }}
                         </span>
@@ -732,21 +732,21 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-900">Completeness Breakdown</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Which fields are still missing</p>
+                            <h3 class="text-sm font-semibold text-slate-900">{{ __('app.completeness_breakdown') }}</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">{{ __('app.which_fields_missing') }}</p>
                     </div>
                 </div>
                 <div class="px-6 py-5 space-y-2.5">
                     @php
                         $breakdown = [
-                            ['label' => 'Full Name',     'filled' => !empty($user->name),              'weight' => 15],
-                            ['label' => 'Email Address', 'filled' => !empty($user->email),             'weight' => 15],
-                            ['label' => 'Phone Number',  'filled' => !empty($user->phone ?? null),     'weight' => 10],
-                            ['label' => 'Profile Photo', 'filled' => !empty($user->avatar ?? null),    'weight' => 20],
-                            ['label' => 'Department',    'filled' => !empty($profile?->department),    'weight' => 10],
-                            ['label' => 'Position',      'filled' => !empty($profile?->position),      'weight' => 10],
-                            ['label' => 'National ID',   'filled' => !empty($profile?->national_id),   'weight' => 10],
-                            ['label' => 'Hire Date',     'filled' => !empty($profile?->hire_date),     'weight' => 10],
+                            ['label' => __('app.full_name'),        'filled' => !empty($user->name),              'weight' => 15],
+                            ['label' => __('app.email_address'),    'filled' => !empty($user->email),             'weight' => 15],
+                            ['label' => __('app.phone_number'),     'filled' => !empty($user->phone ?? null),     'weight' => 10],
+                            ['label' => __('app.profile_photo'),    'filled' => !empty($user->avatar ?? null),    'weight' => 20],
+                            ['label' => __('app.department'),       'filled' => !empty($profile?->department),    'weight' => 10],
+                            ['label' => __('app.position'),         'filled' => !empty($profile?->position),      'weight' => 10],
+                            ['label' => __('app.national_id_label'),'filled' => !empty($profile?->national_id),   'weight' => 10],
+                            ['label' => __('app.hire_date_label'),  'filled' => !empty($profile?->hire_date),     'weight' => 10],
                         ];
                     @endphp
 
@@ -776,7 +776,7 @@
                     {{-- Total bar --}}
                     <div class="pt-4 border-t border-slate-100 mt-2">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-semibold text-slate-700">Total</span>
+                            <span class="text-sm font-semibold text-slate-700">{{ __('app.total') }}</span>
                             <span class="text-sm font-bold
                                 {{ $completeness >= 80 ? 'text-emerald-600' : ($completeness >= 50 ? 'text-amber-600' : 'text-red-500') }}">
                                 {{ $completeness }}%
@@ -790,13 +790,13 @@
                         <p class="text-xs mt-2
                             {{ $completeness >= 80 ? 'text-emerald-500' : 'text-slate-400' }}">
                             @if ($completeness === 100)
-                                Your profile is fully complete.
+                                {{ __('app.profile_fully_complete') }}
                             @elseif ($completeness >= 80)
-                                Almost there! Fill in the missing fields.
+                                {{ __('app.profile_almost_there') }}
                             @elseif ($completeness >= 50)
-                                Good progress — keep filling in your profile.
+                                {{ __('app.profile_good_progress') }}
                             @else
-                                Your profile needs more information.
+                                {{ __('app.profile_needs_info') }}
                             @endif
                         </p>
                     </div>
