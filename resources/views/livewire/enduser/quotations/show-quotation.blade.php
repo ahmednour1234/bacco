@@ -42,68 +42,120 @@
     {{-- ───── Pricing Loading Modal ────────────────────────────────────────────── --}}
     @if($fetchingPrices)
     <div
-        x-data="{ dots: 0 }"
-        x-init="setInterval(() => dots = (dots + 1) % 4, 500)"
+        x-data="{
+            msgIndex: 0,
+            bar: 5,
+            messages: [
+                'جاري البحث في كتالوج المنتجات…',
+                'نحلل بنود جدول الكميات…',
+                'نستشير الذكاء الاصطناعي للتسعير…',
+                'نقارن الأسعار بسوق السعودية…',
+                'نحسب أفضل الأسعار لك…',
+                'يرجى الانتظار، تقريباً انتهينا…',
+            ],
+            init() {
+                setInterval(() => {
+                    this.msgIndex = (this.msgIndex + 1) % this.messages.length;
+                }, 2500);
+                setInterval(() => {
+                    if (this.bar < 90) this.bar += Math.random() * 7;
+                }, 1400);
+            }
+        }"
         class="fixed inset-0 z-50 flex items-center justify-center"
-        style="background: rgba(15,23,42,0.65); backdrop-filter: blur(6px);"
+        style="background: rgba(2,8,23,0.72); backdrop-filter: blur(8px);"
     >
         <div
-            x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 scale-90"
-            x-transition:enter-end="opacity-100 scale-100"
-            class="relative mx-4 w-full max-w-sm rounded-3xl bg-white px-8 py-10 shadow-2xl text-center"
+            x-transition:enter="transition ease-out duration-400"
+            x-transition:enter-start="opacity-0 translate-y-6 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            class="relative mx-4 w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl"
         >
-            {{-- Animated rings --}}
-            <div class="relative mx-auto mb-7 h-24 w-24">
-                <span class="absolute inset-0 rounded-full border-4 border-emerald-100"></span>
-                <span class="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-emerald-500" style="animation-duration:1s;"></span>
-                <span class="absolute inset-2 animate-spin rounded-full border-4 border-transparent border-t-emerald-300" style="animation-duration:1.5s; animation-direction:reverse;"></span>
-                <span class="absolute inset-0 flex items-center justify-center">
-                    <svg class="h-9 w-9 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                    </svg>
-                </span>
+            {{-- Top progress bar --}}
+            <div class="h-1 w-full bg-slate-100">
+                <div
+                    class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 transition-all duration-1000"
+                    :style="`width: ${bar}%`"
+                ></div>
             </div>
 
-            {{-- Title --}}
-            <h3 class="text-lg font-bold text-slate-800">جاري جلب الأسعار</h3>
-            <p class="mt-1 text-sm text-slate-500">Fetching prices from AI &amp; catalogue</p>
+            <div class="px-8 pb-8 pt-7 text-center">
 
-            {{-- Animated dots progress --}}
-            <div class="mt-5 flex items-center justify-center gap-2">
-                <template x-for="n in 4" :key="n">
-                    <span
-                        class="h-2.5 w-2.5 rounded-full transition-all duration-300"
-                        :class="dots === (n - 1) ? 'bg-emerald-500 scale-125' : 'bg-slate-200'"
-                    ></span>
-                </template>
+                {{-- Animated orb: conic gradient spinning ring + SAR symbol --}}
+                <div class="relative mx-auto mb-6 h-20 w-20">
+                    <span class="absolute inset-0 animate-ping rounded-full bg-emerald-100 opacity-50" style="animation-duration:2.2s;"></span>
+                    <span class="absolute inset-0 rounded-full" style="background: conic-gradient(#10b981 0%, #14b8a6 35%, #06b6d4 60%, #10b981 100%); animation: qspin 1.8s linear infinite;"></span>
+                    <span class="absolute inset-1.5 flex items-center justify-center rounded-full bg-white">
+                        <span class="text-xl font-extrabold text-emerald-600" style="font-family: system-ui, sans-serif;">﷼</span>
+                    </span>
+                </div>
+
+                {{-- Title --}}
+                <h3 class="text-xl font-bold text-slate-900">تحليل الأسعار</h3>
+
+                {{-- Rotating messages --}}
+                <div class="relative mt-2 h-6 overflow-hidden">
+                    <template x-for="(msg, i) in messages" :key="i">
+                        <p
+                            class="absolute inset-0 flex items-center justify-center text-sm text-slate-500"
+                            style="transition: opacity 0.4s, transform 0.4s;"
+                            :style="i === msgIndex
+                                ? 'opacity:1; transform:translateY(0)'
+                                : 'opacity:0; transform:translateY(8px)'"
+                            x-text="msg"
+                        ></p>
+                    </template>
+                </div>
+
+                {{-- Wave dots --}}
+                <div class="mt-5 flex items-end justify-center gap-1.5" style="height:18px;">
+                    <span class="w-2 rounded-full bg-emerald-400" style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0s;"></span>
+                    <span class="w-2 rounded-full bg-emerald-500" style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0.18s;"></span>
+                    <span class="w-2 rounded-full bg-teal-500"    style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0.36s;"></span>
+                    <span class="w-2 rounded-full bg-emerald-400" style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0.54s;"></span>
+                    <span class="w-2 rounded-full bg-emerald-300" style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0.72s;"></span>
+                </div>
+
+                {{-- Steps (RTL timeline) --}}
+                <div class="mt-7 space-y-3">
+                    {{-- Done --}}
+                    <div class="flex items-center justify-end gap-3">
+                        <span class="text-sm font-medium text-slate-700">البحث في الكتالوج</span>
+                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500">
+                            <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </span>
+                    </div>
+                    {{-- In progress --}}
+                    <div class="flex items-center justify-end gap-3">
+                        <span class="text-sm font-medium text-emerald-700">تقدير الذكاء الاصطناعي</span>
+                        <span class="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 ring-2 ring-emerald-400">
+                            <svg class="h-3.5 w-3.5 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                            </svg>
+                        </span>
+                    </div>
+                    {{-- Pending --}}
+                    <div class="flex items-center justify-end gap-3 opacity-30">
+                        <span class="text-sm font-medium text-slate-500">حفظ وتحديث العرض</span>
+                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-slate-200 bg-slate-50">
+                            <span class="h-2 w-2 rounded-full bg-slate-300"></span>
+                        </span>
+                    </div>
+                </div>
+
             </div>
 
-            {{-- Steps --}}
-            <ul class="mt-6 space-y-2 text-left text-xs text-slate-500">
-                <li class="flex items-center gap-2">
-                    <svg class="h-3.5 w-3.5 shrink-0 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                    </svg>
-                    البحث في كتالوج المنتجات
-                </li>
-                <li class="flex items-center gap-2">
-                    <svg class="h-3.5 w-3.5 shrink-0 animate-spin text-emerald-400" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                    </svg>
-                    تقدير الأسعار بالذكاء الاصطناعي
-                </li>
-                <li class="flex items-center gap-2 opacity-40">
-                    <svg class="h-3.5 w-3.5 shrink-0 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                    </svg>
-                    حفظ الأسعار وتحديث العرض
-                </li>
-            </ul>
-
-            <p class="mt-6 text-xs text-slate-400">قد يستغرق هذا دقيقة واحدة…</p>
+            {{-- Keyframes injected once --}}
+            <style>
+                @keyframes qspin  { to { transform: rotate(360deg); } }
+                @keyframes qwave  {
+                    0%, 100% { height: 6px;  }
+                    50%       { height: 16px; }
+                }
+            </style>
         </div>
     </div>
     @endif
