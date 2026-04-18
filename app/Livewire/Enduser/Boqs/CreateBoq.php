@@ -429,6 +429,7 @@ class CreateBoq extends Component
                 'boq_id'               => $boq->id,
                 'description'          => (string) ($row['description'] ?? ''),
                 'quantity'             => is_numeric($row['quantity'] ?? null) ? (float) $row['quantity'] : 0,
+                'unit_price'           => is_numeric($row['unit_price'] ?? null) && (float) $row['unit_price'] > 0 ? (float) $row['unit_price'] : null,
                 'unit_id'              => $unitId,
                 'category'             => (string) ($row['category'] ?? ''),
                 'brand'                => (string) ($row['brand'] ?? ''),

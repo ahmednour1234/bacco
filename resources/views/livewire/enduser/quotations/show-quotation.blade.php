@@ -100,9 +100,10 @@
 
         {{-- Action buttons --}}
         <div class="flex shrink-0 items-center gap-3">
-            {{-- Export PDF placeholder --}}
-            <button
-                type="button"
+            {{-- Export PDF --}}
+            <a
+                href="{{ route('enduser.quotations.pdf', $quotation->uuid) }}"
+                target="_blank"
                 class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +111,7 @@
                         d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 {{ __('app.export_pdf') }}
-            </button>
+            </a>
 
             @if(in_array($quotation->status->value, ['draft', 'tender'], true))
             <a
@@ -238,7 +239,20 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 font-medium text-slate-800">{{ $item['description'] ?: '—' }}</td>
-                                    <td class="px-4 py-3 text-slate-600">{{ number_format((float)($item['quantity'] ?? 0)) }}</td>
+                                    <td class="px-4 py-3 text-slate-600">
+                                        @if($canEdit)
+                                            <input
+                                                type="number"
+                                                min="0.001"
+                                                step="any"
+                                                value="{{ $item['quantity'] }}"
+                                                @change="$wire.updateQuantity({{ $item['id'] }}, $event.target.value)"
+                                                class="w-20 rounded border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                            />
+                                        @else
+                                            {{ number_format((float)($item['quantity'] ?? 0)) }}
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['unit'] ?: '—' }}</td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['category'] ?: '—' }}</td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['brand'] ?: '—' }}</td>

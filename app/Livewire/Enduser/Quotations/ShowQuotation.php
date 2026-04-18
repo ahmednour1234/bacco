@@ -175,6 +175,29 @@ class ShowQuotation extends Component
         }
     }
 
+    public function updateQuantity(int $itemId, string $newQty): void
+    {
+        if (! $this->canEdit()) {
+            return;
+        }
+
+        $qty = filter_var($newQty, FILTER_VALIDATE_FLOAT);
+
+        if ($qty === false || $qty <= 0) {
+            $this->dispatch('toast', message: 'Quantity must be a positive number.', type: 'error');
+            return;
+        }
+
+        QuotationItem::where('id', $itemId)->update(['quantity' => $qty]);
+
+        foreach ($this->items as $index => $item) {
+            if ((int) $item['id'] === $itemId) {
+                $this->items[$index]['quantity'] = $qty;
+                break;
+            }
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Edit actions (only while not yet Submitted)
     // -------------------------------------------------------------------------

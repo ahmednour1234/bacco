@@ -153,12 +153,19 @@ class ShowBoq extends Component
                         )->id;
                     }
 
+                    $boqUnitPrice = is_numeric($row['unit_price'] ?? null) && (float) $row['unit_price'] > 0
+                        ? (float) $row['unit_price']
+                        : null;
+
                     QuotationItem::create([
                         'quotation_request_id' => $quotation->id,
                         'product_id'           => $row['product_id'] ?? null,
                         'description'          => (string) ($row['description'] ?? ''),
                         'quantity'             => is_numeric($row['quantity'] ?? null) ? (float) $row['quantity'] : 0,
                         'unit_id'              => $unitId,
+                        'unit_price'           => $boqUnitPrice,
+                        'price_source'         => $boqUnitPrice !== null ? 'boq' : null,
+                        'price_status'         => $boqUnitPrice !== null ? 'pending' : 'pending',
                         'category'             => (string) ($row['category'] ?? ''),
                         'brand'                => (string) ($row['brand'] ?? ''),
                         'status'               => 'pending',
@@ -210,6 +217,7 @@ class ShowBoq extends Component
                 'id'                   => $item->id,
                 'description'          => (string) $item->description,
                 'quantity'             => (float) $item->quantity,
+                'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
                 'unit'                 => $item->unit?->name ?? '',
                 'unit_id'              => $item->unit_id,
                 'product_id'           => $item->product_id,

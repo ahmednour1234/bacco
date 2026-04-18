@@ -516,6 +516,8 @@ Extract every line item from the provided document and return ONLY a valid JSON 
       "product_name": "Full item description",
       "quantity": 1.0,
       "unit": "pcs",
+      "unit_price": 0.0,
+      "total_price": 0.0,
       "category": "Category name or empty string",
       "brand": "Brand name or empty string",
       "engineering_required": false,
@@ -525,11 +527,14 @@ Extract every line item from the provided document and return ONLY a valid JSON 
 }
 
 Rules:
-- Include every line item / product found in the document.
+- Include EVERY line item / product found in the document — do not skip any row.
 - "quantity" must be a number (use 1 if not specified).
 - "unit" is the unit of measure (pcs, m, m2, m3, kg, L, set, etc.).
+- "unit_price" is the unit price of the item from the document. If a column contains prices, you MUST read the value for every row. If only a total price is given and no unit price, calculate unit_price = total_price / quantity. If no price is available for a row, use 0.
+- "total_price" is the total/line amount (quantity × unit_price). If not explicitly shown, calculate it. Use 0 if not available.
 - "engineering_required" is true only if the item clearly needs engineering work.
 - "confidence" is a number between 0 and 1 reflecting extraction certainty.
+- Do NOT merge section headers or floor labels as items; extract only actual products/services.
 - Return ONLY the JSON object — no markdown, no code fences, no extra text.
 PROMPT);
     }
@@ -542,14 +547,29 @@ PROMPT);
      */
     private function normaliseGeminiItem(array $raw): array
     {
+        $quantity   = is_numeric($raw['quantity'] ?? null) ? (float) $raw['quantity'] : 1;
+        $unitPrice  = is_numeric($raw['unit_price'] ?? null) ? (float) $raw['unit_price'] : null;
+        $totalPrice = is_numeric($raw['total_price'] ?? null) ? (float) $raw['total_price'] : null;
+
+        // Derive unit_price from total_price if not given directly
+        if ($unitPrice === null && $totalPrice !== null && $totalPrice > 0 && $quantity > 0) {
+            $unitPrice = $totalPrice / $quantity;
+        }
+
+        // Treat 0 as unpriced
+        if ($unitPrice !== null && $unitPrice <= 0) {
+            $unitPrice = null;
+        }
+
         return [
             'description'          => (string) ($raw['product_name'] ?? $raw['description'] ?? ''),
-            'quantity'             => is_numeric($raw['quantity'] ?? null) ? (float) $raw['quantity'] : 1,
+            'quantity'             => $quantity,
             'unit'                 => (string) ($raw['unit'] ?? ''),
             'category'             => (string) ($raw['category'] ?? ''),
             'brand'                => (string) ($raw['brand'] ?? ''),
             'status'               => 'pending',
             'engineering_required' => (bool) ($raw['engineering_required'] ?? false),
+            'unit_price'           => $unitPrice,
             'confidence'           => is_numeric($raw['confidence'] ?? null) ? (float) $raw['confidence'] : null,
             'raw_data'             => null,
             'ai_extracted'         => true,

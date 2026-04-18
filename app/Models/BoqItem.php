@@ -16,6 +16,7 @@ class BoqItem extends BaseModel
     {
         return array_merge(parent::casts(), [
             'quantity'             => 'decimal:3',
+            'unit_price'           => 'decimal:2',
             'status'               => QuotationItemStatusEnum::class,
             'engineering_required' => 'boolean',
             'is_selected'          => 'boolean',
