@@ -512,6 +512,8 @@ return [
     'qty_unit'                      => 'الكمية / الوحدة',
     'disc_percent'                  => 'خصم%',
     'vat_15'                        => 'ض.ق.م (15%)',
+    'updates'                       => 'تحديثات',
+    'use_row_buttons'               => 'استخدم أزرار الصفوف ↑',
     'engineering_updates'           => 'تحديثات الهندسة',
     'add_update'                    => 'إضافة تحديث',
     'no_engineering_updates'        => 'لا توجد تحديثات هندسية بعد',

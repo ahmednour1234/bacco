@@ -510,6 +510,8 @@ return [
     'qty_unit'                      => 'Qty / Unit',
     'disc_percent'                  => 'Disc%',
     'vat_15'                        => 'VAT (15%)',
+    'updates'                       => 'Updates',
+    'use_row_buttons'               => 'Use row buttons ↑',
     'engineering_updates'           => 'Engineering Updates',
     'add_update'                    => 'Add Update',
     'no_engineering_updates'        => 'No engineering updates yet',
