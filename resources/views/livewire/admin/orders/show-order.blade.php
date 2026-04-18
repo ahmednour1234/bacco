@@ -328,6 +328,7 @@
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-right">{{ __('app.unit_price_sar') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-16 text-right">{{ __('app.disc_percent') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-32 text-right">{{ __('app.total_sar') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-24 text-center">{{ __('app.updates') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
@@ -348,6 +349,28 @@
                                     @endif
                                 </td>
                                 <td class="px-5 py-4 text-right font-mono font-bold text-slate-900">{{ number_format((float)$item['total_price'], 2) }}</td>
+                                <td class="px-5 py-4 text-center">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <button
+                                            wire:click="openEngModal({{ $item['id'] }})"
+                                            title="Add Engineering Update"
+                                            class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-700 transition"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                        </button>
+                                        <button
+                                            wire:click="openLogModal({{ $item['id'] }})"
+                                            title="Add Logistics Update"
+                                            class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-100 hover:text-orange-700 transition"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -387,10 +410,7 @@
                     <h3 class="text-sm font-bold text-slate-700">{{ __('app.engineering_updates') }}</h3>
                     <span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-600">{{ count($engUpdates) }}</span>
                 </div>
-                <button wire:click="openEngModal" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition">
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    {{ __('app.add_update') }}
-                </button>
+                <p class="text-xs text-slate-400">{{ __('app.use_row_buttons') }}</p>
             </div>
             @if(empty($engUpdates))
                 <div class="flex flex-col items-center justify-center px-5 py-10 text-center">
@@ -420,6 +440,9 @@
                                         </div>
                                     @else
                                         <div class="flex items-center gap-2 flex-wrap">
+                                            @if($eu['item_desc'])
+                                                <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-200 truncate max-w-[160px]">{{ $eu['item_desc'] }}</span>
+                                            @endif
                                             <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">{{ $eu['label'] }}</span>
                                             <span class="text-xs text-slate-400">{{ $eu['date'] }}</span>
                                             <span class="text-xs text-slate-400">· {{ $eu['user'] }}</span>
@@ -458,10 +481,7 @@
                     <h3 class="text-sm font-bold text-slate-700">{{ __('app.logistics_updates') }}</h3>
                     <span class="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-bold text-orange-600">{{ count($logUpdates) }}</span>
                 </div>
-                <button wire:click="openLogModal" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition">
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    {{ __('app.add_update') }}
-                </button>
+                <p class="text-xs text-slate-400">{{ __('app.use_row_buttons') }}</p>
             </div>
             @if(empty($logUpdates))
                 <div class="flex flex-col items-center justify-center px-5 py-10 text-center">
@@ -491,6 +511,9 @@
                                         </div>
                                     @else
                                         <div class="flex items-center gap-2 flex-wrap">
+                                            @if($lu['item_desc'])
+                                                <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-200 truncate max-w-[160px]">{{ $lu['item_desc'] }}</span>
+                                            @endif
                                             <span class="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-700 ring-1 ring-inset ring-orange-200">{{ $lu['label'] }}</span>
                                             @if($lu['tracking'] !== '—')
                                                 <span class="text-xs font-mono text-slate-500 bg-slate-50 rounded px-1.5 py-0.5">{{ $lu['tracking'] }}</span>
@@ -612,7 +635,11 @@
                     </span>
                     <div>
                         <h3 class="text-sm font-bold text-slate-800">Add Engineering Update</h3>
-                        <p class="text-xs text-slate-400">Upload a new engineering update related to this project.</p>
+                        @if($engOrderItemDesc)
+                            <p class="text-xs text-blue-600 font-medium mt-0.5 truncate max-w-[220px]">{{ $engOrderItemDesc }}</p>
+                        @else
+                            <p class="text-xs text-slate-400">Upload a new engineering update related to this project.</p>
+                        @endif
                     </div>
                 </div>
                 <button wire:click="$set('showEngModal', false)" class="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
@@ -669,7 +696,11 @@
                     </span>
                     <div>
                         <h3 class="text-sm font-bold text-slate-800">Add Logistics Update</h3>
-                        <p class="text-xs text-slate-400">Add a new logistics update for the selected project item.</p>
+                        @if($logOrderItemDesc)
+                            <p class="text-xs text-orange-600 font-medium mt-0.5 truncate max-w-[220px]">{{ $logOrderItemDesc }}</p>
+                        @else
+                            <p class="text-xs text-slate-400">Add a new logistics update for the selected project item.</p>
+                        @endif
                     </div>
                 </div>
                 <button wire:click="$set('showLogModal', false)" class="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
