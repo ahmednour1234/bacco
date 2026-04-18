@@ -100,15 +100,66 @@
     <div
         wire:loading.flex
         wire:loading.except.target="submit"
-        class="fixed inset-0 z-40 flex items-center justify-center bg-white/60 backdrop-blur-sm"
+        style="display:none; direction:rtl;"
+        x-data="{
+            msgs: ['جاري القراءة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري المعالجة...', 'تقريباً خلصنا...'],
+            idx: 0,
+            init() { setInterval(() => { this.idx = (this.idx + 1) % this.msgs.length; }, 1800); }
+        }"
+        class="fixed inset-0 z-40 items-center justify-center"
+        style="background: rgba(15,23,42,0.45); backdrop-filter: blur(6px); display:none;"
     >
-        <div class="flex flex-col items-center gap-3">
-            <svg class="h-8 w-8 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
-            <span class="text-sm font-medium text-slate-600">{{ __('app.processing') }}</span>
+        <div style="
+            background: #fff;
+            border-radius: 28px;
+            padding: 44px 48px 40px;
+            text-align: center;
+            width: 320px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.18);
+            font-family: 'Cairo', sans-serif;
+        ">
+            {{-- Animated rings --}}
+            <div style="position:relative; width:80px; height:80px; margin:0 auto 28px;">
+                <svg style="position:absolute;inset:0;width:80px;height:80px;animation:gcw 1.4s linear infinite;" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#d1fae5" stroke-width="6"/>
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#10b981" stroke-width="6"
+                            stroke-linecap="round" stroke-dasharray="60 154"/>
+                </svg>
+                <svg style="position:absolute;inset:8px;width:64px;height:64px;animation:gccw 2s linear infinite;" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#a7f3d0" stroke-width="4"/>
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#34d399" stroke-width="4"
+                            stroke-linecap="round" stroke-dasharray="30 134"/>
+                </svg>
+                {{-- Center dot --}}
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                    <div style="width:16px;height:16px;border-radius:50%;background:#10b981;animation:gpulse 1.4s ease-in-out infinite;"></div>
+                </div>
+            </div>
+
+            {{-- Cycling message --}}
+            <p x-text="msgs[idx]" style="
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #0f172a;
+                margin-bottom: 8px;
+                min-height: 2rem;
+                transition: opacity 0.3s;
+            "></p>
+            <p style="font-size:0.82rem; color:#94a3b8; font-weight:500;">يتم تنفيذ العملية، الرجاء الانتظار</p>
+
+            {{-- Bouncing dots --}}
+            <div style="display:flex; justify-content:center; gap:6px; margin-top:20px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0s;display:inline-block;"></span>
+                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0.2s;display:inline-block;"></span>
+                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0.4s;display:inline-block;"></span>
+            </div>
         </div>
+        <style>
+            @keyframes gcw   { to { transform: rotate(360deg); } }
+            @keyframes gccw  { to { transform: rotate(-360deg); } }
+            @keyframes gpulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.4); opacity:0.6; } }
+            @keyframes gbounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+        </style>
     </div>
 
     <div class="space-y-6">
