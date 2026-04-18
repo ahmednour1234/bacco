@@ -286,10 +286,14 @@ class QuotationAiService
     private function parseBoqWithGemini(UploadedFile|string $file, array $context = []): array
     {
         $geminiKey     = (string) config('services.gemini.key', '');
-        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.0-flash-lite');
-        // Ordered list of models to try — all confirmed available for this API key
-        $geminiModels  = array_unique(array_filter([$primaryModel, 'gemini-2.0-flash-lite', 'gemini-flash-lite-latest', 'gemini-flash-latest']));
-        $geminiModel   = $primaryModel;
+        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.0-flash');
+        // Ordered list of models to try
+        $geminiModels  = array_values(array_unique(array_filter([
+            $primaryModel,
+            'gemini-2.0-flash',
+            'gemini-1.5-flash',
+            'gemini-1.5-pro',
+        ])));
 
         try {
             if ($file instanceof UploadedFile) {
@@ -374,8 +378,8 @@ class QuotationAiService
             ->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}",
                 [
-                    'contents'         => [['parts' => $parts]],
-                    'generationConfig' => ['responseMimeType' => 'application/json'],
+                    'contents' => [['parts' => $parts]],
+                    // Do NOT set responseMimeType — not supported by all models (causes HTTP 400 on flash-lite).
                 ]
             );
 
@@ -395,12 +399,19 @@ class QuotationAiService
             return $this->failure('Gemini returned an empty response.');
         }
 
-        $decoded = json_decode($text, true);
-
-        // If Gemini wrapped the JSON in a code block, strip it.
-        if (! is_array($decoded) && preg_match('/```(?:json)?\s*([\s\S]*?)\s*```/i', $text, $m)) {
-            $decoded = json_decode($m[1], true);
+        // Strip markdown code fences if present.
+        if (preg_match('/```(?:json)?\s*([\s\S]*?)\s*```/i', $text, $m)) {
+            $text = $m[1];
         }
+
+        // Extract the first JSON object or array from the response.
+        if (preg_match('/\{[\s\S]*\}/s', $text, $m)) {
+            $text = $m[0];
+        } elseif (preg_match('/\[[\s\S]*\]/s', $text, $m)) {
+            $text = $m[0];
+        }
+
+        $decoded = json_decode($text, true);
 
         if (! is_array($decoded)) {
             Log::error('QuotationAiService: Gemini response could not be decoded as JSON.', ['text' => $text]);
