@@ -618,17 +618,17 @@
     {{-- ADD ENGINEERING UPDATE MODAL                                           --}}
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
     @if($showEngModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(15,23,42,0.55);backdrop-filter:blur(6px)">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(15,23,42,0.45);backdrop-filter:blur(6px)">
         <div
             x-data
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95 translate-y-3"
             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
             class="relative w-full max-w-xs overflow-hidden rounded-2xl bg-white"
-            style="box-shadow:0 20px 50px rgba(99,102,241,0.22),0 6px 20px rgba(0,0,0,0.14)"
+            style="box-shadow:0 20px 50px rgba(16,185,129,0.20),0 6px 20px rgba(0,0,0,0.10)"
         >
-            {{-- Compact coloured header strip --}}
-            <div class="flex items-center gap-3 px-5 py-4" style="background:linear-gradient(135deg,#6366f1,#4f46e5,#7c3aed)">
+            {{-- Header strip --}}
+            <div class="flex items-center gap-3 px-5 py-4" style="background:linear-gradient(135deg,#059669,#10b981,#34d399)">
                 <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20">
                     <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -637,47 +637,47 @@
                 <div class="min-w-0 flex-1">
                     <p class="text-sm font-bold text-white">{{ __('app.add_engineering_update') }}</p>
                     @if($engOrderItemDesc)
-                        <p class="mt-0.5 truncate text-xs text-indigo-200">{{ $engOrderItemDesc }}</p>
+                        <p class="mt-0.5 truncate text-xs text-emerald-100">{{ $engOrderItemDesc }}</p>
                     @endif
                 </div>
-                <button wire:click="$set('showEngModal', false)" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/15 text-white/80 hover:bg-white/25 transition">
+                <button wire:click="$set('showEngModal', false)" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/35 transition">
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
             {{-- Form body --}}
-            <div class="px-5 py-4 space-y-4">
+            <div class="px-5 py-4 space-y-4 bg-white">
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                        <span class="inline-block h-1.5 w-1.5 rounded-full" style="background:#6366f1"></span>
+                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
+                        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                         {{ __('app.update_type') }}
                     </label>
-                    <select wire:model="engStatus" class="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm font-medium text-slate-800 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition">
+                    <select wire:model="engStatus" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition">
                         @foreach(\App\Enums\EngineeringStatusEnum::cases() as $case)
                             <option value="{{ $case->value }}">{{ $case->label() }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                        <span class="inline-block h-1.5 w-1.5 rounded-full" style="background:#6366f1"></span>
+                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
+                        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                         {{ __('app.note_optional') }}
-                        <span class="normal-case font-normal text-slate-300">({{ __('app.optional') }})</span>
+                        <span class="normal-case font-normal text-slate-400">({{ __('app.optional') }})</span>
                     </label>
-                    <textarea wire:model="engNotes" rows="2" placeholder="{{ __('app.note_placeholder') }}" class="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition resize-none"></textarea>
+                    <textarea wire:model="engNotes" rows="2" placeholder="{{ __('app.note_placeholder') }}" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition resize-none"></textarea>
                 </div>
             </div>
 
             {{-- Actions --}}
-            <div class="flex gap-2 px-5 pb-5">
+            <div class="flex gap-2 px-5 pb-5 bg-white">
                 <button wire:click="saveEngUpdate" wire:loading.attr="disabled"
                     class="flex-1 rounded-lg py-2.5 text-sm font-bold text-white disabled:opacity-60 transition"
-                    style="background:linear-gradient(135deg,#6366f1,#4f46e5);box-shadow:0 3px 12px rgba(99,102,241,0.4)"
+                    style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 3px 14px rgba(16,185,129,0.4)"
                 >
                     <span wire:loading.remove wire:target="saveEngUpdate">{{ __('app.save_update') }}</span>
                     <span wire:loading wire:target="saveEngUpdate">{{ __('app.saving') }}</span>
                 </button>
-                <button wire:click="$set('showEngModal', false)" class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 transition">{{ __('app.cancel') }}</button>
+                <button wire:click="$set('showEngModal', false)" class="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 transition">{{ __('app.cancel') }}</button>
             </div>
         </div>
     </div>
@@ -687,17 +687,17 @@
     {{-- ADD LOGISTICS UPDATE MODAL                                             --}}
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
     @if($showLogModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(15,23,42,0.55);backdrop-filter:blur(6px)">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(15,23,42,0.45);backdrop-filter:blur(6px)">
         <div
             x-data
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95 translate-y-3"
             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
             class="relative w-full max-w-xs overflow-hidden rounded-2xl bg-white"
-            style="box-shadow:0 20px 50px rgba(249,115,22,0.22),0 6px 20px rgba(0,0,0,0.14)"
+            style="box-shadow:0 20px 50px rgba(16,185,129,0.20),0 6px 20px rgba(0,0,0,0.10)"
         >
-            {{-- Compact coloured header strip --}}
-            <div class="flex items-center gap-3 px-5 py-4" style="background:linear-gradient(135deg,#f97316,#ea580c,#dc2626)">
+            {{-- Header strip --}}
+            <div class="flex items-center gap-3 px-5 py-4" style="background:linear-gradient(135deg,#059669,#10b981,#34d399)">
                 <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20">
                     <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
@@ -706,22 +706,22 @@
                 <div class="min-w-0 flex-1">
                     <p class="text-sm font-bold text-white">{{ __('app.add_logistics_update') }}</p>
                     @if($logOrderItemDesc)
-                        <p class="mt-0.5 truncate text-xs text-orange-200">{{ $logOrderItemDesc }}</p>
+                        <p class="mt-0.5 truncate text-xs text-emerald-100">{{ $logOrderItemDesc }}</p>
                     @endif
                 </div>
-                <button wire:click="$set('showLogModal', false)" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/15 text-white/80 hover:bg-white/25 transition">
+                <button wire:click="$set('showLogModal', false)" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/35 transition">
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
             {{-- Form body --}}
-            <div class="px-5 py-4 space-y-4">
+            <div class="px-5 py-4 space-y-4 bg-white">
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                        <span class="inline-block h-1.5 w-1.5 rounded-full" style="background:#f97316"></span>
+                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
+                        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                         {{ __('app.stage') }}
                     </label>
-                    <select wire:model="logStatus" class="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm font-medium text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition">
+                    <select wire:model="logStatus" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition">
                         @foreach(\App\Enums\LogisticsStatusEnum::cases() as $case)
                             <option value="{{ $case->value }}">{{ $case->label() }}</option>
                         @endforeach
@@ -729,40 +729,40 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                            <span class="inline-block h-1.5 w-1.5 rounded-full" style="background:#f97316"></span>
+                        <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
+                            <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                             {{ __('app.carrier_supplier') }}
                         </label>
-                        <input wire:model="logCarrier" type="text" placeholder="{{ __('app.carrier_placeholder') }}" class="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-700 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition"/>
+                        <input wire:model="logCarrier" type="text" placeholder="{{ __('app.carrier_placeholder') }}" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition"/>
                     </div>
                     <div>
-                        <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                            <span class="inline-block h-1.5 w-1.5 rounded-full" style="background:#f97316"></span>
+                        <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
+                            <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                             {{ __('app.tracking_number') }}
                         </label>
-                        <input wire:model="logTracking" type="text" placeholder="{{ __('app.tracking_placeholder') }}" class="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-700 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition"/>
+                        <input wire:model="logTracking" type="text" placeholder="{{ __('app.tracking_placeholder') }}" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition"/>
                     </div>
                 </div>
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                        <span class="inline-block h-1.5 w-1.5 rounded-full" style="background:#f97316"></span>
+                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
+                        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                         {{ __('app.note_optional') }}
-                        <span class="normal-case font-normal text-slate-300">({{ __('app.optional') }})</span>
+                        <span class="normal-case font-normal text-slate-400">({{ __('app.optional') }})</span>
                     </label>
-                    <textarea wire:model="logNotes" rows="2" placeholder="{{ __('app.log_note_placeholder') }}" class="w-full rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-700 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition resize-none"></textarea>
+                    <textarea wire:model="logNotes" rows="2" placeholder="{{ __('app.log_note_placeholder') }}" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition resize-none"></textarea>
                 </div>
             </div>
 
             {{-- Actions --}}
-            <div class="flex gap-2 px-5 pb-5">
+            <div class="flex gap-2 px-5 pb-5 bg-white">
                 <button wire:click="saveLogUpdate" wire:loading.attr="disabled"
                     class="flex-1 rounded-lg py-2.5 text-sm font-bold text-white disabled:opacity-60 transition"
-                    style="background:linear-gradient(135deg,#f97316,#ea580c);box-shadow:0 3px 12px rgba(249,115,22,0.4)"
+                    style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 3px 14px rgba(16,185,129,0.4)"
                 >
                     <span wire:loading.remove wire:target="saveLogUpdate">{{ __('app.save_update') }}</span>
                     <span wire:loading wire:target="saveLogUpdate">{{ __('app.saving') }}</span>
                 </button>
-                <button wire:click="$set('showLogModal', false)" class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 transition">{{ __('app.cancel') }}</button>
+                <button wire:click="$set('showLogModal', false)" class="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 transition">{{ __('app.cancel') }}</button>
             </div>
         </div>
     </div>
