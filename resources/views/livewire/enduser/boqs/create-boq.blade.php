@@ -98,24 +98,27 @@
 
     {{-- Generic loading overlay --}}
     <div
-        wire:loading.flex
+        wire:loading
         wire:loading.except.target="submit"
-        style="display:none; direction:rtl;"
         x-data="{
             msgs: ['جاري القراءة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري المعالجة...', 'تقريباً خلصنا...'],
             idx: 0,
             init() { setInterval(() => { this.idx = (this.idx + 1) % this.msgs.length; }, 1800); }
         }"
-        class="fixed inset-0 z-40 items-center justify-center"
-        style="background: rgba(15,23,42,0.45); backdrop-filter: blur(6px); display:none;"
+        class="fixed inset-0 z-[9999]"
+        style="background:rgba(15,23,42,0.55); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; direction:rtl;"
     >
         <div style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background: #fff;
             border-radius: 28px;
             padding: 44px 48px 40px;
             text-align: center;
             width: 320px;
-            box-shadow: 0 32px 80px rgba(0,0,0,0.18);
+            box-shadow: 0 32px 80px rgba(0,0,0,0.22);
             font-family: 'Cairo', sans-serif;
         ">
             {{-- Animated rings --}}
@@ -130,33 +133,25 @@
                     <circle cx="32" cy="32" r="26" fill="none" stroke="#34d399" stroke-width="4"
                             stroke-linecap="round" stroke-dasharray="30 134"/>
                 </svg>
-                {{-- Center dot --}}
                 <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
                     <div style="width:16px;height:16px;border-radius:50%;background:#10b981;animation:gpulse 1.4s ease-in-out infinite;"></div>
                 </div>
             </div>
 
             {{-- Cycling message --}}
-            <p x-text="msgs[idx]" style="
-                font-size: 1.25rem;
-                font-weight: 700;
-                color: #0f172a;
-                margin-bottom: 8px;
-                min-height: 2rem;
-                transition: opacity 0.3s;
-            "></p>
-            <p style="font-size:0.82rem; color:#94a3b8; font-weight:500;">يتم تنفيذ العملية، الرجاء الانتظار</p>
+            <p x-text="msgs[idx]" style="font-size:1.25rem;font-weight:700;color:#0f172a;margin-bottom:8px;min-height:2rem;"></p>
+            <p style="font-size:0.82rem;color:#94a3b8;font-weight:500;">يتم تنفيذ العملية، الرجاء الانتظار</p>
 
             {{-- Bouncing dots --}}
-            <div style="display:flex; justify-content:center; gap:6px; margin-top:20px;">
+            <div style="display:flex;justify-content:center;gap:6px;margin-top:20px;">
                 <span style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0s;display:inline-block;"></span>
                 <span style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0.2s;display:inline-block;"></span>
                 <span style="width:8px;height:8px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0.4s;display:inline-block;"></span>
             </div>
         </div>
         <style>
-            @keyframes gcw   { to { transform: rotate(360deg); } }
-            @keyframes gccw  { to { transform: rotate(-360deg); } }
+            @keyframes gcw    { to { transform: rotate(360deg); } }
+            @keyframes gccw   { to { transform: rotate(-360deg); } }
             @keyframes gpulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.4); opacity:0.6; } }
             @keyframes gbounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
         </style>
