@@ -102,6 +102,8 @@ return [
     'status_active'     => 'نشط',
     'status_on_hold'    => 'معلّق',
     'status_approved'   => 'معتمد',
+    'status_sent'       => 'مُرسَل',
+    'status_expired'    => 'منتهي الصلاحية',
 
     // ── Reports ──────────────────────────────────────────────────────────────
     'total_orders_value'    => 'إجمالي قيمة الطلبات',

@@ -16,14 +16,14 @@ enum QuotationRequestStatusEnum: string
     public function label(): string
     {
         return match($this) {
-            self::Draft     => 'Draft',
-            self::Submitted => 'Submitted',
-            self::Tender    => 'Tender',
-            self::InReview  => 'In Review',
-            self::Quoted    => 'Quoted',
-            self::Accepted  => 'Accepted',
-            self::Rejected  => 'Rejected',
-            self::Cancelled => 'Cancelled',
+            self::Draft     => __('app.status_draft'),
+            self::Submitted => __('app.status_submitted'),
+            self::Tender    => __('app.status_tender'),
+            self::InReview  => __('app.status_in_review'),
+            self::Quoted    => __('app.status_quoted'),
+            self::Accepted  => __('app.status_accepted'),
+            self::Rejected  => __('app.status_rejected'),
+            self::Cancelled => __('app.status_cancelled'),
         };
     }
 

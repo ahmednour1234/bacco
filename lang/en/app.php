@@ -102,6 +102,8 @@ return [
     'status_active'     => 'Active',
     'status_on_hold'    => 'On Hold',
     'status_approved'   => 'Approved',
+    'status_sent'       => 'Sent',
+    'status_expired'    => 'Expired',
 
     // ── Reports ──────────────────────────────────────────────────────────────
     'total_orders_value'    => 'Total Orders Value',
