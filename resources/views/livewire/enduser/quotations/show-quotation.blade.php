@@ -41,10 +41,15 @@
 
     {{-- ───── Pricing Loading Modal ────────────────────────────────────────────── --}}
     @if($fetchingPrices)
+    <style>
+        @keyframes ai-cw   { to { transform: rotate(360deg); } }
+        @keyframes ai-ccw  { to { transform: rotate(-360deg); } }
+        @keyframes ai-blink{ 0%,100%{opacity:.25} 50%{opacity:1} }
+        @keyframes ai-fill { from{width:4%} to{width:88%} }
+    </style>
     <div
         x-data="{
             msgIndex: 0,
-            bar: 5,
             messages: [
                 'جاري البحث في كتالوج المنتجات…',
                 'نحلل بنود جدول الكميات…',
@@ -53,109 +58,93 @@
                 'نحسب أفضل الأسعار لك…',
                 'يرجى الانتظار، تقريباً انتهينا…',
             ],
-            init() {
-                setInterval(() => {
-                    this.msgIndex = (this.msgIndex + 1) % this.messages.length;
-                }, 2500);
-                setInterval(() => {
-                    if (this.bar < 90) this.bar += Math.random() * 7;
-                }, 1400);
-            }
+            init() { setInterval(() => { this.msgIndex = (this.msgIndex + 1) % this.messages.length; }, 2600); }
         }"
-        class="fixed inset-0 z-50 flex items-center justify-center"
-        style="background: rgba(2,8,23,0.72); backdrop-filter: blur(8px);"
+        style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(2,10,28,0.78);backdrop-filter:blur(8px);"
     >
-        <div
-            x-transition:enter="transition ease-out duration-400"
-            x-transition:enter-start="opacity-0 translate-y-6 scale-95"
-            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-            class="relative mx-4 w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl"
-        >
-            {{-- Top progress bar --}}
-            <div class="h-1 w-full bg-slate-100">
-                <div
-                    class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 transition-all duration-1000"
-                    :style="`width: ${bar}%`"
-                ></div>
+        <div style="direction:rtl;width:100%;max-width:360px;margin:0 16px;border-radius:20px;background:#fff;box-shadow:0 25px 60px rgba(0,0,0,0.2);overflow:hidden;">
+
+            {{-- Progress bar --}}
+            <div style="height:3px;background:#f1f5f9;">
+                <div style="height:100%;background:linear-gradient(to right,#10b981,#14b8a6);border-radius:99px;animation:ai-fill 90s linear forwards;"></div>
             </div>
 
-            <div class="px-8 pb-8 pt-7 text-center">
+            <div style="padding:28px 28px 24px;text-align:center;">
 
-                {{-- Animated orb: conic gradient spinning ring + SAR symbol --}}
-                <div class="relative mx-auto mb-6 h-20 w-20">
-                    <span class="absolute inset-0 animate-ping rounded-full bg-emerald-100 opacity-50" style="animation-duration:2.2s;"></span>
-                    <span class="absolute inset-0 rounded-full" style="background: conic-gradient(#10b981 0%, #14b8a6 35%, #06b6d4 60%, #10b981 100%); animation: qspin 1.8s linear infinite;"></span>
-                    <span class="absolute inset-1.5 flex items-center justify-center rounded-full bg-white">
-                        <span class="text-xl font-extrabold text-emerald-600" style="font-family: system-ui, sans-serif;">﷼</span>
+                {{-- Spinner + icon --}}
+                <div style="position:relative;width:80px;height:80px;margin:0 auto 20px;">
+                    {{-- Outer ring --}}
+                    <span style="position:absolute;inset:0;border-radius:50%;border:3px solid #d1fae5;border-top-color:#10b981;animation:ai-cw 1.5s linear infinite;display:block;"></span>
+                    {{-- Inner ring --}}
+                    <span style="position:absolute;inset:10px;border-radius:50%;border:3px solid #ccfbf1;border-bottom-color:#0d9488;animation:ai-ccw 1s linear infinite;display:block;"></span>
+                    {{-- Center icon: sparkles --}}
+                    <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" fill="#10b981"/>
+                            <path d="M19 3l.75 2.25L22 6l-2.25.75L19 9l-.75-2.25L16 6l2.25-.75L19 3z" fill="#34d399"/>
+                            <path d="M5 15l.75 2.25L8 18l-2.25.75L5 21l-.75-2.25L2 18l2.25-.75L5 15z" fill="#6ee7b7"/>
+                        </svg>
                     </span>
                 </div>
 
-                {{-- Title --}}
-                <h3 class="text-xl font-bold text-slate-900">تحليل الأسعار</h3>
+                {{-- Label --}}
+                <p style="font-size:11px;font-weight:700;letter-spacing:2px;color:#10b981;text-transform:uppercase;margin-bottom:4px;">AI Pricing</p>
+                <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">تحليل الأسعار</h3>
 
-                {{-- Rotating messages --}}
-                <div class="relative mt-2 h-6 overflow-hidden">
+                {{-- Cycling message --}}
+                <div style="position:relative;height:22px;overflow:hidden;margin-bottom:16px;">
                     <template x-for="(msg, i) in messages" :key="i">
                         <p
-                            class="absolute inset-0 flex items-center justify-center text-sm text-slate-500"
-                            style="transition: opacity 0.4s, transform 0.4s;"
-                            :style="i === msgIndex
-                                ? 'opacity:1; transform:translateY(0)'
-                                : 'opacity:0; transform:translateY(8px)'"
+                            style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#64748b;transition:opacity .45s ease, transform .45s ease;margin:0;"
+                            :style="i===msgIndex ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(7px)'"
                             x-text="msg"
                         ></p>
                     </template>
                 </div>
 
-                {{-- Wave dots --}}
-                <div class="mt-5 flex items-end justify-center gap-1.5" style="height:18px;">
-                    <span class="w-2 rounded-full bg-emerald-400" style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0s;"></span>
-                    <span class="w-2 rounded-full bg-emerald-500" style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0.18s;"></span>
-                    <span class="w-2 rounded-full bg-teal-500"    style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0.36s;"></span>
-                    <span class="w-2 rounded-full bg-emerald-400" style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0.54s;"></span>
-                    <span class="w-2 rounded-full bg-emerald-300" style="animation: qwave 1.1s ease-in-out infinite; animation-delay:0.72s;"></span>
+                {{-- Blinking dots --}}
+                <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:20px;">
+                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#10b981;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0s;"></span>
+                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#14b8a6;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0.22s;"></span>
+                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#06b6d4;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0.44s;"></span>
                 </div>
 
-                {{-- Steps (RTL timeline) --}}
-                <div class="mt-7 space-y-3">
-                    {{-- Done --}}
-                    <div class="flex items-center justify-end gap-3">
-                        <span class="text-sm font-medium text-slate-700">البحث في الكتالوج</span>
-                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500">
-                            <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                {{-- Divider --}}
+                <div style="height:1px;background:#f1f5f9;margin-bottom:16px;"></div>
+
+                {{-- Steps --}}
+                <div style="display:flex;flex-direction:column;gap:10px;">
+
+                    {{-- Step 1 - Done --}}
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
+                        <span style="font-size:13px;font-weight:500;color:#334155;">البحث في الكتالوج</span>
+                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
                             </svg>
                         </span>
                     </div>
-                    {{-- In progress --}}
-                    <div class="flex items-center justify-end gap-3">
-                        <span class="text-sm font-medium text-emerald-700">تقدير الذكاء الاصطناعي</span>
-                        <span class="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 ring-2 ring-emerald-400">
-                            <svg class="h-3.5 w-3.5 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+
+                    {{-- Step 2 - Active --}}
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
+                        <span style="font-size:13px;font-weight:700;color:#059669;">تقدير الذكاء الاصطناعي</span>
+                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#ecfdf5;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;">
+                            <svg style="animation:ai-cw 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="9" stroke="#10b981" stroke-width="3" stroke-dasharray="38 18" stroke-linecap="round"/>
                             </svg>
                         </span>
                     </div>
-                    {{-- Pending --}}
-                    <div class="flex items-center justify-end gap-3 opacity-30">
-                        <span class="text-sm font-medium text-slate-500">حفظ وتحديث العرض</span>
-                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-slate-200 bg-slate-50">
-                            <span class="h-2 w-2 rounded-full bg-slate-300"></span>
+
+                    {{-- Step 3 - Pending --}}
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;opacity:.3;">
+                        <span style="font-size:13px;color:#94a3b8;">حفظ وتحديث العرض</span>
+                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;">
+                            <span style="display:block;width:8px;height:8px;border-radius:50%;background:#cbd5e1;"></span>
                         </span>
                     </div>
-                </div>
 
+                </div>
             </div>
-
-            {{-- Keyframes injected once --}}
-            <style>
-                @keyframes qspin  { to { transform: rotate(360deg); } }
-                @keyframes qwave  {
-                    0%, 100% { height: 6px;  }
-                    50%       { height: 16px; }
-                }
-            </style>
         </div>
     </div>
     @endif
