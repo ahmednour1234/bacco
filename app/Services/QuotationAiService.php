@@ -286,13 +286,13 @@ class QuotationAiService
     private function parseBoqWithGemini(UploadedFile|string $file, array $context = []): array
     {
         $geminiKey     = (string) config('services.gemini.key', '');
-        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.0-flash');
-        // Ordered list of models to try
+        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.5-flash');
+        // Ordered list of models to try — confirmed working for new API keys
         $geminiModels  = array_values(array_unique(array_filter([
             $primaryModel,
-            'gemini-2.0-flash',
-            'gemini-1.5-flash',
-            'gemini-1.5-pro',
+            'gemini-2.5-flash',
+            'gemini-2.5-flash-lite',
+            'gemini-flash-latest',
         ])));
 
         try {
