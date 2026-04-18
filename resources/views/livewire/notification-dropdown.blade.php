@@ -20,7 +20,7 @@
          x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
-         class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl
+         class="absolute end-0 top-full mt-2 w-80 bg-white rounded-xl
                 border border-slate-200 shadow-xl overflow-hidden z-50">
 
         {{-- Header --}}
@@ -45,7 +45,7 @@
             @forelse($notifications as $notification)
                 <button
                     wire:click="markAsRead({{ $notification->id }})"
-                    class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors w-full text-left
+                    class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors w-full text-start
                            {{ $notification->is_read ? 'opacity-60' : '' }}"
                 >
                     {{-- Icon --}}
