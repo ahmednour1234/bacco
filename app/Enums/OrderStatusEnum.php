@@ -16,14 +16,14 @@ enum OrderStatusEnum: string
     public function label(): string
     {
         return match($this) {
-            self::Pending    => 'pending',
-            self::Confirmed  => 'confirmed',
-            self::Processing => 'Processing',
-            self::Shipped    => 'Shipped',
-            self::Delivered  => 'Delivered',
-            self::Completed  => 'Completed',
-            self::Cancelled  => 'Cancelled',
-            self::Refunded   => 'Refunded',
+            self::Pending    => __('app.status_pending'),
+            self::Confirmed  => __('app.status_confirmed'),
+            self::Processing => __('app.status_processing'),
+            self::Shipped    => __('app.status_shipped'),
+            self::Delivered  => __('app.status_delivered'),
+            self::Completed  => __('app.status_completed'),
+            self::Cancelled  => __('app.status_cancelled'),
+            self::Refunded   => __('app.status_refunded'),
         };
     }
 
