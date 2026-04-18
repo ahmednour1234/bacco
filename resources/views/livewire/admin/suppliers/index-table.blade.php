@@ -7,16 +7,16 @@
                 <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search suppliers…"
+                <input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('app.search_suppliers') }}"
                     class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 sm:w-64">
             </div>
 
             {{-- Status filter --}}
             <select wire:model.live="statusFilter"
                 class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="">{{ __('app.all_status') }}</option>
+                <option value="active">{{ __('app.status_active') }}</option>
+                <option value="inactive">{{ __('app.inactive') }}</option>
             </select>
 
             @if($hasActiveFilters)
@@ -24,7 +24,7 @@
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    Clear
+                    {{ __('app.clear') }}
                 </button>
             @endif
         </div>
@@ -34,7 +34,7 @@
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Add Supplier
+            {{ __('app.add_supplier') }}
         </a>
     </div>
 
@@ -44,14 +44,14 @@
             <table class="min-w-full divide-y divide-slate-100">
                 <thead>
                     <tr class="bg-slate-50">
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Supplier Name</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Company</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Contact</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Products</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Activity</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Created</th>
-                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.supplier_name') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.company') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.contact') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.products') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.activity') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -96,11 +96,11 @@
                             <td class="whitespace-nowrap px-5 py-4">
                                 @if($supplier->active)
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Active
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.status_active') }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-600">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Inactive
+                                        <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>{{ __('app.inactive') }}
                                     </span>
                                 @endif
                             </td>
@@ -143,7 +143,7 @@
                                                    {{ $supplier->active
                                                         ? 'text-red-400 hover:bg-red-50 hover:text-red-600'
                                                         : 'text-emerald-500 hover:bg-emerald-50 hover:text-emerald-700' }}"
-                                            title="{{ $supplier->active ? 'Block' : 'Activate' }}">
+                                            title="{{ $supplier->active ? __('app.block') : __('app.activate') }}">
                                             @if($supplier->active)
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
@@ -165,9 +165,9 @@
                                     <svg class="h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
-                                    <p class="text-sm font-semibold text-slate-500">No suppliers found</p>
+                                    <p class="text-sm font-semibold text-slate-500">{{ __('app.no_suppliers_found') }}</p>
                                     @if($hasActiveFilters)
-                                        <button wire:click="resetFilters" class="text-xs text-emerald-600 underline hover:text-emerald-700">Clear filters</button>
+                                        <button wire:click="resetFilters" class="text-xs text-emerald-600 underline hover:text-emerald-700">{{ __('app.clear_filters') }}</button>
                                     @endif
                                 </div>
                             </td>
@@ -182,7 +182,7 @@
             <div class="border-t border-slate-100 bg-slate-50/50 px-5 py-3">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-xs text-slate-400">
-                        Showing {{ $suppliers->firstItem() }}–{{ $suppliers->lastItem() }} of {{ $suppliers->total() }} suppliers
+                        {{ __('app.showing') }} {{ $suppliers->firstItem() }}–{{ $suppliers->lastItem() }} {{ __('app.of') }} {{ $suppliers->total() }} {{ __('app.suppliers') }}
                     </p>
                     {{ $suppliers->links() }}
                 </div>

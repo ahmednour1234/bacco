@@ -49,12 +49,12 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 bg-slate-50">
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.description') }}</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.websites') }}</th>
-                        <th class="hidden px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">{{ __('app.products') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.description') }}</th>
+                        <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.websites') }}</th>
+                        <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">{{ __('app.products') }}</th>
                         <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
+                        <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -87,7 +87,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4 text-right">
+                            <td class="px-5 py-4 text-end">
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('admin.brands.edit', $brand) }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200">
                                         {{ __('app.edit') }}
