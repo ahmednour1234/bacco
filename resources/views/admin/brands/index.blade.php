@@ -4,9 +4,9 @@
 @section('page-title', 'Brands')
 
 @section('breadcrumb')
-    <span class="text-xs text-slate-400">Catalog</span>
+    <span class="text-xs text-slate-400">{{ __('app.catalog') }}</span>
     <span class="text-xs text-slate-300">/</span>
-    <span class="text-xs font-medium text-slate-600">Brands</span>
+    <span class="text-xs font-medium text-slate-600">{{ __('app.brands') }}</span>
 @endsection
 
 @section('content')
@@ -24,7 +24,7 @@
     {{-- Header row --}}
     <div class="flex items-center justify-between mb-6">
         <div>
-            <p class="text-sm text-slate-500">Manage product brands and their website associations.</p>
+            <p class="text-sm text-slate-500">{{ __('app.manage_brands_desc') }}</p>
         </div>
         <a href="{{ route('admin.brands.create') }}"
               wire:navigate
@@ -32,7 +32,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Add Brand
+            {{ __('app.add_brand') }}
         </a>
     </div>
 

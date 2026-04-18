@@ -497,6 +497,11 @@ return [
     'selected_product'              => 'Selected Product',
 
     // ── Admin Brands ─────────────────────────────────────────────────────────
+    'catalog'                       => 'Catalog',
+    'management'                    => 'Management',
+    'add'                           => 'Add',
+    'add_brand'                     => 'Add Brand',
+    'manage_brands_desc'            => 'Manage product brands and their website associations.',
     'search_brands'                 => 'Search brands by name',
     'no_brands_found'               => 'No brands found.',
     'websites'                      => 'Websites',
@@ -507,6 +512,8 @@ return [
     'create_brand'                  => 'Create Brand',
 
     // ── Admin Categories ─────────────────────────────────────────────────────
+    'add_category'                  => 'Add Category',
+    'manage_categories_desc'        => 'Manage product categories and their website associations.',
     'search_categories'             => 'Search categories by name',
     'no_categories_found'           => 'No categories found.',
     'slug'                          => 'Slug',
@@ -518,6 +525,12 @@ return [
     'create_category'               => 'Create Category',
 
     // ── Admin Products ───────────────────────────────────────────────────────
+    'manage_products_desc'          => 'Manage and register products in the Qimta inventory database.',
+    'products_database'             => 'Products Database',
+    'add_new_product'               => 'Add New Product',
+    'add_new_product_desc'          => 'Fill in the information below to register a new product in the Qimta inventory database.',
+    'edit_product'                  => 'Edit Product',
+    'update_product_desc'           => 'Update product details in the Qimta inventory database.',
     'search_products'               => 'Search by name, SKU or division…',
     'no_products_found'             => 'No products found.',
     'try_adjusting_search'          => 'Try adjusting your search.',
