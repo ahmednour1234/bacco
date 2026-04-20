@@ -324,7 +324,13 @@ PROMPT;
 
             $items = json_decode($text, true);
 
-            if (! is_array($items)) {
+            // If direct decode fails, try to extract JSON array from response
+            if (! is_array($items) && preg_match('/\[[\s\S]*\]/', $text, $m)) {
+                $items = json_decode($m[0], true);
+            }
+
+            if (! is_array($items) || empty($items)) {
+                \Log::warning('Admin AI response could not be parsed', ['raw' => mb_substr($text, 0, 2000)]);
                 $this->aiAnalyzing = false;
                 $this->addError('aiPastedText', 'Could not parse Gemini response. Please try again or rephrase your input.');
                 return;
