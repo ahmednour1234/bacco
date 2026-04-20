@@ -657,7 +657,7 @@ return [
     'price_include_engineering'     => 'هل يشمل السعر الهندسة؟',
     'not_sure'                      => 'غير متأكد',
     'price_include_installation'    => 'هل يشمل السعر التركيب؟',
-    'profit_margin_handling'        => 'معالجة الربح / الهامش',
+    'profit_margin_handling'        => 'معالجة الهامش',
     'apply_auto_20'                 => 'تطبيق تلقائي (20%)',
     'apply_auto_15'                 => 'تطبيق تلقائي (15%)',
     'keep_original_price'           => 'الاحتفاظ بالسعر الأصلي',

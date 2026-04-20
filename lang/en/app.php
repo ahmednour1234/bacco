@@ -659,7 +659,7 @@ return [
     'price_include_engineering'     => 'Does the price include engineering?',
     'not_sure'                      => 'Not sure',
     'price_include_installation'    => 'Does the price include installation?',
-    'profit_margin_handling'        => 'Profit / Margin Handling',
+    'profit_margin_handling'        => 'Margin Handling',
     'apply_auto_20'                 => 'Apply automatically (20%)',
     'apply_auto_15'                 => 'Apply automatically (15%)',
     'keep_original_price'           => 'Keep original price',

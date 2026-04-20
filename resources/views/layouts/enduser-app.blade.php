@@ -218,22 +218,35 @@
                 {{-- Right actions --}}
                 <div class="flex items-center gap-2 sm:gap-3">
 
-                    {{-- Language Flag Toggle --}}
-                    @if(app()->getLocale() === 'ar')
-                        <a href="{{ route('locale.switch', 'en') }}"
-                           title="Switch to English"
-                           class="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
-                           style="font-size: 1.5rem; line-height: 1;">
-                            🇬🇧
-                        </a>
-                    @else
-                        <a href="{{ route('locale.switch', 'ar') }}"
-                           title="التبديل إلى العربية"
-                           class="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
-                           style="font-size: 1.5rem; line-height: 1;">
-                            🇸🇦
-                        </a>
-                    @endif
+                    {{-- Language Switcher --}}
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-slate-600
+                                       hover:bg-slate-100 rounded-lg transition-colors">
+                            <span>{{ app()->getLocale() === 'ar' ? '🇸🇦' : '🇺🇸' }}</span>
+                            <span class="hidden sm:inline text-xs font-medium uppercase">{{ app()->getLocale() }}</span>
+                            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-cloak @click.outside="open = false"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} top-full mt-2 w-36 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-50">
+                            <a href="{{ route('locale.switch', 'en') }}"
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm {{ app()->getLocale() === 'en' ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-700 hover:bg-slate-50' }} transition-colors">
+                                <span>🇺🇸</span> {{ __('app.english') }}
+                            </a>
+                            <a href="{{ route('locale.switch', 'ar') }}"
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm {{ app()->getLocale() === 'ar' ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-700 hover:bg-slate-50' }} transition-colors">
+                                <span>🇸🇦</span> {{ __('app.arabic') }}
+                            </a>
+                        </div>
+                    </div>
 
                     {{-- Notifications --}}
                     @livewire('notification-dropdown')
