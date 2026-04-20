@@ -233,6 +233,7 @@ class Form extends Component
         $url    = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
         $parts = [];
+        $fileText = '';
 
         if ($this->aiFile) {
             $ext  = strtolower($this->aiFile->getClientOriginalExtension());
@@ -242,6 +243,37 @@ class Form extends Component
                 $parts[] = ['inline_data' => ['mime_type' => $mime, 'data' => $b64]];
             } elseif ($ext === 'pdf') {
                 $parts[] = ['inline_data' => ['mime_type' => 'application/pdf', 'data' => $b64]];
+            } elseif (in_array($ext, ['xlsx', 'xls', 'csv'])) {
+                // Parse spreadsheet into text for the AI prompt
+                try {
+                    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($this->aiFile->getRealPath());
+                    $rows = [];
+                    foreach ($spreadsheet->getActiveSheet()->toArray(null, true, true, true) as $row) {
+                        $rows[] = implode(' | ', array_map(fn ($c) => trim((string) ($c ?? '')), $row));
+                    }
+                    $fileText = implode("\n", $rows);
+                } catch (\Throwable $e) {
+                    $this->addError('aiPastedText', 'Could not parse the spreadsheet: ' . $e->getMessage());
+                    $this->aiAnalyzing = false;
+                    return;
+                }
+            } elseif ($ext === 'docx') {
+                // Extract text from DOCX
+                try {
+                    $zip = new \ZipArchive();
+                    if ($zip->open($this->aiFile->getRealPath()) === true) {
+                        $content = $zip->getFromName('word/document.xml');
+                        $zip->close();
+                        if ($content) {
+                            $fileText = strip_tags(str_replace('<', ' <', $content));
+                            $fileText = preg_replace('/\s+/', ' ', $fileText);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    $this->addError('aiPastedText', 'Could not parse the document.');
+                    $this->aiAnalyzing = false;
+                    return;
+                }
             }
         }
 
@@ -263,6 +295,8 @@ class Form extends Component
         };
 
         $divisions = implode(', ', self::DIVISIONS);
+
+        $combinedText = trim($fileText . "\n\n" . $this->aiPastedText);
 
         $prompt = <<<PROMPT
 You are a data extraction assistant for a supplier catalogue. Extract ALL products from the provided document or text.
@@ -293,7 +327,7 @@ Rules:
 - Extract every product, do not skip any
 
 Text:
-{$this->aiPastedText}
+{$combinedText}
 PROMPT;
 
         $parts[] = ['text' => $prompt];

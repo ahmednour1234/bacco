@@ -151,7 +151,7 @@
                               d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </span>
-                Pricing &amp; Margin
+                {{ __('app.pricing_and_margin') }}
             </h2>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -368,7 +368,6 @@
                         @foreach ([
                             'vendor' => __('app.vendor_quotation'),
                             'client' => __('app.selling_price_client'),
-                            'mixed'  => __('app.not_sure_mixed'),
                         ] as $val => $label)
                             <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 transition
                                           {{ $aiPriceContext === $val
@@ -544,16 +543,16 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Product Name</th>
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Division</th>
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Brand</th>
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Category</th>
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Model / Type</th>
-                            <th class="px-3 py-3 text-right whitespace-nowrap">Price</th>
-                            <th class="px-3 py-3 text-right whitespace-nowrap">Eng.</th>
-                            <th class="px-3 py-3 text-right whitespace-nowrap">Inst.</th>
-                            <th class="px-3 py-3 text-center whitespace-nowrap">Margin %</th>
-                            <th class="px-3 py-3 text-right whitespace-nowrap">Total</th>
+                            <th class="px-3 py-3 text-start whitespace-nowrap">{{ __('app.product_name') }}</th>
+                            <th class="px-3 py-3 text-start whitespace-nowrap">{{ __('app.division') }}</th>
+                            <th class="px-3 py-3 text-start whitespace-nowrap">{{ __('app.brand') }}</th>
+                            <th class="px-3 py-3 text-start whitespace-nowrap">{{ __('app.classification') }}</th>
+                            <th class="px-3 py-3 text-start whitespace-nowrap">{{ __('app.type_model') }}</th>
+                            <th class="px-3 py-3 text-end whitespace-nowrap">{{ __('app.price') }}</th>
+                            <th class="px-3 py-3 text-end whitespace-nowrap">{{ __('app.eng_short') }}</th>
+                            <th class="px-3 py-3 text-end whitespace-nowrap">{{ __('app.inst_short') }}</th>
+                            <th class="px-3 py-3 text-center whitespace-nowrap">{{ __('app.margin_percent') }}</th>
+                            <th class="px-3 py-3 text-end whitespace-nowrap">{{ __('app.total') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -571,7 +570,7 @@
                                     <select wire:model.live="aiExtractedProducts.{{ $idx }}.division"
                                             class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
                                                    focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
-                                        <option value="">— none —</option>
+                                        <option value="">—</option>
                                         @foreach (\App\Livewire\Supplier\Products\Form::DIVISIONS as $div)
                                             <option value="{{ $div }}" @selected(($item['division'] ?? '') === $div)>{{ $div }}</option>
                                         @endforeach
@@ -582,7 +581,7 @@
                                     <select wire:model.live="aiExtractedProducts.{{ $idx }}.brand_id"
                                             class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
                                                    focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
-                                        <option value="">— none —</option>
+                                        <option value="">—</option>
                                         @foreach ($brands as $brand)
                                             <option value="{{ $brand->id }}" @selected(($item['brand_id'] ?? '') == $brand->id)>{{ $brand->name }}</option>
                                         @endforeach
@@ -596,7 +595,7 @@
                                     <select wire:model.live="aiExtractedProducts.{{ $idx }}.category_id"
                                             class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
                                                    focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
-                                        <option value="">— none —</option>
+                                        <option value="">—</option>
                                         @foreach ($categories as $cat)
                                             <option value="{{ $cat->id }}" @selected(($item['category_id'] ?? '') == $cat->id)>{{ $cat->name }}</option>
                                         @endforeach
@@ -606,7 +605,7 @@
                                 <td class="px-3 py-2 min-w-[110px]">
                                     <input type="text"
                                            wire:model.blur="aiExtractedProducts.{{ $idx }}.model_type"
-                                           placeholder="Model"
+                                           placeholder="{{ __('app.type_model') }}"
                                            class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
                                                   focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
                                 </td>

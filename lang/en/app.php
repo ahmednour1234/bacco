@@ -738,6 +738,16 @@ return [
     'supplier_notes'                => 'Supplier Notes',
     'supplier_notes_placeholder'    => 'Optional notes about availability, packaging, lead time…',
     'add_to_catalogue'              => 'Add to Catalogue',
+    'welcome_back'                  => 'Welcome back,',
+    'manage_catalogue_msg'          => 'Manage your product catalogue from the supplier portal.',
+    'total_products'                => 'Total Products',
+    'add_new_product'               => 'Add New Product',
+    'view_all_products'             => 'View All Products',
+    'add_new_product_title'         => 'Add New Product',
+    'add_product_desc'              => 'Fill in the information below to add a product to your supplier catalogue.',
+    'edit_product_title'            => 'Edit Product',
+    'edit_product_desc'             => 'Update your pricing and availability details for this product.',
+    'pricing_and_margin'            => 'Pricing & Margin',
 
     // Supplier approval & misc
     'pending_approval'              => 'Pending Approval',

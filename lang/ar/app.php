@@ -736,6 +736,16 @@ return [
     'supplier_notes'                => 'ملاحظات المورد',
     'supplier_notes_placeholder'    => 'ملاحظات اختيارية حول التوفر والتعبئة ومدة التسليم…',
     'add_to_catalogue'              => 'إضافة للكتالوج',
+    'welcome_back'                  => 'مرحباً بعودتك،',
+    'manage_catalogue_msg'          => 'إدارة كتالوج المنتجات من بوابة الموردين.',
+    'total_products'                => 'إجمالي المنتجات',
+    'add_new_product'               => 'إضافة منتج جديد',
+    'view_all_products'             => 'عرض جميع المنتجات',
+    'add_new_product_title'         => 'إضافة منتج جديد',
+    'add_product_desc'              => 'قم بملء المعلومات أدناه لإضافة منتج إلى كتالوج الموردين الخاص بك.',
+    'edit_product_title'            => 'تعديل المنتج',
+    'edit_product_desc'             => 'قم بتحديث تفاصيل التسعير والتوفر لهذا المنتج.',
+    'pricing_and_margin'            => 'التسعير والهامش',
 
     // Supplier approval & misc
     'pending_approval'              => 'في انتظار الموافقة',

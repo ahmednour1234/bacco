@@ -35,16 +35,16 @@
     {{-- Table --}}
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="w-full table-fixed divide-y divide-slate-100">
                 <thead>
                     <tr class="bg-slate-50">
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.product_name') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.supplier') }}</th>
-                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.price_sar') }}</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.margin_percent') }}</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.date') }}</th>
-                        <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
+                        <th class="w-[22%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.product_name') }}</th>
+                        <th class="w-[15%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.supplier') }}</th>
+                        <th class="w-[15%] px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.price_sar') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.margin_percent') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.date') }}</th>
+                        <th class="w-[16%] px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -63,7 +63,7 @@
                             </td>
 
                             {{-- Price --}}
-                            <td class="whitespace-nowrap px-5 py-4 text-right">
+                            <td class="whitespace-nowrap px-5 py-4 text-end">
                                 <p class="text-sm font-semibold text-slate-700">{{ number_format($sp->price, 2) }} <span class="text-xs font-normal text-slate-400">SAR</span></p>
                                 @if($sp->product?->engineering_price > 0)
                                     <p class="text-xs text-slate-400">{{ __('app.eng_short') }} {{ number_format($sp->product->engineering_price, 2) }}</p>
