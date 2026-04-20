@@ -734,6 +734,7 @@ return [
     'created'                       => 'تاريخ الإنشاء',
     'clear'                         => 'مسح',
     'no_users_found'                => 'لا يوجد مستخدمون',
+    'no_boqs_found'                 => 'لا توجد جداول كميات',
 
     // Excel Import
     'import_excel'                  => 'استيراد من Excel',

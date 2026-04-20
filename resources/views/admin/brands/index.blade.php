@@ -1,7 +1,7 @@
 @extends('layouts.admin-app')
 
-@section('title', 'Brands – Qimta Admin')
-@section('page-title', 'Brands')
+@section('title', __('app.brands') . ' – Qimta Admin')
+@section('page-title', __('app.brands'))
 
 @section('breadcrumb')
     <span class="text-xs text-slate-400">{{ __('app.catalog') }}</span>
@@ -41,8 +41,38 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Add Brand
+            {{ __('app.add_brand') }}
         </a>
+    </div>
+
+    {{-- Import Excel --}}
+    <div class="mb-6 flex flex-wrap items-center gap-3" x-data="{ open: false }">
+        <a href="{{ route('admin.brands.template') }}"
+           class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition shadow-sm">
+            <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            {{ __('app.download_template') }}
+        </a>
+
+        <button @click="open = !open" type="button"
+                class="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition shadow-sm">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            {{ __('app.import_excel') }}
+        </button>
+
+        <form x-show="open" x-transition action="{{ route('admin.brands.import') }}" method="POST" enctype="multipart/form-data"
+              class="inline-flex items-center gap-2">
+            @csrf
+            <input type="file" name="file" accept=".xlsx,.xls,.csv" required
+                   class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1 file:text-sm file:font-medium file:text-emerald-700">
+            <button type="submit"
+                    class="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition shadow-sm">
+                {{ __('app.import') }}
+            </button>
+        </form>
     </div>
 
     {{-- Table --}}

@@ -15,10 +15,10 @@
             <select wire:model.live="status"
                 class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                 <option value="">{{ __('app.all_status') }}</option>
-                <option value="draft">Draft</option>
-                <option value="submitted">Submitted</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="draft">{{ __('app.status_draft') }}</option>
+                <option value="submitted">{{ __('app.status_submitted') }}</option>
+                <option value="completed">{{ __('app.status_completed') }}</option>
+                <option value="cancelled">{{ __('app.status_cancelled') }}</option>
             </select>
 
             @if($hasActiveFilters)
@@ -26,7 +26,7 @@
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    Clear
+                    {{ __('app.clear') }}
                 </button>
             @endif
         </div>
@@ -38,11 +38,11 @@
             <table class="min-w-full divide-y divide-slate-100">
                 <thead>
                     <tr class="bg-slate-50">
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.project') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.client') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.project') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.client') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -81,7 +81,7 @@
                                 <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
-                                <p class="mt-2 text-sm font-medium text-slate-500">No BOQs found</p>
+                                <p class="mt-2 text-sm font-medium text-slate-500">{{ __('app.no_boqs_found') }}</p>
                             </td>
                         </tr>
                     @endforelse

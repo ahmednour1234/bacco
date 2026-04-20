@@ -732,6 +732,7 @@ return [
     'created'                       => 'Created',
     'clear'                         => 'Clear',
     'no_users_found'                => 'No users found',
+    'no_boqs_found'                 => 'No BOQs found',
 
     // Excel Import
     'import_excel'                  => 'Import Excel',
