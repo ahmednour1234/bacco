@@ -32,7 +32,7 @@
                      00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2
                      2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
-        Go to Employee Portal
+        Go to Supplier Portal
     </a>
 @endsection
 
@@ -40,7 +40,7 @@
     <a href="#"
        class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700
               border border-emerald-600 rounded-xl px-3 py-1.5 hover:bg-emerald-50 transition">
-        Employee Portal
+        Supplier Portal
     </a>
 @endsection
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Enduser\BoqController as EnduserBoqController;
 use App\Http\Controllers\Enduser\OrderController as EnduserOrderController;
 use App\Http\Controllers\Enduser\AuthController as EnduserAuthController;
@@ -122,9 +123,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Catalog – Brands
         Route::resource('brands', AdminBrandController::class)->except(['show']);
+        Route::post('/brands/import', [AdminBrandController::class, 'import'])->name('brands.import');
+        Route::get('/brands/template', [AdminBrandController::class, 'template'])->name('brands.template');
 
         // Catalog – Categories
         Route::resource('categories', AdminCategoryController::class)->except(['show']);
+        Route::post('/categories/import', [AdminCategoryController::class, 'import'])->name('categories.import');
+        Route::get('/categories/template', [AdminCategoryController::class, 'template'])->name('categories.template');
 
         // Catalog – Products
         Route::resource('products', AdminProductController::class)->except(['show', 'store', 'update', 'destroy']);
@@ -139,6 +144,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Supplier Products Approval
         Route::get('/supplier-products', fn() => view('admin.supplier-products'))->name('suppliers.products');
+
+        // Users
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     });
 });
 

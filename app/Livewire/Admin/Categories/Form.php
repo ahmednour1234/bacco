@@ -28,7 +28,7 @@ class Form extends Component
 
     public function mount(?Category $category = null): void
     {
-        if ($category) {
+        if ($category && $category->exists) {
             $this->category = $category;
             $this->isEditing = true;
             $this->name = (string) $category->name;

@@ -506,7 +506,7 @@ return [
     'inactive'                      => 'غير نشط',
     'no_active_websites'            => 'لا توجد مواقع نشطة متاحة.',
     'update_brand'                  => 'تحديث العلامة التجارية',
-    'create_brand'                  => 'إنشاء علامة تجارية',
+    'create_brand'                  => 'إضافة علامة تجارية',
 
     // ── Admin Categories ─────────────────────────────────────────────────────
     'search_categories'             => 'البحث عن التصنيفات بالاسم',
@@ -517,7 +517,7 @@ return [
     'parent_category'               => 'التصنيف الأصلي',
     'no_parent'                     => 'بدون أصل',
     'update_category'               => 'تحديث التصنيف',
-    'create_category'               => 'إنشاء تصنيف',
+    'create_category'               => 'إضافة تصنيف',
 
     // ── Admin Products ───────────────────────────────────────────────────────
     'search_products'               => 'بحث بالاسم أو رقم المنتج أو القسم…',
@@ -652,4 +652,14 @@ return [
     'activate'                      => 'تفعيل',
     'showing_range'                 => 'عرض :from–:to من :total منتج',
     'specs_placeholder'             => 'أدخل مواصفات المنتج والميزات التفصيلية…',
+
+    // Users Management
+    'users'                         => 'المستخدمين',
+
+    // Excel Import
+    'import_excel'                  => 'استيراد من Excel',
+    'download_template'             => 'تحميل القالب',
+    'upload_file'                   => 'رفع ملف',
+    'import'                        => 'استيراد',
+    'choose_file'                   => 'اختر ملف (.xlsx, .xls, .csv)',
 ];

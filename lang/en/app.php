@@ -650,4 +650,14 @@ return [
     'activate'                      => 'Activate',
     'showing_range'                 => 'Showing :from–:to of :total products',
     'specs_placeholder'             => 'Enter detailed product specifications and features…',
+
+    // Users Management
+    'users'                         => 'Users',
+
+    // Excel Import
+    'import_excel'                  => 'Import Excel',
+    'download_template'             => 'Download Template',
+    'upload_file'                   => 'Upload File',
+    'import'                        => 'Import',
+    'choose_file'                   => 'Choose file (.xlsx, .xls, .csv)',
 ];

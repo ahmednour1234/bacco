@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CategoryRequest;
+use App\Exports\CategoriesTemplateExport;
+use App\Imports\CategoriesImport;
 use App\Models\Category;
 use App\Services\Admin\CategoryService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CategoryController extends Controller
 {
@@ -54,4 +58,21 @@ class CategoryController extends Controller
             ->with('success', 'Category deleted successfully.');
     }
 
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
+        ]);
+
+        $import = new CategoriesImport();
+        Excel::import($import, $request->file('file'));
+
+        return redirect()->route('admin.categories.index')
+            ->with('success', $import->imported . ' categories imported successfully.');
+    }
+
+    public function template()
+    {
+        return Excel::download(new CategoriesTemplateExport(), 'categories_template.xlsx');
+    }
 }

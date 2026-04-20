@@ -22,7 +22,7 @@ class Form extends Component
 
     public function mount(?Brand $brand = null): void
     {
-        if ($brand) {
+        if ($brand && $brand->exists) {
             $this->brand = $brand;
             $this->isEditing = true;
             $this->name = (string) $brand->name;
