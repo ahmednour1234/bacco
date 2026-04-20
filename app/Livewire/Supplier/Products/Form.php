@@ -248,8 +248,16 @@ class Form extends Component
                 try {
                     $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($this->aiFile->getRealPath());
                     $rows = [];
-                    foreach ($spreadsheet->getActiveSheet()->toArray(null, true, true, true) as $row) {
-                        $rows[] = implode(' | ', array_map(fn ($c) => trim((string) ($c ?? '')), $row));
+                    foreach ($spreadsheet->getAllSheets() as $sheet) {
+                        $sheetName = $sheet->getTitle();
+                        $rows[] = "--- Sheet: {$sheetName} ---";
+                        foreach ($sheet->toArray(null, true, true, true) as $row) {
+                            $cells = array_map(fn ($c) => trim((string) ($c ?? '')), $row);
+                            $line = implode(' | ', $cells);
+                            if (trim(str_replace('|', '', $line)) !== '') {
+                                $rows[] = $line;
+                            }
+                        }
                     }
                     $fileText = implode("\n", $rows);
                 } catch (\Throwable $e) {
@@ -333,9 +341,9 @@ PROMPT;
         $parts[] = ['text' => $prompt];
 
         try {
-            $response = Http::timeout(60)->post($url, [
+            $response = Http::timeout(120)->post($url, [
                 'contents'         => [['parts' => $parts]],
-                'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 8192],
+                'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 65536],
             ]);
 
             if ($response->failed()) {
@@ -347,9 +355,17 @@ PROMPT;
             $raw  = $response->json('candidates.0.content.parts.0.text', '');
             $raw  = preg_replace('/^```(?:json)?\s*/i', '', trim($raw));
             $raw  = preg_replace('/\s*```$/i', '', $raw);
+
+            // Try direct decode first
             $data = json_decode($raw, true);
 
-            if (! is_array($data)) {
+            // If that fails, try to find JSON array in the response
+            if (! is_array($data) && preg_match('/\[[\s\S]*\]/', $raw, $m)) {
+                $data = json_decode($m[0], true);
+            }
+
+            if (! is_array($data) || empty($data)) {
+                \Log::warning('AI response could not be parsed', ['raw' => mb_substr($raw, 0, 2000)]);
                 $this->addError('aiPastedText', 'Could not parse AI response. Please try again.');
                 $this->aiAnalyzing = false;
                 return;
