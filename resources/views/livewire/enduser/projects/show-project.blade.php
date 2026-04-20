@@ -178,15 +178,14 @@
                                 <div class="flex items-center gap-2">
                                     <span class="text-sm font-semibold text-slate-700">{{ $order->order_no }}</span>
                                     @php
-                                        $oStatusBadge = match($order->status->value ?? 'pending') {
-                                            'confirmed','processing','shipped' => 'bg-blue-100 text-blue-700',
-                                            'delivered','completed'            => 'bg-emerald-100 text-emerald-700',
-                                            'cancelled','refunded'             => 'bg-red-100 text-red-700',
-                                            default                            => 'bg-amber-100 text-amber-700',
+                                        $oStatusBadge = match($order->status->value ?? 'open') {
+                                            'open'   => 'bg-emerald-100 text-emerald-700',
+                                            'closed' => 'bg-slate-100 text-slate-600',
+                                            default  => 'bg-amber-100 text-amber-700',
                                         };
                                     @endphp
                                     <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $oStatusBadge }}">
-                                        {{ ucfirst($order->status->value ?? 'pending') }}
+                                        {{ $order->status?->label() ?? ucfirst($order->status->value ?? 'open') }}
                                     </span>
                                 </div>
                                 <p class="mt-0.5 text-xs text-slate-400">{{ number_format($order->grand_total, 2) }} {{ __('app.sar') }} &middot; {{ $order->created_at->diffForHumans() }}</p>

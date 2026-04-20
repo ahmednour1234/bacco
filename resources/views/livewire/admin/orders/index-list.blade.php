@@ -238,29 +238,17 @@
                     <tbody class="divide-y divide-slate-100">
                         @foreach($orders as $order)
                             @php
-                                $sv = $order->status->value ?? 'pending';
+                                $sv = $order->status->value ?? 'open';
 
                                 $dotClass = match($sv) {
-                                    'pending'    => 'bg-amber-400',
-                                    'confirmed'  => 'bg-blue-400',
-                                    'processing' => 'bg-indigo-400',
-                                    'shipped'    => 'bg-violet-400',
-                                    'delivered'  => 'bg-emerald-500',
-                                    'completed'  => 'bg-green-500',
-                                    'cancelled'  => 'bg-red-400',
-                                    'refunded'   => 'bg-slate-400',
-                                    default      => 'bg-slate-400',
+                                    'open'   => 'bg-emerald-500',
+                                    'closed' => 'bg-slate-400',
+                                    default  => 'bg-slate-400',
                                 };
                                 $statusTextClass = match($sv) {
-                                    'pending'    => 'text-amber-600',
-                                    'confirmed'  => 'text-blue-600',
-                                    'processing' => 'text-indigo-600',
-                                    'shipped'    => 'text-violet-600',
-                                    'delivered'  => 'text-emerald-600',
-                                    'completed'  => 'text-green-700',
-                                    'cancelled'  => 'text-red-600',
-                                    'refunded'   => 'text-slate-500',
-                                    default      => 'text-slate-500',
+                                    'open'   => 'text-emerald-600',
+                                    'closed' => 'text-slate-500',
+                                    default  => 'text-slate-500',
                                 };
 
                                 $typeLabel     = $order->quotationRequest?->project_status?->label() ?? '—';

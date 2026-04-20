@@ -40,11 +40,7 @@ class DashboardController extends Controller
 
         $stats['total_orders']  = (clone $allOrders)->count();
         $stats['active_orders'] = (clone $allOrders)
-            ->whereNotIn('status', [
-                OrderStatusEnum::Completed,
-                OrderStatusEnum::Cancelled,
-                OrderStatusEnum::Refunded,
-            ])->count();
+            ->where('status', OrderStatusEnum::Open)->count();
 
         // ── Project stats ────────────────────────────────────────────────────
         $stats['active_projects']    = Project::where('client_id', $clientId)

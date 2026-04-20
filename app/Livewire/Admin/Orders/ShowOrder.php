@@ -363,36 +363,17 @@ class ShowOrder extends Component
     private function buildSteps(): void
     {
         $status = $this->order->status->value;
+        $isClosed = $status === 'closed';
 
-        // Ordered progression of statuses
-        $progression = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
-        $currentIdx  = array_search($status, $progression);
-
-        $defs = [
-            ['label' => __('app.payment_approved')],
-            ['label' => __('app.profile_completed')],
-            ['label' => __('app.engineering_updates')],
-            ['label' => __('app.logistics_updates')],
-            ['label' => __('app.status_delivered')],
-            ['label' => __('app.closed')],
+        $this->steps = [
+            [
+                'label' => __('app.status_open'),
+                'state' => 'completed',
+            ],
+            [
+                'label' => __('app.status_closed'),
+                'state' => $isClosed ? 'completed' : 'pending',
+            ],
         ];
-
-        $this->steps = [];
-        foreach ($defs as $i => $def) {
-            if (in_array($status, ['completed', 'cancelled', 'refunded'])) {
-                // All steps done when order is fully closed
-                $state = 'completed';
-            } elseif ($currentIdx === false) {
-                $state = $i === 0 ? 'in_progress' : 'pending';
-            } elseif ($i < $currentIdx) {
-                $state = 'completed';
-            } elseif ($i === $currentIdx) {
-                $state = 'in_progress';
-            } else {
-                $state = 'pending';
-            }
-
-            $this->steps[] = array_merge($def, ['state' => $state]);
-        }
     }
 }

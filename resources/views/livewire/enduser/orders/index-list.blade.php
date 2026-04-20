@@ -216,48 +216,29 @@
         <div class="space-y-6">
             @foreach($orders as $order)
                 @php
-                    $sv = $order->status->value ?? 'pending';
+                    $sv = $order->status->value ?? 'open';
 
                     $badgeClass = match($sv) {
-                        'pending'    => 'bg-amber-50 text-amber-600 ring-1 ring-amber-200',
-                        'confirmed'  => 'bg-blue-50 text-blue-600 ring-1 ring-blue-200',
-                        'processing' => 'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200',
-                        'shipped'    => 'bg-violet-50 text-violet-600 ring-1 ring-violet-200',
-                        'delivered'  => 'bg-teal-50 text-teal-600 ring-1 ring-teal-200',
-                        'completed'  => 'bg-green-50 text-green-700 ring-1 ring-green-200',
-                        'cancelled'  => 'bg-red-50 text-red-600 ring-1 ring-red-200',
-                        'refunded'   => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
-                        default      => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+                        'open'   => 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200',
+                        'closed' => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+                        default  => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
                     };
 
                     $leftBorder = match($sv) {
-                        'pending'    => 'border-l-amber-400',
-                        'confirmed'  => 'border-l-blue-400',
-                        'processing' => 'border-l-indigo-400',
-                        'shipped'    => 'border-l-violet-400',
-                        'delivered'  => 'border-l-teal-400',
-                        'completed'  => 'border-l-green-500',
-                        'cancelled'  => 'border-l-red-400',
-                        'refunded'   => 'border-l-slate-300',
-                        default      => 'border-l-slate-300',
+                        'open'   => 'border-l-emerald-400',
+                        'closed' => 'border-l-slate-300',
+                        default  => 'border-l-slate-300',
                     };
 
                     $statusMsg = match($sv) {
-                        'pending'    => __('app.order_placed_awaiting'),
-                        'confirmed'  => __('app.order_confirmed_preparing'),
-                        'processing' => __('app.order_processing'),
-                        'shipped'    => __('app.order_shipped'),
-                        'delivered'  => __('app.order_delivered'),
-                        'completed'  => __('app.order_completed_thanks'),
-                        'cancelled'  => __('app.order_cancelled_support'),
-                        'refunded'   => __('app.order_refunded'),
-                        default      => __('app.status_update_pending'),
+                        'open'   => __('app.order_open_msg'),
+                        'closed' => __('app.order_closed_msg'),
+                        default  => __('app.status_update_pending'),
                     };
 
-                    $msgIconClass = match(true) {
-                        in_array($sv, ['cancelled', 'refunded'])   => 'text-red-400',
-                        in_array($sv, ['completed', 'delivered'])  => 'text-emerald-500',
-                        default                                    => 'text-blue-400',
+                    $msgIconClass = match($sv) {
+                        'closed' => 'text-slate-400',
+                        default  => 'text-emerald-500',
                     };
 
                     $itemsTotal = $order->items->sum(fn($i) => (float) ($i->total_price ?? 0));

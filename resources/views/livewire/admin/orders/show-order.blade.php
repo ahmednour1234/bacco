@@ -38,17 +38,11 @@
     @if($order)
     @php
         $statusColors = [
-            'pending'    => ['dot' => 'bg-amber-400',  'text' => 'text-amber-700',  'badge' => 'bg-amber-50 text-amber-700 ring-amber-200'],
-            'confirmed'  => ['dot' => 'bg-blue-500',   'text' => 'text-blue-700',   'badge' => 'bg-blue-50 text-blue-700 ring-blue-200'],
-            'processing' => ['dot' => 'bg-indigo-500', 'text' => 'text-indigo-700', 'badge' => 'bg-indigo-50 text-indigo-700 ring-indigo-200'],
-            'shipped'    => ['dot' => 'bg-violet-500', 'text' => 'text-violet-700', 'badge' => 'bg-violet-50 text-violet-700 ring-violet-200'],
-            'delivered'  => ['dot' => 'bg-emerald-500','text' => 'text-emerald-700','badge' => 'bg-emerald-50 text-emerald-700 ring-emerald-200'],
-            'completed'  => ['dot' => 'bg-green-600',  'text' => 'text-green-700',  'badge' => 'bg-green-50 text-green-700 ring-green-200'],
-            'cancelled'  => ['dot' => 'bg-red-400',    'text' => 'text-red-600',    'badge' => 'bg-red-50 text-red-600 ring-red-200'],
-            'refunded'   => ['dot' => 'bg-pink-400',   'text' => 'text-pink-700',   'badge' => 'bg-pink-50 text-pink-700 ring-pink-200'],
+            'open'   => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'badge' => 'bg-emerald-50 text-emerald-700 ring-emerald-200'],
+            'closed' => ['dot' => 'bg-slate-400',   'text' => 'text-slate-600',   'badge' => 'bg-slate-100 text-slate-600 ring-slate-200'],
         ];
-        $sv = $order->status->value ?? 'pending';
-        $sc = $statusColors[$sv] ?? $statusColors['pending'];
+        $sv = $order->status->value ?? 'open';
+        $sc = $statusColors[$sv] ?? $statusColors['open'];
     @endphp
 
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
@@ -584,18 +578,18 @@
                             <tr class="hover:bg-slate-50/50 transition">
                                 <td class="px-5 py-3.5 text-xs text-slate-400">{{ $i + 1 }}</td>
                                 <td class="px-5 py-3.5">
-                                    @php $oc = $statusColors[$log['old']] ?? $statusColors['pending']; @endphp
+                                    @php $oc = $statusColors[$log['old']] ?? $statusColors['open']; @endphp
                                     <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $oc['badge'] }}">
                                         <span class="h-1.5 w-1.5 rounded-full {{ $oc['dot'] }}"></span>
-                                        {{ \App\Enums\OrderStatusEnum::from($log['old'])->label() }}
+                                        {{ \App\Enums\OrderStatusEnum::tryFrom($log['old'])?->label() ?? ucfirst($log['old']) }}
                                     </span>
                                 </td>
                                 <td class="px-3 py-3.5 text-center text-slate-300">→</td>
                                 <td class="px-5 py-3.5">
-                                    @php $nc = $statusColors[$log['new']] ?? $statusColors['pending']; @endphp
+                                    @php $nc = $statusColors[$log['new']] ?? $statusColors['open']; @endphp
                                     <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $nc['badge'] }}">
                                         <span class="h-1.5 w-1.5 rounded-full {{ $nc['dot'] }}"></span>
-                                        {{ \App\Enums\OrderStatusEnum::from($log['new'])->label() }}
+                                        {{ \App\Enums\OrderStatusEnum::tryFrom($log['new'])?->label() ?? ucfirst($log['new']) }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-3.5 text-sm text-slate-600">{{ $log['user'] }}</td>

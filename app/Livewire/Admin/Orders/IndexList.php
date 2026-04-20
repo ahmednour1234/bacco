@@ -40,8 +40,8 @@ class IndexList extends Component
 
         $stats = [
             'total'  => (clone $allOrders)->count(),
-            'open'   => (clone $allOrders)->whereNotIn('status', ['completed', 'cancelled', 'refunded'])->count(),
-            'closed' => (clone $allOrders)->whereIn('status', ['completed', 'cancelled', 'refunded'])->count(),
+            'open'   => (clone $allOrders)->where('status', 'open')->count(),
+            'closed' => (clone $allOrders)->where('status', 'closed')->count(),
         ];
 
         $query = Order::with([

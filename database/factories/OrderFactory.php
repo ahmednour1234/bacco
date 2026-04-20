@@ -27,7 +27,7 @@ class OrderFactory extends Factory
             'quotation_version_id' => QuotationVersion::factory(),
             'client_id'            => User::factory()->client(),
             'assigned_employee_id' => null,
-            'status'               => OrderStatusEnum::Pending->value,
+            'status'               => OrderStatusEnum::Open->value,
             'total_amount'         => $total,
             'vat_amount'           => $vat,
             'grand_total'          => $total + $vat,
@@ -36,13 +36,13 @@ class OrderFactory extends Factory
         ];
     }
 
-    public function confirmed(): static
+    public function open(): static
     {
-        return $this->state(['status' => OrderStatusEnum::Confirmed->value]);
+        return $this->state(['status' => OrderStatusEnum::Open->value]);
     }
 
-    public function completed(): static
+    public function closed(): static
     {
-        return $this->state(['status' => OrderStatusEnum::Completed->value]);
+        return $this->state(['status' => OrderStatusEnum::Closed->value]);
     }
 }
