@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\OrderStatusEnum;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,12 +16,29 @@ class Order extends BaseModel
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'status'       => OrderStatusEnum::class,
             'total_amount' => 'decimal:2',
             'vat_amount'   => 'decimal:2',
             'grand_total'  => 'decimal:2',
             'deleted_at'   => 'datetime',
         ]);
+    }
+
+    protected function status(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                $enum = OrderStatusEnum::tryFrom($value);
+                if ($enum) {
+                    return $enum;
+                }
+                // Map old statuses to new ones
+                return match ($value) {
+                    'completed', 'cancelled', 'refunded' => OrderStatusEnum::Closed,
+                    default => OrderStatusEnum::Open,
+                };
+            },
+            set: fn ($value) => $value instanceof OrderStatusEnum ? $value->value : $value,
+        );
     }
 
     // -------------------------------------------------------------------------
