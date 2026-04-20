@@ -198,7 +198,6 @@ class Form extends Component
         $contextHints = implode(', ', array_filter([
             $this->aiPriceContext === 'vendor'  ? 'prices are vendor/supplier prices'  : null,
             $this->aiPriceContext === 'client'  ? 'prices are selling prices to client' : null,
-            $this->aiPriceContext === 'mixed'   ? 'price type is unknown'               : null,
             $this->aiIncludesEng  === 'yes'     ? 'engineering cost IS included in price' : null,
             $this->aiIncludesEng  === 'no'      ? 'engineering cost is NOT included'      : null,
             $this->aiIncludesInst === 'yes'     ? 'installation cost IS included in price' : null,
@@ -232,18 +231,64 @@ PROMPT;
 
         // Build the parts payload
         $parts = [];
+        $fileText = '';
 
         if ($this->aiFile) {
             $path     = $this->aiFile->getRealPath();
             $mime     = $this->aiFile->getMimeType() ?: 'application/octet-stream';
             $b64      = base64_encode(file_get_contents($path));
+            $ext      = strtolower($this->aiFile->getClientOriginalExtension());
 
-            // For plain-text types send as text
-            if (in_array($mime, ['text/plain', 'text/csv'])) {
-                $parts[] = ['text' => file_get_contents($path)];
+            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                $parts[] = ['inline_data' => ['mime_type' => $mime, 'data' => $b64]];
+            } elseif ($ext === 'pdf') {
+                $parts[] = ['inline_data' => ['mime_type' => 'application/pdf', 'data' => $b64]];
+            } elseif (in_array($ext, ['xlsx', 'xls', 'csv'])) {
+                try {
+                    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+                    $rows = [];
+                    foreach ($spreadsheet->getAllSheets() as $sheet) {
+                        $sheetName = $sheet->getTitle();
+                        $rows[] = "--- Sheet: {$sheetName} ---";
+                        foreach ($sheet->toArray(null, true, true, true) as $row) {
+                            $cells = array_map(fn ($c) => trim((string) ($c ?? '')), $row);
+                            $line = implode(' | ', $cells);
+                            if (trim(str_replace('|', '', $line)) !== '') {
+                                $rows[] = $line;
+                            }
+                        }
+                    }
+                    $fileText = implode("\n", $rows);
+                } catch (\Throwable $e) {
+                    $this->addError('aiPastedText', 'Could not parse the spreadsheet: ' . $e->getMessage());
+                    $this->aiAnalyzing = false;
+                    return;
+                }
+            } elseif ($ext === 'docx') {
+                try {
+                    $zip = new \ZipArchive();
+                    if ($zip->open($path) === true) {
+                        $content = $zip->getFromName('word/document.xml');
+                        $zip->close();
+                        if ($content) {
+                            $fileText = strip_tags(str_replace('<', ' <', $content));
+                            $fileText = preg_replace('/\s+/', ' ', $fileText);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    $this->addError('aiPastedText', 'Could not parse the document.');
+                    $this->aiAnalyzing = false;
+                    return;
+                }
+            } elseif (in_array($mime, ['text/plain', 'text/csv'])) {
+                $fileText = file_get_contents($path);
             } else {
                 $parts[] = ['inline_data' => ['mime_type' => $mime, 'data' => $b64]];
             }
+        }
+
+        if (! empty($fileText)) {
+            $parts[] = ['text' => $fileText];
         }
 
         if (! empty($this->aiPastedText)) {
@@ -254,13 +299,14 @@ PROMPT;
         $parts[] = ['text' => $prompt];
 
         try {
-            $response = Http::timeout(60)->post($url, [
+            $response = Http::timeout(120)->post($url, [
                 'contents' => [
                     ['role' => 'user', 'parts' => $parts],
                 ],
                 'generationConfig' => [
                     'responseMimeType' => 'application/json',
                     'temperature'      => 0.1,
+                    'maxOutputTokens'  => 65536,
                 ],
             ]);
 
