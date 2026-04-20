@@ -800,56 +800,66 @@
     {{-- Item Logs Modal --}}
     @if($showItemLogsModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" wire:click.self="$set('showItemLogsModal', false)">
-        <div class="relative mx-4 w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-200" @click.stop>
+        <div class="relative mx-4 w-full max-w-3xl rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200" @click.stop>
             {{-- Header --}}
-            <div class="mb-5 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+            <div class="flex items-center justify-between border-b border-slate-100 px-8 py-5">
+                <div class="flex items-center gap-4">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 ring-1 ring-slate-200">
                         <svg class="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-bold text-slate-800">{{ __('app.item_logs') }}</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">{{ $itemLogsDesc }}</p>
+                        <h3 class="text-lg font-bold text-slate-800">{{ __('app.item_logs') }}</h3>
+                        <p class="text-sm text-slate-500 mt-0.5">{{ $itemLogsDesc }}</p>
                     </div>
                 </div>
-                <button wire:click="$set('showItemLogsModal', false)" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                <button wire:click="$set('showItemLogsModal', false)" class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 max-h-[60vh] overflow-y-auto">
+            {{-- Body --}}
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 max-h-[60vh] overflow-y-auto px-8 py-6">
                 {{-- Engineering Logs --}}
                 <div>
-                    <h4 class="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-blue-600">
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
+                    <h4 class="mb-4 flex items-center gap-2 text-sm font-bold text-blue-700">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100">
+                            <svg class="h-3.5 w-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </span>
                         {{ __('app.engineering_updates') }}
-                        <span class="rounded-full bg-blue-100 px-1.5 text-[10px] font-bold text-blue-700">{{ count($itemEngLogs) }}</span>
+                        <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-700">{{ count($itemEngLogs) }}</span>
                     </h4>
                     @if(empty($itemEngLogs))
-                        <p class="text-xs text-slate-400 italic">{{ __('app.no_engineering_updates') }}</p>
+                        <div class="flex flex-col items-center justify-center py-6 text-center">
+                            <svg class="h-8 w-8 text-blue-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            <p class="text-xs text-slate-400 italic">{{ __('app.no_engineering_updates') }}</p>
+                        </div>
                     @else
-                        <div class="space-y-2">
+                        <div class="space-y-2.5">
                             @foreach($itemEngLogs as $eng)
-                                <div class="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
-                                    @php
-                                        $eBadge = match($eng['status']) {
-                                            'completed', 'approved' => 'bg-emerald-50 text-emerald-700',
-                                            'in_progress', 'reviewing' => 'bg-blue-50 text-blue-700',
-                                            'rejected' => 'bg-red-50 text-red-700',
-                                            default => 'bg-slate-100 text-slate-600',
-                                        };
-                                    @endphp
-                                    <span class="mt-0.5 inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold {{ $eBadge }}">{{ $eng['label'] }}</span>
-                                    <div class="min-w-0 flex-1">
-                                        @if($eng['notes'])
-                                            <p class="text-xs text-slate-700">{{ $eng['notes'] }}</p>
-                                        @endif
-                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $eng['user'] }} · {{ $eng['date'] }}</p>
+                                <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        @php
+                                            $eBadge = match($eng['status']) {
+                                                'completed', 'approved' => 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+                                                'in_progress', 'reviewing' => 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+                                                'rejected' => 'bg-red-50 text-red-700 ring-1 ring-red-200',
+                                                default => 'bg-slate-50 text-slate-600 ring-1 ring-slate-200',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $eBadge }}">{{ $eng['label'] }}</span>
+                                        <span class="text-[10px] text-slate-400">{{ $eng['date'] }}</span>
                                     </div>
+                                    @if($eng['notes'])
+                                        <p class="text-xs text-slate-700 leading-relaxed mb-1">{{ $eng['notes'] }}</p>
+                                    @endif
+                                    <p class="text-[10px] text-slate-400 flex items-center gap-1">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        {{ $eng['user'] }}
+                                    </p>
                                 </div>
                             @endforeach
                         </div>
@@ -858,40 +868,59 @@
 
                 {{-- Logistics Logs --}}
                 <div>
-                    <h4 class="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-orange-600">
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                        </svg>
+                    <h4 class="mb-4 flex items-center gap-2 text-sm font-bold text-orange-700">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-100">
+                            <svg class="h-3.5 w-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                        </span>
                         {{ __('app.logistics_updates') }}
-                        <span class="rounded-full bg-orange-100 px-1.5 text-[10px] font-bold text-orange-700">{{ count($itemLogLogs) }}</span>
+                        <span class="rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-bold text-orange-700">{{ count($itemLogLogs) }}</span>
                     </h4>
                     @if(empty($itemLogLogs))
-                        <p class="text-xs text-slate-400 italic">{{ __('app.no_logistics_updates') }}</p>
+                        <div class="flex flex-col items-center justify-center py-6 text-center">
+                            <svg class="h-8 w-8 text-orange-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            <p class="text-xs text-slate-400 italic">{{ __('app.no_logistics_updates') }}</p>
+                        </div>
                     @else
-                        <div class="space-y-2">
+                        <div class="space-y-2.5">
                             @foreach($itemLogLogs as $log)
-                                <div class="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
-                                    @php
-                                        $lBadge = match($log['status']) {
-                                            'delivered' => 'bg-emerald-50 text-emerald-700',
-                                            'dispatched', 'in_transit' => 'bg-blue-50 text-blue-700',
-                                            'failed' => 'bg-red-50 text-red-700',
-                                            default => 'bg-slate-100 text-slate-600',
-                                        };
-                                    @endphp
-                                    <span class="mt-0.5 inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold {{ $lBadge }}">{{ $log['label'] }}</span>
-                                    <div class="min-w-0 flex-1">
-                                        @if(isset($log['carrier']) && $log['carrier'] !== '—' || isset($log['tracking']) && $log['tracking'] !== '—')
-                                            <p class="text-[10px] text-slate-500">
-                                                @if($log['carrier'] !== '—') {{ __('app.carrier_supplier') }}: {{ $log['carrier'] }} @endif
-                                                @if($log['tracking'] !== '—') · #{{ $log['tracking'] }} @endif
-                                            </p>
-                                        @endif
-                                        @if($log['notes'])
-                                            <p class="text-xs text-slate-700">{{ $log['notes'] }}</p>
-                                        @endif
-                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $log['user'] }} · {{ $log['date'] }}</p>
+                                <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        @php
+                                            $lBadge = match($log['status']) {
+                                                'delivered' => 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+                                                'dispatched', 'in_transit' => 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+                                                'failed' => 'bg-red-50 text-red-700 ring-1 ring-red-200',
+                                                default => 'bg-slate-50 text-slate-600 ring-1 ring-slate-200',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $lBadge }}">{{ $log['label'] }}</span>
+                                        <span class="text-[10px] text-slate-400">{{ $log['date'] }}</span>
                                     </div>
+                                    @if(isset($log['carrier']) && $log['carrier'] !== '—' || isset($log['tracking']) && $log['tracking'] !== '—')
+                                        <div class="flex items-center gap-3 mb-1 text-[11px] text-slate-500">
+                                            @if(isset($log['carrier']) && $log['carrier'] !== '—')
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
+                                                    {{ $log['carrier'] }}
+                                                </span>
+                                            @endif
+                                            @if(isset($log['tracking']) && $log['tracking'] !== '—')
+                                                <span class="flex items-center gap-1 font-mono">
+                                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                                                    {{ $log['tracking'] }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    @if($log['notes'])
+                                        <p class="text-xs text-slate-700 leading-relaxed mb-1">{{ $log['notes'] }}</p>
+                                    @endif
+                                    <p class="text-[10px] text-slate-400 flex items-center gap-1">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        {{ $log['user'] }}
+                                    </p>
                                 </div>
                             @endforeach
                         </div>
@@ -899,7 +928,8 @@
                 </div>
             </div>
 
-            <div class="mt-5">
+            {{-- Footer --}}
+            <div class="border-t border-slate-100 px-8 py-4">
                 <button
                     wire:click="$set('showItemLogsModal', false)"
                     class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
