@@ -120,6 +120,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Quotations (read-only)
         Route::get('/quotations', [AdminQuotationController::class, 'index'])->name('quotations.index');
+        Route::get('/quotations/{uuid}/pdf', [AdminQuotationController::class, 'pdf'])->name('quotations.pdf');
         Route::get('/quotations/{uuid}', [AdminQuotationController::class, 'show'])->name('quotations.show');
 
         // Catalog – Brands

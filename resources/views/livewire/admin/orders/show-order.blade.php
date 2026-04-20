@@ -316,12 +316,14 @@
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-end">{{ __('app.unit_price_sar') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-16 text-end">{{ __('app.disc_percent') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-32 text-end">{{ __('app.total_sar') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-center">{{ __('app.engineering') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-center">{{ __('app.logistics') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-24 text-center">{{ __('app.updates') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         @foreach($items as $idx => $item)
-                            <tr class="hover:bg-slate-50/60 transition-colors">
+                            <tr wire:click="openItemLogs({{ $item['id'] }})" class="hover:bg-slate-50/60 transition-colors cursor-pointer">
                                 <td class="px-5 py-4 text-slate-400 text-xs font-mono">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-5 py-4"><p class="font-semibold text-slate-800">{{ $item['description'] ?: '—' }}</p></td>
                                 <td class="px-5 py-4">
@@ -338,6 +340,40 @@
                                 </td>
                                 <td class="px-5 py-4 text-end font-mono font-bold text-slate-900">{{ number_format((float)$item['total_price'], 2) }}</td>
                                 <td class="px-5 py-4 text-center">
+                                    @if($item['eng_status'])
+                                        @php
+                                            $engBadge = match($item['eng_status']) {
+                                                'completed', 'approved' => 'bg-emerald-50 text-emerald-700',
+                                                'in_progress', 'reviewing' => 'bg-blue-50 text-blue-700',
+                                                'rejected' => 'bg-red-50 text-red-700',
+                                                default => 'bg-slate-100 text-slate-600',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold {{ $engBadge }}">
+                                            {{ $item['eng_label'] }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-slate-300">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-4 text-center">
+                                    @if($item['log_status'])
+                                        @php
+                                            $logBadge = match($item['log_status']) {
+                                                'delivered' => 'bg-emerald-50 text-emerald-700',
+                                                'dispatched', 'in_transit' => 'bg-blue-50 text-blue-700',
+                                                'failed' => 'bg-red-50 text-red-700',
+                                                default => 'bg-slate-100 text-slate-600',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold {{ $logBadge }}">
+                                            {{ $item['log_label'] }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-slate-300">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-4 text-center" @click.stop>
                                     <div class="flex items-center justify-center gap-1.5">
                                         <button
                                             wire:click="openEngModal({{ $item['id'] }})"
@@ -364,15 +400,15 @@
                     </tbody>
                     <tfoot>
                         <tr class="border-t-2 border-slate-200 bg-slate-50">
-                            <td colspan="6" class="px-5 py-3 text-end text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.subtotal') }}</td>
+                            <td colspan="8" class="px-5 py-3 text-end text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.subtotal') }}</td>
                             <td class="px-5 py-3 text-end font-mono font-bold text-slate-800">{{ number_format((float)$order->total_amount, 2) }}</td>
                         </tr>
                         <tr class="bg-slate-50">
-                            <td colspan="6" class="px-5 py-2 text-end text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.vat_15') }}</td>
+                            <td colspan="8" class="px-5 py-2 text-end text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.vat_15') }}</td>
                             <td class="px-5 py-2 text-end font-mono font-bold text-slate-800">{{ number_format((float)$order->vat_amount, 2) }}</td>
                         </tr>
                         <tr class="border-t border-slate-200 bg-emerald-50">
-                            <td colspan="6" class="px-5 py-3 text-end text-sm font-bold text-emerald-700">{{ __('app.grand_total') }}</td>
+                            <td colspan="8" class="px-5 py-3 text-end text-sm font-bold text-emerald-700">{{ __('app.grand_total') }}</td>
                             <td class="px-5 py-3 text-end font-mono text-lg font-bold text-emerald-700">{{ number_format((float)$order->grand_total, 2) }} {{ __('app.sar') }}</td>
                         </tr>
                     </tfoot>
@@ -759,6 +795,120 @@
     </div>
     @endif
 
+    @endif
+
+    {{-- Item Logs Modal --}}
+    @if($showItemLogsModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" wire:click.self="$set('showItemLogsModal', false)">
+        <div class="relative mx-4 w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-200" @click.stop>
+            {{-- Header --}}
+            <div class="mb-5 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                        <svg class="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">{{ __('app.item_logs') }}</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ $itemLogsDesc }}</p>
+                    </div>
+                </div>
+                <button wire:click="$set('showItemLogsModal', false)" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 max-h-[60vh] overflow-y-auto">
+                {{-- Engineering Logs --}}
+                <div>
+                    <h4 class="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-blue-600">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        {{ __('app.engineering_updates') }}
+                        <span class="rounded-full bg-blue-100 px-1.5 text-[10px] font-bold text-blue-700">{{ count($itemEngLogs) }}</span>
+                    </h4>
+                    @if(empty($itemEngLogs))
+                        <p class="text-xs text-slate-400 italic">{{ __('app.no_engineering_updates') }}</p>
+                    @else
+                        <div class="space-y-2">
+                            @foreach($itemEngLogs as $eng)
+                                <div class="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+                                    @php
+                                        $eBadge = match($eng['status']) {
+                                            'completed', 'approved' => 'bg-emerald-50 text-emerald-700',
+                                            'in_progress', 'reviewing' => 'bg-blue-50 text-blue-700',
+                                            'rejected' => 'bg-red-50 text-red-700',
+                                            default => 'bg-slate-100 text-slate-600',
+                                        };
+                                    @endphp
+                                    <span class="mt-0.5 inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold {{ $eBadge }}">{{ $eng['label'] }}</span>
+                                    <div class="min-w-0 flex-1">
+                                        @if($eng['notes'])
+                                            <p class="text-xs text-slate-700">{{ $eng['notes'] }}</p>
+                                        @endif
+                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $eng['user'] }} · {{ $eng['date'] }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Logistics Logs --}}
+                <div>
+                    <h4 class="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-orange-600">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                        {{ __('app.logistics_updates') }}
+                        <span class="rounded-full bg-orange-100 px-1.5 text-[10px] font-bold text-orange-700">{{ count($itemLogLogs) }}</span>
+                    </h4>
+                    @if(empty($itemLogLogs))
+                        <p class="text-xs text-slate-400 italic">{{ __('app.no_logistics_updates') }}</p>
+                    @else
+                        <div class="space-y-2">
+                            @foreach($itemLogLogs as $log)
+                                <div class="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+                                    @php
+                                        $lBadge = match($log['status']) {
+                                            'delivered' => 'bg-emerald-50 text-emerald-700',
+                                            'dispatched', 'in_transit' => 'bg-blue-50 text-blue-700',
+                                            'failed' => 'bg-red-50 text-red-700',
+                                            default => 'bg-slate-100 text-slate-600',
+                                        };
+                                    @endphp
+                                    <span class="mt-0.5 inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold {{ $lBadge }}">{{ $log['label'] }}</span>
+                                    <div class="min-w-0 flex-1">
+                                        @if(isset($log['carrier']) && $log['carrier'] !== '—' || isset($log['tracking']) && $log['tracking'] !== '—')
+                                            <p class="text-[10px] text-slate-500">
+                                                @if($log['carrier'] !== '—') {{ __('app.carrier_supplier') }}: {{ $log['carrier'] }} @endif
+                                                @if($log['tracking'] !== '—') · #{{ $log['tracking'] }} @endif
+                                            </p>
+                                        @endif
+                                        @if($log['notes'])
+                                            <p class="text-xs text-slate-700">{{ $log['notes'] }}</p>
+                                        @endif
+                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $log['user'] }} · {{ $log['date'] }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <button
+                    wire:click="$set('showItemLogsModal', false)"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                    {{ __('app.close') }}
+                </button>
+            </div>
+        </div>
+    </div>
     @endif
 
 </div>
