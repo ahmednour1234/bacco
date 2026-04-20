@@ -41,30 +41,30 @@
     {{-- Table --}}
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="w-full table-fixed divide-y divide-slate-100">
                 <thead>
                     <tr class="bg-slate-50">
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.supplier_name') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.company') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.contact') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.products') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.activity') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
-                        <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
+                        <th class="w-[16%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.supplier_name') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.company') }}</th>
+                        <th class="w-[20%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.contact') }}</th>
+                        <th class="w-[8%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.products') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.activity') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($suppliers as $supplier)
                         <tr class="group transition hover:bg-slate-50/60">
                             {{-- Name --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-xs font-bold text-indigo-600">
                                         {{ strtoupper(substr($supplier->name, 0, 2)) }}
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-semibold text-slate-900">{{ $supplier->name }}</p>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-semibold text-slate-900 truncate">{{ $supplier->name }}</p>
                                         @if($supplier->supplierProfile?->division)
                                             <p class="text-xs text-slate-400">{{ $supplier->supplierProfile->division }}</p>
                                         @endif
@@ -73,8 +73,8 @@
                             </td>
 
                             {{-- Company --}}
-                            <td class="whitespace-nowrap px-5 py-4">
-                                <span class="text-sm text-slate-700">{{ $supplier->supplierProfile?->company_name ?: '—' }}</span>
+                            <td class="px-5 py-4">
+                                <span class="text-sm text-slate-700 truncate block">{{ $supplier->supplierProfile?->company_name ?: '—' }}</span>
                             </td>
 
                             {{-- Contact --}}
@@ -86,14 +86,14 @@
                             </td>
 
                             {{-- Products --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 <span class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
                                     {{ $supplier->supplier_products_count }}
                                 </span>
                             </td>
 
                             {{-- Status --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 @if($supplier->active)
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.status_active') }}
@@ -106,17 +106,17 @@
                             </td>
 
                             {{-- Activity --}}
-                            <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-400">
+                            <td class="px-5 py-4 text-xs text-slate-400">
                                 {{ $supplier->updated_at?->diffForHumans() }}
                             </td>
 
                             {{-- Created --}}
-                            <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-400">
+                            <td class="px-5 py-4 text-xs text-slate-400">
                                 {{ $supplier->created_at?->format('M j, Y') }}
                             </td>
 
                             {{-- Actions --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 <div class="flex items-center justify-end gap-1.5">
                                     {{-- View --}}
                                     <a href="{{ route('admin.suppliers.show', $supplier->uuid) }}" wire:navigate

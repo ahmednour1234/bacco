@@ -15,7 +15,7 @@ class BoqController extends Controller
 
     public function show(string $uuid): View
     {
-        $boq = Boq::where('uuid', $uuid)->firstOrFail();
+        $boq = Boq::where('uuid', $uuid)->with(['project', 'client', 'items.unit'])->firstOrFail();
         return view('admin.boqs.show', compact('boq'));
     }
 }
