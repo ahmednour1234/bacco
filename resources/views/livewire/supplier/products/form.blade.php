@@ -412,18 +412,6 @@
                 </div>
 
                 <div class="px-4 py-3">
-                    <label class="mb-1.5 block text-xs font-medium text-slate-600">{{ __('app.profit_margin_handling') }}</label>
-                    <select wire:model="aiMarginHandling"
-                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-800
-                                   transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                        <option value="auto_20">{{ __('app.apply_auto_20') }}</option>
-                        <option value="auto_15">{{ __('app.apply_auto_15') }}</option>
-                        <option value="keep">{{ __('app.keep_original_price') }}</option>
-                        <option value="override">{{ __('app.override_manually') }}</option>
-                    </select>
-                </div>
-
-                <div class="px-4 py-3">
                     <label class="mb-1.5 block text-xs font-medium text-slate-600">{{ __('app.document_currency') }}</label>
                     <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                         <span class="text-base leading-none">🇸🇦</span>
