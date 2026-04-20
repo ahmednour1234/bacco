@@ -725,6 +725,15 @@ return [
 
     // Users Management
     'users'                         => 'المستخدمين',
+    'search_users'                  => 'بحث عن مستخدمين…',
+    'all_status'                    => 'جميع الحالات',
+    'all_types'                     => 'جميع الأنواع',
+    'active'                        => 'نشط',
+    'inactive'                      => 'غير نشط',
+    'type'                          => 'النوع',
+    'created'                       => 'تاريخ الإنشاء',
+    'clear'                         => 'مسح',
+    'no_users_found'                => 'لا يوجد مستخدمون',
 
     // Excel Import
     'import_excel'                  => 'استيراد من Excel',

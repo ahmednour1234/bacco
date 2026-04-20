@@ -22,7 +22,7 @@
 
 {{-- ── Portal button (desktop top-right) ─────────────────── --}}
 @section('desktop-header-action')
-    <a href="#"
+    <a href="{{ route('supplier.login') }}"
        class="inline-flex items-center gap-2 text-xs font-semibold text-emerald-700
               border border-emerald-600 rounded-xl px-4 py-2
               hover:bg-emerald-50 transition">
@@ -37,7 +37,7 @@
 @endsection
 
 @section('mobile-header-action')
-    <a href="#"
+    <a href="{{ route('supplier.login') }}"
        class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700
               border border-emerald-600 rounded-xl px-3 py-1.5 hover:bg-emerald-50 transition">
         Supplier Portal

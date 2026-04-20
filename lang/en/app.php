@@ -723,6 +723,15 @@ return [
 
     // Users Management
     'users'                         => 'Users',
+    'search_users'                  => 'Search users…',
+    'all_status'                    => 'All Status',
+    'all_types'                     => 'All Types',
+    'active'                        => 'Active',
+    'inactive'                      => 'Inactive',
+    'type'                          => 'Type',
+    'created'                       => 'Created',
+    'clear'                         => 'Clear',
+    'no_users_found'                => 'No users found',
 
     // Excel Import
     'import_excel'                  => 'Import Excel',

@@ -34,7 +34,7 @@ class IndexTable extends Component
 
     public function render()
     {
-        $query = Boq::with(['project', 'user'])->orderByDesc('created_at');
+        $query = Boq::with(['project', 'client'])->orderByDesc('created_at');
 
         if ($this->search !== '') {
             $term = '%' . $this->search . '%';

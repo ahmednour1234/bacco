@@ -7,26 +7,26 @@
                 <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search users…"
+                <input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('app.search_users') }}"
                     class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 sm:w-64">
             </div>
 
             {{-- Status filter --}}
             <select wire:model.live="status"
                 class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="">{{ __('app.all_status') }}</option>
+                <option value="active">{{ __('app.active') }}</option>
+                <option value="inactive">{{ __('app.inactive') }}</option>
             </select>
 
             {{-- User type filter --}}
             <select wire:model.live="userType"
                 class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                <option value="">All Types</option>
-                <option value="admin">Admin</option>
-                <option value="employee">Employee</option>
-                <option value="client">Client</option>
-                <option value="supplier">Supplier</option>
+                <option value="">{{ __('app.all_types') }}</option>
+                <option value="admin">{{ __('app.admin') }}</option>
+                <option value="employee">{{ __('app.employee') }}</option>
+                <option value="client">{{ __('app.client') }}</option>
+                <option value="supplier">{{ __('app.supplier') }}</option>
             </select>
 
             @if($hasActiveFilters)
@@ -34,7 +34,7 @@
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    Clear
+                    {{ __('app.clear') }}
                 </button>
             @endif
         </div>
@@ -46,12 +46,12 @@
             <table class="min-w-full divide-y divide-slate-100">
                 <thead>
                     <tr class="bg-slate-50">
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Name</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Email</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Phone</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Type</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Created</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.email') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.phone') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.type') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -89,7 +89,7 @@
                                     $color = $typeColors[$user->user_type->value] ?? 'bg-slate-100 text-slate-700';
                                 @endphp
                                 <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $color }}">
-                                    {{ ucfirst($user->user_type->value) }}
+                                    {{ __('app.' . $user->user_type->value) }}
                                 </span>
                             </td>
 
@@ -97,11 +97,11 @@
                             <td class="whitespace-nowrap px-5 py-4">
                                 @if($user->active)
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Active
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.active') }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-600">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Inactive
+                                        <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>{{ __('app.inactive') }}
                                     </span>
                                 @endif
                             </td>
@@ -117,7 +117,7 @@
                                 <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>
-                                <p class="mt-2 text-sm font-medium text-slate-500">No users found</p>
+                                <p class="mt-2 text-sm font-medium text-slate-500">{{ __('app.no_users_found') }}</p>
                             </td>
                         </tr>
                     @endforelse
