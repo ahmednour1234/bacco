@@ -486,6 +486,7 @@ return [
     'crm_projects'                  => 'CRM Projects',
     'track_orders_engineering'      => 'Track orders, engineering updates, and logistics progress across all active sites.',
     'export_csv'                    => 'Export CSV',
+    'export_excel'                  => 'Export Excel',
     'in_transit'                    => 'In-Transit',
     'search_orders_projects_clients'=> 'Search orders, projects, or clients...',
     'last_7_days'                   => 'Last 7 Days',

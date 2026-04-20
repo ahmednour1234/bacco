@@ -484,6 +484,7 @@ return [
     'crm_projects'                  => 'مشاريع CRM',
     'track_orders_engineering'      => 'تتبع الطلبات والتحديثات الهندسية وسير التوريد عبر جميع المواقع النشطة.',
     'export_csv'                    => 'تصدير CSV',
+    'export_excel'                  => 'تصدير Excel',
     'in_transit'                    => 'في الطريق',
     'search_orders_projects_clients'=> 'بحث في الطلبات أو المشاريع أو العملاء...',
     'last_7_days'                   => 'آخر 7 أيام',

@@ -39,12 +39,9 @@ class IndexList extends Component
         $allOrders = Order::query();
 
         $stats = [
-            'total'       => (clone $allOrders)->count(),
-            'engineering' => (clone $allOrders)->whereHas('engineeringUpdates')->count(),
-            'waiting'     => (clone $allOrders)->whereIn('status', ['pending', 'confirmed'])->count(),
-            'logistics'   => (clone $allOrders)->whereHas('logisticsUpdates')->count(),
-            'delivered'   => (clone $allOrders)->where('status', 'delivered')->count(),
-            'closed'      => (clone $allOrders)->whereIn('status', ['completed', 'cancelled', 'refunded'])->count(),
+            'total'  => (clone $allOrders)->count(),
+            'open'   => (clone $allOrders)->whereNotIn('status', ['completed', 'cancelled', 'refunded'])->count(),
+            'closed' => (clone $allOrders)->whereIn('status', ['completed', 'cancelled', 'refunded'])->count(),
         ];
 
         $query = Order::with([

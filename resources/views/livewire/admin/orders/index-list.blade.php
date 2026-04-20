@@ -9,13 +9,13 @@
             <p class="mt-1 text-sm text-slate-400">{{ __('app.track_orders_engineering') }}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-            <a href="{{ route('admin.orders.index') }}?export=csv"
+            <a href="{{ route('admin.orders.export') }}"
                class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition">
                 <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
-                {{ __('app.export_csv') }}
+                {{ __('app.export_excel') }}
             </a>
             <button onclick="window.print()"
                 class="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 transition">
