@@ -369,12 +369,12 @@ class ShowOrder extends Component
         $currentIdx  = array_search($status, $progression);
 
         $defs = [
-            ['label' => 'Payment Approved'],
-            ['label' => 'Profile Completed'],
-            ['label' => 'Engineering Updates'],
-            ['label' => 'Logistics'],
-            ['label' => 'Delivered'],
-            ['label' => 'Closed'],
+            ['label' => __('app.payment_approved')],
+            ['label' => __('app.profile_completed')],
+            ['label' => __('app.engineering_updates')],
+            ['label' => __('app.logistics_updates')],
+            ['label' => __('app.status_delivered')],
+            ['label' => __('app.closed')],
         ];
 
         $this->steps = [];
