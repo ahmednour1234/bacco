@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\BoqController as AdminBoqController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\QuotationController as AdminQuotationController;
@@ -137,6 +138,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Orders
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{uuid}', [AdminOrderController::class, 'show'])->name('orders.show');
+
+        // BOQs
+        Route::get('/boqs', [AdminBoqController::class, 'index'])->name('boqs.index');
+        Route::get('/boqs/{uuid}', [AdminBoqController::class, 'show'])->name('boqs.show');
 
         // Suppliers
         Route::resource('suppliers', AdminSupplierController::class)->except(['destroy']);
