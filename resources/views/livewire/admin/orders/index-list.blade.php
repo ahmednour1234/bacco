@@ -30,7 +30,7 @@
     {{-- ═══════════════════════════════════════════════════════
          STAT CARDS
     ═══════════════════════════════════════════════════════ --}}
-    <div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 
         {{-- Total Orders --}}
         <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
@@ -41,70 +41,24 @@
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                 </div>
-                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">+12%</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
             <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.total_orders') }}</p>
         </div>
 
-        {{-- Engineering --}}
-        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <div class="mb-3 flex items-center justify-between">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50">
-                    <svg class="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">{{ __('app.active') }}</span>
-            </div>
-            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['engineering'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.engineering') }}</p>
-        </div>
-
-        {{-- Waiting --}}
-        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <div class="mb-3 flex items-center justify-between">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50">
-                    <svg class="h-5 w-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-500">-5%</span>
-            </div>
-            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['waiting'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.waiting') }}</p>
-        </div>
-
-        {{-- Logistics --}}
-        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <div class="mb-3 flex items-center justify-between">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50">
-                    <svg class="h-5 w-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                </div>
-                <span class="rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-semibold text-cyan-600">{{ __('app.in_transit') }}</span>
-            </div>
-            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['logistics'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.logistics_updates') }}</p>
-        </div>
-
-        {{-- Delivered --}}
+        {{-- Open --}}
         <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
             <div class="mb-3 flex items-center justify-between">
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
                     <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
                     </svg>
                 </div>
-                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">+8%</span>
+                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">{{ __('app.open') }}</span>
             </div>
-            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['delivered'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.status_delivered') }}</p>
+            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['open'] }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.open_orders') }}</p>
         </div>
 
         {{-- Closed --}}
@@ -119,7 +73,7 @@
                 <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">{{ __('app.closed') }}</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['closed'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.closed') }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.closed_orders') }}</p>
         </div>
 
     </div>
