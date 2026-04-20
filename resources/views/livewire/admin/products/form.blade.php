@@ -349,7 +349,6 @@
                         @foreach ([
                             'vendor'  => __('app.vendor_quotation'),
                             'client'  => __('app.selling_price_client'),
-                            'mixed'   => __('app.not_sure_mixed'),
                         ] as $val => $label)
                             <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 transition
                                           {{ $aiPriceContext === $val
