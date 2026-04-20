@@ -732,4 +732,11 @@ return [
     'upload_file'                   => 'رفع ملف',
     'import'                        => 'استيراد',
     'choose_file'                   => 'اختر ملف (.xlsx, .xls, .csv)',
+
+    // Admin Supplier Create
+    'account_information'           => 'معلومات الحساب',
+    'company_information'           => 'معلومات الشركة',
+    'create_supplier'               => 'إضافة مورد',
+    'division_role'                 => 'القسم / الدور في الشركة',
+    'boqs'                          => 'جداول الكميات',
 ];

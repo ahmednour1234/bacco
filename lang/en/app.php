@@ -730,4 +730,11 @@ return [
     'upload_file'                   => 'Upload File',
     'import'                        => 'Import',
     'choose_file'                   => 'Choose file (.xlsx, .xls, .csv)',
+
+    // Admin Supplier Create
+    'account_information'           => 'Account Information',
+    'company_information'           => 'Company Information',
+    'create_supplier'               => 'Create Supplier',
+    'division_role'                 => 'Division / Role in Company',
+    'boqs'                          => 'BOQs',
 ];
