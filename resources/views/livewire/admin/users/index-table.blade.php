@@ -43,42 +43,42 @@
     {{-- Table --}}
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="w-full table-fixed divide-y divide-slate-100">
                 <thead>
                     <tr class="bg-slate-50">
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.email') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.phone') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.type') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="w-[22%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="w-[25%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.email') }}</th>
+                        <th class="w-[15%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.phone') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.type') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="w-[14%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($users as $user)
                         <tr class="group transition hover:bg-slate-50/60">
                             {{-- Name --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-xs font-bold text-indigo-600">
                                         {{ strtoupper(substr($user->name, 0, 2)) }}
                                     </div>
-                                    <span class="text-sm font-semibold text-slate-900">{{ $user->name }}</span>
+                                    <span class="text-sm font-semibold text-slate-900 truncate">{{ $user->name }}</span>
                                 </div>
                             </td>
 
                             {{-- Email --}}
-                            <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-700">
+                            <td class="px-5 py-4 text-sm text-slate-700 truncate">
                                 {{ $user->email }}
                             </td>
 
                             {{-- Phone --}}
-                            <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-700">
+                            <td class="px-5 py-4 text-sm text-slate-700">
                                 {{ $user->phone ?: '—' }}
                             </td>
 
                             {{-- Type --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 @php
                                     $typeColors = [
                                         'admin'    => 'bg-purple-100 text-purple-700',
@@ -94,7 +94,7 @@
                             </td>
 
                             {{-- Status --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 @if($user->active)
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.active') }}
@@ -107,7 +107,7 @@
                             </td>
 
                             {{-- Created --}}
-                            <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-400">
+                            <td class="px-5 py-4 text-xs text-slate-400">
                                 {{ $user->created_at?->format('M j, Y') }}
                             </td>
                         </tr>
