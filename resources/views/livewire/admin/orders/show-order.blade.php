@@ -162,7 +162,7 @@
                     class="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 transition"
                 >
                     <span wire:loading.remove wire:target="updateStatus">{{ __('app.confirm_change') }}</span>
-                    <span wire:loading wire:target="updateStatus">Updating…</span>
+                    <span wire:loading wire:target="updateStatus">{{ __('app.updating') }}</span>
                 </button>
                 <button
                     wire:click="$set('showStatusModal', false)"
@@ -207,12 +207,6 @@
                         <p class="text-xs font-bold leading-snug {{ $step['state'] === 'completed' ? 'text-emerald-700' : ($step['state'] === 'in_progress' ? 'text-slate-800' : 'text-slate-400') }}">
                             {{ $step['label'] }}
                         </p>
-                        <p class="mt-0.5 text-[10px] leading-none {{ $step['state'] === 'completed' ? 'text-emerald-500' : ($step['state'] === 'in_progress' ? 'text-indigo-500 font-semibold' : 'text-slate-300') }}">
-                            @if($step['state'] === 'completed') {{ __('app.status_completed') }}
-                            @elseif($step['state'] === 'in_progress') {{ __('app.in_progress') }}
-                            @else {{ __('app.status_pending') }}
-                            @endif
-                        </p>
                     </div>
                 </div>
             @endforeach
@@ -241,7 +235,7 @@
                 </div>
                 <div class="flex justify-between text-sm">
                     <dt class="text-slate-400">{{ __('app.project') }}</dt>
-                    <dd class="font-semibold text-slate-800 text-right max-w-[200px] truncate" title="{{ $order->quotationRequest?->project_name ?? '—' }}">
+                    <dd class="font-semibold text-slate-800 text-end max-w-[200px] truncate" title="{{ $order->quotationRequest?->project_name ?? '—' }}">
                         {{ $order->quotationRequest?->project_name ?? '—' }}
                     </dd>
                 </div>
@@ -255,7 +249,7 @@
                 </div>
                 <div class="flex justify-between text-sm border-t border-slate-100 pt-3 mt-1">
                     <dt class="font-bold text-slate-600">{{ __('app.grand_total') }}</dt>
-                    <dd class="font-mono font-bold text-slate-900 text-base">{{ number_format((float)$order->grand_total, 2) }} SAR</dd>
+                    <dd class="font-mono font-bold text-slate-900 text-base">{{ number_format((float)$order->grand_total, 2) }} {{ __('app.sar') }}</dd>
                 </div>
             </dl>
         </div>
@@ -320,14 +314,14 @@
             @else
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50 text-left">
+                        <tr class="border-b border-slate-100 bg-slate-50 text-start">
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">#</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 min-w-[220px]">{{ __('app.description') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28">{{ __('app.qty_unit') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28">{{ __('app.brand') }}</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-right">{{ __('app.unit_price_sar') }}</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-16 text-right">{{ __('app.disc_percent') }}</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-32 text-right">{{ __('app.total_sar') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-end">{{ __('app.unit_price_sar') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-16 text-end">{{ __('app.disc_percent') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-32 text-end">{{ __('app.total_sar') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-24 text-center">{{ __('app.updates') }}</th>
                         </tr>
                     </thead>
@@ -341,14 +335,14 @@
                                     <p class="text-xs text-slate-400 uppercase mt-0.5">{{ $item['unit'] }}</p>
                                 </td>
                                 <td class="px-5 py-4 text-slate-600 text-xs font-medium">{{ $item['brand'] }}</td>
-                                <td class="px-5 py-4 text-right font-mono text-slate-700">{{ number_format((float)$item['unit_price'], 2) }}</td>
-                                <td class="px-5 py-4 text-right text-xs">
+                                <td class="px-5 py-4 text-end font-mono text-slate-700">{{ number_format((float)$item['unit_price'], 2) }}</td>
+                                <td class="px-5 py-4 text-end text-xs">
                                     @if($item['discount'] > 0)
                                         <span class="text-amber-600 font-semibold">{{ $item['discount'] }}%</span>
                                     @else —
                                     @endif
                                 </td>
-                                <td class="px-5 py-4 text-right font-mono font-bold text-slate-900">{{ number_format((float)$item['total_price'], 2) }}</td>
+                                <td class="px-5 py-4 text-end font-mono font-bold text-slate-900">{{ number_format((float)$item['total_price'], 2) }}</td>
                                 <td class="px-5 py-4 text-center">
                                     <div class="flex items-center justify-center gap-1.5">
                                         <button
@@ -376,16 +370,16 @@
                     </tbody>
                     <tfoot>
                         <tr class="border-t-2 border-slate-200 bg-slate-50">
-                            <td colspan="6" class="px-5 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.subtotal') }}</td>
-                            <td class="px-5 py-3 text-right font-mono font-bold text-slate-800">{{ number_format((float)$order->total_amount, 2) }}</td>
+                            <td colspan="6" class="px-5 py-3 text-end text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.subtotal') }}</td>
+                            <td class="px-5 py-3 text-end font-mono font-bold text-slate-800">{{ number_format((float)$order->total_amount, 2) }}</td>
                         </tr>
                         <tr class="bg-slate-50">
-                            <td colspan="6" class="px-5 py-2 text-right text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.vat_15') }}</td>
-                            <td class="px-5 py-2 text-right font-mono font-bold text-slate-800">{{ number_format((float)$order->vat_amount, 2) }}</td>
+                            <td colspan="6" class="px-5 py-2 text-end text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.vat_15') }}</td>
+                            <td class="px-5 py-2 text-end font-mono font-bold text-slate-800">{{ number_format((float)$order->vat_amount, 2) }}</td>
                         </tr>
                         <tr class="border-t border-slate-200 bg-emerald-50">
-                            <td colspan="6" class="px-5 py-3 text-right text-sm font-bold text-emerald-700">{{ __('app.grand_total') }}</td>
-                            <td class="px-5 py-3 text-right font-mono text-lg font-bold text-emerald-700">{{ number_format((float)$order->grand_total, 2) }} SAR</td>
+                            <td colspan="6" class="px-5 py-3 text-end text-sm font-bold text-emerald-700">{{ __('app.grand_total') }}</td>
+                            <td class="px-5 py-3 text-end font-mono text-lg font-bold text-emerald-700">{{ number_format((float)$order->grand_total, 2) }} {{ __('app.sar') }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -435,8 +429,8 @@
                                                     <option value="{{ $case->value }}">{{ $case->label() }}</option>
                                                 @endforeach
                                             </select>
-                                            <button wire:click="updateEngStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">Save</button>
-                                            <button wire:click="cancelEditEng" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">Cancel</button>
+                                            <button wire:click="updateEngStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">{{ __('app.save') }}</button>
+                                            <button wire:click="cancelEditEng" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">{{ __('app.cancel') }}</button>
                                         </div>
                                     @else
                                         <div class="flex items-center gap-2 flex-wrap">
@@ -459,7 +453,7 @@
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3.414a2 2 0 01.586-1.414z"/></svg>
                                     </button>
                                 @endif
-                                <button wire:click="deleteEngUpdate({{ $eu['id'] }})" wire:confirm="Delete this engineering update?" class="text-slate-300 hover:text-red-500 transition">
+                                <button wire:click="deleteEngUpdate({{ $eu['id'] }})" wire:confirm="{{ __('app.delete_engineering_confirm') }}" class="text-slate-300 hover:text-red-500 transition">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                             </div>
@@ -506,8 +500,8 @@
                                                     <option value="{{ $case->value }}">{{ $case->label() }}</option>
                                                 @endforeach
                                             </select>
-                                            <button wire:click="updateLogStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">Save</button>
-                                            <button wire:click="cancelEditLog" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">Cancel</button>
+                                            <button wire:click="updateLogStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">{{ __('app.save') }}</button>
+                                            <button wire:click="cancelEditLog" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">{{ __('app.cancel') }}</button>
                                         </div>
                                     @else
                                         <div class="flex items-center gap-2 flex-wrap">
@@ -535,7 +529,7 @@
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3.414a2 2 0 01.586-1.414z"/></svg>
                                     </button>
                                 @endif
-                                <button wire:click="deleteLogUpdate({{ $lu['id'] }})" wire:confirm="Delete this logistics update?" class="text-slate-300 hover:text-red-500 transition">
+                                <button wire:click="deleteLogUpdate({{ $lu['id'] }})" wire:confirm="{{ __('app.delete_logistics_confirm') }}" class="text-slate-300 hover:text-red-500 transition">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                             </div>
@@ -558,10 +552,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </span>
-                <h2 class="text-sm font-bold text-slate-800">Status History</h2>
+                <h2 class="text-sm font-bold text-slate-800">{{ __('app.status_history') }}</h2>
             </div>
             <span class="rounded-full bg-slate-100 px-3 py-0.5 text-xs font-bold uppercase tracking-wide text-slate-500">
-                {{ count($statusLogs) }} {{ count($statusLogs) === 1 ? 'change' : 'changes' }}
+                {{ count($statusLogs) }} {{ count($statusLogs) === 1 ? __('app.change') : __('app.changes') }}
             </span>
         </div>
         @if(empty($statusLogs))
@@ -569,20 +563,20 @@
                 <svg class="h-10 w-10 text-slate-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p class="text-sm font-medium text-slate-400">No status changes recorded yet.</p>
-                <p class="mt-1 text-xs text-slate-300">Use "Change Status" above to start tracking.</p>
+                <p class="text-sm font-medium text-slate-400">{{ __('app.no_status_changes') }}</p>
+                <p class="mt-1 text-xs text-slate-300">{{ __('app.use_change_status') }}</p>
             </div>
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50 text-left">
+                        <tr class="border-b border-slate-100 bg-slate-50 text-start">
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-12">#</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Previous</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.previous_status') }}</th>
                             <th class="px-3 py-3 w-6 text-center text-slate-300">→</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">New Status</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Changed By</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 text-right">Date & Time</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.new_status_col') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.changed_by') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 text-end">{{ __('app.date_time') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
@@ -605,7 +599,7 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-3.5 text-sm text-slate-600">{{ $log['user'] }}</td>
-                                <td class="px-5 py-3.5 text-right text-xs text-slate-400 whitespace-nowrap">{{ $log['date'] }}</td>
+                                <td class="px-5 py-3.5 text-end text-xs text-slate-400 whitespace-nowrap">{{ $log['date'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>
