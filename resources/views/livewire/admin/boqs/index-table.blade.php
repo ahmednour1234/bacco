@@ -35,29 +35,29 @@
     {{-- Table --}}
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="w-full table-fixed divide-y divide-slate-100">
                 <thead>
                     <tr class="bg-slate-50">
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.project') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.client') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="w-[15%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="w-[25%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.project') }}</th>
+                        <th class="w-[25%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.client') }}</th>
+                        <th class="w-[15%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="w-[20%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($boqs as $boq)
                         <tr class="group transition hover:bg-slate-50/60">
-                            <td class="whitespace-nowrap px-5 py-4">
-                                <span class="text-sm font-semibold text-slate-900">{{ $boq->name ?? '—' }}</span>
+                            <td class="px-5 py-4">
+                                <span class="text-sm font-semibold text-slate-900 truncate block">{{ $boq->name ?? '—' }}</span>
                             </td>
-                            <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-700">
+                            <td class="px-5 py-4 text-sm text-slate-700 truncate">
                                 {{ $boq->project?->name ?? '—' }}
                             </td>
-                            <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-700">
+                            <td class="px-5 py-4 text-sm text-slate-700 truncate">
                                 {{ $boq->client?->name ?? '—' }}
                             </td>
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 @php
                                     $statusColors = [
                                         'draft'     => 'bg-slate-100 text-slate-700',
@@ -71,7 +71,7 @@
                                     {{ ucfirst($boq->status->value ?? '') }}
                                 </span>
                             </td>
-                            <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-400">
+                            <td class="px-5 py-4 text-xs text-slate-400">
                                 {{ $boq->created_at?->format('M j, Y') }}
                             </td>
                         </tr>
