@@ -138,8 +138,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Orders
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
-        Route::get('/orders/{uuid}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');        Route::get('/orders/{uuid}/pdf', [AdminOrderController::class, 'pdf'])->name('orders.pdf');        Route::get('/orders/{uuid}', [AdminOrderController::class, 'show'])->name('orders.show');
 
         // BOQs
         Route::get('/boqs', [AdminBoqController::class, 'index'])->name('boqs.index');
