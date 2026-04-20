@@ -26,6 +26,11 @@ class LogisticsUpdate extends BaseModel
         return $this->belongsTo(Order::class);
     }
 
+    public function orderItem(): BelongsTo
+    {
+        return $this->belongsTo(OrderItem::class);
+    }
+
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');

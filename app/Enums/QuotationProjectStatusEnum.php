@@ -14,12 +14,12 @@ enum QuotationProjectStatusEnum: string
     public function label(): string
     {
         return match($this) {
-            self::Tender    => 'Tender',
-            self::Pending   => 'Pending',
-            self::Active    => 'Active',
-            self::OnHold    => 'On Hold',
-            self::Completed => 'Completed',
-            self::Cancelled => 'Cancelled',
+            self::Tender    => __('app.status_tender'),
+            self::Pending   => __('app.status_pending'),
+            self::Active    => __('app.status_active'),
+            self::OnHold    => __('app.status_on_hold'),
+            self::Completed => __('app.status_completed'),
+            self::Cancelled => __('app.status_cancelled'),
         };
     }
 

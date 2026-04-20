@@ -39,16 +39,112 @@
         </button>
     </div>
 
-    {{-- ───── Pricing loading banner ──────────────────────────────────────────── --}}
+    {{-- ───── Pricing Loading Modal ────────────────────────────────────────────── --}}
     @if($fetchingPrices)
-    <div class="mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5">
-        <svg class="h-5 w-5 animate-spin shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-        </svg>
-        <div>
-            <p class="text-sm font-semibold text-emerald-800">{{ __('app.fetching_prices') }}</p>
-            <p class="text-xs text-emerald-600">{{ __('app.looking_up_catalogue') }}</p>
+    <style>
+        @keyframes ai-cw   { to { transform: rotate(360deg); } }
+        @keyframes ai-ccw  { to { transform: rotate(-360deg); } }
+        @keyframes ai-blink{ 0%,100%{opacity:.25} 50%{opacity:1} }
+        @keyframes ai-fill { from{width:4%} to{width:88%} }
+    </style>
+    <div
+        x-data="{
+            msgIndex: 0,
+            messages: [
+                'جاري البحث في كتالوج المنتجات…',
+                'نحلل بنود جدول الكميات…',
+                'نستشير الذكاء الاصطناعي للتسعير…',
+                'نقارن الأسعار بسوق السعودية…',
+                'نحسب أفضل الأسعار لك…',
+                'يرجى الانتظار، تقريباً انتهينا…',
+            ],
+            init() { setInterval(() => { this.msgIndex = (this.msgIndex + 1) % this.messages.length; }, 2600); }
+        }"
+        style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(2,10,28,0.78);backdrop-filter:blur(8px);"
+    >
+        <div style="direction:rtl;width:100%;max-width:360px;margin:0 16px;border-radius:20px;background:#fff;box-shadow:0 25px 60px rgba(0,0,0,0.2);overflow:hidden;">
+
+            {{-- Progress bar --}}
+            <div style="height:3px;background:#f1f5f9;">
+                <div style="height:100%;background:linear-gradient(to right,#10b981,#14b8a6);border-radius:99px;animation:ai-fill 90s linear forwards;"></div>
+            </div>
+
+            <div style="padding:28px 28px 24px;text-align:center;">
+
+                {{-- Spinner + icon --}}
+                <div style="position:relative;width:80px;height:80px;margin:0 auto 20px;">
+                    {{-- Outer ring --}}
+                    <span style="position:absolute;inset:0;border-radius:50%;border:3px solid #d1fae5;border-top-color:#10b981;animation:ai-cw 1.5s linear infinite;display:block;"></span>
+                    {{-- Inner ring --}}
+                    <span style="position:absolute;inset:10px;border-radius:50%;border:3px solid #ccfbf1;border-bottom-color:#0d9488;animation:ai-ccw 1s linear infinite;display:block;"></span>
+                    {{-- Center icon: sparkles --}}
+                    <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" fill="#10b981"/>
+                            <path d="M19 3l.75 2.25L22 6l-2.25.75L19 9l-.75-2.25L16 6l2.25-.75L19 3z" fill="#34d399"/>
+                            <path d="M5 15l.75 2.25L8 18l-2.25.75L5 21l-.75-2.25L2 18l2.25-.75L5 15z" fill="#6ee7b7"/>
+                        </svg>
+                    </span>
+                </div>
+
+                {{-- Label --}}
+                <p style="font-size:11px;font-weight:700;letter-spacing:2px;color:#10b981;text-transform:uppercase;margin-bottom:4px;">AI Pricing</p>
+                <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">تحليل الأسعار</h3>
+
+                {{-- Cycling message --}}
+                <div style="position:relative;height:22px;overflow:hidden;margin-bottom:16px;">
+                    <template x-for="(msg, i) in messages" :key="i">
+                        <p
+                            style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#64748b;transition:opacity .45s ease, transform .45s ease;margin:0;"
+                            :style="i===msgIndex ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(7px)'"
+                            x-text="msg"
+                        ></p>
+                    </template>
+                </div>
+
+                {{-- Blinking dots --}}
+                <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:20px;">
+                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#10b981;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0s;"></span>
+                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#14b8a6;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0.22s;"></span>
+                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#06b6d4;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0.44s;"></span>
+                </div>
+
+                {{-- Divider --}}
+                <div style="height:1px;background:#f1f5f9;margin-bottom:16px;"></div>
+
+                {{-- Steps --}}
+                <div style="display:flex;flex-direction:column;gap:10px;">
+
+                    {{-- Step 1 - Done --}}
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
+                        <span style="font-size:13px;font-weight:500;color:#334155;">البحث في الكتالوج</span>
+                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </span>
+                    </div>
+
+                    {{-- Step 2 - Active --}}
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
+                        <span style="font-size:13px;font-weight:700;color:#059669;">تقدير الذكاء الاصطناعي</span>
+                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#ecfdf5;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;">
+                            <svg style="animation:ai-cw 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="9" stroke="#10b981" stroke-width="3" stroke-dasharray="38 18" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                    </div>
+
+                    {{-- Step 3 - Pending --}}
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;opacity:.3;">
+                        <span style="font-size:13px;color:#94a3b8;">حفظ وتحديث العرض</span>
+                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;">
+                            <span style="display:block;width:8px;height:8px;border-radius:50%;background:#cbd5e1;"></span>
+                        </span>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
     @endif
@@ -100,9 +196,10 @@
 
         {{-- Action buttons --}}
         <div class="flex shrink-0 items-center gap-3">
-            {{-- Export PDF placeholder --}}
-            <button
-                type="button"
+            {{-- Export PDF --}}
+            <a
+                href="{{ route('enduser.quotations.pdf', $quotation->uuid) }}"
+                target="_blank"
                 class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +207,7 @@
                         d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 {{ __('app.export_pdf') }}
-            </button>
+            </a>
 
             @if(in_array($quotation->status->value, ['draft', 'tender'], true))
             <a
@@ -238,7 +335,20 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 font-medium text-slate-800">{{ $item['description'] ?: '—' }}</td>
-                                    <td class="px-4 py-3 text-slate-600">{{ number_format((float)($item['quantity'] ?? 0)) }}</td>
+                                    <td class="px-4 py-3 text-slate-600">
+                                        @if($canEdit)
+                                            <input
+                                                type="number"
+                                                min="0.001"
+                                                step="any"
+                                                value="{{ $item['quantity'] }}"
+                                                @change="$wire.updateQuantity({{ $item['id'] }}, $event.target.value)"
+                                                class="w-20 rounded border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                            />
+                                        @else
+                                            {{ number_format((float)($item['quantity'] ?? 0)) }}
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['unit'] ?: '—' }}</td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['category'] ?: '—' }}</td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['brand'] ?: '—' }}</td>
@@ -373,75 +483,88 @@
                 <div
                     x-show="confirmOpen"
                     x-cloak
-                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter="transition ease-out duration-250"
                     x-transition:enter-start="opacity-0"
                     x-transition:enter-end="opacity-100"
                     x-transition:leave="transition ease-in duration-150"
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
                     class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    style="background: rgba(15,23,42,0.45); backdrop-filter: blur(4px);"
+                    style="background: rgba(15,23,42,0.55); backdrop-filter: blur(6px);"
                     @keydown.escape.window="confirmOpen = false"
                 >
                     <div
                         x-show="confirmOpen"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                        x-transition:enter="transition ease-out duration-250"
+                        x-transition:enter-start="opacity-0 scale-90 translate-y-4"
                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                         x-transition:leave="transition ease-in duration-150"
                         x-transition:leave-start="opacity-100 scale-100"
                         x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                         @click.stop
-                        class="w-full max-w-sm rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 overflow-hidden"
+                        class="w-full max-w-sm rounded-3xl bg-white shadow-2xl overflow-hidden"
+                        style="box-shadow: 0 25px 60px -10px rgba(5,150,105,0.25), 0 10px 30px -5px rgba(0,0,0,0.15);"
                     >
-                        {{-- Modal header --}}
-                        <div class="flex items-center gap-3 px-5 pt-5 pb-3">
-                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                                <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-bold text-slate-900">{{ __('app.submit_for_approval') }}</h3>
-                                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                                    {{ __('app.quotation_sent_review') }}
-                                </p>
-                            </div>
+                        {{-- Gradient hero area --}}
+                        <div class="relative flex flex-col items-center px-6 pt-8 pb-6 text-center" style="background: linear-gradient(135deg,#f0fdf4 0%,#dcfce7 60%,#d1fae5 100%);">
                             <button
                                 type="button"
                                 @click="confirmOpen = false"
-                                class="shrink-0 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                                class="absolute top-4 end-4 flex h-7 w-7 items-center justify-center rounded-full bg-white/70 text-slate-400 hover:bg-white hover:text-slate-600 transition shadow-sm"
                             >
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
+
+                            {{-- Icon --}}
+                            <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg" style="background: linear-gradient(135deg,#059669,#10b981);">
+                                <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+
+                            <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">{{ __('app.submit_for_approval') }}</h3>
+                            <p class="mt-1.5 text-sm text-slate-500 leading-relaxed max-w-[260px]">
+                                {{ __('app.quotation_sent_review') }}
+                            </p>
                         </div>
 
-                        {{-- Summary line --}}
-                        <div class="mx-5 mb-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 flex items-center justify-between">
-                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">{{ __('app.total') }}</span>
-                            <span class="font-mono text-sm font-bold text-emerald-600">{{ number_format($total, 2) }} {{ __('app.sar') }}</span>
+                        {{-- Summary card --}}
+                        <div class="mx-5 -mt-3 mb-4 rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 shadow-md">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50">
+                                        <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-700">{{ __('app.total') }}</p>
+                                        <p class="text-[10px] text-slate-400">{{ $selectedCount }} {{ __('app.items') }}</p>
+                                    </div>
+                                </div>
+                                <span class="font-mono text-xl font-extrabold text-emerald-600">{{ number_format($total, 2) }} <span class="text-sm font-bold">{{ __('app.sar') }}</span></span>
+                            </div>
                         </div>
 
                         {{-- Actions --}}
-                        <div class="flex gap-2 border-t border-slate-100 px-5 py-3">
+                        <div class="flex gap-3 px-5 pb-5">
                             <button
                                 type="button"
                                 @click="confirmOpen = false"
-                                class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
+                                class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition"
                             >
                                 {{ __('app.cancel') }}
                             </button>
                             <button
                                 type="button"
                                 @click="confirmOpen = false; $wire.submitForApproval()"
-                                class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
+                                class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-lg transition hover:opacity-90 active:scale-95"
+                                style="background: linear-gradient(135deg,#059669,#10b981); box-shadow: 0 4px 15px rgba(5,150,105,0.4);"
                             >
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                 </svg>
                                 {{ __('app.yes_submit') }}
                             </button>

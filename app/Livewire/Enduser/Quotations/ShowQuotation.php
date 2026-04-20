@@ -6,8 +6,11 @@ use App\Enums\QuotationRequestStatusEnum;
 use App\Models\Product;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
+use App\Enums\NotificationTypeEnum;
+use App\Enums\UserTypeEnum;
 use App\Repositories\Enduser\OrderRepository;
 use App\Services\Enduser\OrderService;
+use App\Services\NotificationService;
 use App\Services\PricingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -175,6 +178,29 @@ class ShowQuotation extends Component
         }
     }
 
+    public function updateQuantity(int $itemId, string $newQty): void
+    {
+        if (! $this->canEdit()) {
+            return;
+        }
+
+        $qty = filter_var($newQty, FILTER_VALIDATE_FLOAT);
+
+        if ($qty === false || $qty <= 0) {
+            $this->dispatch('toast', message: 'Quantity must be a positive number.', type: 'error');
+            return;
+        }
+
+        QuotationItem::where('id', $itemId)->update(['quantity' => $qty]);
+
+        foreach ($this->items as $index => $item) {
+            if ((int) $item['id'] === $itemId) {
+                $this->items[$index]['quantity'] = $qty;
+                break;
+            }
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Edit actions (only while not yet Submitted)
     // -------------------------------------------------------------------------
@@ -293,6 +319,15 @@ class ShowQuotation extends Component
             $order = app(OrderService::class)->createFromQuotation($this->quotation, $selectedItems);
 
             $this->quotation->update(['status' => QuotationRequestStatusEnum::Submitted]);
+
+            // Notify all admins about the new order
+            app(NotificationService::class)->sendToUserType(
+                title: 'New Order Created',
+                body: 'Order ' . $order->order_no . ' was placed by ' . (Auth::user()->name ?? 'a client') . ' — total: ' . number_format($order->grand_total, 2) . ' SAR.',
+                type: NotificationTypeEnum::OrderCreated,
+                userType: UserTypeEnum::Admin,
+                actionUrl: route('admin.orders.show', $order->uuid),
+            );
 
             $this->redirect(route('enduser.orders.show', $order->uuid));
 

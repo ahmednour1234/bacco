@@ -13,11 +13,11 @@ enum QuotationVersionStatusEnum: string
     public function label(): string
     {
         return match($this) {
-            self::Draft    => 'Draft',
-            self::Sent     => 'Sent',
-            self::Accepted => 'Accepted',
-            self::Rejected => 'Rejected',
-            self::Expired  => 'Expired',
+            self::Draft    => __('app.status_draft'),
+            self::Sent     => __('app.status_sent'),
+            self::Accepted => __('app.status_accepted'),
+            self::Rejected => __('app.status_rejected'),
+            self::Expired  => __('app.status_expired'),
         };
     }
 

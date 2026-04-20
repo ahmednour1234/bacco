@@ -6,6 +6,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class QuotationAiService
 {
@@ -134,7 +135,17 @@ class QuotationAiService
 
         $geminiResult = $this->parseBoqWithGemini($file, $context);
 
-        return $geminiResult['success'] ? $geminiResult : $result;
+        if ($geminiResult['success']) {
+            return $geminiResult;
+        }
+
+        // Both failed — return the most specific error message.
+        Log::error('QuotationAiService: Both primary API and Gemini fallback failed.', [
+            'primary_error' => $result['error'],
+            'gemini_error'  => $geminiResult['error'],
+        ]);
+
+        return $this->failure($geminiResult['error'] ?? $result['error']);
     }
 
     /**
@@ -275,29 +286,55 @@ class QuotationAiService
     private function parseBoqWithGemini(UploadedFile|string $file, array $context = []): array
     {
         $geminiKey     = (string) config('services.gemini.key', '');
-        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.0-flash-lite');
-        // Ordered list of models to try — all confirmed available for this API key
-        $geminiModels  = array_unique(array_filter([$primaryModel, 'gemini-2.0-flash-lite', 'gemini-flash-lite-latest', 'gemini-flash-latest']));
-        $geminiModel   = $primaryModel;
+        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.5-flash');
+        // Ordered list of models to try — confirmed working for new API keys
+        $geminiModels  = array_values(array_unique(array_filter([
+            $primaryModel,
+            'gemini-2.5-flash',
+            'gemini-2.5-flash-lite',
+            'gemini-flash-latest',
+        ])));
 
         try {
             if ($file instanceof UploadedFile) {
-                $bytes    = $file->getContent();
-                $mime     = $this->mimeForExtension($file->getClientOriginalExtension());
+                $absPath  = $file->getRealPath();
+                $ext      = strtolower($file->getClientOriginalExtension());
                 $filename = $file->getClientOriginalName();
             } else {
                 $absPath  = file_exists($file) ? $file : storage_path('app/' . $file);
                 $ext      = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
-                $mime     = $this->mimeForExtension($ext);
                 $filename = basename($absPath);
-                $bytes    = file_get_contents($absPath);
             }
 
-            if ($bytes === false || $bytes === '') {
-                return $this->failure('Could not read the uploaded file for Gemini processing.');
-            }
+            $prompt = $this->buildGeminiPrompt($context, $mime ?? 'application/octet-stream');
 
-            $prompt = $this->buildGeminiPrompt($context);
+            // Excel/CSV: convert to plain text so Gemini can parse rows.
+            // If PhpSpreadsheet fails for any reason, fall back to raw bytes
+            // (Gemini Files API accepts xlsx/xls via their native MIME types).
+            if (in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
+                $csvText = $this->spreadsheetToCsvText($absPath);
+                if ($csvText !== null) {
+                    $bytes = $csvText;
+                    $mime  = 'text/plain';
+                } else {
+                    Log::warning('QuotationAiService: PhpSpreadsheet failed — sending raw bytes to Gemini.', [
+                        'path' => $absPath,
+                    ]);
+                    $raw = file_get_contents($absPath);
+                    if ($raw === false || $raw === '') {
+                        return $this->failure('Could not read the uploaded file for AI processing.');
+                    }
+                    $bytes = $raw;
+                    $mime  = $this->mimeForExtension($ext);
+                }
+            } else {
+                $raw = file_get_contents($absPath);
+                if ($raw === false || $raw === '') {
+                    return $this->failure('Could not read the uploaded file for Gemini processing.');
+                }
+                $bytes = $raw;
+                $mime  = $this->mimeForExtension($ext);
+            }
 
             // Files > 20 MB must go through the Gemini Files API.
             $lastResult = $this->failure('Gemini AI fallback encountered an unexpected error.');
@@ -341,8 +378,13 @@ class QuotationAiService
             ->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}",
                 [
-                    'contents'         => [['parts' => $parts]],
-                    'generationConfig' => ['responseMimeType' => 'application/json'],
+                    'contents' => [['parts' => $parts]],
+                    // Do NOT set responseMimeType — not supported by all models (causes HTTP 400 on flash-lite).
+                    // Raise output token limit so large BOQs (100+ items) are not truncated mid-JSON.
+                    'generationConfig' => [
+                        'maxOutputTokens' => 65536,
+                        'temperature'     => 0.1,
+                    ],
                 ]
             );
 
@@ -362,12 +404,19 @@ class QuotationAiService
             return $this->failure('Gemini returned an empty response.');
         }
 
-        $decoded = json_decode($text, true);
-
-        // If Gemini wrapped the JSON in a code block, strip it.
-        if (! is_array($decoded) && preg_match('/```(?:json)?\s*([\s\S]*?)\s*```/i', $text, $m)) {
-            $decoded = json_decode($m[1], true);
+        // Strip markdown code fences if present.
+        if (preg_match('/```(?:json)?\s*([\s\S]*?)\s*```/i', $text, $m)) {
+            $text = $m[1];
         }
+
+        // Extract the first JSON object or array from the response.
+        if (preg_match('/\{[\s\S]*\}/s', $text, $m)) {
+            $text = $m[0];
+        } elseif (preg_match('/\[[\s\S]*\]/s', $text, $m)) {
+            $text = $m[0];
+        }
+
+        $decoded = json_decode($text, true);
 
         if (! is_array($decoded)) {
             Log::error('QuotationAiService: Gemini response could not be decoded as JSON.', ['text' => $text]);
@@ -452,7 +501,7 @@ class QuotationAiService
     }
 
     /** Build the Gemini extraction prompt. */
-    private function buildGeminiPrompt(array $context = []): string
+    private function buildGeminiPrompt(array $context = [], string $mime = ''): string
     {
         $projectName   = $context['project_name'] ?? '';
         $projectStatus = $context['project_status'] ?? '';
@@ -461,9 +510,15 @@ class QuotationAiService
             ? "Project: {$projectName}" . ($projectStatus !== '' ? " (Status: {$projectStatus})" : '')
             : '';
 
+        $isImage = str_starts_with($mime, 'image/');
+        $sourceHint = $isImage
+            ? 'The input is an image (photo or scan) of a BOQ table or list. Use OCR to read every row carefully.'
+            : 'The input is a document file containing a BOQ table.';
+
         return trim(<<<PROMPT
 You are a BOQ (Bill of Quantities) extraction assistant.
 {$contextLine}
+{$sourceHint}
 
 Extract every line item from the provided document and return ONLY a valid JSON object with this exact structure:
 {
@@ -472,6 +527,8 @@ Extract every line item from the provided document and return ONLY a valid JSON 
       "product_name": "Full item description",
       "quantity": 1.0,
       "unit": "pcs",
+      "unit_price": 0.0,
+      "total_price": 0.0,
       "category": "Category name or empty string",
       "brand": "Brand name or empty string",
       "engineering_required": false,
@@ -481,11 +538,14 @@ Extract every line item from the provided document and return ONLY a valid JSON 
 }
 
 Rules:
-- Include every line item / product found in the document.
+- Include EVERY line item / product found in the document — do not skip any row.
 - "quantity" must be a number (use 1 if not specified).
 - "unit" is the unit of measure (pcs, m, m2, m3, kg, L, set, etc.).
+- "unit_price" is the unit price of the item from the document. If a column contains prices, you MUST read the value for every row. If only a total price is given and no unit price, calculate unit_price = total_price / quantity. If no price is available for a row, use 0.
+- "total_price" is the total/line amount (quantity × unit_price). If not explicitly shown, calculate it. Use 0 if not available.
 - "engineering_required" is true only if the item clearly needs engineering work.
 - "confidence" is a number between 0 and 1 reflecting extraction certainty.
+- Do NOT merge section headers or floor labels as items; extract only actual products/services.
 - Return ONLY the JSON object — no markdown, no code fences, no extra text.
 PROMPT);
     }
@@ -498,14 +558,29 @@ PROMPT);
      */
     private function normaliseGeminiItem(array $raw): array
     {
+        $quantity   = is_numeric($raw['quantity'] ?? null) ? (float) $raw['quantity'] : 1;
+        $unitPrice  = is_numeric($raw['unit_price'] ?? null) ? (float) $raw['unit_price'] : null;
+        $totalPrice = is_numeric($raw['total_price'] ?? null) ? (float) $raw['total_price'] : null;
+
+        // Derive unit_price from total_price if not given directly
+        if ($unitPrice === null && $totalPrice !== null && $totalPrice > 0 && $quantity > 0) {
+            $unitPrice = $totalPrice / $quantity;
+        }
+
+        // Treat 0 as unpriced
+        if ($unitPrice !== null && $unitPrice <= 0) {
+            $unitPrice = null;
+        }
+
         return [
             'description'          => (string) ($raw['product_name'] ?? $raw['description'] ?? ''),
-            'quantity'             => is_numeric($raw['quantity'] ?? null) ? (float) $raw['quantity'] : 1,
+            'quantity'             => $quantity,
             'unit'                 => (string) ($raw['unit'] ?? ''),
             'category'             => (string) ($raw['category'] ?? ''),
             'brand'                => (string) ($raw['brand'] ?? ''),
             'status'               => 'pending',
             'engineering_required' => (bool) ($raw['engineering_required'] ?? false),
+            'unit_price'           => $unitPrice,
             'confidence'           => is_numeric($raw['confidence'] ?? null) ? (float) $raw['confidence'] : null,
             'raw_data'             => null,
             'ai_extracted'         => true,
@@ -545,11 +620,97 @@ PROMPT);
     private function mimeForExtension(string $ext): string
     {
         return match (strtolower($ext)) {
-            'pdf'  => 'application/pdf',
-            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'xls'  => 'application/vnd.ms-excel',
-            'csv'  => 'text/csv',
-            default => 'application/octet-stream',
+            'pdf'          => 'application/pdf',
+            'xlsx'         => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xls'          => 'application/vnd.ms-excel',
+            'csv'          => 'text/csv',
+            'jpg', 'jpeg'  => 'image/jpeg',
+            'png'          => 'image/png',
+            'gif'          => 'image/gif',
+            'webp'         => 'image/webp',
+            default        => 'application/octet-stream',
         };
+    }
+
+    /**
+     * Read an xlsx, xls, or csv file and return all sheets as CSV text.
+     * Returns null on failure.
+     */
+    private function spreadsheetToCsvText(string $absPath): ?string
+    {
+        $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
+
+        // CSV: read raw — no library needed.
+        if ($ext === 'csv') {
+            $content = file_get_contents($absPath);
+            return ($content !== false && $content !== '') ? $content : null;
+        }
+
+        // Try explicit PhpSpreadsheet readers in priority order.
+        $readerTypes = $ext === 'xls' ? ['Xls', 'Xlsx'] : ['Xlsx', 'Xls'];
+
+        foreach ($readerTypes as $readerType) {
+            try {
+                $reader = IOFactory::createReader($readerType);
+                $reader->setReadDataOnly(true);
+
+                if (! $reader->canRead($absPath)) {
+                    continue;
+                }
+
+                $spreadsheet   = $reader->load($absPath);
+                $output        = '';
+
+                foreach ($spreadsheet->getAllSheets() as $sheet) {
+                    $highestRow    = $sheet->getHighestDataRow();
+                    $highestColumn = $sheet->getHighestDataColumn();
+
+                    if ($highestRow < 1) {
+                        continue;
+                    }
+
+                    $output .= 'Sheet: ' . $sheet->getTitle() . "\n";
+
+                    $grid = $sheet->rangeToArray(
+                        "A1:{$highestColumn}{$highestRow}",
+                        null,
+                        true,   // calculateFormulas
+                        true,   // formatData
+                        false   // returnCellRef (false = numeric keys)
+                    );
+
+                    foreach ($grid as $rowCells) {
+                        // Strip trailing empty cells
+                        while (count($rowCells) > 0 && trim((string) end($rowCells)) === '') {
+                            array_pop($rowCells);
+                        }
+
+                        if (count($rowCells) > 0) {
+                            $output .= implode(',', array_map(function (mixed $v): string {
+                                $v = (string) $v;
+                                return (str_contains($v, ',') || str_contains($v, '"') || str_contains($v, "\n"))
+                                    ? '"' . str_replace('"', '""', $v) . '"'
+                                    : $v;
+                            }, $rowCells)) . "\n";
+                        }
+                    }
+
+                    $output .= "\n";
+                }
+
+                if ($output !== '') {
+                    return $output;
+                }
+
+            } catch (\Throwable $e) {
+                Log::warning('QuotationAiService: spreadsheetToCsvText reader failed, trying next.', [
+                    'reader'  => $readerType,
+                    'path'    => $absPath,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return null;
     }
 }

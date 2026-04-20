@@ -4,11 +4,13 @@ namespace App\Livewire\Admin\Orders;
 
 use App\Enums\EngineeringStatusEnum;
 use App\Enums\LogisticsStatusEnum;
+use App\Enums\NotificationTypeEnum;
 use App\Enums\OrderStatusEnum;
 use App\Models\ActivityLog;
 use App\Models\EngineeringUpdate;
 use App\Models\LogisticsUpdate;
 use App\Models\Order;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -24,11 +26,13 @@ class ShowOrder extends Component
     public bool   $showStatusModal = false;
 
     // Engineering
-    public array  $engUpdates      = [];
-    public bool   $showEngModal    = false;
-    public string $engStatus       = 'pending';
-    public string $engNotes        = '';
-    public ?int   $editingEngId    = null;
+    public array  $engUpdates       = [];
+    public bool   $showEngModal     = false;
+    public string $engStatus        = 'pending';
+    public string $engNotes         = '';
+    public ?int   $engOrderItemId   = null;
+    public string $engOrderItemDesc = '';
+    public ?int   $editingEngId     = null;
     public string $editingEngStatus = '';
 
     // Logistics
@@ -38,6 +42,8 @@ class ShowOrder extends Component
     public string $logCarrier       = '';
     public string $logTracking      = '';
     public string $logNotes         = '';
+    public ?int   $logOrderItemId   = null;
+    public string $logOrderItemDesc = '';
     public ?int   $editingLogId     = null;
     public string $editingLogStatus = '';
 
@@ -106,13 +112,26 @@ class ShowOrder extends Component
         $this->loadStatusLogs();
         $this->showStatusModal = false;
         $this->dispatch('toast', message: 'Order status updated.', type: 'success');
+
+        // Notify the client about the status change
+        $statusLabel = OrderStatusEnum::tryFrom($this->newStatus)?->label() ?? $this->newStatus;
+        app(NotificationService::class)->send(
+            title: 'Order Status Updated',
+            body: 'Your order ' . $this->order->order_no . ' status has been changed to: ' . $statusLabel . '.',
+            type: NotificationTypeEnum::OrderUpdated,
+            recipientIds: [$this->order->client_id],
+            actionUrl: route('enduser.orders.show', $this->order->uuid),
+        );
     }
 
-    public function openEngModal(): void
+    public function openEngModal(int $itemId): void
     {
-        $this->engStatus    = 'pending';
-        $this->engNotes     = '';
-        $this->showEngModal = true;
+        $item = collect($this->items)->firstWhere('id', $itemId);
+        $this->engOrderItemId   = $itemId;
+        $this->engOrderItemDesc = $item ? \Illuminate\Support\Str::limit($item['description'], 60) : '';
+        $this->engStatus        = 'pending';
+        $this->engNotes         = '';
+        $this->showEngModal     = true;
     }
 
     public function saveEngUpdate(): void
@@ -123,16 +142,26 @@ class ShowOrder extends Component
         ]);
 
         EngineeringUpdate::create([
-            'uuid'       => (string) Str::uuid(),
-            'order_id'   => $this->order->id,
-            'updated_by' => Auth::id(),
-            'status'     => $this->engStatus,
-            'notes'      => $this->engNotes ?: null,
+            'uuid'          => (string) Str::uuid(),
+            'order_id'      => $this->order->id,
+            'order_item_id' => $this->engOrderItemId,
+            'updated_by'    => Auth::id(),
+            'status'        => $this->engStatus,
+            'notes'         => $this->engNotes ?: null,
         ]);
 
         $this->showEngModal = false;
         $this->loadEngUpdates();
         $this->dispatch('toast', message: 'Engineering update added.', type: 'success');
+
+        // Notify the client about the engineering update
+        app(NotificationService::class)->send(
+            title: 'Engineering Update on Your Order',
+            body: 'An engineering update was added to order ' . $this->order->order_no . ($this->engNotes ? ': ' . $this->engNotes : '.'),
+            type: NotificationTypeEnum::OrderUpdated,
+            recipientIds: [$this->order->client_id],
+            actionUrl: route('enduser.orders.show', $this->order->uuid),
+        );
     }
 
     public function deleteEngUpdate(int $id): void
@@ -169,13 +198,16 @@ class ShowOrder extends Component
 
     // -------------------------------------------------------------------------
 
-    public function openLogModal(): void
+    public function openLogModal(int $itemId): void
     {
-        $this->logStatus   = 'pending';
-        $this->logCarrier  = '';
-        $this->logTracking = '';
-        $this->logNotes    = '';
-        $this->showLogModal = true;
+        $item = collect($this->items)->firstWhere('id', $itemId);
+        $this->logOrderItemId   = $itemId;
+        $this->logOrderItemDesc = $item ? \Illuminate\Support\Str::limit($item['description'], 60) : '';
+        $this->logStatus        = 'pending';
+        $this->logCarrier       = '';
+        $this->logTracking      = '';
+        $this->logNotes         = '';
+        $this->showLogModal     = true;
     }
 
     public function saveLogUpdate(): void
@@ -188,18 +220,29 @@ class ShowOrder extends Component
         ]);
 
         LogisticsUpdate::create([
-            'uuid'             => (string) Str::uuid(),
-            'order_id'         => $this->order->id,
-            'updated_by'       => Auth::id(),
-            'status'           => $this->logStatus,
-            'carrier'          => $this->logCarrier ?: null,
-            'tracking_number'  => $this->logTracking ?: null,
-            'notes'            => $this->logNotes ?: null,
+            'uuid'            => (string) Str::uuid(),
+            'order_id'        => $this->order->id,
+            'order_item_id'   => $this->logOrderItemId,
+            'updated_by'      => Auth::id(),
+            'status'          => $this->logStatus,
+            'carrier'         => $this->logCarrier ?: null,
+            'tracking_number' => $this->logTracking ?: null,
+            'notes'           => $this->logNotes ?: null,
         ]);
 
         $this->showLogModal = false;
         $this->loadLogUpdates();
         $this->dispatch('toast', message: 'Logistics update added.', type: 'success');
+
+        // Notify the client about the shipping/logistics update
+        $trackingInfo = $this->logTracking ? ' — Tracking: ' . $this->logTracking : '';
+        app(NotificationService::class)->send(
+            title: 'Shipping Update on Your Order',
+            body: 'A logistics update was added to order ' . $this->order->order_no . $trackingInfo . ($this->logNotes ? ': ' . $this->logNotes : '.'),
+            type: NotificationTypeEnum::OrderUpdated,
+            recipientIds: [$this->order->client_id],
+            actionUrl: route('enduser.orders.show', $this->order->uuid),
+        );
     }
 
     public function deleteLogUpdate(int $id): void
@@ -238,24 +281,28 @@ class ShowOrder extends Component
 
     private function loadEngUpdates(): void
     {
-        $this->engUpdates = EngineeringUpdate::with('updatedBy')
+        $this->engUpdates = EngineeringUpdate::with('updatedBy', 'orderItem')
             ->where('order_id', $this->order->id)
             ->latest()
             ->get()
             ->map(fn ($u) => [
-                'id'     => $u->id,
-                'status' => $u->status->value,
-                'label'  => $u->status->label(),
-                'notes'  => $u->notes ?? '',
-                'user'   => $u->updatedBy?->name ?? 'System',
-                'date'   => $u->created_at->format('d M Y, H:i'),
+                'id'        => $u->id,
+                'status'    => $u->status->value,
+                'label'     => $u->status->label(),
+                'notes'     => $u->notes ?? '',
+                'user'      => $u->updatedBy?->name ?? 'System',
+                'date'      => $u->created_at->format('d M Y, H:i'),
+                'item_id'   => $u->order_item_id,
+                'item_desc' => $u->orderItem?->description
+                                ? \Illuminate\Support\Str::limit($u->orderItem->description, 50)
+                                : null,
             ])
             ->toArray();
     }
 
     private function loadLogUpdates(): void
     {
-        $this->logUpdates = LogisticsUpdate::with('updatedBy')
+        $this->logUpdates = LogisticsUpdate::with('updatedBy', 'orderItem')
             ->where('order_id', $this->order->id)
             ->latest()
             ->get()
@@ -268,6 +315,10 @@ class ShowOrder extends Component
                 'notes'    => $u->notes ?? '',
                 'user'     => $u->updatedBy?->name ?? 'System',
                 'date'     => $u->created_at->format('d M Y, H:i'),
+                'item_id'  => $u->order_item_id,
+                'item_desc'=> $u->orderItem?->description
+                               ? \Illuminate\Support\Str::limit($u->orderItem->description, 50)
+                               : null,
             ])
             ->toArray();
     }

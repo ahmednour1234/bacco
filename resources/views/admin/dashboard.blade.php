@@ -85,7 +85,7 @@
                                 <p class="text-sm font-medium text-slate-900 truncate">#{{ $order->order_number ?? $order->uuid }}</p>
                                 <p class="text-xs text-slate-500 mt-0.5">{{ $order->client?->name ?? '—' }}</p>
                             </div>
-                            <div class="text-right shrink-0 ml-4">
+                            <div class="text-end shrink-0 ms-4">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
                                     @switch($order->status?->value)
                                         @case('pending')    bg-yellow-100 text-yellow-700 @break
@@ -124,7 +124,7 @@
                                 <p class="text-sm font-medium text-slate-900 truncate">#{{ $quotation->request_number ?? $quotation->uuid }}</p>
                                 <p class="text-xs text-slate-500 mt-0.5">{{ $quotation->client?->name ?? '—' }}</p>
                             </div>
-                            <div class="text-right shrink-0 ml-4">
+                            <div class="text-end shrink-0 ms-4">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
                                     @switch($quotation->status?->value)
                                         @case('draft')      bg-slate-100 text-slate-600 @break

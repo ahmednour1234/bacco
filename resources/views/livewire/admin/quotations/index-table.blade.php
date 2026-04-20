@@ -170,13 +170,13 @@
             @else
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50 text-left">
+                        <tr class="border-b border-slate-100 bg-slate-50 text-start">
                             <th class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-400 w-28">{{ __('app.id') }}</th>
                             <th class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.company') }}</th>
                             <th class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.client') }}</th>
                             <th class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.project') }}</th>
                             <th class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-400 w-32">{{ __('app.created') }}</th>
-                            <th class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-400 w-36 text-right">
+                            <th class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-400 w-36 text-end">
                                 {{ __('app.amount_sar') }}
                             </th>
                             <th class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-400 w-36">{{ __('app.status') }}</th>
@@ -234,7 +234,7 @@
                                 </td>
 
                                 {{-- Amount --}}
-                                <td class="px-5 py-4 text-right font-mono font-semibold text-slate-800">
+                                <td class="px-5 py-4 text-end font-mono font-semibold text-slate-800">
                                     {{ $amount > 0 ? number_format($amount, 2) : '—' }}
                                 </td>
 

@@ -270,14 +270,12 @@
             @else
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50/70 text-left">
+                        <tr class="border-b border-slate-100 bg-slate-50/70 text-start">
                             <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.order_hash') }}</th>
                             <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ __('app.project') }}</th>
                             <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ __('app.client') }}</th>
                             <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.type') }}</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-40">
-                                {{ __('app.amount_sar') }}
-                            </th>
+                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-40">{{ __('app.amount_sar') }}</th>
                             <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.status') }}</th>
                             <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-32">{{ __('app.date') }}</th>
                             <th class="px-4 py-3 w-12"></th>

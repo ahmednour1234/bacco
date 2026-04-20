@@ -13,6 +13,7 @@
     <style>
         * { font-family: 'Cairo', sans-serif; }
         [x-cloak] { display: none !important; }
+        html { overflow-x: clip; }
         @media (min-width: 1024px) {
             .sidebar-offset { margin-inline-start: 16rem; }
         }
@@ -341,7 +342,7 @@
                              x-transition:leave="transition ease-in duration-100"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl
+                             class="absolute end-0 top-full mt-2 w-48 bg-white rounded-xl
                                     border border-slate-200 shadow-xl overflow-hidden z-50">
                             <div class="px-4 py-3 border-b border-slate-100">
                                 <p class="text-sm font-semibold text-slate-900 truncate">{{ auth()->user()->name ?? 'User' }}</p>
