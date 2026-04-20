@@ -312,6 +312,7 @@ return [
     'item_description_placeholder' => 'Item description…',
     'pcs'                      => 'pcs',
     'actions'                  => 'Actions',
+    'show'                     => 'Show',
     'reject'                   => 'Reject',
     'restore'                  => 'Restore',
     'delete_this_item'         => 'Delete this item?',
