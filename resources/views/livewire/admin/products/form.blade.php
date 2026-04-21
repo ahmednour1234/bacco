@@ -538,7 +538,6 @@
                             <th class="px-4 py-3.5 text-right whitespace-nowrap">Price</th>
                             <th class="px-4 py-3.5 text-right whitespace-nowrap">Eng.</th>
                             <th class="px-4 py-3.5 text-right whitespace-nowrap">Inst.</th>
-                            <th class="px-4 py-3.5 text-center whitespace-nowrap">Margin %</th>
                             <th class="px-4 py-3.5 text-right whitespace-nowrap">Total</th>
                         </tr>
                     </thead>
@@ -614,11 +613,6 @@
                                 <td class="px-4 py-2.5 text-right text-sm font-mono text-slate-700 whitespace-nowrap">
                                     {{ number_format($item['installation_price'] ?? 0, 2) }}
                                 </td>
-                                <td class="px-4 py-2.5 text-center">
-                                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                                        {{ $item['margin_percentage'] ?? 20 }}%
-                                    </span>
-                                </td>
                                 <td class="px-4 py-2.5 text-right text-sm font-semibold text-slate-800 whitespace-nowrap">
                                     {{ number_format($item['total'] ?? 0, 2) }}
                                 </td>
@@ -627,7 +621,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="border-t-2 border-slate-200 bg-slate-50 font-semibold">
-                            <td colspan="9" class="px-3 py-3 text-right text-sm text-slate-700 uppercase tracking-wide">
+                            <td colspan="8" class="px-3 py-3 text-right text-sm text-slate-700 uppercase tracking-wide">
                                 Total Est. Inventory Value (SAR)
                             </td>
                             <td class="px-3 py-3 text-right text-base font-bold text-emerald-600">
