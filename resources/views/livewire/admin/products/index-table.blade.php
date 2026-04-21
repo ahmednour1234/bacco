@@ -61,13 +61,22 @@
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.category') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.model_type') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 xl:table-cell">{{ __('app.unit') }}</th>
+                        <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.source') }}</th>
                         <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.price_sar') }}</th>
+                        <th class="hidden px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.total_sar') }}</th>
                         <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
                         <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @foreach ($products as $product)
+                        @php
+                            $unitPrice = (float) ($product->unit_price ?? 0);
+                            $engineeringPrice = (float) ($product->engineering_price ?? 0);
+                            $installationPrice = (float) ($product->installation_price ?? 0);
+                            $totalPrice = $unitPrice + $engineeringPrice + $installationPrice;
+                            $sourceLabel = ($product->supplier_products_count ?? 0) > 0 ? __('app.supplier') : __('app.admin');
+                        @endphp
                         <tr class="transition-colors hover:bg-slate-50">
                             <td class="px-5 py-4">
                                 <p class="font-medium text-slate-900">{{ $product->name }}</p>
@@ -90,8 +99,25 @@
                             <td class="hidden px-5 py-4 text-slate-600 xl:table-cell">
                                 {{ $product->unit?->name ?? '—' }}
                             </td>
+                            <td class="hidden px-5 py-4 lg:table-cell">
+                                @if(($product->supplier_products_count ?? 0) > 0)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span> {{ $sourceLabel }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> {{ $sourceLabel }}
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-5 py-4 text-end font-medium text-slate-800">
-                                {{ $product->unit_price ? number_format((float) $product->unit_price, 2) : '—' }}
+                                <div>{{ $product->unit_price ? number_format($unitPrice, 2) : '—' }}</div>
+                                <div class="mt-0.5 text-[11px] font-normal text-slate-400">
+                                    E: {{ number_format($engineeringPrice, 2) }} | I: {{ number_format($installationPrice, 2) }}
+                                </div>
+                            </td>
+                            <td class="hidden px-5 py-4 text-end font-semibold text-slate-900 md:table-cell">
+                                {{ number_format($totalPrice, 2) }}
                             </td>
                             <td class="px-5 py-4 text-center">
                                 @if ($product->active)

@@ -42,6 +42,7 @@ class IndexTable extends Component
     {
         $products = Product::query()
             ->with(['brand', 'category', 'unit'])
+            ->withCount('supplierProducts')
             ->when($this->search !== '', function ($q) {
                 $q->where(function ($inner) {
                     $inner->where('name', 'like', '%' . $this->search . '%')
