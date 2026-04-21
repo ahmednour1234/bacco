@@ -225,6 +225,7 @@ For each product, return an object with these exact keys:
 - engineering_price (number — engineering/commissioning cost per unit, 0 if not applicable)
 - installation_price (number — installation cost per unit, 0 if not applicable)
 - margin_percentage (number — use {$defaultMargin} as default if not specified)
+- Do NOT duplicate the same product row more than once. If the same row appears multiple times due to OCR noise, return it only once.
 
 Return only the JSON array. No text before or after it.
 PROMPT;
@@ -336,6 +337,9 @@ PROMPT;
                 return;
             }
 
+            // Collapse duplicate rows from OCR/LLM noise before mapping to UI rows.
+            $items = $this->deduplicateExtractedItems($items);
+
             // Normalise and compute totals
             $filled = 0;
             $this->aiExtractedProducts = array_values(array_map(function ($item, $idx) use (&$filled) {
@@ -375,6 +379,68 @@ PROMPT;
         }
 
         $this->aiAnalyzing = false;
+    }
+
+    /**
+     * Remove duplicate extracted products that represent the same line item.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function deduplicateExtractedItems(array $items): array
+    {
+        $bucket = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $name  = trim((string) ($item['name'] ?? ''));
+            $model = trim((string) ($item['model_type'] ?? ''));
+            $unit  = trim((string) ($item['unit'] ?? ''));
+            $price = number_format((float) ($item['unit_price'] ?? 0), 2, '.', '');
+
+            // Build a robust signature for "same product line".
+            $signature = $this->normaliseKeyPart($name)
+                . '|' . $this->normaliseKeyPart($model)
+                . '|' . $this->normaliseKeyPart($unit)
+                . '|' . $price;
+
+            if (! isset($bucket[$signature])) {
+                $bucket[$signature] = $item;
+                continue;
+            }
+
+            // Merge missing fields from duplicates into the first canonical row.
+            foreach (['division', 'brand', 'model_type', 'unit'] as $field) {
+                $current = trim((string) ($bucket[$signature][$field] ?? ''));
+                $incoming = trim((string) ($item[$field] ?? ''));
+
+                if ($current === '' && $incoming !== '') {
+                    $bucket[$signature][$field] = $incoming;
+                }
+            }
+
+            foreach (['unit_price', 'engineering_price', 'installation_price', 'margin_percentage'] as $field) {
+                $current = (float) ($bucket[$signature][$field] ?? 0);
+                $incoming = (float) ($item[$field] ?? 0);
+
+                if ($current <= 0 && $incoming > 0) {
+                    $bucket[$signature][$field] = $incoming;
+                }
+            }
+        }
+
+        return array_values($bucket);
+    }
+
+    private function normaliseKeyPart(string $value): string
+    {
+        $value = mb_strtolower(trim($value));
+        $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+
+        return $value;
     }
 
     public function confirmImport(): mixed
