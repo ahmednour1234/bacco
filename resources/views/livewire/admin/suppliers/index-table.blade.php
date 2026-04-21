@@ -33,7 +33,7 @@
             </div>
 
             {{-- Status filter --}}
-            <select wire:model.live="statusFilter"
+            <select wire:model.live="status"
                 class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                 <option value="">{{ __('app.all_status') }}</option>
                 <option value="active">{{ __('app.status_active') }}</option>
