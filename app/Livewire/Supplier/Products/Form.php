@@ -51,7 +51,6 @@ class Form extends Component
     public string $aiPriceContext      = 'vendor';
     public string $aiIncludesEng       = 'no';
     public string $aiIncludesInst      = 'no';
-    public string $aiMarginHandling    = 'auto_20';
     public string $aiCurrency          = 'SAR';
     public string $aiPastedText        = '';
     public $aiFile                     = null;
@@ -294,21 +293,13 @@ class Form extends Component
             $this->aiIncludesInst === 'no'      ? 'prices do NOT include installation' : null,
         ]));
 
-        $marginHandling = match ($this->aiMarginHandling) {
-            'auto_20'  => 'Apply 20% margin automatically',
-            'auto_15'  => 'Apply 15% margin automatically',
-            'keep'     => 'Keep original price, margin = 0',
-            'override' => 'Set margin = 0, user will override',
-            default    => 'Apply 20% margin',
-        };
-
         $divisions = implode(', ', self::DIVISIONS);
 
         $combinedText = trim($fileText . "\n\n" . $this->aiPastedText);
 
         $prompt = <<<PROMPT
 You are a data extraction assistant for a supplier catalogue. Extract ALL products from the provided document or text.
-Context: {$contextHints}. Margin handling: {$marginHandling}.
+Context: {$contextHints}. Use invoice prices as-is, no margin increase.
 Available divisions: {$divisions}.
 
 Return ONLY a valid JSON array (no markdown, no code fences) with this exact structure per item:
@@ -322,7 +313,7 @@ Return ONLY a valid JSON array (no markdown, no code fences) with this exact str
     "unit_price": 0.00,
     "engineering_price": 0.00,
     "installation_price": 0.00,
-    "margin_percentage": 20,
+        "margin_percentage": 0,
     "lead_time_days": null,
     "notes": ""
   }
@@ -330,7 +321,7 @@ Return ONLY a valid JSON array (no markdown, no code fences) with this exact str
 Rules:
 - unit_price: required numeric SAR value (use 0 if not found)
 - engineering_price and installation_price: numeric or 0
-- margin_percentage: percentage number (e.g. 20 for 20%)
+- margin_percentage: always 0
 - lead_time_days: integer or null
 - Extract every product, do not skip any
 
@@ -378,12 +369,12 @@ PROMPT;
                 $item['unit_price']         = (float) ($item['unit_price'] ?? 0);
                 $item['engineering_price']  = (float) ($item['engineering_price'] ?? 0);
                 $item['installation_price'] = (float) ($item['installation_price'] ?? 0);
-                $item['margin_percentage']  = (float) ($item['margin_percentage'] ?? 20);
+                $item['margin_percentage']  = 0;
                 $item['lead_time_days']     = isset($item['lead_time_days']) ? (int) $item['lead_time_days'] : null;
                 $item['notes']              = (string) ($item['notes'] ?? '');
 
                 $base          = $item['unit_price'] + $item['engineering_price'] + $item['installation_price'];
-                $item['total'] = $base * (1 + $item['margin_percentage'] / 100);
+                $item['total'] = $base;
 
                 $brandMatch          = $brands->get(strtolower(trim($item['brand'] ?? '')));
                 $item['brand_id']    = $brandMatch?->id;

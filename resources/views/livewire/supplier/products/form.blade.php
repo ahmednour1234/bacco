@@ -539,7 +539,6 @@
                             <th class="px-3 py-3 text-end whitespace-nowrap">{{ __('app.price') }}</th>
                             <th class="px-3 py-3 text-end whitespace-nowrap">{{ __('app.eng_short') }}</th>
                             <th class="px-3 py-3 text-end whitespace-nowrap">{{ __('app.inst_short') }}</th>
-                            <th class="px-3 py-3 text-center whitespace-nowrap">{{ __('app.margin_percent') }}</th>
                             <th class="px-3 py-3 text-end whitespace-nowrap">{{ __('app.total') }}</th>
                         </tr>
                     </thead>
@@ -607,11 +606,6 @@
                                 <td class="px-3 py-2 text-right text-xs font-mono text-slate-700 whitespace-nowrap">
                                     {{ number_format($item['installation_price'] ?? 0, 2) }}
                                 </td>
-                                <td class="px-3 py-2 text-center">
-                                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                                        {{ $item['margin_percentage'] ?? 20 }}%
-                                    </span>
-                                </td>
                                 <td class="px-3 py-2 text-right text-xs font-semibold text-slate-800 whitespace-nowrap">
                                     {{ number_format($item['total'] ?? 0, 2) }}
                                 </td>
@@ -620,7 +614,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="border-t-2 border-slate-200 bg-slate-50 font-semibold">
-                            <td colspan="9" class="px-3 py-3 text-right text-sm text-slate-700 uppercase tracking-wide">
+                            <td colspan="8" class="px-3 py-3 text-right text-sm text-slate-700 uppercase tracking-wide">
                                 {{ __('app.total_est_inventory') }}
                             </td>
                             <td class="px-3 py-3 text-right text-base font-bold text-emerald-600">
