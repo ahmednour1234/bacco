@@ -61,7 +61,7 @@ class Form extends Component
 
     public string $aiIncludesInst = 'no';
 
-    public string $aiMarginHandling = 'auto_20';
+    public string $aiMarginHandling = 'keep';
 
     public string $aiCurrency = 'SAR';
 
@@ -346,9 +346,9 @@ PROMPT;
                 $unitPrice   = (float) ($item['unit_price']         ?? 0);
                 $engPrice    = (float) ($item['engineering_price']  ?? 0);
                 $instPrice   = (float) ($item['installation_price'] ?? 0);
-                $margin      = (float) ($item['margin_percentage']  ?? 20);
+                $margin      = 0.0;
                 $base        = $unitPrice + $engPrice + $instPrice;
-                $total       = $base * (1 + $margin / 100);
+                $total       = $base;
 
                 if (! empty($item['name']) && $unitPrice > 0) {
                     $filled++;
@@ -365,7 +365,7 @@ PROMPT;
                     'unit_price'         => $unitPrice,
                     'engineering_price'  => $engPrice,
                     'installation_price' => $instPrice,
-                    'margin_percentage'  => $margin,
+                    'margin_percentage'  => 0,
                     'total'              => round($total, 2),
                 ];
             }, $items, array_keys($items)));
