@@ -458,7 +458,7 @@
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
                     class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    style="background: rgba(15,23,42,0.55); backdrop-filter: blur(6px);"
+                    style="background: rgba(15,23,42,0.4); backdrop-filter: blur(4px);"
                     @keydown.escape.window="confirmOpen = false"
                 >
                     <div
@@ -470,15 +470,14 @@
                         x-transition:leave-start="opacity-100 scale-100"
                         x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                         @click.stop
-                        class="w-full max-w-sm rounded-3xl bg-white shadow-2xl overflow-hidden"
-                        style="box-shadow: 0 25px 60px -10px rgba(5,150,105,0.25), 0 10px 30px -5px rgba(0,0,0,0.15);"
+                        class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden"
                     >
-                        {{-- Gradient hero area --}}
-                        <div class="relative flex flex-col items-center px-6 pt-8 pb-6 text-center" style="background: linear-gradient(135deg,#f0fdf4 0%,#dcfce7 60%,#d1fae5 100%);">
+                        {{-- Header --}}
+                        <div class="relative flex flex-col items-center border-b border-slate-100 px-6 pt-7 pb-5 text-center bg-slate-50/70">
                             <button
                                 type="button"
                                 @click="confirmOpen = false"
-                                class="absolute top-4 end-4 flex h-7 w-7 items-center justify-center rounded-full bg-white/70 text-slate-400 hover:bg-white hover:text-slate-600 transition shadow-sm"
+                                class="absolute top-4 end-4 flex h-7 w-7 items-center justify-center rounded-full bg-white text-slate-400 hover:text-slate-600 transition"
                             >
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -486,33 +485,33 @@
                             </button>
 
                             {{-- Icon --}}
-                            <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg" style="background: linear-gradient(135deg,#059669,#10b981);">
-                                <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+                                <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
 
-                            <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">{{ __('app.submit_for_approval') }}</h3>
-                            <p class="mt-1.5 text-sm text-slate-500 leading-relaxed max-w-[260px]">
+                            <h3 class="text-lg font-bold text-slate-900">{{ __('app.submit_for_approval') }}</h3>
+                            <p class="mt-1.5 text-sm text-slate-500 leading-relaxed max-w-[270px]">
                                 {{ __('app.quotation_sent_review') }}
                             </p>
                         </div>
 
                         {{-- Summary card --}}
-                        <div class="mx-5 -mt-3 mb-4 rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 shadow-md">
+                        <div class="mx-5 mt-4 mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50">
-                                        <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-white border border-slate-200">
+                                        <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                         </svg>
                                     </span>
                                     <div>
-                                        <p class="text-xs font-bold text-slate-700">{{ __('app.total') }}</p>
-                                        <p class="text-[10px] text-slate-400">{{ $selectedCount }} {{ __('app.items') }}</p>
+                                        <p class="text-xs font-semibold text-slate-700">{{ __('app.total') }}</p>
+                                        <p class="text-[11px] text-slate-500">{{ $selectedCount }} {{ __('app.items') }}</p>
                                     </div>
                                 </div>
-                                <span class="font-mono text-xl font-extrabold text-emerald-600">{{ number_format($total, 2) }} <span class="text-sm font-bold">{{ __('app.sar') }}</span></span>
+                                <span class="font-mono text-xl font-bold text-slate-900">{{ number_format($total, 2) }} <span class="text-sm font-semibold text-slate-600">{{ __('app.sar') }}</span></span>
                             </div>
                         </div>
 
@@ -528,8 +527,7 @@
                             <button
                                 type="button"
                                 @click="confirmOpen = false; $wire.submitForApproval()"
-                                class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-lg transition hover:opacity-90 active:scale-95"
-                                style="background: linear-gradient(135deg,#059669,#10b981); box-shadow: 0 4px 15px rgba(5,150,105,0.4);"
+                                class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
                             >
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
