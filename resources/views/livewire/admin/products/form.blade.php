@@ -327,7 +327,7 @@
     <div class="space-y-6">
 
         {{-- Two-column layout: config + upload --}}
-        <div class="grid grid-cols-2 gap-2 max-w-4xl">
+        <div class="grid w-full grid-cols-1 gap-4 xl:grid-cols-2">
 
             {{-- LEFT: Pricing Context --}}
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden divide-y divide-slate-100">
@@ -526,20 +526,20 @@
                     </button>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+            <div class="overflow-x-auto px-2 pb-2">
+                <table class="min-w-[1600px] w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Product Name</th>
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Division</th>
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Brand</th>
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Category</th>
-                            <th class="px-3 py-3 text-left whitespace-nowrap">Model / Type</th>
-                            <th class="px-3 py-3 text-right whitespace-nowrap">Price</th>
-                            <th class="px-3 py-3 text-right whitespace-nowrap">Eng.</th>
-                            <th class="px-3 py-3 text-right whitespace-nowrap">Inst.</th>
-                            <th class="px-3 py-3 text-center whitespace-nowrap">Margin %</th>
-                            <th class="px-3 py-3 text-right whitespace-nowrap">Total</th>
+                            <th class="px-4 py-3.5 text-left whitespace-nowrap">Product Name</th>
+                            <th class="px-4 py-3.5 text-left whitespace-nowrap">Division</th>
+                            <th class="px-4 py-3.5 text-left whitespace-nowrap">Brand</th>
+                            <th class="px-4 py-3.5 text-left whitespace-nowrap">Category</th>
+                            <th class="px-4 py-3.5 text-left whitespace-nowrap">Model / Type</th>
+                            <th class="px-4 py-3.5 text-right whitespace-nowrap">Price</th>
+                            <th class="px-4 py-3.5 text-right whitespace-nowrap">Eng.</th>
+                            <th class="px-4 py-3.5 text-right whitespace-nowrap">Inst.</th>
+                            <th class="px-4 py-3.5 text-center whitespace-nowrap">Margin %</th>
+                            <th class="px-4 py-3.5 text-right whitespace-nowrap">Total</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -547,17 +547,17 @@
                             <tr class="align-top hover:bg-slate-50/70">
 
                                 {{-- Name --}}
-                                <td class="px-3 py-2 min-w-[160px]">
+                                    <td class="px-4 py-2.5 min-w-[320px]">
                                     <input type="text"
                                            wire:model.blur="aiExtractedProducts.{{ $idx }}.name"
-                                           class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                         class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800
                                                   focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
                                 </td>
 
                                 {{-- Division --}}
-                                <td class="px-3 py-2 min-w-[110px]">
+                                <td class="px-4 py-2.5 min-w-[180px]">
                                     <select wire:model.live="aiExtractedProducts.{{ $idx }}.division"
-                                            class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800
                                                    focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
                                         <option value="">— none —</option>
                                         @foreach (['HVAC','Electrical','Automation','Mechanical','Plumbing','Fire & Safety','Networking','ICT','Other'] as $div)
@@ -567,9 +567,9 @@
                                 </td>
 
                                 {{-- Brand (dropdown) --}}
-                                <td class="px-3 py-2 min-w-[130px]">
+                                <td class="px-4 py-2.5 min-w-[210px]">
                                     <select wire:model.live="aiExtractedProducts.{{ $idx }}.brand_id"
-                                            class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800
                                                    focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
                                         <option value="">— none —</option>
                                         @foreach ($brands as $brand)
@@ -584,9 +584,9 @@
                                 </td>
 
                                 {{-- Category (dropdown) --}}
-                                <td class="px-3 py-2 min-w-[130px]">
+                                <td class="px-4 py-2.5 min-w-[210px]">
                                     <select wire:model.live="aiExtractedProducts.{{ $idx }}.category_id"
-                                            class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800
                                                    focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
                                         <option value="">— none —</option>
                                         @foreach ($categories as $cat)
@@ -596,30 +596,30 @@
                                 </td>
 
                                 {{-- Model / Type --}}
-                                <td class="px-3 py-2 min-w-[110px]">
+                                    <td class="px-4 py-2.5 min-w-[210px]">
                                     <input type="text"
                                            wire:model.blur="aiExtractedProducts.{{ $idx }}.model_type"
                                            placeholder="Model"
-                                           class="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800
+                                         class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800
                                                   focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
                                 </td>
 
                                 {{-- Prices (read-only) --}}
-                                <td class="px-3 py-2 text-right text-xs font-mono text-slate-700 whitespace-nowrap">
+                                <td class="px-4 py-2.5 text-right text-sm font-mono text-slate-700 whitespace-nowrap">
                                     {{ number_format($item['unit_price'] ?? 0, 2) }}
                                 </td>
-                                <td class="px-3 py-2 text-right text-xs font-mono text-slate-700 whitespace-nowrap">
+                                <td class="px-4 py-2.5 text-right text-sm font-mono text-slate-700 whitespace-nowrap">
                                     {{ number_format($item['engineering_price'] ?? 0, 2) }}
                                 </td>
-                                <td class="px-3 py-2 text-right text-xs font-mono text-slate-700 whitespace-nowrap">
+                                <td class="px-4 py-2.5 text-right text-sm font-mono text-slate-700 whitespace-nowrap">
                                     {{ number_format($item['installation_price'] ?? 0, 2) }}
                                 </td>
-                                <td class="px-3 py-2 text-center">
+                                <td class="px-4 py-2.5 text-center">
                                     <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                                         {{ $item['margin_percentage'] ?? 20 }}%
                                     </span>
                                 </td>
-                                <td class="px-3 py-2 text-right text-xs font-semibold text-slate-800 whitespace-nowrap">
+                                <td class="px-4 py-2.5 text-right text-sm font-semibold text-slate-800 whitespace-nowrap">
                                     {{ number_format($item['total'] ?? 0, 2) }}
                                 </td>
                             </tr>

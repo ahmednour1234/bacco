@@ -437,7 +437,15 @@ PROMPT;
 
     private function normaliseKeyPart(string $value): string
     {
+        $value = strtr($value, [
+            'أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ٱ' => 'ا',
+            'ؤ' => 'و', 'ئ' => 'ي', 'ى' => 'ي', 'ة' => 'ه',
+            'ـ' => '',
+        ]);
+
         $value = mb_strtolower(trim($value));
+        $value = preg_replace('/[\x{064B}-\x{065F}\x{0670}]/u', '', $value) ?? $value;
+        $value = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $value) ?? $value;
         $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
 
         return $value;
@@ -449,13 +457,19 @@ PROMPT;
             return null;
         }
 
+        $rows = $this->deduplicateExtractedItems($this->aiExtractedProducts);
+
         $margin = match ($this->aiMarginHandling) {
             'auto_20' => 20.0,
             'auto_15' => 15.0,
             default   => null,
         };
 
-        foreach ($this->aiExtractedProducts as $item) {
+        foreach ($rows as $item) {
+            if (trim((string) ($item['name'] ?? '')) === '') {
+                continue;
+            }
+
             Product::create([
                 'name'               => $item['name'],
                 'division'           => $item['division']    ?? null,
@@ -471,7 +485,7 @@ PROMPT;
             ]);
         }
 
-        $count = count($this->aiExtractedProducts);
+        $count = count($rows);
         session()->flash('success', "{$count} product(s) imported successfully.");
 
         return $this->redirect(route('admin.products.index'), navigate: true);
