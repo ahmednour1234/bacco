@@ -273,6 +273,27 @@ class CreateBoq extends Component
         }
     }
 
+    public function approveAllItems(): void
+    {
+        $ids = [];
+
+        foreach ($this->items as $index => $item) {
+            $this->items[$index]['status'] = QuotationItemStatusEnum::Sourcing->value;
+
+            if (! empty($item['id'])) {
+                $ids[] = (int) $item['id'];
+            }
+        }
+
+        if (! empty($ids)) {
+            BoqItem::whereIn('id', $ids)->update([
+                'status' => QuotationItemStatusEnum::Sourcing,
+            ]);
+        }
+
+        $this->dispatch('toast', message: 'All items approved successfully.', type: 'success');
+    }
+
     public function deleteItem(int $index): void
     {
         if (! array_key_exists($index, $this->items)) {

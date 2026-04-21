@@ -110,7 +110,7 @@
     </div>
 
     {{-- ───── Stat Cards ────────────────────────────────────────────────────────── --}}
-    <div class="mb-7 grid grid-cols-1 gap-4 sm:grid-cols-4">
+    <div class="mb-7 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 
         <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
             <div>

@@ -356,6 +356,17 @@
                             @if(!empty($items))
                                 <button
                                     type="button"
+                                    wire:click="approveAllItems"
+                                    class="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    {{ __('app.approve_all') }}
+                                </button>
+
+                                <button
+                                    type="button"
                                     wire:click="clearAllItems"
                                     wire:confirm="{{ __('app.remove_all_items_confirm') }}"
                                     class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100"
