@@ -40,10 +40,11 @@
                     <tr class="bg-slate-50">
                         <th class="w-[15%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
                         <th class="w-[22%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.project') }}</th>
-                        <th class="w-[20%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.client') }}</th>
+                        <th class="w-[15%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.type') ?? 'Type' }}</th>
+                        <th class="w-[18%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.client') }}</th>
                         <th class="w-[13%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="w-[18%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
-                        <th class="w-[12%] px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -54,6 +55,18 @@
                             </td>
                             <td class="px-5 py-4 text-sm text-slate-700 truncate">
                                 {{ $boq->project?->name ?? '—' }}
+                            </td>
+                            <td class="px-5 py-4">
+                                @php
+                                    $typeColors = [
+                                        'tender'  => 'bg-blue-100 text-blue-700',
+                                        'awarded' => 'bg-emerald-100 text-emerald-700',
+                                    ];
+                                    $color = $typeColors[$boq->type->value ?? ''] ?? 'bg-slate-100 text-slate-700';
+                                @endphp
+                                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $color }}">
+                                    {{ $boq->type?->label() ?? '—' }}
+                                </span>
                             </td>
                             <td class="px-5 py-4 text-sm text-slate-700 truncate">
                                 {{ $boq->client?->name ?? '—' }}
@@ -87,7 +100,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-12 text-center">
+                            <td colspan="7" class="px-5 py-12 text-center">
                                 <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>

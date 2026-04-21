@@ -3,6 +3,7 @@
 namespace App\Livewire\Enduser\Boqs;
 
 use App\Enums\BoqStatusEnum;
+use App\Enums\BoqTypeEnum;
 use App\Enums\NotificationTypeEnum;
 use App\Enums\ProjectStatusEnum;
 use App\Enums\QuotationItemStatusEnum;
@@ -40,6 +41,9 @@ class CreateBoq extends Component
 
     #[Validate('nullable|string|max:5000')]
     public string $projectDescription = '';
+
+    #[Validate('required|string|in:tender,awarded')]
+    public string $boqType = 'tender';
 
     /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
     public $boqFile = null;
@@ -350,6 +354,7 @@ class CreateBoq extends Component
     {
         return view('livewire.enduser.boqs.create-boq', [
             'itemStatuses' => QuotationItemStatusEnum::cases(),
+            'boqTypes'     => BoqTypeEnum::cases(),
         ]);
     }
 
@@ -406,6 +411,7 @@ class CreateBoq extends Component
             'client_id'  => Auth::id(),
             'boq_no'     => $this->generateBoqNo(),
             'status'     => $status ?? BoqStatusEnum::Draft,
+            'type'       => $this->boqType,
         ]);
 
         $this->boqId = $boq->id;

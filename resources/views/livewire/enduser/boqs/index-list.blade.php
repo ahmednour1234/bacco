@@ -326,6 +326,16 @@
                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide {{ $badgeClass }}">
                                 {{ $boq->status->label() }}
                             </span>
+                            @php
+                                $typeColors = [
+                                    'tender'  => 'bg-blue-100 text-blue-700',
+                                    'awarded' => 'bg-emerald-100 text-emerald-700',
+                                ];
+                                $typeColor = $typeColors[$boq->type->value ?? ''] ?? 'bg-slate-100 text-slate-700';
+                            @endphp
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold {{ $typeColor }}">
+                                {{ $boq->type?->label() ?? '—' }}
+                            </span>
                             <span class="text-xs text-slate-400 font-mono">ID: #{{ $boq->boq_no }}</span>
                         </div>
 

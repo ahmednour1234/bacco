@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BoqStatusEnum;
+use App\Enums\BoqTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +19,7 @@ class Boq extends BaseModel
     {
         return array_merge(parent::casts(), [
             'status'     => BoqStatusEnum::class,
+            'type'       => BoqTypeEnum::class,
             'deleted_at' => 'datetime',
         ]);
     }
