@@ -324,6 +324,8 @@ Rules:
 - margin_percentage: always 0
 - lead_time_days: integer or null
 - Extract every product, do not skip any
+- If the same product name appears more than once, return it only once as a single product row
+- Never return negative prices. All prices must be zero or positive
 
 Text:
 {$combinedText}
@@ -362,13 +364,15 @@ PROMPT;
                 return;
             }
 
+            $data = $this->deduplicateExtractedItems($data);
+
             $brands     = Brand::all()->keyBy(fn($b) => strtolower(trim($b->name)));
             $categories = Category::all()->keyBy(fn($c) => strtolower(trim($c->name)));
 
             foreach ($data as &$item) {
-                $item['unit_price']         = (float) ($item['unit_price'] ?? 0);
-                $item['engineering_price']  = (float) ($item['engineering_price'] ?? 0);
-                $item['installation_price'] = (float) ($item['installation_price'] ?? 0);
+                $item['unit_price']         = $this->sanitizeMoney($item['unit_price'] ?? 0);
+                $item['engineering_price']  = $this->sanitizeMoney($item['engineering_price'] ?? 0);
+                $item['installation_price'] = $this->sanitizeMoney($item['installation_price'] ?? 0);
                 $item['margin_percentage']  = 0;
                 $item['lead_time_days']     = isset($item['lead_time_days']) ? (int) $item['lead_time_days'] : null;
                 $item['notes']              = (string) ($item['notes'] ?? '');
@@ -393,12 +397,91 @@ PROMPT;
         $this->aiAnalyzing = false;
     }
 
+    /**
+     * Treat repeated product names as one product row.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function deduplicateExtractedItems(array $items): array
+    {
+        $bucket = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $name = trim((string) ($item['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $signature = $this->normaliseKeyPart($name);
+
+            if (! isset($bucket[$signature])) {
+                $bucket[$signature] = $item;
+                continue;
+            }
+
+            foreach (['division', 'brand', 'category', 'model_type', 'notes'] as $field) {
+                $current = trim((string) ($bucket[$signature][$field] ?? ''));
+                $incoming = trim((string) ($item[$field] ?? ''));
+
+                if ($current === '' && $incoming !== '') {
+                    $bucket[$signature][$field] = $incoming;
+                }
+            }
+
+            foreach (['unit_price', 'engineering_price', 'installation_price'] as $field) {
+                $current = $this->sanitizeMoney($bucket[$signature][$field] ?? 0);
+                $incoming = $this->sanitizeMoney($item[$field] ?? 0);
+
+                if ($incoming > $current) {
+                    $bucket[$signature][$field] = $incoming;
+                }
+            }
+
+            $currentLeadTime = $bucket[$signature]['lead_time_days'] ?? null;
+            $incomingLeadTime = $item['lead_time_days'] ?? null;
+
+            if (($currentLeadTime === null || $currentLeadTime === '') && $incomingLeadTime !== null && $incomingLeadTime !== '') {
+                $bucket[$signature]['lead_time_days'] = (int) $incomingLeadTime;
+            }
+        }
+
+        return array_values($bucket);
+    }
+
+    private function normaliseKeyPart(string $value): string
+    {
+        $value = strtr($value, [
+            'أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ٱ' => 'ا',
+            'ؤ' => 'و', 'ئ' => 'ي', 'ى' => 'ي', 'ة' => 'ه',
+            'ـ' => '',
+        ]);
+
+        $value = mb_strtolower(trim($value));
+        $value = preg_replace('/[\x{064B}-\x{065F}\x{0670}]/u', '', $value) ?? $value;
+        $value = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $value) ?? $value;
+        $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+
+        return $value;
+    }
+
+    private function sanitizeMoney(mixed $value): float
+    {
+        return max(0, (float) $value);
+    }
+
     public function confirmImport(): void
     {
         $supplierId = Auth::id();
         $imported   = 0;
 
-        foreach ($this->aiExtractedProducts as $item) {
+        $rows = $this->deduplicateExtractedItems($this->aiExtractedProducts);
+
+        foreach ($rows as $item) {
             if (empty(trim($item['name'] ?? ''))) {
                 continue;
             }
@@ -410,9 +493,9 @@ PROMPT;
                 'brand_id'           => $item['brand_id'] ?: null,
                 'category_id'        => $item['category_id'] ?: null,
                 'model_type'         => $item['model_type'] ?: null,
-                'unit_price'         => $item['unit_price'],
-                'engineering_price'  => $item['engineering_price'],
-                'installation_price' => $item['installation_price'],
+                'unit_price'         => $this->sanitizeMoney($item['unit_price'] ?? 0),
+                'engineering_price'  => $this->sanitizeMoney($item['engineering_price'] ?? 0),
+                'installation_price' => $this->sanitizeMoney($item['installation_price'] ?? 0),
                 'margin_percentage'  => 0,
                 'active'             => false,
             ]);
@@ -420,7 +503,7 @@ PROMPT;
             SupplierProduct::create([
                 'supplier_id'     => $supplierId,
                 'product_id'      => $product->id,
-                'price'           => $item['unit_price'],
+                'price'           => $this->sanitizeMoney($item['unit_price'] ?? 0),
                 'lead_time_days'  => $item['lead_time_days'] ?: null,
                 'notes'           => $item['notes'] ?: null,
                 'active'          => true,
