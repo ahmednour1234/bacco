@@ -407,6 +407,7 @@ return [
     'select_items_quotation'   => 'اختر العناصر لإدراجها في عرض السعر، ثم اضغط "إنشاء عرض سعر".',
     'select_all'               => 'تحديد الكل',
     'deselect_all'             => 'إلغاء تحديد الكل',
+    'approve_all'              => 'الموافقة على الكل',
     'no_items_boq'             => 'لا توجد عناصر في جدول الكميات.',
     'enter_description'        => 'أدخل الوصف',
     'toggle_engineering'       => 'تبديل متطلب الهندسة',

@@ -422,6 +422,7 @@ return [
     'select_items_quotation'   => 'Select items to include in a quotation, then click "Create Quotation".',
     'select_all'               => 'Select All',
     'deselect_all'             => 'Deselect All',
+    'approve_all'              => 'Approve All',
     'no_items_boq'             => 'No items in this BOQ.',
     'enter_description'        => 'Enter description',
     'toggle_engineering'       => 'Toggle engineering required',
