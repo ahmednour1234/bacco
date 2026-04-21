@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\NotificationTypeEnum;
 use App\Models\NotificationRecipient;
 use Illuminate\Support\Carbon;
 use Livewire\Component;
@@ -35,8 +36,16 @@ class NotificationList extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        $hideBoqSubmitted = $user && ($user->isAdmin() || $user->isEmployee());
+
         $query = NotificationRecipient::with('notification')
             ->where('user_id', auth()->id())
+            ->when($hideBoqSubmitted, function ($q): void {
+                $q->whereHas('notification', function ($nq): void {
+                    $nq->where('type', '!=', NotificationTypeEnum::BoqSubmitted->value);
+                });
+            })
             ->orderByDesc('created_at');
 
         if ($this->filter === 'unread') {
@@ -48,6 +57,11 @@ class NotificationList extends Component
         $notifications = $query->paginate(20);
 
         $unreadCount = NotificationRecipient::where('user_id', auth()->id())
+            ->when($hideBoqSubmitted, function ($q): void {
+                $q->whereHas('notification', function ($nq): void {
+                    $nq->where('type', '!=', NotificationTypeEnum::BoqSubmitted->value);
+                });
+            })
             ->whereNull('read_at')
             ->count();
 

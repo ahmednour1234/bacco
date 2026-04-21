@@ -13,9 +13,9 @@ class ProductRepository
         return Product::query()
             ->with(['brand', 'category', 'unit'])
             ->when($search, fn ($q) => $q->where(function ($inner) use ($search) {
-                $inner->where('name', 'ilike', '%' . $search . '%')
-                      ->orWhere('sku', 'ilike', '%' . $search . '%')
-                      ->orWhere('division', 'ilike', '%' . $search . '%');
+                $inner->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('sku', 'like', '%' . $search . '%')
+                      ->orWhere('division', 'like', '%' . $search . '%');
             }))
             ->orderBy('name')
             ->paginate($perPage)

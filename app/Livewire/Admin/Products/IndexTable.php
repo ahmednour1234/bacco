@@ -44,9 +44,9 @@ class IndexTable extends Component
             ->with(['brand', 'category', 'unit'])
             ->when($this->search !== '', function ($q) {
                 $q->where(function ($inner) {
-                    $inner->where('name', 'ilike', '%' . $this->search . '%')
-                          ->orWhere('sku', 'ilike', '%' . $this->search . '%')
-                          ->orWhere('division', 'ilike', '%' . $this->search . '%');
+                    $inner->where('name', 'like', '%' . $this->search . '%')
+                          ->orWhere('sku', 'like', '%' . $this->search . '%')
+                          ->orWhere('division', 'like', '%' . $this->search . '%');
                 });
             })
             ->orderBy('name')
