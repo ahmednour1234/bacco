@@ -114,7 +114,10 @@ class ProductApproval extends Component
         $products = $query->paginate($this->perPage);
 
         $pendingCount = SupplierProduct::where('approval_status', 'pending')->count();
+        $approvedCount = SupplierProduct::where('approval_status', 'approved')->count();
+        $rejectedCount = SupplierProduct::where('approval_status', 'rejected')->count();
+        $totalCount = SupplierProduct::count();
 
-        return view('livewire.admin.suppliers.product-approval', compact('products', 'pendingCount'));
+        return view('livewire.admin.suppliers.product-approval', compact('products', 'pendingCount', 'approvedCount', 'rejectedCount', 'totalCount'));
     }
 }
