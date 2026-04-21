@@ -474,16 +474,6 @@
                     >
                         {{-- Header --}}
                         <div class="relative flex flex-col items-center border-b border-slate-100 px-6 pt-7 pb-5 text-center bg-slate-50/70">
-                            <button
-                                type="button"
-                                @click="confirmOpen = false"
-                                class="absolute top-4 end-4 flex h-7 w-7 items-center justify-center rounded-full bg-white text-slate-400 hover:text-slate-600 transition"
-                            >
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-
                             {{-- Icon --}}
                             <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
                                 <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
