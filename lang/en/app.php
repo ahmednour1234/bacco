@@ -436,6 +436,7 @@ return [
     'section_project_info'     => 'Section 1: Project Information',
     'project_description_label' => 'Project Description',
     'optional'                 => '(optional)',
+    'boq_type'                 => 'BOQ Type',
     'describe_project_scope'   => 'Describe the project scope, location, requirements…',
     'section_boq_items'        => 'Section 2: BOQ Upload & Items',
     'upload_boq_file'          => 'Upload BOQ File',

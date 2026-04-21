@@ -421,6 +421,7 @@ return [
     'section_project_info'     => 'القسم 1: معلومات المشروع',
     'project_description_label' => 'وصف المشروع',
     'optional'                 => '(اختياري)',
+    'boq_type'                 => 'نوع جدول الكميات',
     'describe_project_scope'   => 'وصف نطاق المشروع، الموقع، المتطلبات…',
     'section_boq_items'        => 'القسم 2: رفع جدول الكميات والعناصر',
     'upload_boq_file'          => 'رفع ملف جدول الكميات',
