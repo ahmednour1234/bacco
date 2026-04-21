@@ -91,9 +91,9 @@
                 <p class="mt-1 text-xs text-slate-400">{{ __('app.create_boq_first_project') }}</p>
             </div>
         @else
-            <div class="space-y-3">
+            <div class="space-y-5">
                 @foreach($projects as $project)
-                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+                    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
                                 <div class="flex items-center gap-3">
