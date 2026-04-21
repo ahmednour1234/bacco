@@ -26,7 +26,6 @@
                 <option value="admin">{{ __('app.admin') }}</option>
                 <option value="employee">{{ __('app.employee') }}</option>
                 <option value="client">{{ __('app.client') }}</option>
-                <option value="supplier">{{ __('app.supplier') }}</option>
             </select>
 
             @if($hasActiveFilters)
@@ -51,7 +50,8 @@
                         <th class="w-[15%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.phone') }}</th>
                         <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.type') }}</th>
                         <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="w-[14%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="w-[14%] px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -110,10 +110,35 @@
                             <td class="px-5 py-4 text-xs text-slate-400">
                                 {{ $user->created_at?->format('M j, Y') }}
                             </td>
+
+                            {{-- Actions --}}
+                            <td class="px-5 py-4 text-center">
+                                @if((int) $user->id === (int) auth()->id())
+                                    <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-500">
+                                        --
+                                    </span>
+                                @elseif($user->active)
+                                    <button
+                                        type="button"
+                                        wire:click="toggleActive({{ $user->id }})"
+                                        class="inline-flex items-center rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100"
+                                    >
+                                        {{ __('app.block') }}
+                                    </button>
+                                @else
+                                    <button
+                                        type="button"
+                                        wire:click="toggleActive({{ $user->id }})"
+                                        class="inline-flex items-center rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                    >
+                                        {{ __('app.activate') }}
+                                    </button>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-12 text-center">
+                            <td colspan="7" class="px-5 py-12 text-center">
                                 <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>

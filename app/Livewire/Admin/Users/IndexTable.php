@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Users;
 
+use App\Enums\UserTypeEnum;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -34,9 +35,25 @@ class IndexTable extends Component
         $this->resetPage();
     }
 
+    public function toggleActive(int $userId): void
+    {
+        $user = User::findOrFail($userId);
+
+        // Prevent admin from accidentally disabling their own account.
+        if ((int) $user->id === (int) auth()->id()) {
+            return;
+        }
+
+        $user->update([
+            'active' => ! (bool) $user->active,
+        ]);
+    }
+
     public function render()
     {
-        $query = User::query()->orderByDesc('created_at');
+        $query = User::query()
+            ->where('user_type', '!=', UserTypeEnum::Supplier->value)
+            ->orderByDesc('created_at');
 
         if ($this->search !== '') {
             $term = '%' . $this->search . '%';
