@@ -19,15 +19,6 @@
                 <option value="inactive">{{ __('app.inactive') }}</option>
             </select>
 
-            {{-- User type filter --}}
-            <select wire:model.live="userType"
-                class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                <option value="">{{ __('app.all_types') }}</option>
-                <option value="admin">{{ __('app.admin') }}</option>
-                <option value="employee">{{ __('app.employee') }}</option>
-                <option value="client">{{ __('app.client') }}</option>
-            </select>
-
             @if($hasActiveFilters)
                 <button wire:click="resetFilters" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
