@@ -459,12 +459,6 @@ PROMPT;
 
         $rows = $this->deduplicateExtractedItems($this->aiExtractedProducts);
 
-        $margin = match ($this->aiMarginHandling) {
-            'auto_20' => 20.0,
-            'auto_15' => 15.0,
-            default   => null,
-        };
-
         foreach ($rows as $item) {
             if (trim((string) ($item['name'] ?? '')) === '') {
                 continue;
@@ -479,7 +473,7 @@ PROMPT;
                 'unit_price'         => (float) ($item['unit_price'] ?? 0),
                 'engineering_price'  => (float) ($item['engineering_price'] ?? 0),
                 'installation_price' => (float) ($item['installation_price'] ?? 0),
-                'margin_percentage'  => $margin ?? (float) ($item['margin_percentage'] ?? 0),
+                'margin_percentage'  => 0,
                 'sku'                => $this->generateSku(),
                 'active'             => true,
             ]);
