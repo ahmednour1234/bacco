@@ -346,19 +346,6 @@
         document.addEventListener('alpine:init', () => {
             Alpine.store('bgJob', { active: false });
         });
-
-        /* Clear pill when Livewire finishes a request on the boq-create component */
-        document.addEventListener('livewire:init', () => {
-            Livewire.hook('commit', ({ component, succeed }) => {
-                succeed(() => {
-                    if (component.name === 'enduser.boqs.create-boq') {
-                        if (window.Alpine && Alpine.store('bgJob').active) {
-                            Alpine.store('bgJob').active = false;
-                        }
-                    }
-                });
-            });
-        });
     </script>
 
     <div
