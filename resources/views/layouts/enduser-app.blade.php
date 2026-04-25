@@ -378,7 +378,7 @@
         >
             {{-- Clickable area → navigate back to BOQ create --}}
             <a
-                href="{{ route('boqs.create') }}"
+                href="{{ route('enduser.boqs.create') }}"
                 wire:navigate
                 style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;"
             >
