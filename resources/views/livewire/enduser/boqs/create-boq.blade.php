@@ -101,37 +101,65 @@
         wire:loading
         wire:loading.except.target="submit"
         x-data="{
+            dismissed: false,
             ar: ['جاري القراءة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري المعالجة...', 'تقريباً خلصنا...'],
             en: ['Reading file...', 'Updating data...', 'Just a moment ⚡', 'Processing...', 'Almost done...'],
             idx: 0,
             isAr: document.documentElement.dir === 'rtl',
-            init() { setInterval(() => { this.idx = (this.idx + 1) % this.ar.length; }, 1800); }
+            init() {
+                setInterval(() => { this.idx = (this.idx + 1) % this.ar.length; }, 1800);
+                /* Reset dismissed each time Livewire re-shows this element (new request) */
+                new MutationObserver(() => {
+                    if (this.$el.style.display !== 'none') { this.dismissed = false; }
+                }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
+            }
         }"
-        style="
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            background: rgba(15,23,42,0.60);
-            backdrop-filter: blur(7px);
-            -webkit-backdrop-filter: blur(7px);
-        "
+        style="display: none; position: fixed; inset: 0; z-index: 99999;"
     >
-        {{-- Centered card --}}
-        <div style="
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #ffffff;
-            border-radius: 28px;
-            padding: 48px 52px 44px;
-            text-align: center;
-            width: 340px;
-            max-width: calc(100vw - 40px);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.04);
-            font-family: 'Cairo', sans-serif;
-        " x-bind:dir="isAr ? 'rtl' : 'ltr'">
+        {{-- Full-screen backdrop (hidden when dismissed) --}}
+        <div
+            x-show="!dismissed"
+            style="position:absolute;inset:0;background:rgba(15,23,42,0.60);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);"
+        ></div>
+
+        {{-- Centered card (hidden when dismissed) --}}
+        <div
+            x-show="!dismissed"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #ffffff;
+                border-radius: 28px;
+                padding: 40px 44px 36px;
+                text-align: center;
+                width: 340px;
+                max-width: calc(100vw - 40px);
+                box-shadow: 0 40px 100px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.04);
+                font-family: 'Cairo', sans-serif;
+            "
+            x-bind:dir="isAr ? 'rtl' : 'ltr'"
+        >
+            {{-- Dismiss button --}}
+            <button
+                @click="dismissed = true"
+                type="button"
+                title="إخفاء ومتابعة"
+                style="position:absolute;top:14px;left:14px;width:30px;height:30px;border-radius:50%;border:none;background:#f1f5f9;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#94a3b8;transition:background .15s;"
+                onmouseenter="this.style.background='#e2e8f0'"
+                onmouseleave="this.style.background='#f1f5f9'"
+            >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
 
             {{-- Double animated rings --}}
             <div style="position:relative; width:88px; height:88px; margin:0 auto 32px;">
@@ -156,12 +184,50 @@
             <p x-text="isAr ? 'يتم تنفيذ العملية، الرجاء الانتظار' : 'Operation in progress, please wait…'"
                style="font-size:0.83rem;color:#94a3b8;font-weight:500;line-height:1.5;"></p>
 
+            {{-- Dismiss hint --}}
+            <p @click="dismissed = true"
+               style="font-size:0.75rem;color:#cbd5e1;margin-top:12px;cursor:pointer;text-decoration:underline;text-underline-offset:2px;"
+               x-text="isAr ? 'إخفاء ومتابعة التصفح ←' : 'Hide & keep browsing →'"></p>
+
             {{-- Bouncing dots --}}
-            <div style="display:flex;justify-content:center;gap:7px;margin-top:24px;">
+            <div style="display:flex;justify-content:center;gap:7px;margin-top:20px;">
                 <span style="width:9px;height:9px;border-radius:50%;background:#10b981;animation:gbounce 1.2s ease-in-out infinite 0s;display:inline-block;"></span>
                 <span style="width:9px;height:9px;border-radius:50%;background:#34d399;animation:gbounce 1.2s ease-in-out infinite 0.2s;display:inline-block;"></span>
                 <span style="width:9px;height:9px;border-radius:50%;background:#6ee7b7;animation:gbounce 1.2s ease-in-out infinite 0.4s;display:inline-block;"></span>
             </div>
+        </div>
+
+        {{-- Floating mini-indicator shown when dismissed --}}
+        <div
+            x-show="dismissed"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            style="
+                position: fixed;
+                bottom: 24px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #0f172a;
+                color: #fff;
+                border-radius: 99px;
+                padding: 10px 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Cairo', sans-serif;
+                font-size: 0.82rem;
+                font-weight: 600;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+                cursor: pointer;
+                white-space: nowrap;
+            "
+            @click="dismissed = false"
+        >
+            <svg style="width:14px;height:14px;animation:gcw 1.2s linear infinite;flex-shrink:0;" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="3" stroke-dasharray="40 20" stroke-linecap="round"/>
+            </svg>
+            <span x-text="isAr ? 'العملية جارية… اضغط للعرض' : 'Processing… tap to show'"></span>
         </div>
 
         <style>
