@@ -29,13 +29,7 @@
         }
     }"
     x-on:toast.window="showToast($event.detail.message, $event.detail.type)"
-    x-on:boq-resume-done.window="
-        if (window.Alpine) Alpine.store('bgJob').active = false;
-        resumeDone = true;
-    "
-    x-on:boq-upload-done.window="
-        if (window.Alpine) Alpine.store('bgJob').active = false;
-    "
+    x-on:boq-resume-done.window="resumeDone = true"
 >
 
     {{-- Resume-done center banner --}}

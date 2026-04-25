@@ -88,6 +88,11 @@ class CreateBoq extends Component
 
             if ($latestDraft) {
                 $this->loadFromBoq($latestDraft);
+                // If items already exist → AI finished, hide the pill
+                // If no items → AI still running or was cancelled, just show resume popup
+                if (count($this->items) > 0) {
+                    $this->dispatch('boq-upload-done');
+                }
                 $this->dispatch('boq-resume-done');
                 return;
             }
