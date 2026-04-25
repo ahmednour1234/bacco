@@ -114,7 +114,7 @@
                 }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
             }
         }"
-        style="display: none; position: fixed; inset: 0; z-index: 99999;"
+        style="display: none; position: fixed; inset: 0; z-index: 99999; pointer-events: none;"
     >
         {{-- Full-screen backdrop (hidden when dismissed) --}}
         <div
@@ -125,6 +125,7 @@
         {{-- Centered card (hidden when dismissed) --}}
         <div
             x-show="!dismissed"
+            style="pointer-events: auto;"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
@@ -221,6 +222,7 @@
                 box-shadow: 0 8px 30px rgba(0,0,0,0.25);
                 cursor: pointer;
                 white-space: nowrap;
+                pointer-events: auto;
             "
             @click="dismissed = false"
         >
