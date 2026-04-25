@@ -33,6 +33,7 @@ class CreateBoq extends Component
 
     public ?int $boqId = null;
     public ?int $projectId = null;
+    public string $draftBoqUuid = '';
 
     public bool $isEditMode = false;
 
@@ -61,6 +62,47 @@ class CreateBoq extends Component
 
     public function mount(?string $projectUuid = null): void
     {
+        // Load an existing draft when returning via the floating pill
+        $draftUuid = request()->query('draft');
+        if ($draftUuid) {
+            $boq = Boq::where('uuid', $draftUuid)
+                ->where('client_id', Auth::id())
+                ->where('status', BoqStatusEnum::Draft)
+                ->with(['project', 'items.unit'])
+                ->first();
+
+            if ($boq) {
+                $this->boqId        = $boq->id;
+                $this->draftBoqUuid = $boq->uuid;
+                $this->projectId    = $boq->project_id;
+                $this->boqType      = $boq->type->value;
+                $this->isEditMode   = true;
+
+                if ($boq->project) {
+                    $this->projectName        = (string) $boq->project->name;
+                    $this->projectDescription = (string) ($boq->project->description ?? '');
+                }
+
+                $this->items = $boq->items->map(fn(BoqItem $item) => [
+                    'id'                   => $item->id,
+                    'description'          => (string) $item->description,
+                    'quantity'             => (float) $item->quantity,
+                    'unit'                 => $item->unit?->name ?? '',
+                    'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
+                    'category'             => (string) ($item->category ?? ''),
+                    'brand'                => (string) ($item->brand ?? ''),
+                    'status'               => $item->status->value ?? 'pending',
+                    'engineering_required' => (bool) $item->engineering_required,
+                    'confidence'           => is_numeric($item->confidence) ? (float) $item->confidence : null,
+                    'raw_data'             => $item->raw_data,
+                    'ai_extracted'         => (bool) $item->ai_extracted,
+                    'is_selected'          => (bool) $item->is_selected,
+                ])->values()->toArray();
+
+                return;
+            }
+        }
+
         if ($projectUuid !== null) {
             $project = Project::where('uuid', $projectUuid)
                 ->where('client_id', Auth::id())
@@ -424,6 +466,8 @@ class CreateBoq extends Component
                 $boq->update($attrs);
             }
 
+            $this->draftBoqUuid = $boq->uuid;
+
             return $boq;
         }
 
@@ -435,7 +479,8 @@ class CreateBoq extends Component
             'type'       => $this->boqType,
         ]);
 
-        $this->boqId = $boq->id;
+        $this->boqId        = $boq->id;
+        $this->draftBoqUuid = $boq->uuid;
 
         return $boq;
     }

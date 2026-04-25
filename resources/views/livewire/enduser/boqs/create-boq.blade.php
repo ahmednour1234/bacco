@@ -112,6 +112,9 @@
                 new MutationObserver(() => {
                     if (this.$el.style.display !== 'none') {
                         this.dismissed = false;
+                    } else if ($wire.draftBoqUuid) {
+                        /* Request finished — store the draft UUID so the pill can link back */
+                        $store.bgJob.boqUuid = $wire.draftBoqUuid;
                     }
                 }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
             }

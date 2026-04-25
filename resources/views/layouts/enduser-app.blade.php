@@ -344,7 +344,7 @@
     {{-- ── Persistent background-job pill (survives wire:navigate) ── --}}
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.store('bgJob', { active: false });
+            Alpine.store('bgJob', { active: false, boqUuid: '' });
         });
     </script>
 
@@ -363,9 +363,11 @@
         <div
             style="background:#0f172a;color:#fff;border-radius:99px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.25);white-space:nowrap;"
         >
-            {{-- Clickable area → navigate back to BOQ create --}}
+            {{-- Clickable area → navigate back to BOQ create (with draft UUID if available) --}}
             <a
-                href="{{ route('enduser.boqs.create') }}"
+                :href="$store.bgJob.boqUuid
+                    ? '{{ url('/enduser/boqs/create') }}?draft=' + $store.bgJob.boqUuid
+                    : '{{ route('enduser.boqs.create') }}'"
                 wire:navigate
                 style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;"
             >
