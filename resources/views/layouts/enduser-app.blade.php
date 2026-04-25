@@ -125,7 +125,7 @@
             </a>
 
             {{-- Reports --}}
-            <a href="{{ route('enduser.reports.index') }}"
+            <a href="{{ route('enduser.reports.index') }}" wire:navigate
                class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
                       {{ request()->routeIs('enduser.reports*')
                             ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
