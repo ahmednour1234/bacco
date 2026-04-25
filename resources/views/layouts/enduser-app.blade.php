@@ -376,12 +376,19 @@
         <div
             style="background:#0f172a;color:#fff;border-radius:99px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.25);white-space:nowrap;"
         >
-            <svg style="width:14px;height:14px;animation:gcw_pill 1.2s linear infinite;flex-shrink:0;" fill="none" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="3" stroke-dasharray="40 20" stroke-linecap="round"/>
-            </svg>
-            <span x-text="isAr ? 'العملية جارية في الخلفية…' : 'Processing in background…'"></span>
+            {{-- Clickable area → navigate back to BOQ create --}}
+            <a
+                href="{{ route('boqs.create') }}"
+                wire:navigate
+                style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;"
+            >
+                <svg style="width:14px;height:14px;animation:gcw_pill 1.2s linear infinite;flex-shrink:0;" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="3" stroke-dasharray="40 20" stroke-linecap="round"/>
+                </svg>
+                <span x-text="isAr ? 'العملية جارية… اضغط للرجوع' : 'Processing… tap to return'"></span>
+            </a>
             <button
-                @click="$store.bgJob.active = false"
+                @click.stop="$store.bgJob.active = false"
                 style="margin-inline-start:6px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;flex-shrink:0;"
             >
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
