@@ -362,7 +362,11 @@
                     if (data.items_count > 0) {
                         _bgPollStop();
                         Alpine.store('bgJob').active = false;
-                        Alpine.store('bgJob').done   = true;
+                        // Don't show popup if user is already on the BOQ create page
+                        const onCreatePage = window.location.pathname.includes('/boqs/create');
+                        if (!onCreatePage) {
+                            Alpine.store('bgJob').done = true;
+                        }
                     }
                 } catch (e) { /* ignore network errors */ }
             }, 4000);
@@ -383,7 +387,7 @@
         x-data="{ isAr: document.documentElement.dir === 'rtl' }"
         x-show="$store.bgJob.active"
         x-cloak
-        x-on:boq-upload-done.window="$store.bgJob.active = false; $store.bgJob.done = true"
+        x-on:boq-upload-done.window="$store.bgJob.active = false"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 translate-y-2"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -423,8 +427,8 @@
         x-data="{ isAr: document.documentElement.dir === 'rtl' }"
         x-show="$store.bgJob.done"
         x-cloak
-        x-on:boq-upload-done.window="$store.bgJob.done = true"
-        x-on:boq-resume-done.window="$store.bgJob.done = true; $store.bgJob.active = false"
+        x-on:boq-upload-done.window="if (!window.location.pathname.includes('/boqs/create')) $store.bgJob.done = true"
+        x-on:boq-resume-done.window="$store.bgJob.active = false; $store.bgJob.done = false"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
