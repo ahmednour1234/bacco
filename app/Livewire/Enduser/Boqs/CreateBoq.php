@@ -186,7 +186,9 @@ class CreateBoq extends Component
         }
 
         $this->processing = true;
-        Cache::put('boq_ai_status_' . Auth::id(), 'running', now()->addHours(2)); ────────
+        Cache::put('boq_ai_status_' . Auth::id(), 'running', now()->addHours(2));
+
+        try {
             // These are committed to DB right away so the record survives even
             // if the browser navigates away during the long AI step below.
             $project = $this->persistProject();
