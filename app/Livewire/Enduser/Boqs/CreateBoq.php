@@ -73,6 +73,7 @@ class CreateBoq extends Component
 
             if ($boq) {
                 $this->loadFromBoq($boq);
+                $this->dispatch('boq-resume-done');
                 return;
             }
         }
@@ -87,6 +88,7 @@ class CreateBoq extends Component
 
             if ($latestDraft) {
                 $this->loadFromBoq($latestDraft);
+                $this->dispatch('boq-resume-done');
                 return;
             }
         }
