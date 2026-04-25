@@ -15,6 +15,7 @@ use App\Models\UploadedDocument;
 use App\Services\QuotationAiService;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -185,9 +186,7 @@ class CreateBoq extends Component
         }
 
         $this->processing = true;
-
-        try {
-            // ── Step 1: Persist project + BOQ immediately (before AI) ────────
+        Cache::put('boq_ai_status_' . Auth::id(), 'running', now()->addHours(2)); ────────
             // These are committed to DB right away so the record survives even
             // if the browser navigates away during the long AI step below.
             $project = $this->persistProject();
@@ -231,8 +230,10 @@ class CreateBoq extends Component
             ]);
 
             if (! $result['success']) {
+                Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
                 $this->dispatch('toast', message: $result['error'] ?? 'AI extraction failed.', type: 'error');
             } elseif (empty($result['items'])) {
+                Cache::put('boq_ai_status_' . Auth::id(), 'no_items', now()->addMinutes(30));
                 $this->dispatch('toast', message: 'The AI service could not extract any items from the uploaded file. Please add items manually.', type: 'warning');
             } else {
                 BoqItem::where('boq_id', $boq->id)->delete();
@@ -255,6 +256,7 @@ class CreateBoq extends Component
                 }
 
                 $this->persistItems($boq);
+                Cache::put('boq_ai_status_' . Auth::id(), 'done', now()->addMinutes(30));
                 $this->dispatch('toast', message: count($result['items']) . ' items extracted successfully from the BOQ file.', type: 'success');
                 $this->dispatch('boq-upload-done');
             }
@@ -262,6 +264,7 @@ class CreateBoq extends Component
             $this->boqFile = null;
 
         } catch (\Throwable $e) {
+            Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
             Log::error('CreateBoq::uploadBoq failed.', [
                 'message' => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),

@@ -344,7 +344,7 @@
     {{-- ── Persistent background-job pill (survives wire:navigate) ── --}}
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.store('bgJob', { active: false, done: false });
+            Alpine.store('bgJob', { active: false, done: null }); // null | 'success' | 'failed' | 'no_items'
         });
 
         /* Poll /boqs/draft-status every 4s while the pill is visible */
@@ -359,14 +359,16 @@
                 try {
                     const res  = await fetch('{{ route('enduser.boqs.draft-status') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                     const data = await res.json();
-                    if (data.items_count > 0) {
+                    const onCreatePage = window.location.pathname.includes('/boqs/create');
+
+                    if (data.ai_status === 'done' || data.items_count > 0) {
                         _bgPollStop();
                         Alpine.store('bgJob').active = false;
-                        // Don't show popup if user is already on the BOQ create page
-                        const onCreatePage = window.location.pathname.includes('/boqs/create');
-                        if (!onCreatePage) {
-                            Alpine.store('bgJob').done = true;
-                        }
+                        if (!onCreatePage) Alpine.store('bgJob').done = 'success';
+                    } else if (data.ai_status === 'failed' || data.ai_status === 'no_items') {
+                        _bgPollStop();
+                        Alpine.store('bgJob').active = false;
+                        if (!onCreatePage) Alpine.store('bgJob').done = data.ai_status;
                     }
                 } catch (e) { /* ignore network errors */ }
             }, 4000);
@@ -425,10 +427,10 @@
     {{-- ── BOQ done popup (shows on any page when processing completes) ── --}}
     <div
         x-data="{ isAr: document.documentElement.dir === 'rtl' }"
-        x-show="$store.bgJob.done"
+        x-show="$store.bgJob.done !== null"
         x-cloak
-        x-on:boq-upload-done.window="if (!window.location.pathname.includes('/boqs/create')) $store.bgJob.done = true"
-        x-on:boq-resume-done.window="$store.bgJob.active = false; $store.bgJob.done = false"
+        x-on:boq-upload-done.window="if (!window.location.pathname.includes('/boqs/create')) $store.bgJob.done = 'success'"
+        x-on:boq-resume-done.window="$store.bgJob.active = false; $store.bgJob.done = null"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
@@ -441,30 +443,45 @@
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            style="pointer-events:auto;background:#fff;border-radius:24px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,0.18);text-align:center;max-width:360px;width:90%;"
+            style="pointer-events:auto;background:#fff;border-radius:24px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,0.18);text-align:center;max-width:380px;width:90%;"
         >
-            <div style="width:56px;height:56px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-                <svg width="28" height="28" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <path d="M20 6L9 17l-5-5"/>
-                </svg>
-            </div>
-            <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'اكتملت المعالجة بنجاح' : 'Processing Complete'"></p>
-            <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'تم تحميل بياناتك، يمكنك مراجعة النتائج الآن' : 'Your data is ready. Review the results below.'"></p>
-            <a
-                href="{{ route('enduser.boqs.create') }}?resume=1"
-                wire:navigate
-                @click="$store.bgJob.done = false"
-                style="display:block;width:100%;background:#10b981;color:#fff;border:none;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;text-decoration:none;box-sizing:border-box;"
-                x-text="isAr ? 'عرض البيانات ←' : '→ View Data'"
-            ></a>
-            <button
-                @click="$store.bgJob.done = false"
-                style="margin-top:10px;width:100%;background:transparent;color:#94a3b8;border:none;font-size:0.8rem;cursor:pointer;font-family:'Cairo',sans-serif;"
-                x-text="isAr ? 'إغلاق' : 'Dismiss'"
-            ></button>
+            {{-- Success --}}
+            <template x-if="$store.bgJob.done === 'success'">
+                <div>
+                    <div style="width:56px;height:56px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                        <svg width="28" height="28" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'اكتملت المعالجة بنجاح' : 'Processing Complete'"></p>
+                    <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'تم استخراج العناصر بنجاح، اضغط لمراجعتها' : 'Items extracted. Tap to review.'"></p>
+                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#10b981;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'عرض البيانات ←' : '→ View Data'"></a>
+                </div>
+            </template>
+
+            {{-- Failed --}}
+            <template x-if="$store.bgJob.done === 'failed'">
+                <div>
+                    <div style="width:56px;height:56px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                        <svg width="28" height="28" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/><circle cx="12" cy="12" r="10"/></svg>
+                    </div>
+                    <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'حدثت مشكلة أثناء المعالجة' : 'Processing Failed'"></p>
+                    <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'فشل استخراج العناصر. يمكنك إضافتها يدوياً أو إعادة المحاولة.' : 'Item extraction failed. You can add items manually or retry.'"></p>
+                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#ef4444;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'الرجوع وإضافة يدوياً ←' : '→ Add Manually'"></a>
+                </div>
+            </template>
+
+            {{-- No items --}}
+            <template x-if="$store.bgJob.done === 'no_items'">
+                <div>
+                    <div style="width:56px;height:56px;border-radius:50%;background:#fef9c3;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                        <svg width="28" height="28" fill="none" stroke="#ca8a04" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/><circle cx="12" cy="12" r="10"/></svg>
+                    </div>
+                    <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'لم يتم استخراج عناصر' : 'No Items Found'"></p>
+                    <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'لم يتمكن الذكاء الاصطناعي من قراءة الملف. يمكنك إضافة العناصر يدوياً.' : 'The AI could not read the file. Add items manually.'"></p>
+                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#f59e0b;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'إضافة يدوياً ←' : '→ Add Manually'"></a>
+                </div>
+            </template>
+
+            <button @click="$store.bgJob.done = null" style="margin-top:12px;width:100%;background:transparent;color:#94a3b8;border:none;font-size:0.8rem;cursor:pointer;font-family:'Cairo',sans-serif;" x-text="isAr ? 'إغلاق' : 'Dismiss'"></button>
         </div>
     </div>
 

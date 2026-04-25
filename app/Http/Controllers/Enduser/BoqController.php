@@ -8,6 +8,7 @@ use App\Models\Boq;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class BoqController extends Controller
@@ -43,8 +44,11 @@ class BoqController extends Controller
             ->latest()
             ->first();
 
+        $aiStatus = Cache::get('boq_ai_status_' . Auth::id(), 'unknown');
+
         return response()->json([
             'items_count' => $boq?->items_count ?? 0,
+            'ai_status'   => $aiStatus,
             'boq_uuid'    => $boq?->uuid,
         ]);
     }
