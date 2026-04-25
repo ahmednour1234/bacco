@@ -110,7 +110,10 @@
                 setInterval(() => { this.idx = (this.idx + 1) % this.ar.length; }, 1800);
                 /* Reset dismissed each time Livewire re-shows this element (new request) */
                 new MutationObserver(() => {
-                    if (this.$el.style.display !== 'none') { this.dismissed = false; }
+                    if (this.$el.style.display !== 'none') {
+                        this.dismissed = false;
+                        if (window.Alpine) Alpine.store('bgJob').active = false;
+                    }
                 }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
             }
         }"
@@ -125,7 +128,6 @@
         {{-- Centered card (hidden when dismissed) --}}
         <div
             x-show="!dismissed"
-            style="pointer-events: auto;"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
@@ -133,6 +135,7 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
             style="
+                pointer-events: auto;
                 position: fixed;
                 top: 50%;
                 left: 50%;
@@ -198,39 +201,10 @@
             </div>
         </div>
 
-        {{-- Floating mini-indicator shown when dismissed --}}
-        <div
-            x-show="dismissed"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 translate-y-2"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            style="
-                position: fixed;
-                bottom: 24px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #0f172a;
-                color: #fff;
-                border-radius: 99px;
-                padding: 10px 20px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                font-family: 'Cairo', sans-serif;
-                font-size: 0.82rem;
-                font-weight: 600;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-                cursor: pointer;
-                white-space: nowrap;
-                pointer-events: auto;
-            "
-            @click="dismissed = false"
-        >
-            <svg style="width:14px;height:14px;animation:gcw 1.2s linear infinite;flex-shrink:0;" fill="none" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="3" stroke-dasharray="40 20" stroke-linecap="round"/>
-            </svg>
-            <span x-text="isAr ? 'العملية جارية… اضغط للعرض' : 'Processing… tap to show'"></span>
-        </div>
+        {{-- When dismissed → activate the persistent layout pill --}}
+        <template x-if="dismissed">
+            <span x-init="$store.bgJob.active = true"></span>
+        </template>
 
         <style>
             @keyframes gcw    { to { transform: rotate(360deg); } }

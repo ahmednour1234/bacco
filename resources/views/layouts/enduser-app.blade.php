@@ -340,5 +340,57 @@
 
     @livewireScripts
     @stack('scripts')
+
+    {{-- ── Persistent background-job pill (survives wire:navigate) ── --}}
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('bgJob', { active: false });
+        });
+
+        /* Clear pill when Livewire finishes a request on the boq-create component */
+        document.addEventListener('livewire:init', () => {
+            Livewire.hook('commit', ({ component, succeed }) => {
+                succeed(() => {
+                    if (component.name === 'enduser.boqs.create-boq') {
+                        if (window.Alpine && Alpine.store('bgJob').active) {
+                            Alpine.store('bgJob').active = false;
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    <div
+        x-data="{ isAr: document.documentElement.dir === 'rtl' }"
+        x-show="$store.bgJob.active"
+        x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-2"
+        style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;pointer-events:auto;"
+    >
+        <div
+            style="background:#0f172a;color:#fff;border-radius:99px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.25);white-space:nowrap;"
+        >
+            <svg style="width:14px;height:14px;animation:gcw_pill 1.2s linear infinite;flex-shrink:0;" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="3" stroke-dasharray="40 20" stroke-linecap="round"/>
+            </svg>
+            <span x-text="isAr ? 'العملية جارية في الخلفية…' : 'Processing in background…'"></span>
+            <button
+                @click="$store.bgJob.active = false"
+                style="margin-inline-start:6px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;flex-shrink:0;"
+            >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <style>@keyframes gcw_pill { to { transform: rotate(360deg); } }</style>
+
 </body>
 </html>
