@@ -344,7 +344,7 @@
     {{-- ── Persistent background-job pill (survives wire:navigate) ── --}}
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.store('bgJob', { active: false });
+            Alpine.store('bgJob', { active: false, done: false });
         });
     </script>
 
@@ -352,7 +352,7 @@
         x-data="{ isAr: document.documentElement.dir === 'rtl' }"
         x-show="$store.bgJob.active"
         x-cloak
-        x-on:boq-upload-done.window="$store.bgJob.active = false"
+        x-on:boq-upload-done.window="$store.bgJob.active = false; $store.bgJob.done = true"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 translate-y-2"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -386,6 +386,52 @@
         </div>
     </div>
     <style>@keyframes gcw_pill { to { transform: rotate(360deg); } }</style>
+
+    {{-- ── BOQ done popup (shows on any page when processing completes) ── --}}
+    <div
+        x-data="{ isAr: document.documentElement.dir === 'rtl' }"
+        x-show="$store.bgJob.done"
+        x-cloak
+        x-on:boq-upload-done.window="$store.bgJob.done = true"
+        x-on:boq-resume-done.window="$store.bgJob.done = true; $store.bgJob.active = false"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999999;pointer-events:none;"
+    >
+        <div
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            style="pointer-events:auto;background:#fff;border-radius:24px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,0.18);text-align:center;max-width:360px;width:90%;"
+        >
+            <div style="width:56px;height:56px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                <svg width="28" height="28" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M20 6L9 17l-5-5"/>
+                </svg>
+            </div>
+            <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'اكتملت المعالجة بنجاح' : 'Processing Complete'"></p>
+            <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'تم تحميل بياناتك، يمكنك مراجعة النتائج الآن' : 'Your data is ready. Review the results below.'"></p>
+            <a
+                href="{{ route('enduser.boqs.create') }}?resume=1"
+                wire:navigate
+                @click="$store.bgJob.done = false"
+                style="display:block;width:100%;background:#10b981;color:#fff;border:none;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;text-decoration:none;box-sizing:border-box;"
+                x-text="isAr ? 'عرض البيانات ←' : '→ View Data'"
+            ></a>
+            <button
+                @click="$store.bgJob.done = false"
+                style="margin-top:10px;width:100%;background:transparent;color:#94a3b8;border:none;font-size:0.8rem;cursor:pointer;font-family:'Cairo',sans-serif;"
+                x-text="isAr ? 'إغلاق' : 'Dismiss'"
+            ></button>
+        </div>
+    </div>
 
 </body>
 </html>
