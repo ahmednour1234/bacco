@@ -7,11 +7,7 @@
             setTimeout(() => this.toast = null, 4000);
         }
     }"
-    x-init="
-        if (@js($fetchingPrices)) { $wire.fetchPrices(); }
-    "
     x-on:toast.window="showToast($event.detail.message, $event.detail.type)"
-    x-on:refetchPrices.window="$wire.fetchPrices()"
 >
 
     {{-- ───── Toast ──────────────────────────────────────────────────────────── --}}
@@ -39,113 +35,42 @@
         </button>
     </div>
 
-    {{-- ───── Pricing Loading Modal ────────────────────────────────────────────── --}}
-    @if($fetchingPrices)
-    <style>
-        @keyframes ai-cw   { to { transform: rotate(360deg); } }
-        @keyframes ai-ccw  { to { transform: rotate(-360deg); } }
-        @keyframes ai-blink{ 0%,100%{opacity:.25} 50%{opacity:1} }
-        @keyframes ai-fill { from{width:4%} to{width:88%} }
-    </style>
+    {{-- ───── Background Pricing Banner ──────────────────────────────────────── --}}
+    @if($pricingQueued)
     <div
-        x-data="{
-            msgIndex: 0,
-            messages: [
-                'جاري البحث في كتالوج المنتجات…',
-                'نحلل بنود جدول الكميات…',
-                'نستشير الذكاء الاصطناعي للتسعير…',
-                'نقارن الأسعار بسوق السعودية…',
-                'نحسب أفضل الأسعار لك…',
-                'يرجى الانتظار، تقريباً انتهينا…',
-            ],
-            init() { setInterval(() => { this.msgIndex = (this.msgIndex + 1) % this.messages.length; }, 2600); }
-        }"
-        style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(2,10,28,0.78);backdrop-filter:blur(8px);"
+        x-data="{ visible: true }"
+        x-show="visible"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 -translate-y-2"
+        class="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 shadow-sm"
+        style="direction:rtl"
     >
-        <div style="direction:rtl;width:100%;max-width:360px;margin:0 16px;border-radius:20px;background:#fff;box-shadow:0 25px 60px rgba(0,0,0,0.2);overflow:hidden;">
+        {{-- Spinner --}}
+        <span class="mt-0.5 flex-shrink-0">
+            <svg class="h-5 w-5 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+        </span>
 
-            {{-- Progress bar --}}
-            <div style="height:3px;background:#f1f5f9;">
-                <div style="height:100%;background:linear-gradient(to right,#10b981,#14b8a6);border-radius:99px;animation:ai-fill 90s linear forwards;"></div>
-            </div>
-
-            <div style="padding:28px 28px 24px;text-align:center;">
-
-                {{-- Spinner + icon --}}
-                <div style="position:relative;width:80px;height:80px;margin:0 auto 20px;">
-                    {{-- Outer ring --}}
-                    <span style="position:absolute;inset:0;border-radius:50%;border:3px solid #d1fae5;border-top-color:#10b981;animation:ai-cw 1.5s linear infinite;display:block;"></span>
-                    {{-- Inner ring --}}
-                    <span style="position:absolute;inset:10px;border-radius:50%;border:3px solid #ccfbf1;border-bottom-color:#0d9488;animation:ai-ccw 1s linear infinite;display:block;"></span>
-                    {{-- Center icon: sparkles --}}
-                    <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" fill="#10b981"/>
-                            <path d="M19 3l.75 2.25L22 6l-2.25.75L19 9l-.75-2.25L16 6l2.25-.75L19 3z" fill="#34d399"/>
-                            <path d="M5 15l.75 2.25L8 18l-2.25.75L5 21l-.75-2.25L2 18l2.25-.75L5 15z" fill="#6ee7b7"/>
-                        </svg>
-                    </span>
-                </div>
-
-                {{-- Label --}}
-                <p style="font-size:11px;font-weight:700;letter-spacing:2px;color:#10b981;text-transform:uppercase;margin-bottom:4px;">AI Pricing</p>
-                <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">تحليل الأسعار</h3>
-
-                {{-- Cycling message --}}
-                <div style="position:relative;height:22px;overflow:hidden;margin-bottom:16px;">
-                    <template x-for="(msg, i) in messages" :key="i">
-                        <p
-                            style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#64748b;transition:opacity .45s ease, transform .45s ease;margin:0;"
-                            :style="i===msgIndex ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(7px)'"
-                            x-text="msg"
-                        ></p>
-                    </template>
-                </div>
-
-                {{-- Blinking dots --}}
-                <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:20px;">
-                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#10b981;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0s;"></span>
-                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#14b8a6;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0.22s;"></span>
-                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#06b6d4;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0.44s;"></span>
-                </div>
-
-                {{-- Divider --}}
-                <div style="height:1px;background:#f1f5f9;margin-bottom:16px;"></div>
-
-                {{-- Steps --}}
-                <div style="display:flex;flex-direction:column;gap:10px;">
-
-                    {{-- Step 1 - Done --}}
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
-                        <span style="font-size:13px;font-weight:500;color:#334155;">البحث في الكتالوج</span>
-                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                        </span>
-                    </div>
-
-                    {{-- Step 2 - Active --}}
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
-                        <span style="font-size:13px;font-weight:700;color:#059669;">تقدير الذكاء الاصطناعي</span>
-                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#ecfdf5;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;">
-                            <svg style="animation:ai-cw 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="9" stroke="#10b981" stroke-width="3" stroke-dasharray="38 18" stroke-linecap="round"/>
-                            </svg>
-                        </span>
-                    </div>
-
-                    {{-- Step 3 - Pending --}}
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;opacity:.3;">
-                        <span style="font-size:13px;color:#94a3b8;">حفظ وتحديث العرض</span>
-                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;">
-                            <span style="display:block;width:8px;height:8px;border-radius:50%;background:#cbd5e1;"></span>
-                        </span>
-                    </div>
-
-                </div>
-            </div>
+        {{-- Text --}}
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-emerald-800">جاري تسعير عناصر عرض السعر في الخلفية</p>
+            <p class="mt-0.5 text-xs text-emerald-600">يمكنك التصفح بحرية — ستصلك إشعار فور اكتمال التسعير.</p>
         </div>
+
+        {{-- Dismiss --}}
+        <button
+            @click="visible = false; $wire.dismissPricingBanner()"
+            type="button"
+            class="flex-shrink-0 rounded-lg p-1 text-emerald-500 hover:bg-emerald-100 hover:text-emerald-700 transition"
+            title="إغلاق"
+        >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
     </div>
     @endif
 
@@ -337,7 +262,7 @@
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono font-medium text-slate-800">
-                                        @if($fetchingPrices && empty($item['unit_price']))
+                                        @if($pricingQueued && empty($item['unit_price']))
                                             <svg class="ml-auto h-4 w-4 animate-spin text-slate-300" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -349,7 +274,7 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono font-medium text-slate-800">
-                                        @if($fetchingPrices && empty($item['unit_price']))
+                                        @if($pricingQueued && empty($item['unit_price']))
                                             <svg class="ml-auto h-4 w-4 animate-spin text-slate-300" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>

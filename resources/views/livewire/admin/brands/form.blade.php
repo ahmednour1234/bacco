@@ -14,22 +14,6 @@
             </div>
 
             <div class="md:col-span-2">
-                <label class="mb-2 block text-sm font-medium text-slate-700">{{ __('app.websites') }}</label>
-                <div class="grid grid-cols-1 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-3">
-                    @forelse ($websites as $website)
-                        <label class="flex items-center gap-2 text-sm text-slate-700">
-                            <input type="checkbox" value="{{ $website->id }}" wire:model="website_ids" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                            <span>{{ $website->name }}</span>
-                        </label>
-                    @empty
-                        <p class="text-xs text-slate-500">{{ __('app.no_active_websites') }}</p>
-                    @endforelse
-                </div>
-                @error('website_ids') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                @error('website_ids.*') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div class="md:col-span-2">
                 <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                     <input type="checkbox" wire:model="active" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
                     <span>{{ __('app.active') }}</span>

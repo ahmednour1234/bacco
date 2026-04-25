@@ -3,15 +3,14 @@
 namespace App\Livewire\Enduser\Quotations;
 
 use App\Enums\QuotationRequestStatusEnum;
+use App\Jobs\FetchQuotationPricesJob;
 use App\Models\Product;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Enums\NotificationTypeEnum;
 use App\Enums\UserTypeEnum;
-use App\Repositories\Enduser\OrderRepository;
 use App\Services\Enduser\OrderService;
 use App\Services\NotificationService;
-use App\Services\PricingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -26,6 +25,9 @@ class ShowQuotation extends Component
     public array $items = [];
 
     public bool $fetchingPrices = false;
+
+    /** True while a background pricing job has been dispatched for this session. */
+    public bool $pricingQueued = false;
 
     // Product picker state
     public ?int   $openPickerItemId = null;
@@ -43,7 +45,16 @@ class ShowQuotation extends Component
         $this->loadItems();
 
         // Auto-trigger pricing if any items still lack a unit price
-        $this->fetchingPrices = collect($this->items)->contains(fn($i) => empty($i['unit_price']));
+        $needsPricing = collect($this->items)->contains(fn($i) => empty($i['unit_price']));
+
+        if ($needsPricing) {
+            FetchQuotationPricesJob::dispatch(
+                $this->quotation->id,
+                Auth::id(),
+                $this->uuid,
+            );
+            $this->pricingQueued = true;
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -51,47 +62,12 @@ class ShowQuotation extends Component
     // -------------------------------------------------------------------------
 
     /**
-     * Called automatically from the blade (x-init) when fetchingPrices is true.
-     * Looks up the products table first; falls back to Gemini for unmatched items.
-     * Persists prices to the DB so subsequent page loads are instant.
+     * Dismiss the in-progress pricing banner (client-side only action).
+     * The job continues running in the background.
      */
-    public function fetchPrices(): void
+    public function dismissPricingBanner(): void
     {
-        if (! $this->fetchingPrices) {
-            return;
-        }
-
-        try {
-            $priced = app(PricingService::class)->fetchPrices($this->items);
-
-            // Persist back to DB
-            foreach ($priced as $index => $row) {
-                if (! empty($row['id']) && isset($row['unit_price']) && $row['unit_price'] > 0) {
-                    QuotationItem::where('id', $row['id'])->update([
-                        'unit_price'   => $row['unit_price'],
-                        'price_source' => $row['price_source'] ?? null,
-                        'price_status' => 'pending',
-                    ]);
-                }
-            }
-
-            $this->items = $priced;
-
-            $gotPrices = collect($priced)->filter(fn($i) => ! empty($i['unit_price']))->count();
-            $missing   = count($priced) - $gotPrices;
-
-            if ($missing > 0) {
-                $this->dispatch('toast', message: "{$gotPrices} item(s) priced. {$missing} item(s) could not be priced.", type: 'warning');
-            } else {
-                $this->dispatch('toast', message: "All {$gotPrices} item(s) priced successfully.", type: 'success');
-            }
-
-        } catch (\Throwable $e) {
-            Log::error('ShowQuotation::fetchPrices failed.', ['message' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Pricing fetch failed. Please try again.', type: 'error');
-        } finally {
-            $this->fetchingPrices = false;
-        }
+        $this->pricingQueued = false;
     }
 
     // -------------------------------------------------------------------------
@@ -276,8 +252,13 @@ class ShowQuotation extends Component
             $this->items[$index]['price_source'] = null;
         }
 
-        $this->fetchingPrices = true;
-        $this->dispatch('refetchPrices');
+        FetchQuotationPricesJob::dispatch(
+            $this->quotation->id,
+            Auth::id(),
+            $this->uuid,
+        );
+        $this->pricingQueued = true;
+        $this->dispatch('toast', message: 'جاري إعادة جلب الأسعار في الخلفية. سنُعلمك عند الانتهاء.', type: 'info');
     }
 
     private function canEdit(): bool

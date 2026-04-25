@@ -81,7 +81,7 @@
                 </svg>
             </div>
             <h2 class="text-lg font-bold text-slate-900 mb-1">{{ __('app.extracting_boq_items') }}</h2>
-            <p class="text-sm text-slate-500 mb-8">{{ __('app.ai_extracting_items') }}<br>{{ __('app.please_wait_seconds') }}</p>
+            <p class="text-sm text-slate-500 mb-8">{{ __('app.please_wait_seconds') }}</p>
             <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <span>{{ __('app.processing_data') }}</span>
                 <span x-text="progressPct + '%'"></span>
