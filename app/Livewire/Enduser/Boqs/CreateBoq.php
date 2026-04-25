@@ -244,6 +244,10 @@ class CreateBoq extends Component
             $this->dispatch('toast', message: 'Upload failed. Please try again.', type: 'error');
         } finally {
             $this->processing = false;
+            // Notify Alpine so the pill can link back to this draft
+            if ($this->draftBoqUuid !== '') {
+                $this->dispatch('boq-draft-ready', uuid: $this->draftBoqUuid);
+            }
         }
     }
 
