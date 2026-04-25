@@ -112,7 +112,6 @@
                 new MutationObserver(() => {
                     if (this.$el.style.display !== 'none') {
                         this.dismissed = false;
-                        if (window.Alpine) Alpine.store('bgJob').active = false;
                     }
                 }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
             }
