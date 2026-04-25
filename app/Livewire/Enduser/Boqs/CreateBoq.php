@@ -118,6 +118,12 @@ class CreateBoq extends Component
             $this->projectDescription = (string) ($boq->project->description ?? '');
         }
 
+        // Load the last uploaded file name
+        $lastDoc = UploadedDocument::where('boq_id', $boq->id)->latest()->first();
+        if ($lastDoc) {
+            $this->boqFileName = $lastDoc->file_name;
+        }
+
         $this->items = $boq->items->map(fn(BoqItem $item) => [
             'id'                   => $item->id,
             'description'          => (string) $item->description,
@@ -245,6 +251,7 @@ class CreateBoq extends Component
 
                 $this->persistItems($boq);
                 $this->dispatch('toast', message: count($result['items']) . ' items extracted successfully from the BOQ file.', type: 'success');
+                $this->dispatch('boq-upload-done');
             }
 
             $this->boqFile = null;

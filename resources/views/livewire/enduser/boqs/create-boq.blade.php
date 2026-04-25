@@ -31,7 +31,10 @@
     x-on:toast.window="showToast($event.detail.message, $event.detail.type)"
     x-on:boq-resume-done.window="
         if (window.Alpine) Alpine.store('bgJob').active = false;
-        showToast('{{ app()->getLocale() === 'ar' ? 'اكتملت المعالجة بنجاح ✓' : 'Processing completed successfully ✓' }}', 'success')
+        showToast('{{ app()->getLocale() === 'ar' ? 'تم تحميل بياناتك بنجاح ✓' : 'Your data loaded successfully ✓' }}', 'success')
+    "
+    x-on:boq-upload-done.window="
+        if (window.Alpine) Alpine.store('bgJob').active = false;
     "
 >
 
@@ -117,9 +120,8 @@
                     if (this.$el.style.display !== 'none') {
                         this.dismissed = false;
                     } else if (this.dismissed) {
-                        /* Finished while pill was showing (user stayed on page) */
-                        if (window.Alpine) Alpine.store('bgJob').active = false;
-                        window.dispatchEvent(new CustomEvent('toast', { detail: { message: '{{ app()->getLocale() === 'ar' ? 'اكتملت المعالجة بنجاح ✓' : 'Processing completed ✓' }}', type: 'success' } }));
+                        /* Overlay hid while pill was visible (user stayed on page) */
+                        this.dismissed = false;
                     }
                 }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
             }
