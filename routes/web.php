@@ -86,6 +86,7 @@ Route::prefix('enduser')->name('enduser.')->group(function () {
         Route::get('/boqs',                     [EnduserBoqController::class, 'index'])->name('boqs.index');
         Route::get('/boqs/create',              [EnduserBoqController::class, 'create'])->name('boqs.create');
         Route::get('/boqs/create/{projectUuid}', [EnduserBoqController::class, 'create'])->name('boqs.create.project');
+        Route::get('/boqs/draft-status',        [EnduserBoqController::class, 'draftStatus'])->name('boqs.draft-status');
         Route::get('/boqs/{uuid}',              [EnduserBoqController::class, 'show'])->name('boqs.show');
 
         // Orders

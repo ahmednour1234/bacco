@@ -346,6 +346,37 @@
         document.addEventListener('alpine:init', () => {
             Alpine.store('bgJob', { active: false, done: false });
         });
+
+        /* Poll /boqs/draft-status every 4s while the pill is visible */
+        let _bgPollTimer = null;
+        function _bgPollStart() {
+            if (_bgPollTimer) return;
+            _bgPollTimer = setInterval(async () => {
+                if (!window.Alpine || !Alpine.store('bgJob').active) {
+                    _bgPollStop();
+                    return;
+                }
+                try {
+                    const res  = await fetch('{{ route('enduser.boqs.draft-status') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const data = await res.json();
+                    if (data.items_count > 0) {
+                        _bgPollStop();
+                        Alpine.store('bgJob').active = false;
+                        Alpine.store('bgJob').done   = true;
+                    }
+                } catch (e) { /* ignore network errors */ }
+            }, 4000);
+        }
+        function _bgPollStop() {
+            clearInterval(_bgPollTimer);
+            _bgPollTimer = null;
+        }
+
+        document.addEventListener('alpine:initialized', () => {
+            Alpine.effect(() => {
+                Alpine.store('bgJob').active ? _bgPollStart() : _bgPollStop();
+            });
+        });
     </script>
 
     <div
