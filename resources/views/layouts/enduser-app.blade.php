@@ -344,7 +344,7 @@
     {{-- ── Persistent background-job pill (survives wire:navigate) ── --}}
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.store('bgJob', { active: false, boqUuid: '' });
+            Alpine.store('bgJob', { active: false });
         });
     </script>
 
@@ -352,7 +352,6 @@
         x-data="{ isAr: document.documentElement.dir === 'rtl' }"
         x-show="$store.bgJob.active"
         x-cloak
-        x-on:boq-draft-ready.window="$store.bgJob.boqUuid = $event.detail.uuid"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 translate-y-2"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -364,11 +363,9 @@
         <div
             style="background:#0f172a;color:#fff;border-radius:99px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.25);white-space:nowrap;"
         >
-            {{-- Clickable area → navigate back to BOQ create (with draft UUID if available) --}}
+            {{-- Clickable area → navigate back to BOQ create (resumes latest draft) --}}
             <a
-                :href="$store.bgJob.boqUuid
-                    ? '{{ url('/enduser/boqs/create') }}?draft=' + $store.bgJob.boqUuid
-                    : '{{ route('enduser.boqs.create') }}'"
+                href="{{ route('enduser.boqs.create') }}?resume=1"
                 wire:navigate
                 style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;"
             >
