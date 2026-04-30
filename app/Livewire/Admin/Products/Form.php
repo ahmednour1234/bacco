@@ -61,7 +61,7 @@ class Form extends Component
 
     public string $aiIncludesInst = 'no';
 
-    public string $aiMarginHandling = 'auto_20';
+    public string $aiMarginHandling = 'keep';
 
     public string $aiCurrency = 'SAR';
 
@@ -198,7 +198,6 @@ class Form extends Component
         $contextHints = implode(', ', array_filter([
             $this->aiPriceContext === 'vendor'  ? 'prices are vendor/supplier prices'  : null,
             $this->aiPriceContext === 'client'  ? 'prices are selling prices to client' : null,
-            $this->aiPriceContext === 'mixed'   ? 'price type is unknown'               : null,
             $this->aiIncludesEng  === 'yes'     ? 'engineering cost IS included in price' : null,
             $this->aiIncludesEng  === 'no'      ? 'engineering cost is NOT included'      : null,
             $this->aiIncludesInst === 'yes'     ? 'installation cost IS included in price' : null,
@@ -226,24 +225,71 @@ For each product, return an object with these exact keys:
 - engineering_price (number — engineering/commissioning cost per unit, 0 if not applicable)
 - installation_price (number — installation cost per unit, 0 if not applicable)
 - margin_percentage (number — use {$defaultMargin} as default if not specified)
+- Do NOT duplicate the same product row more than once. If the same row appears multiple times due to OCR noise, return it only once.
 
 Return only the JSON array. No text before or after it.
 PROMPT;
 
         // Build the parts payload
         $parts = [];
+        $fileText = '';
 
         if ($this->aiFile) {
             $path     = $this->aiFile->getRealPath();
             $mime     = $this->aiFile->getMimeType() ?: 'application/octet-stream';
             $b64      = base64_encode(file_get_contents($path));
+            $ext      = strtolower($this->aiFile->getClientOriginalExtension());
 
-            // For plain-text types send as text
-            if (in_array($mime, ['text/plain', 'text/csv'])) {
-                $parts[] = ['text' => file_get_contents($path)];
+            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                $parts[] = ['inline_data' => ['mime_type' => $mime, 'data' => $b64]];
+            } elseif ($ext === 'pdf') {
+                $parts[] = ['inline_data' => ['mime_type' => 'application/pdf', 'data' => $b64]];
+            } elseif (in_array($ext, ['xlsx', 'xls', 'csv'])) {
+                try {
+                    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+                    $rows = [];
+                    foreach ($spreadsheet->getAllSheets() as $sheet) {
+                        $sheetName = $sheet->getTitle();
+                        $rows[] = "--- Sheet: {$sheetName} ---";
+                        foreach ($sheet->toArray(null, true, true, true) as $row) {
+                            $cells = array_map(fn ($c) => trim((string) ($c ?? '')), $row);
+                            $line = implode(' | ', $cells);
+                            if (trim(str_replace('|', '', $line)) !== '') {
+                                $rows[] = $line;
+                            }
+                        }
+                    }
+                    $fileText = implode("\n", $rows);
+                } catch (\Throwable $e) {
+                    $this->addError('aiPastedText', 'Could not parse the spreadsheet: ' . $e->getMessage());
+                    $this->aiAnalyzing = false;
+                    return;
+                }
+            } elseif ($ext === 'docx') {
+                try {
+                    $zip = new \ZipArchive();
+                    if ($zip->open($path) === true) {
+                        $content = $zip->getFromName('word/document.xml');
+                        $zip->close();
+                        if ($content) {
+                            $fileText = strip_tags(str_replace('<', ' <', $content));
+                            $fileText = preg_replace('/\s+/', ' ', $fileText);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    $this->addError('aiPastedText', 'Could not parse the document.');
+                    $this->aiAnalyzing = false;
+                    return;
+                }
+            } elseif (in_array($mime, ['text/plain', 'text/csv'])) {
+                $fileText = file_get_contents($path);
             } else {
                 $parts[] = ['inline_data' => ['mime_type' => $mime, 'data' => $b64]];
             }
+        }
+
+        if (! empty($fileText)) {
+            $parts[] = ['text' => $fileText];
         }
 
         if (! empty($this->aiPastedText)) {
@@ -254,13 +300,14 @@ PROMPT;
         $parts[] = ['text' => $prompt];
 
         try {
-            $response = Http::timeout(60)->post($url, [
+            $response = Http::timeout(120)->post($url, [
                 'contents' => [
                     ['role' => 'user', 'parts' => $parts],
                 ],
                 'generationConfig' => [
                     'responseMimeType' => 'application/json',
                     'temperature'      => 0.1,
+                    'maxOutputTokens'  => 65536,
                 ],
             ]);
 
@@ -278,11 +325,20 @@ PROMPT;
 
             $items = json_decode($text, true);
 
-            if (! is_array($items)) {
+            // If direct decode fails, try to extract JSON array from response
+            if (! is_array($items) && preg_match('/\[[\s\S]*\]/', $text, $m)) {
+                $items = json_decode($m[0], true);
+            }
+
+            if (! is_array($items) || empty($items)) {
+                \Log::warning('Admin AI response could not be parsed', ['raw' => mb_substr($text, 0, 2000)]);
                 $this->aiAnalyzing = false;
                 $this->addError('aiPastedText', 'Could not parse Gemini response. Please try again or rephrase your input.');
                 return;
             }
+
+            // Collapse duplicate rows from OCR/LLM noise before mapping to UI rows.
+            $items = $this->deduplicateExtractedItems($items);
 
             // Normalise and compute totals
             $filled = 0;
@@ -290,9 +346,9 @@ PROMPT;
                 $unitPrice   = (float) ($item['unit_price']         ?? 0);
                 $engPrice    = (float) ($item['engineering_price']  ?? 0);
                 $instPrice   = (float) ($item['installation_price'] ?? 0);
-                $margin      = (float) ($item['margin_percentage']  ?? 20);
+                $margin      = 0.0;
                 $base        = $unitPrice + $engPrice + $instPrice;
-                $total       = $base * (1 + $margin / 100);
+                $total       = $base;
 
                 if (! empty($item['name']) && $unitPrice > 0) {
                     $filled++;
@@ -309,7 +365,7 @@ PROMPT;
                     'unit_price'         => $unitPrice,
                     'engineering_price'  => $engPrice,
                     'installation_price' => $instPrice,
-                    'margin_percentage'  => $margin,
+                    'margin_percentage'  => 0,
                     'total'              => round($total, 2),
                 ];
             }, $items, array_keys($items)));
@@ -325,19 +381,89 @@ PROMPT;
         $this->aiAnalyzing = false;
     }
 
+    /**
+     * Remove duplicate extracted products that represent the same line item.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function deduplicateExtractedItems(array $items): array
+    {
+        $bucket = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $name  = trim((string) ($item['name'] ?? ''));
+            $model = trim((string) ($item['model_type'] ?? ''));
+            $unit  = trim((string) ($item['unit'] ?? ''));
+            $price = number_format((float) ($item['unit_price'] ?? 0), 2, '.', '');
+
+            // Build a robust signature for "same product line".
+            $signature = $this->normaliseKeyPart($name)
+                . '|' . $this->normaliseKeyPart($model)
+                . '|' . $this->normaliseKeyPart($unit)
+                . '|' . $price;
+
+            if (! isset($bucket[$signature])) {
+                $bucket[$signature] = $item;
+                continue;
+            }
+
+            // Merge missing fields from duplicates into the first canonical row.
+            foreach (['division', 'brand', 'model_type', 'unit'] as $field) {
+                $current = trim((string) ($bucket[$signature][$field] ?? ''));
+                $incoming = trim((string) ($item[$field] ?? ''));
+
+                if ($current === '' && $incoming !== '') {
+                    $bucket[$signature][$field] = $incoming;
+                }
+            }
+
+            foreach (['unit_price', 'engineering_price', 'installation_price', 'margin_percentage'] as $field) {
+                $current = (float) ($bucket[$signature][$field] ?? 0);
+                $incoming = (float) ($item[$field] ?? 0);
+
+                if ($current <= 0 && $incoming > 0) {
+                    $bucket[$signature][$field] = $incoming;
+                }
+            }
+        }
+
+        return array_values($bucket);
+    }
+
+    private function normaliseKeyPart(string $value): string
+    {
+        $value = strtr($value, [
+            'أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ٱ' => 'ا',
+            'ؤ' => 'و', 'ئ' => 'ي', 'ى' => 'ي', 'ة' => 'ه',
+            'ـ' => '',
+        ]);
+
+        $value = mb_strtolower(trim($value));
+        $value = preg_replace('/[\x{064B}-\x{065F}\x{0670}]/u', '', $value) ?? $value;
+        $value = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $value) ?? $value;
+        $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+
+        return $value;
+    }
+
     public function confirmImport(): mixed
     {
         if (empty($this->aiExtractedProducts)) {
             return null;
         }
 
-        $margin = match ($this->aiMarginHandling) {
-            'auto_20' => 20.0,
-            'auto_15' => 15.0,
-            default   => null,
-        };
+        $rows = $this->deduplicateExtractedItems($this->aiExtractedProducts);
 
-        foreach ($this->aiExtractedProducts as $item) {
+        foreach ($rows as $item) {
+            if (trim((string) ($item['name'] ?? '')) === '') {
+                continue;
+            }
+
             Product::create([
                 'name'               => $item['name'],
                 'division'           => $item['division']    ?? null,
@@ -347,13 +473,13 @@ PROMPT;
                 'unit_price'         => (float) ($item['unit_price'] ?? 0),
                 'engineering_price'  => (float) ($item['engineering_price'] ?? 0),
                 'installation_price' => (float) ($item['installation_price'] ?? 0),
-                'margin_percentage'  => $margin ?? (float) ($item['margin_percentage'] ?? 0),
+                'margin_percentage'  => 0,
                 'sku'                => $this->generateSku(),
                 'active'             => true,
             ]);
         }
 
-        $count = count($this->aiExtractedProducts);
+        $count = count($rows);
         session()->flash('success', "{$count} product(s) imported successfully.");
 
         return $this->redirect(route('admin.products.index'), navigate: true);

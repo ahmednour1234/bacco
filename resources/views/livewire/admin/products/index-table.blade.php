@@ -11,18 +11,34 @@
 
     {{-- Toolbar --}}
     <div class="flex flex-col gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="relative w-full sm:max-w-sm">
-            <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-            </span>
-            <input
-                type="search"
-                wire:model.live.debounce.300ms="search"
-                placeholder="{{ __('app.search_products') }}"
-                class="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-11 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
-            >
+        <div class="relative w-full sm:w-96">
+            <div class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </span>
+
+                <input
+                    type="search"
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="{{ __('app.search_products') }}"
+                    class="h-8 w-full border-0 bg-transparent p-0 text-sm text-slate-700 placeholder-slate-400 outline-none focus:ring-0"
+                >
+
+                @if ($search !== '')
+                    <button
+                        type="button"
+                        wire:click="$set('search', '')"
+                        class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                        aria-label="Clear search"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                @endif
+            </div>
         </div>
 
         <div class="flex items-center gap-3 self-end sm:self-auto">
@@ -61,13 +77,22 @@
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.category') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.model_type') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 xl:table-cell">{{ __('app.unit') }}</th>
+                        <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.source') }}</th>
                         <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.price_sar') }}</th>
+                        <th class="hidden px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.total_sar') }}</th>
                         <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
                         <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @foreach ($products as $product)
+                        @php
+                            $unitPrice = (float) ($product->unit_price ?? 0);
+                            $engineeringPrice = (float) ($product->engineering_price ?? 0);
+                            $installationPrice = (float) ($product->installation_price ?? 0);
+                            $totalPrice = $unitPrice + $engineeringPrice + $installationPrice;
+                            $sourceLabel = ($product->supplier_products_count ?? 0) > 0 ? __('app.supplier') : __('app.admin');
+                        @endphp
                         <tr class="transition-colors hover:bg-slate-50">
                             <td class="px-5 py-4">
                                 <p class="font-medium text-slate-900">{{ $product->name }}</p>
@@ -90,8 +115,25 @@
                             <td class="hidden px-5 py-4 text-slate-600 xl:table-cell">
                                 {{ $product->unit?->name ?? '—' }}
                             </td>
+                            <td class="hidden px-5 py-4 lg:table-cell">
+                                @if(($product->supplier_products_count ?? 0) > 0)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span> {{ $sourceLabel }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> {{ $sourceLabel }}
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-5 py-4 text-end font-medium text-slate-800">
-                                {{ $product->unit_price ? number_format((float) $product->unit_price, 2) : '—' }}
+                                <div>{{ $product->unit_price ? number_format($unitPrice, 2) : '—' }}</div>
+                                <div class="mt-0.5 text-[11px] font-normal text-slate-400">
+                                    E: {{ number_format($engineeringPrice, 2) }} | I: {{ number_format($installationPrice, 2) }}
+                                </div>
+                            </td>
+                            <td class="hidden px-5 py-4 text-end font-semibold text-slate-900 md:table-cell">
+                                {{ number_format($totalPrice, 2) }}
                             </td>
                             <td class="px-5 py-4 text-center">
                                 @if ($product->active)

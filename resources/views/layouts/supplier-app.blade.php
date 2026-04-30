@@ -20,6 +20,10 @@
         [x-cloak] {
             display: none !important;
         }
+
+        @media (min-width: 1024px) {
+            .sidebar-offset { margin-inline-start: 16rem; }
+        }
     </style>
 </head>
 
@@ -32,17 +36,21 @@
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
 
     {{-- Sidebar --}}
-    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-slate-200 flex flex-col
+    <aside :class="sidebarOpen ? 'translate-x-0' : '{{ app()->getLocale() === 'ar' ? 'translate-x-full' : '-translate-x-full' }}'"
+        class="fixed inset-y-0 start-0 z-30 w-64 bg-white border-e border-slate-200 flex flex-col
                transition-transform duration-300 ease-in-out
                lg:translate-x-0">
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-200">
-            <div class="flex items-center justify-center w-9 h-9 bg-emerald-600 rounded-lg shrink-0">
-                <img src="{{ asset('SVG.png') }}" alt="Qimta" class="h-5 w-5 object-contain brightness-0 invert">
-            </div>
-            <div>
+            @if(file_exists(public_path('images/logo.png')))
+                <img src="{{ asset('images/logo.png') }}" alt="Qimta" class="h-9 object-contain">
+            @else
+                <div class="flex items-center justify-center w-9 h-9 bg-emerald-600 rounded-lg shrink-0">
+                    <img src="{{ asset('SVG.png') }}" alt="Qimta" class="h-5 w-5 object-contain brightness-0 invert">
+                </div>
                 <span class="block text-slate-900 text-lg font-bold tracking-tight leading-none">Qimta</span>
+            @endif
+            <div>
                 <p class="text-xs text-slate-400 font-medium mt-0.5">{{ __('app.supplier_portal') }}</p>
             </div>
         </div>
@@ -132,7 +140,7 @@
     </aside>
 
     {{-- Main content --}}
-    <div class="lg:ml-64 flex flex-col min-h-screen">
+    <div class="sidebar-offset flex flex-col min-h-screen">
 
         {{-- Top navbar --}}
         <header class="sticky top-0 z-10 bg-white border-b border-slate-200/80 shadow-sm">
@@ -217,7 +225,7 @@
                         x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl
+                             class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} top-full mt-2 w-48 bg-white rounded-xl
                                 border border-slate-200 shadow-xl overflow-hidden z-50">
                         <a href="{{ route('supplier.profile') }}" wire:navigate
                             class="flex items-center gap-2.5 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">

@@ -7,11 +7,7 @@
             setTimeout(() => this.toast = null, 4000);
         }
     }"
-    x-init="
-        if (@js($fetchingPrices)) { $wire.fetchPrices(); }
-    "
     x-on:toast.window="showToast($event.detail.message, $event.detail.type)"
-    x-on:refetchPrices.window="$wire.fetchPrices()"
 >
 
     {{-- ───── Toast ──────────────────────────────────────────────────────────── --}}
@@ -39,113 +35,42 @@
         </button>
     </div>
 
-    {{-- ───── Pricing Loading Modal ────────────────────────────────────────────── --}}
-    @if($fetchingPrices)
-    <style>
-        @keyframes ai-cw   { to { transform: rotate(360deg); } }
-        @keyframes ai-ccw  { to { transform: rotate(-360deg); } }
-        @keyframes ai-blink{ 0%,100%{opacity:.25} 50%{opacity:1} }
-        @keyframes ai-fill { from{width:4%} to{width:88%} }
-    </style>
+    {{-- ───── Background Pricing Banner ──────────────────────────────────────── --}}
+    @if($pricingQueued)
     <div
-        x-data="{
-            msgIndex: 0,
-            messages: [
-                'جاري البحث في كتالوج المنتجات…',
-                'نحلل بنود جدول الكميات…',
-                'نستشير الذكاء الاصطناعي للتسعير…',
-                'نقارن الأسعار بسوق السعودية…',
-                'نحسب أفضل الأسعار لك…',
-                'يرجى الانتظار، تقريباً انتهينا…',
-            ],
-            init() { setInterval(() => { this.msgIndex = (this.msgIndex + 1) % this.messages.length; }, 2600); }
-        }"
-        style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(2,10,28,0.78);backdrop-filter:blur(8px);"
+        x-data="{ visible: true }"
+        x-show="visible"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 -translate-y-2"
+        class="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 shadow-sm"
+        style="direction:rtl"
     >
-        <div style="direction:rtl;width:100%;max-width:360px;margin:0 16px;border-radius:20px;background:#fff;box-shadow:0 25px 60px rgba(0,0,0,0.2);overflow:hidden;">
+        {{-- Spinner --}}
+        <span class="mt-0.5 flex-shrink-0">
+            <svg class="h-5 w-5 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+        </span>
 
-            {{-- Progress bar --}}
-            <div style="height:3px;background:#f1f5f9;">
-                <div style="height:100%;background:linear-gradient(to right,#10b981,#14b8a6);border-radius:99px;animation:ai-fill 90s linear forwards;"></div>
-            </div>
-
-            <div style="padding:28px 28px 24px;text-align:center;">
-
-                {{-- Spinner + icon --}}
-                <div style="position:relative;width:80px;height:80px;margin:0 auto 20px;">
-                    {{-- Outer ring --}}
-                    <span style="position:absolute;inset:0;border-radius:50%;border:3px solid #d1fae5;border-top-color:#10b981;animation:ai-cw 1.5s linear infinite;display:block;"></span>
-                    {{-- Inner ring --}}
-                    <span style="position:absolute;inset:10px;border-radius:50%;border:3px solid #ccfbf1;border-bottom-color:#0d9488;animation:ai-ccw 1s linear infinite;display:block;"></span>
-                    {{-- Center icon: sparkles --}}
-                    <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" fill="#10b981"/>
-                            <path d="M19 3l.75 2.25L22 6l-2.25.75L19 9l-.75-2.25L16 6l2.25-.75L19 3z" fill="#34d399"/>
-                            <path d="M5 15l.75 2.25L8 18l-2.25.75L5 21l-.75-2.25L2 18l2.25-.75L5 15z" fill="#6ee7b7"/>
-                        </svg>
-                    </span>
-                </div>
-
-                {{-- Label --}}
-                <p style="font-size:11px;font-weight:700;letter-spacing:2px;color:#10b981;text-transform:uppercase;margin-bottom:4px;">AI Pricing</p>
-                <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">تحليل الأسعار</h3>
-
-                {{-- Cycling message --}}
-                <div style="position:relative;height:22px;overflow:hidden;margin-bottom:16px;">
-                    <template x-for="(msg, i) in messages" :key="i">
-                        <p
-                            style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#64748b;transition:opacity .45s ease, transform .45s ease;margin:0;"
-                            :style="i===msgIndex ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(7px)'"
-                            x-text="msg"
-                        ></p>
-                    </template>
-                </div>
-
-                {{-- Blinking dots --}}
-                <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:20px;">
-                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#10b981;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0s;"></span>
-                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#14b8a6;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0.22s;"></span>
-                    <span style="display:block;width:8px;height:8px;border-radius:50%;background:#06b6d4;animation:ai-blink 1.2s ease-in-out infinite;animation-delay:0.44s;"></span>
-                </div>
-
-                {{-- Divider --}}
-                <div style="height:1px;background:#f1f5f9;margin-bottom:16px;"></div>
-
-                {{-- Steps --}}
-                <div style="display:flex;flex-direction:column;gap:10px;">
-
-                    {{-- Step 1 - Done --}}
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
-                        <span style="font-size:13px;font-weight:500;color:#334155;">البحث في الكتالوج</span>
-                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                        </span>
-                    </div>
-
-                    {{-- Step 2 - Active --}}
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
-                        <span style="font-size:13px;font-weight:700;color:#059669;">تقدير الذكاء الاصطناعي</span>
-                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#ecfdf5;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;">
-                            <svg style="animation:ai-cw 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="9" stroke="#10b981" stroke-width="3" stroke-dasharray="38 18" stroke-linecap="round"/>
-                            </svg>
-                        </span>
-                    </div>
-
-                    {{-- Step 3 - Pending --}}
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;opacity:.3;">
-                        <span style="font-size:13px;color:#94a3b8;">حفظ وتحديث العرض</span>
-                        <span style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;">
-                            <span style="display:block;width:8px;height:8px;border-radius:50%;background:#cbd5e1;"></span>
-                        </span>
-                    </div>
-
-                </div>
-            </div>
+        {{-- Text --}}
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-emerald-800">جاري تسعير عناصر عرض السعر في الخلفية</p>
+            <p class="mt-0.5 text-xs text-emerald-600">يمكنك التصفح بحرية — ستصلك إشعار فور اكتمال التسعير.</p>
         </div>
+
+        {{-- Dismiss --}}
+        <button
+            @click="visible = false; $wire.dismissPricingBanner()"
+            type="button"
+            class="flex-shrink-0 rounded-lg p-1 text-emerald-500 hover:bg-emerald-100 hover:text-emerald-700 transition"
+            title="إغلاق"
+        >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
     </div>
     @endif
 
@@ -208,19 +133,6 @@
                 </svg>
                 {{ __('app.export_pdf') }}
             </a>
-
-            @if(in_array($quotation->status->value, ['draft', 'tender'], true))
-            <a
-                href="{{ route('enduser.quotations.edit', $quotation->uuid) }}"
-                class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-            >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-                {{ __('app.edit_quotation') }}
-            </a>
-            @endif
         </div>
     </div>
 
@@ -233,25 +145,6 @@
             {{-- Edit toolbar — only while editable --}}
             @if(in_array($quotation->status->value, ['tender', 'draft'], true))
             <div class="flex flex-wrap items-center gap-2">
-                {{-- Re-fetch Prices --}}
-                <button
-                    type="button"
-                    wire:click="refetchPrices"
-                    wire:loading.attr="disabled"
-                    wire:target="refetchPrices"
-                    class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 disabled:opacity-60 transition"
-                >
-                    <svg wire:loading.remove wire:target="refetchPrices" class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    <svg wire:loading wire:target="refetchPrices" class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                    </svg>
-                    {{ __('app.refetch_prices') }}
-                </button>
-
                 {{-- Remove All Products --}}
                 <button
                     type="button"
@@ -369,7 +262,7 @@
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono font-medium text-slate-800">
-                                        @if($fetchingPrices && empty($item['unit_price']))
+                                        @if($pricingQueued && empty($item['unit_price']))
                                             <svg class="ml-auto h-4 w-4 animate-spin text-slate-300" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -381,7 +274,7 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono font-medium text-slate-800">
-                                        @if($fetchingPrices && empty($item['unit_price']))
+                                        @if($pricingQueued && empty($item['unit_price']))
                                             <svg class="ml-auto h-4 w-4 animate-spin text-slate-300" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -490,7 +383,7 @@
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
                     class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    style="background: rgba(15,23,42,0.55); backdrop-filter: blur(6px);"
+                    style="background: rgba(15,23,42,0.4); backdrop-filter: blur(4px);"
                     @keydown.escape.window="confirmOpen = false"
                 >
                     <div
@@ -502,49 +395,38 @@
                         x-transition:leave-start="opacity-100 scale-100"
                         x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                         @click.stop
-                        class="w-full max-w-sm rounded-3xl bg-white shadow-2xl overflow-hidden"
-                        style="box-shadow: 0 25px 60px -10px rgba(5,150,105,0.25), 0 10px 30px -5px rgba(0,0,0,0.15);"
+                        class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden"
                     >
-                        {{-- Gradient hero area --}}
-                        <div class="relative flex flex-col items-center px-6 pt-8 pb-6 text-center" style="background: linear-gradient(135deg,#f0fdf4 0%,#dcfce7 60%,#d1fae5 100%);">
-                            <button
-                                type="button"
-                                @click="confirmOpen = false"
-                                class="absolute top-4 end-4 flex h-7 w-7 items-center justify-center rounded-full bg-white/70 text-slate-400 hover:bg-white hover:text-slate-600 transition shadow-sm"
-                            >
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-
+                        {{-- Header --}}
+                        <div class="relative flex flex-col items-center border-b border-slate-100 px-6 pt-7 pb-5 text-center bg-slate-50/70">
                             {{-- Icon --}}
-                            <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg" style="background: linear-gradient(135deg,#059669,#10b981);">
-                                <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+                                <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
 
-                            <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">{{ __('app.submit_for_approval') }}</h3>
-                            <p class="mt-1.5 text-sm text-slate-500 leading-relaxed max-w-[260px]">
+                            <h3 class="text-lg font-bold text-slate-900">{{ __('app.submit_for_approval') }}</h3>
+                            <p class="mt-1.5 text-sm text-slate-500 leading-relaxed max-w-[270px]">
                                 {{ __('app.quotation_sent_review') }}
                             </p>
                         </div>
 
                         {{-- Summary card --}}
-                        <div class="mx-5 -mt-3 mb-4 rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 shadow-md">
+                        <div class="mx-5 mt-4 mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50">
-                                        <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-white border border-slate-200">
+                                        <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                         </svg>
                                     </span>
                                     <div>
-                                        <p class="text-xs font-bold text-slate-700">{{ __('app.total') }}</p>
-                                        <p class="text-[10px] text-slate-400">{{ $selectedCount }} {{ __('app.items') }}</p>
+                                        <p class="text-xs font-semibold text-slate-700">{{ __('app.total') }}</p>
+                                        <p class="text-[11px] text-slate-500">{{ $selectedCount }} {{ __('app.items') }}</p>
                                     </div>
                                 </div>
-                                <span class="font-mono text-xl font-extrabold text-emerald-600">{{ number_format($total, 2) }} <span class="text-sm font-bold">{{ __('app.sar') }}</span></span>
+                                <span class="font-mono text-xl font-bold text-slate-900">{{ number_format($total, 2) }} <span class="text-sm font-semibold text-slate-600">{{ __('app.sar') }}</span></span>
                             </div>
                         </div>
 
@@ -560,8 +442,7 @@
                             <button
                                 type="button"
                                 @click="confirmOpen = false; $wire.submitForApproval()"
-                                class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-lg transition hover:opacity-90 active:scale-95"
-                                style="background: linear-gradient(135deg,#059669,#10b981); box-shadow: 0 4px 15px rgba(5,150,105,0.4);"
+                                class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
                             >
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>

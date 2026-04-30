@@ -38,17 +38,11 @@
     @if($order)
     @php
         $statusColors = [
-            'pending'    => ['dot' => 'bg-amber-400',  'text' => 'text-amber-700',  'badge' => 'bg-amber-50 text-amber-700 ring-amber-200'],
-            'confirmed'  => ['dot' => 'bg-blue-500',   'text' => 'text-blue-700',   'badge' => 'bg-blue-50 text-blue-700 ring-blue-200'],
-            'processing' => ['dot' => 'bg-indigo-500', 'text' => 'text-indigo-700', 'badge' => 'bg-indigo-50 text-indigo-700 ring-indigo-200'],
-            'shipped'    => ['dot' => 'bg-violet-500', 'text' => 'text-violet-700', 'badge' => 'bg-violet-50 text-violet-700 ring-violet-200'],
-            'delivered'  => ['dot' => 'bg-emerald-500','text' => 'text-emerald-700','badge' => 'bg-emerald-50 text-emerald-700 ring-emerald-200'],
-            'completed'  => ['dot' => 'bg-green-600',  'text' => 'text-green-700',  'badge' => 'bg-green-50 text-green-700 ring-green-200'],
-            'cancelled'  => ['dot' => 'bg-red-400',    'text' => 'text-red-600',    'badge' => 'bg-red-50 text-red-600 ring-red-200'],
-            'refunded'   => ['dot' => 'bg-pink-400',   'text' => 'text-pink-700',   'badge' => 'bg-pink-50 text-pink-700 ring-pink-200'],
+            'open'   => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'badge' => 'bg-emerald-50 text-emerald-700 ring-emerald-200'],
+            'closed' => ['dot' => 'bg-slate-400',   'text' => 'text-slate-600',   'badge' => 'bg-slate-100 text-slate-600 ring-slate-200'],
         ];
-        $sv = $order->status->value ?? 'pending';
-        $sc = $statusColors[$sv] ?? $statusColors['pending'];
+        $sv = $order->status->value ?? 'open';
+        $sc = $statusColors[$sv] ?? $statusColors['open'];
     @endphp
 
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
@@ -73,16 +67,17 @@
                 </nav>
             </div>
         </div>
-        <button
-            type="button"
-            onclick="window.print()"
-            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition"
-        >
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a1 1 0 001-1v-4H8v4a1 1 0 001 1zm1-10V4a1 1 0 00-1-1H9a1 1 0 00-1 1v3"/>
-            </svg>
-            {{ __('app.print') }}
-        </button>
+        <div class="flex items-center gap-2">
+            <a
+                href="{{ route('admin.orders.pdf', $order->uuid) }}"
+                class="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-emerald-100 transition"
+            >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                {{ __('app.export_pdf') }}
+            </a>
+        </div>
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
@@ -162,7 +157,7 @@
                     class="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 transition"
                 >
                     <span wire:loading.remove wire:target="updateStatus">{{ __('app.confirm_change') }}</span>
-                    <span wire:loading wire:target="updateStatus">Updating…</span>
+                    <span wire:loading wire:target="updateStatus">{{ __('app.updating') }}</span>
                 </button>
                 <button
                     wire:click="$set('showStatusModal', false)"
@@ -207,12 +202,6 @@
                         <p class="text-xs font-bold leading-snug {{ $step['state'] === 'completed' ? 'text-emerald-700' : ($step['state'] === 'in_progress' ? 'text-slate-800' : 'text-slate-400') }}">
                             {{ $step['label'] }}
                         </p>
-                        <p class="mt-0.5 text-[10px] leading-none {{ $step['state'] === 'completed' ? 'text-emerald-500' : ($step['state'] === 'in_progress' ? 'text-indigo-500 font-semibold' : 'text-slate-300') }}">
-                            @if($step['state'] === 'completed') {{ __('app.status_completed') }}
-                            @elseif($step['state'] === 'in_progress') {{ __('app.in_progress') }}
-                            @else {{ __('app.status_pending') }}
-                            @endif
-                        </p>
                     </div>
                 </div>
             @endforeach
@@ -241,7 +230,7 @@
                 </div>
                 <div class="flex justify-between text-sm">
                     <dt class="text-slate-400">{{ __('app.project') }}</dt>
-                    <dd class="font-semibold text-slate-800 text-right max-w-[200px] truncate" title="{{ $order->quotationRequest?->project_name ?? '—' }}">
+                    <dd class="font-semibold text-slate-800 text-end max-w-[200px] truncate" title="{{ $order->quotationRequest?->project_name ?? '—' }}">
                         {{ $order->quotationRequest?->project_name ?? '—' }}
                     </dd>
                 </div>
@@ -255,7 +244,7 @@
                 </div>
                 <div class="flex justify-between text-sm border-t border-slate-100 pt-3 mt-1">
                     <dt class="font-bold text-slate-600">{{ __('app.grand_total') }}</dt>
-                    <dd class="font-mono font-bold text-slate-900 text-base">{{ number_format((float)$order->grand_total, 2) }} SAR</dd>
+                    <dd class="font-mono font-bold text-slate-900 text-base">{{ number_format((float)$order->grand_total, 2) }} {{ __('app.sar') }}</dd>
                 </div>
             </dl>
         </div>
@@ -320,20 +309,22 @@
             @else
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50 text-left">
+                        <tr class="border-b border-slate-100 bg-slate-50 text-start">
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">#</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 min-w-[220px]">{{ __('app.description') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28">{{ __('app.qty_unit') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28">{{ __('app.brand') }}</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-right">{{ __('app.unit_price_sar') }}</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-16 text-right">{{ __('app.disc_percent') }}</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-32 text-right">{{ __('app.total_sar') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-end">{{ __('app.unit_price_sar') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-16 text-end">{{ __('app.disc_percent') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-32 text-end">{{ __('app.total_sar') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-center">{{ __('app.engineering') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-28 text-center">{{ __('app.logistics') }}</th>
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-24 text-center">{{ __('app.updates') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         @foreach($items as $idx => $item)
-                            <tr class="hover:bg-slate-50/60 transition-colors">
+                            <tr wire:click="openItemLogs({{ $item['id'] }})" class="hover:bg-slate-50/60 transition-colors cursor-pointer">
                                 <td class="px-5 py-4 text-slate-400 text-xs font-mono">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-5 py-4"><p class="font-semibold text-slate-800">{{ $item['description'] ?: '—' }}</p></td>
                                 <td class="px-5 py-4">
@@ -341,15 +332,49 @@
                                     <p class="text-xs text-slate-400 uppercase mt-0.5">{{ $item['unit'] }}</p>
                                 </td>
                                 <td class="px-5 py-4 text-slate-600 text-xs font-medium">{{ $item['brand'] }}</td>
-                                <td class="px-5 py-4 text-right font-mono text-slate-700">{{ number_format((float)$item['unit_price'], 2) }}</td>
-                                <td class="px-5 py-4 text-right text-xs">
+                                <td class="px-5 py-4 text-end font-mono text-slate-700">{{ number_format((float)$item['unit_price'], 2) }}</td>
+                                <td class="px-5 py-4 text-end text-xs">
                                     @if($item['discount'] > 0)
                                         <span class="text-amber-600 font-semibold">{{ $item['discount'] }}%</span>
                                     @else —
                                     @endif
                                 </td>
-                                <td class="px-5 py-4 text-right font-mono font-bold text-slate-900">{{ number_format((float)$item['total_price'], 2) }}</td>
+                                <td class="px-5 py-4 text-end font-mono font-bold text-slate-900">{{ number_format((float)$item['total_price'], 2) }}</td>
                                 <td class="px-5 py-4 text-center">
+                                    @if($item['eng_status'])
+                                        @php
+                                            $engBadge = match($item['eng_status']) {
+                                                'completed', 'approved' => 'bg-emerald-50 text-emerald-700',
+                                                'in_progress', 'reviewing' => 'bg-blue-50 text-blue-700',
+                                                'rejected' => 'bg-red-50 text-red-700',
+                                                default => 'bg-slate-100 text-slate-600',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold {{ $engBadge }}">
+                                            {{ $item['eng_label'] }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-slate-300">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-4 text-center">
+                                    @if($item['log_status'])
+                                        @php
+                                            $logBadge = match($item['log_status']) {
+                                                'delivered' => 'bg-emerald-50 text-emerald-700',
+                                                'dispatched', 'in_transit' => 'bg-blue-50 text-blue-700',
+                                                'failed' => 'bg-red-50 text-red-700',
+                                                default => 'bg-slate-100 text-slate-600',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold {{ $logBadge }}">
+                                            {{ $item['log_label'] }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-slate-300">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-4 text-center" @click.stop>
                                     <div class="flex items-center justify-center gap-1.5">
                                         <button
                                             wire:click="openEngModal({{ $item['id'] }})"
@@ -376,16 +401,16 @@
                     </tbody>
                     <tfoot>
                         <tr class="border-t-2 border-slate-200 bg-slate-50">
-                            <td colspan="6" class="px-5 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.subtotal') }}</td>
-                            <td class="px-5 py-3 text-right font-mono font-bold text-slate-800">{{ number_format((float)$order->total_amount, 2) }}</td>
+                            <td colspan="8" class="px-5 py-3 text-end text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.subtotal') }}</td>
+                            <td class="px-5 py-3 text-end font-mono font-bold text-slate-800">{{ number_format((float)$order->total_amount, 2) }}</td>
                         </tr>
                         <tr class="bg-slate-50">
-                            <td colspan="6" class="px-5 py-2 text-right text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.vat_15') }}</td>
-                            <td class="px-5 py-2 text-right font-mono font-bold text-slate-800">{{ number_format((float)$order->vat_amount, 2) }}</td>
+                            <td colspan="8" class="px-5 py-2 text-end text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.vat_15') }}</td>
+                            <td class="px-5 py-2 text-end font-mono font-bold text-slate-800">{{ number_format((float)$order->vat_amount, 2) }}</td>
                         </tr>
                         <tr class="border-t border-slate-200 bg-emerald-50">
-                            <td colspan="6" class="px-5 py-3 text-right text-sm font-bold text-emerald-700">{{ __('app.grand_total') }}</td>
-                            <td class="px-5 py-3 text-right font-mono text-lg font-bold text-emerald-700">{{ number_format((float)$order->grand_total, 2) }} SAR</td>
+                            <td colspan="8" class="px-5 py-3 text-end text-sm font-bold text-emerald-700">{{ __('app.grand_total') }}</td>
+                            <td class="px-5 py-3 text-end font-mono text-lg font-bold text-emerald-700">{{ number_format((float)$order->grand_total, 2) }} {{ __('app.sar') }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -435,8 +460,8 @@
                                                     <option value="{{ $case->value }}">{{ $case->label() }}</option>
                                                 @endforeach
                                             </select>
-                                            <button wire:click="updateEngStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">Save</button>
-                                            <button wire:click="cancelEditEng" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">Cancel</button>
+                                            <button wire:click="updateEngStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">{{ __('app.save') }}</button>
+                                            <button wire:click="cancelEditEng" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">{{ __('app.cancel') }}</button>
                                         </div>
                                     @else
                                         <div class="flex items-center gap-2 flex-wrap">
@@ -459,7 +484,7 @@
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3.414a2 2 0 01.586-1.414z"/></svg>
                                     </button>
                                 @endif
-                                <button wire:click="deleteEngUpdate({{ $eu['id'] }})" wire:confirm="Delete this engineering update?" class="text-slate-300 hover:text-red-500 transition">
+                                <button wire:click="deleteEngUpdate({{ $eu['id'] }})" wire:confirm="{{ __('app.delete_engineering_confirm') }}" class="text-slate-300 hover:text-red-500 transition">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                             </div>
@@ -506,8 +531,8 @@
                                                     <option value="{{ $case->value }}">{{ $case->label() }}</option>
                                                 @endforeach
                                             </select>
-                                            <button wire:click="updateLogStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">Save</button>
-                                            <button wire:click="cancelEditLog" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">Cancel</button>
+                                            <button wire:click="updateLogStatus" class="rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition">{{ __('app.save') }}</button>
+                                            <button wire:click="cancelEditLog" class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition">{{ __('app.cancel') }}</button>
                                         </div>
                                     @else
                                         <div class="flex items-center gap-2 flex-wrap">
@@ -535,7 +560,7 @@
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3.414a2 2 0 01.586-1.414z"/></svg>
                                     </button>
                                 @endif
-                                <button wire:click="deleteLogUpdate({{ $lu['id'] }})" wire:confirm="Delete this logistics update?" class="text-slate-300 hover:text-red-500 transition">
+                                <button wire:click="deleteLogUpdate({{ $lu['id'] }})" wire:confirm="{{ __('app.delete_logistics_confirm') }}" class="text-slate-300 hover:text-red-500 transition">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                             </div>
@@ -558,10 +583,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </span>
-                <h2 class="text-sm font-bold text-slate-800">Status History</h2>
+                <h2 class="text-sm font-bold text-slate-800">{{ __('app.status_history') }}</h2>
             </div>
             <span class="rounded-full bg-slate-100 px-3 py-0.5 text-xs font-bold uppercase tracking-wide text-slate-500">
-                {{ count($statusLogs) }} {{ count($statusLogs) === 1 ? 'change' : 'changes' }}
+                {{ count($statusLogs) }} {{ count($statusLogs) === 1 ? __('app.change') : __('app.changes') }}
             </span>
         </div>
         @if(empty($statusLogs))
@@ -569,20 +594,20 @@
                 <svg class="h-10 w-10 text-slate-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p class="text-sm font-medium text-slate-400">No status changes recorded yet.</p>
-                <p class="mt-1 text-xs text-slate-300">Use "Change Status" above to start tracking.</p>
+                <p class="text-sm font-medium text-slate-400">{{ __('app.no_status_changes') }}</p>
+                <p class="mt-1 text-xs text-slate-300">{{ __('app.use_change_status') }}</p>
             </div>
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50 text-left">
+                        <tr class="border-b border-slate-100 bg-slate-50 text-start">
                             <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 w-12">#</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Previous</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.previous_status') }}</th>
                             <th class="px-3 py-3 w-6 text-center text-slate-300">→</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">New Status</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Changed By</th>
-                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 text-right">Date & Time</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.new_status_col') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.changed_by') }}</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-400 text-end">{{ __('app.date_time') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
@@ -590,22 +615,22 @@
                             <tr class="hover:bg-slate-50/50 transition">
                                 <td class="px-5 py-3.5 text-xs text-slate-400">{{ $i + 1 }}</td>
                                 <td class="px-5 py-3.5">
-                                    @php $oc = $statusColors[$log['old']] ?? $statusColors['pending']; @endphp
+                                    @php $oc = $statusColors[$log['old']] ?? $statusColors['open']; @endphp
                                     <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $oc['badge'] }}">
                                         <span class="h-1.5 w-1.5 rounded-full {{ $oc['dot'] }}"></span>
-                                        {{ \App\Enums\OrderStatusEnum::from($log['old'])->label() }}
+                                        {{ \App\Enums\OrderStatusEnum::tryFrom($log['old'])?->label() ?? ucfirst($log['old']) }}
                                     </span>
                                 </td>
                                 <td class="px-3 py-3.5 text-center text-slate-300">→</td>
                                 <td class="px-5 py-3.5">
-                                    @php $nc = $statusColors[$log['new']] ?? $statusColors['pending']; @endphp
+                                    @php $nc = $statusColors[$log['new']] ?? $statusColors['open']; @endphp
                                     <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $nc['badge'] }}">
                                         <span class="h-1.5 w-1.5 rounded-full {{ $nc['dot'] }}"></span>
-                                        {{ \App\Enums\OrderStatusEnum::from($log['new'])->label() }}
+                                        {{ \App\Enums\OrderStatusEnum::tryFrom($log['new'])?->label() ?? ucfirst($log['new']) }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-3.5 text-sm text-slate-600">{{ $log['user'] }}</td>
-                                <td class="px-5 py-3.5 text-right text-xs text-slate-400 whitespace-nowrap">{{ $log['date'] }}</td>
+                                <td class="px-5 py-3.5 text-end text-xs text-slate-400 whitespace-nowrap">{{ $log['date'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -618,66 +643,69 @@
     {{-- ADD ENGINEERING UPDATE MODAL                                           --}}
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
     @if($showEngModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(15,23,42,0.45);backdrop-filter:blur(6px)">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
         <div
             x-data
             x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95 translate-y-3"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            class="relative w-full max-w-xs overflow-hidden rounded-2xl bg-white"
-            style="box-shadow:0 20px 50px rgba(16,185,129,0.20),0 6px 20px rgba(0,0,0,0.10)"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-200"
         >
-            {{-- Header strip --}}
-            <div class="flex items-center gap-3 px-5 py-4" style="background:linear-gradient(135deg,#059669,#10b981,#34d399)">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20">
-                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50">
+                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </span>
+                    <h3 class="text-base font-bold text-slate-800">{{ __('app.add_engineering_update') }}</h3>
+                </div>
+                <button wire:click="$set('showEngModal', false)" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm font-bold text-white">{{ __('app.add_engineering_update') }}</p>
-                    @if($engOrderItemDesc)
-                        <p class="mt-0.5 truncate text-xs text-emerald-100">{{ $engOrderItemDesc }}</p>
-                    @endif
-                </div>
-                <button wire:click="$set('showEngModal', false)" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/35 transition">
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            {{-- Form body --}}
-            <div class="px-5 py-4 space-y-4 bg-white">
-                <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
-                        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                        {{ __('app.update_type') }}
-                    </label>
-                    <select wire:model="engStatus" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition">
-                        @foreach(\App\Enums\EngineeringStatusEnum::cases() as $case)
-                            <option value="{{ $case->value }}">{{ $case->label() }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
-                        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                        {{ __('app.note_optional') }}
-                        <span class="normal-case font-normal text-slate-400">({{ __('app.optional') }})</span>
-                    </label>
-                    <textarea wire:model="engNotes" rows="2" placeholder="{{ __('app.note_placeholder') }}" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition resize-none"></textarea>
-                </div>
-            </div>
+            @if($engOrderItemDesc)
+                <p class="mb-4 text-sm text-slate-500 truncate">{{ $engOrderItemDesc }}</p>
+            @endif
 
-            {{-- Actions --}}
-            <div class="flex gap-2 px-5 pb-5 bg-white">
-                <button wire:click="saveEngUpdate" wire:loading.attr="disabled"
-                    class="flex-1 rounded-lg py-2.5 text-sm font-bold text-white disabled:opacity-60 transition"
-                    style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 3px 14px rgba(16,185,129,0.4)"
+            <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.update_type') }}</label>
+            <select
+                wire:model="engStatus"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition"
+            >
+                @foreach(\App\Enums\EngineeringStatusEnum::cases() as $case)
+                    <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                @endforeach
+            </select>
+
+            <label class="block mt-4 mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+                {{ __('app.note_optional') }}
+            </label>
+            <textarea
+                wire:model="engNotes"
+                rows="3"
+                placeholder="{{ __('app.note_placeholder') }}"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition resize-none"
+            ></textarea>
+
+            <div class="mt-5 flex gap-3">
+                <button
+                    wire:click="saveEngUpdate"
+                    wire:loading.attr="disabled"
+                    class="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 transition"
                 >
                     <span wire:loading.remove wire:target="saveEngUpdate">{{ __('app.save_update') }}</span>
                     <span wire:loading wire:target="saveEngUpdate">{{ __('app.saving') }}</span>
                 </button>
-                <button wire:click="$set('showEngModal', false)" class="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 transition">{{ __('app.cancel') }}</button>
+                <button
+                    wire:click="$set('showEngModal', false)"
+                    class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                    {{ __('app.cancel') }}
+                </button>
             </div>
         </div>
     </div>
@@ -687,87 +715,231 @@
     {{-- ADD LOGISTICS UPDATE MODAL                                             --}}
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
     @if($showLogModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(15,23,42,0.45);backdrop-filter:blur(6px)">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
         <div
             x-data
             x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95 translate-y-3"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            class="relative w-full max-w-xs overflow-hidden rounded-2xl bg-white"
-            style="box-shadow:0 20px 50px rgba(16,185,129,0.20),0 6px 20px rgba(0,0,0,0.10)"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-200"
         >
-            {{-- Header strip --}}
-            <div class="flex items-center gap-3 px-5 py-4" style="background:linear-gradient(135deg,#059669,#10b981,#34d399)">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20">
-                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50">
+                        <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                    </span>
+                    <h3 class="text-base font-bold text-slate-800">{{ __('app.add_logistics_update') }}</h3>
+                </div>
+                <button wire:click="$set('showLogModal', false)" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm font-bold text-white">{{ __('app.add_logistics_update') }}</p>
-                    @if($logOrderItemDesc)
-                        <p class="mt-0.5 truncate text-xs text-emerald-100">{{ $logOrderItemDesc }}</p>
-                    @endif
-                </div>
-                <button wire:click="$set('showLogModal', false)" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/35 transition">
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            {{-- Form body --}}
-            <div class="px-5 py-4 space-y-4 bg-white">
+            @if($logOrderItemDesc)
+                <p class="mb-4 text-sm text-slate-500 truncate">{{ $logOrderItemDesc }}</p>
+            @endif
+
+            <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.stage') }}</label>
+            <select
+                wire:model="logStatus"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition"
+            >
+                @foreach(\App\Enums\LogisticsStatusEnum::cases() as $case)
+                    <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                @endforeach
+            </select>
+
+            <div class="mt-4 grid grid-cols-2 gap-3">
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
-                        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                        {{ __('app.stage') }}
-                    </label>
-                    <select wire:model="logStatus" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition">
-                        @foreach(\App\Enums\LogisticsStatusEnum::cases() as $case)
-                            <option value="{{ $case->value }}">{{ $case->label() }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
-                            <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                            {{ __('app.carrier_supplier') }}
-                        </label>
-                        <input wire:model="logCarrier" type="text" placeholder="{{ __('app.carrier_placeholder') }}" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition"/>
-                    </div>
-                    <div>
-                        <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
-                            <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                            {{ __('app.tracking_number') }}
-                        </label>
-                        <input wire:model="logTracking" type="text" placeholder="{{ __('app.tracking_placeholder') }}" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition"/>
-                    </div>
+                    <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.carrier_supplier') }}</label>
+                    <input wire:model="logCarrier" type="text" placeholder="{{ __('app.carrier_placeholder') }}"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition"/>
                 </div>
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
-                        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                        {{ __('app.note_optional') }}
-                        <span class="normal-case font-normal text-slate-400">({{ __('app.optional') }})</span>
-                    </label>
-                    <textarea wire:model="logNotes" rows="2" placeholder="{{ __('app.log_note_placeholder') }}" class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition resize-none"></textarea>
+                    <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('app.tracking_number') }}</label>
+                    <input wire:model="logTracking" type="text" placeholder="{{ __('app.tracking_placeholder') }}"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition"/>
                 </div>
             </div>
 
-            {{-- Actions --}}
-            <div class="flex gap-2 px-5 pb-5 bg-white">
-                <button wire:click="saveLogUpdate" wire:loading.attr="disabled"
-                    class="flex-1 rounded-lg py-2.5 text-sm font-bold text-white disabled:opacity-60 transition"
-                    style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 3px 14px rgba(16,185,129,0.4)"
+            <label class="block mt-4 mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+                {{ __('app.note_optional') }}
+            </label>
+            <textarea
+                wire:model="logNotes"
+                rows="3"
+                placeholder="{{ __('app.log_note_placeholder') }}"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition resize-none"
+            ></textarea>
+
+            <div class="mt-5 flex gap-3">
+                <button
+                    wire:click="saveLogUpdate"
+                    wire:loading.attr="disabled"
+                    class="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 transition"
                 >
                     <span wire:loading.remove wire:target="saveLogUpdate">{{ __('app.save_update') }}</span>
                     <span wire:loading wire:target="saveLogUpdate">{{ __('app.saving') }}</span>
                 </button>
-                <button wire:click="$set('showLogModal', false)" class="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 transition">{{ __('app.cancel') }}</button>
+                <button
+                    wire:click="$set('showLogModal', false)"
+                    class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                    {{ __('app.cancel') }}
+                </button>
             </div>
         </div>
     </div>
     @endif
 
+    @endif
+
+    {{-- Item Logs Modal --}}
+    @if($showItemLogsModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" wire:click.self="$set('showItemLogsModal', false)">
+        <div class="relative mx-4 w-full max-w-3xl rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200" @click.stop>
+            {{-- Header --}}
+            <div class="flex items-center justify-between border-b border-slate-100 px-8 py-5">
+                <div class="flex items-center gap-4">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 ring-1 ring-slate-200">
+                        <svg class="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">{{ __('app.item_logs') }}</h3>
+                        <p class="text-sm text-slate-500 mt-0.5">{{ $itemLogsDesc }}</p>
+                    </div>
+                </div>
+                <button wire:click="$set('showItemLogsModal', false)" class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 max-h-[60vh] overflow-y-auto px-8 py-6">
+                {{-- Engineering Logs --}}
+                <div>
+                    <h4 class="mb-4 flex items-center gap-2 text-sm font-bold text-blue-700">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100">
+                            <svg class="h-3.5 w-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </span>
+                        {{ __('app.engineering_updates') }}
+                        <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-700">{{ count($itemEngLogs) }}</span>
+                    </h4>
+                    @if(empty($itemEngLogs))
+                        <div class="flex flex-col items-center justify-center py-6 text-center">
+                            <svg class="h-8 w-8 text-blue-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            <p class="text-xs text-slate-400 italic">{{ __('app.no_engineering_updates') }}</p>
+                        </div>
+                    @else
+                        <div class="space-y-2.5">
+                            @foreach($itemEngLogs as $eng)
+                                <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        @php
+                                            $eBadge = match($eng['status']) {
+                                                'completed', 'approved' => 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+                                                'in_progress', 'reviewing' => 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+                                                'rejected' => 'bg-red-50 text-red-700 ring-1 ring-red-200',
+                                                default => 'bg-slate-50 text-slate-600 ring-1 ring-slate-200',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $eBadge }}">{{ $eng['label'] }}</span>
+                                        <span class="text-[10px] text-slate-400">{{ $eng['date'] }}</span>
+                                    </div>
+                                    @if($eng['notes'])
+                                        <p class="text-xs text-slate-700 leading-relaxed mb-1">{{ $eng['notes'] }}</p>
+                                    @endif
+                                    <p class="text-[10px] text-slate-400 flex items-center gap-1">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        {{ $eng['user'] }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Logistics Logs --}}
+                <div>
+                    <h4 class="mb-4 flex items-center gap-2 text-sm font-bold text-orange-700">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-100">
+                            <svg class="h-3.5 w-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                        </span>
+                        {{ __('app.logistics_updates') }}
+                        <span class="rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-bold text-orange-700">{{ count($itemLogLogs) }}</span>
+                    </h4>
+                    @if(empty($itemLogLogs))
+                        <div class="flex flex-col items-center justify-center py-6 text-center">
+                            <svg class="h-8 w-8 text-orange-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            <p class="text-xs text-slate-400 italic">{{ __('app.no_logistics_updates') }}</p>
+                        </div>
+                    @else
+                        <div class="space-y-2.5">
+                            @foreach($itemLogLogs as $log)
+                                <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        @php
+                                            $lBadge = match($log['status']) {
+                                                'delivered' => 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+                                                'dispatched', 'in_transit' => 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+                                                'failed' => 'bg-red-50 text-red-700 ring-1 ring-red-200',
+                                                default => 'bg-slate-50 text-slate-600 ring-1 ring-slate-200',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $lBadge }}">{{ $log['label'] }}</span>
+                                        <span class="text-[10px] text-slate-400">{{ $log['date'] }}</span>
+                                    </div>
+                                    @if(isset($log['carrier']) && $log['carrier'] !== '—' || isset($log['tracking']) && $log['tracking'] !== '—')
+                                        <div class="flex items-center gap-3 mb-1 text-[11px] text-slate-500">
+                                            @if(isset($log['carrier']) && $log['carrier'] !== '—')
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
+                                                    {{ $log['carrier'] }}
+                                                </span>
+                                            @endif
+                                            @if(isset($log['tracking']) && $log['tracking'] !== '—')
+                                                <span class="flex items-center gap-1 font-mono">
+                                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                                                    {{ $log['tracking'] }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    @if($log['notes'])
+                                        <p class="text-xs text-slate-700 leading-relaxed mb-1">{{ $log['notes'] }}</p>
+                                    @endif
+                                    <p class="text-[10px] text-slate-400 flex items-center gap-1">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        {{ $log['user'] }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Footer --}}
+            <div class="border-t border-slate-100 px-8 py-4">
+                <button
+                    wire:click="$set('showItemLogsModal', false)"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                    {{ __('app.close') }}
+                </button>
+            </div>
+        </div>
+    </div>
     @endif
 
 </div>

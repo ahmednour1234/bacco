@@ -134,14 +134,8 @@
         <div class="px-6 py-4 space-y-3">
             @php
                 $orderStatuses = [
-                    'pending'    => ['label' => __('app.status_pending'),    'color' => 'bg-yellow-400'],
-                    'confirmed'  => ['label' => __('app.status_confirmed'),  'color' => 'bg-blue-400'],
-                    'processing' => ['label' => __('app.status_processing'), 'color' => 'bg-indigo-400'],
-                    'shipped'    => ['label' => __('app.status_shipped'),    'color' => 'bg-cyan-400'],
-                    'delivered'  => ['label' => __('app.status_delivered'),  'color' => 'bg-emerald-400'],
-                    'completed'  => ['label' => __('app.status_completed'),  'color' => 'bg-green-400'],
-                    'cancelled'  => ['label' => __('app.status_cancelled'),  'color' => 'bg-red-400'],
-                    'refunded'   => ['label' => __('app.status_refunded'),   'color' => 'bg-red-300'],
+                    'open'   => ['label' => __('app.status_open'),   'color' => 'bg-emerald-400'],
+                    'closed' => ['label' => __('app.status_closed'), 'color' => 'bg-slate-400'],
                 ];
                 $totalOrders = array_sum($ordersByStatus);
             @endphp

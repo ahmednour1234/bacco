@@ -1,12 +1,12 @@
 @extends('layouts.supplier-app')
 
-@section('title', 'My Products – Supplier Portal – Qimta')
-@section('page-title', 'My Products')
+@section('title', __('app.my_products') . ' – ' . __('app.supplier_portal_title'))
+@section('page-title', __('app.my_products'))
 
 @section('breadcrumb')
-    <span class="text-xs text-slate-400">Portal</span>
+    <span class="text-xs text-slate-400">{{ __('app.supplier_portal') }}</span>
     <span class="text-xs text-slate-300">/</span>
-    <span class="text-xs font-medium text-slate-600">My Products</span>
+    <span class="text-xs font-medium text-slate-600">{{ __('app.my_products') }}</span>
 @endsection
 
 @section('content')

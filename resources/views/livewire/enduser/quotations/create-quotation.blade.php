@@ -94,7 +94,7 @@
             </div>
 
             <h2 class="text-lg font-bold text-slate-900 mb-1">{{ __('app.calculating_quotation') }}</h2>
-            <p class="text-sm text-slate-500 mb-8">{{ __('app.ai_calculating_prices') }}<br>{{ __('app.please_wait_seconds') }}</p>
+            <p class="text-sm text-slate-500 mb-8">{{ __('app.please_wait_seconds') }}</p>
 
             {{-- Progress bar --}}
             <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-400">

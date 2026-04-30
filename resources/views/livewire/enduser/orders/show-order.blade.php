@@ -37,16 +37,11 @@
     @if($order)
     @php
         $statusColors = [
-            'pending'    => ['dot' => 'bg-amber-400',  'text' => 'text-amber-700',  'bg' => 'bg-amber-50 border-amber-200'],
-            'confirmed'  => ['dot' => 'bg-blue-500',   'text' => 'text-blue-700',   'bg' => 'bg-blue-50 border-blue-200'],
-            'processing' => ['dot' => 'bg-indigo-500', 'text' => 'text-indigo-700', 'bg' => 'bg-indigo-50 border-indigo-200'],
-            'shipped'    => ['dot' => 'bg-violet-500', 'text' => 'text-violet-700', 'bg' => 'bg-violet-50 border-violet-200'],
-            'delivered'  => ['dot' => 'bg-emerald-500','text' => 'text-emerald-700','bg' => 'bg-emerald-50 border-emerald-200'],
-            'completed'  => ['dot' => 'bg-green-600',  'text' => 'text-green-700',  'bg' => 'bg-green-50 border-green-200'],
-            'cancelled'  => ['dot' => 'bg-red-400',    'text' => 'text-red-600',    'bg' => 'bg-red-50 border-red-200'],
+            'open'   => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'bg' => 'bg-emerald-50 border-emerald-200'],
+            'closed' => ['dot' => 'bg-slate-400',   'text' => 'text-slate-600',   'bg' => 'bg-slate-100 border-slate-200'],
         ];
-        $sv     = $order->status->value ?? 'pending';
-        $sc     = $statusColors[$sv] ?? $statusColors['pending'];
+        $sv     = $order->status->value ?? 'open';
+        $sc     = $statusColors[$sv] ?? $statusColors['open'];
     @endphp
 
     {{-- ───── Top action bar ──────────────────────────────────────────────────── --}}
@@ -62,17 +57,6 @@
             </nav>
         </div>
         <div class="flex items-center gap-2">
-            <button
-                type="button"
-                onclick="window.print()"
-                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition"
-            >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a1 1 0 001-1v-4H8v4a1 1 0 001 1zm1-10V4a1 1 0 00-1-1H9a1 1 0 00-1 1v3"/>
-                </svg>
-                {{ __('app.print_order') }}
-            </button>
             <a
                 href="{{ route('enduser.orders.show', ['uuid' => $order->uuid, 'export' => 'pdf']) }}"
                 class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition"

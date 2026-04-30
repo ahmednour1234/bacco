@@ -186,11 +186,11 @@
 
 
         <button type="submit"
-            class="w-full flex items-center justify-center gap-2
+            class="w-full flex items-center justify-center gap-2 mt-6
                    bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800
                    text-white font-semibold py-3 rounded-xl text-sm
-                   transition-colors duration-200 shadow-sm pt-3">
-            Submit Registration
+                   transition-colors duration-200 shadow-sm">
+            {{ __('app.submit_registration') }}
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
             </svg>

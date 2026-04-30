@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\BoqController as AdminBoqController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\QuotationController as AdminQuotationController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Enduser\BoqController as EnduserBoqController;
 use App\Http\Controllers\Enduser\OrderController as EnduserOrderController;
 use App\Http\Controllers\Enduser\AuthController as EnduserAuthController;
@@ -84,6 +86,7 @@ Route::prefix('enduser')->name('enduser.')->group(function () {
         Route::get('/boqs',                     [EnduserBoqController::class, 'index'])->name('boqs.index');
         Route::get('/boqs/create',              [EnduserBoqController::class, 'create'])->name('boqs.create');
         Route::get('/boqs/create/{projectUuid}', [EnduserBoqController::class, 'create'])->name('boqs.create.project');
+        Route::get('/boqs/draft-status',        [EnduserBoqController::class, 'draftStatus'])->name('boqs.draft-status');
         Route::get('/boqs/{uuid}',              [EnduserBoqController::class, 'show'])->name('boqs.show');
 
         // Orders
@@ -118,20 +121,29 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Quotations (read-only)
         Route::get('/quotations', [AdminQuotationController::class, 'index'])->name('quotations.index');
+        Route::get('/quotations/{uuid}/pdf', [AdminQuotationController::class, 'pdf'])->name('quotations.pdf');
         Route::get('/quotations/{uuid}', [AdminQuotationController::class, 'show'])->name('quotations.show');
 
         // Catalog – Brands
         Route::resource('brands', AdminBrandController::class)->except(['show']);
+        Route::post('/brands/import', [AdminBrandController::class, 'import'])->name('brands.import');
+        Route::get('/brands/template', [AdminBrandController::class, 'template'])->name('brands.template');
 
         // Catalog – Categories
         Route::resource('categories', AdminCategoryController::class)->except(['show']);
+        Route::post('/categories/import', [AdminCategoryController::class, 'import'])->name('categories.import');
+        Route::get('/categories/template', [AdminCategoryController::class, 'template'])->name('categories.template');
 
         // Catalog – Products
         Route::resource('products', AdminProductController::class)->except(['show', 'store', 'update', 'destroy']);
 
         // Orders
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/{uuid}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');        Route::get('/orders/{uuid}/pdf', [AdminOrderController::class, 'pdf'])->name('orders.pdf');        Route::get('/orders/{uuid}', [AdminOrderController::class, 'show'])->name('orders.show');
+
+        // BOQs
+        Route::get('/boqs', [AdminBoqController::class, 'index'])->name('boqs.index');
+        Route::get('/boqs/{uuid}', [AdminBoqController::class, 'show'])->name('boqs.show');
 
         // Suppliers
         Route::resource('suppliers', AdminSupplierController::class)->except(['destroy']);
@@ -139,6 +151,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Supplier Products Approval
         Route::get('/supplier-products', fn() => view('admin.supplier-products'))->name('suppliers.products');
+
+        // Users
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     });
 });
 

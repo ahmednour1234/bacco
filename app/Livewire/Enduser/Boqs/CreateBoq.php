@@ -3,6 +3,7 @@
 namespace App\Livewire\Enduser\Boqs;
 
 use App\Enums\BoqStatusEnum;
+use App\Enums\BoqTypeEnum;
 use App\Enums\NotificationTypeEnum;
 use App\Enums\ProjectStatusEnum;
 use App\Enums\QuotationItemStatusEnum;
@@ -14,6 +15,7 @@ use App\Models\UploadedDocument;
 use App\Services\QuotationAiService;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -32,6 +34,7 @@ class CreateBoq extends Component
 
     public ?int $boqId = null;
     public ?int $projectId = null;
+    public string $draftBoqUuid = '';
 
     public bool $isEditMode = false;
 
@@ -40,6 +43,9 @@ class CreateBoq extends Component
 
     #[Validate('nullable|string|max:5000')]
     public string $projectDescription = '';
+
+    #[Validate('required|string|in:tender,awarded')]
+    public string $boqType = 'tender';
 
     /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
     public $boqFile = null;
@@ -57,6 +63,42 @@ class CreateBoq extends Component
 
     public function mount(?string $projectUuid = null): void
     {
+        // ── Load a specific draft by UUID (legacy / direct link) ──────────────
+        $draftUuid = request()->query('draft');
+        if ($draftUuid) {
+            $boq = Boq::where('uuid', $draftUuid)
+                ->where('client_id', Auth::id())
+                ->where('status', BoqStatusEnum::Draft)
+                ->with(['project', 'items.unit'])
+                ->first();
+
+            if ($boq) {
+                $this->loadFromBoq($boq);
+                $this->dispatch('boq-resume-done');
+                return;
+            }
+        }
+
+        // ── Resume latest draft (user returned via the floating pill) ─────────
+        if (request()->query('resume') === '1' && $projectUuid === null) {
+            $latestDraft = Boq::where('client_id', Auth::id())
+                ->where('status', BoqStatusEnum::Draft)
+                ->with(['project', 'items.unit'])
+                ->latest()
+                ->first();
+
+            if ($latestDraft) {
+                $this->loadFromBoq($latestDraft);
+                // If items already exist → AI finished, hide the pill
+                // If no items → AI still running or was cancelled, just show resume popup
+                if (count($this->items) > 0) {
+                    $this->dispatch('boq-upload-done');
+                }
+                $this->dispatch('boq-resume-done');
+                return;
+            }
+        }
+
         if ($projectUuid !== null) {
             $project = Project::where('uuid', $projectUuid)
                 ->where('client_id', Auth::id())
@@ -67,6 +109,42 @@ class CreateBoq extends Component
             $this->projectDescription = (string) ($project->description ?? '');
             $this->isEditMode         = true;
         }
+    }
+
+    private function loadFromBoq(Boq $boq): void
+    {
+        $this->boqId        = $boq->id;
+        $this->draftBoqUuid = $boq->uuid;
+        $this->projectId    = $boq->project_id;
+        $this->boqType      = $boq->type->value;
+        $this->isEditMode   = true;
+
+        if ($boq->project) {
+            $this->projectName        = (string) $boq->project->name;
+            $this->projectDescription = (string) ($boq->project->description ?? '');
+        }
+
+        // Load the last uploaded file name
+        $lastDoc = UploadedDocument::where('boq_id', $boq->id)->latest()->first();
+        if ($lastDoc) {
+            $this->boqFileName = $lastDoc->file_name;
+        }
+
+        $this->items = $boq->items->map(fn(BoqItem $item) => [
+            'id'                   => $item->id,
+            'description'          => (string) $item->description,
+            'quantity'             => (float) $item->quantity,
+            'unit'                 => $item->unit?->name ?? '',
+            'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
+            'category'             => (string) ($item->category ?? ''),
+            'brand'                => (string) ($item->brand ?? ''),
+            'status'               => $item->status->value ?? 'pending',
+            'engineering_required' => (bool) $item->engineering_required,
+            'confidence'           => is_numeric($item->confidence) ? (float) $item->confidence : null,
+            'raw_data'             => $item->raw_data,
+            'ai_extracted'         => (bool) $item->ai_extracted,
+            'is_selected'          => (bool) $item->is_selected,
+        ])->values()->toArray();
     }
 
     // -------------------------------------------------------------------------
@@ -80,12 +158,11 @@ class CreateBoq extends Component
             'projectDescription' => 'nullable|string|max:5000',
         ]);
 
-        // If the temporary file reference was lost (e.g. due to live wire:model updates
-        // re-hydrating the component), fall back to the last stored file for this BOQ.
+        // Resolve fallback file path if no new file was selected
         $fallbackPath = null;
         if (! $this->boqFile) {
             if ($this->boqId !== null) {
-                $doc = \App\Models\UploadedDocument::where('boq_id', $this->boqId)
+                $doc = UploadedDocument::where('boq_id', $this->boqId)
                     ->latest()
                     ->first();
 
@@ -100,97 +177,96 @@ class CreateBoq extends Component
             }
         }
 
-        $allowedExtensions = ['pdf', 'xlsx', 'xls', 'csv', 'jpg', 'jpeg', 'png'];
-
         if ($this->boqFile) {
             $extension = strtolower($this->boqFile->getClientOriginalExtension());
-            if (! in_array($extension, $allowedExtensions, true)) {
+            if (! in_array($extension, ['pdf', 'xlsx', 'xls', 'csv', 'jpg', 'jpeg', 'png'], true)) {
                 $this->addError('boqFile', 'The file must be of type: pdf, xlsx, xls, csv, jpg, jpeg, or png.');
                 return;
             }
         }
 
         $this->processing = true;
+        Cache::put('boq_ai_status_' . Auth::id(), 'running', now()->addHours(2));
 
         try {
-            DB::transaction(function () use ($fallbackPath) {
-                // Create or get the project
-                $project = $this->persistProject();
+            // These are committed to DB right away so the record survives even
+            // if the browser navigates away during the long AI step below.
+            $project = $this->persistProject();
+            $boq     = $this->persistBoq($project);
 
-                // Create the BOQ
-                $boq = $this->persistBoq($project);
+            // ── Step 2: Store the uploaded file ─────────────────────────────
+            $storedAbsPath = null;
+            if ($this->boqFile) {
+                $extension     = strtolower($this->boqFile->getClientOriginalExtension());
+                $fileName      = $this->boqFile->getClientOriginalName();
+                $storedPath    = $this->boqFile->storeAs('boq-uploads', Str::uuid() . '.' . $extension, 'local');
+                $fileSize      = Storage::disk('local')->size($storedPath);
+                $storedAbsPath = Storage::disk('local')->path($storedPath);
 
-                if ($this->boqFile) {
-                    // New file upload path
-                    $extension     = strtolower($this->boqFile->getClientOriginalExtension());
-                    $fileName      = $this->boqFile->getClientOriginalName();
-                    $storedPath    = $this->boqFile->storeAs('boq-uploads', Str::uuid() . '.' . $extension, 'local');
-                    $fileSize      = Storage::disk('local')->size($storedPath);
-                    $storedAbsPath = Storage::disk('local')->path($storedPath);
-
-                    if ($fileSize > 50 * 1024 * 1024) {
-                        Storage::disk('local')->delete($storedPath);
-                        $this->addError('boqFile', 'The file must not be larger than 50 MB.');
-                        return;
-                    }
-
-                    UploadedDocument::create([
-                        'boq_id'      => $boq->id,
-                        'project_id'  => $project->id,
-                        'uploaded_by' => Auth::id(),
-                        'file_name'   => $fileName,
-                        'file_path'   => $storedPath,
-                        'file_type'   => 'boq',
-                        'file_size'   => $fileSize,
-                    ]);
-
-                    $this->boqFileName = $fileName;
-                } else {
-                    // Fallback: re-extract from the last stored file
-                    $storedAbsPath = $fallbackPath;
+                if ($fileSize > 50 * 1024 * 1024) {
+                    Storage::disk('local')->delete($storedPath);
+                    $this->addError('boqFile', 'The file must not be larger than 50 MB.');
+                    return;
                 }
 
-                // AI extraction
-                $ai     = app(QuotationAiService::class);
-                $result = $ai->parseBoq($storedAbsPath, [
-                    'boq_id'       => $boq->id,
-                    'project_name' => $this->projectName,
+                UploadedDocument::create([
+                    'boq_id'      => $boq->id,
+                    'project_id'  => $project->id,
+                    'uploaded_by' => Auth::id(),
+                    'file_name'   => $fileName,
+                    'file_path'   => $storedPath,
+                    'file_type'   => 'boq',
+                    'file_size'   => $fileSize,
                 ]);
 
-                if (! $result['success']) {
-                    $this->dispatch('toast', message: $result['error'] ?? 'AI extraction failed.', type: 'error');
-                } elseif (empty($result['items'])) {
-                    $this->dispatch('toast', message: 'The AI service could not extract any items from the uploaded file. Please add items manually.', type: 'warning');
-                } else {
-                    // Replace current items with the latest AI response
-                    BoqItem::where('boq_id', $boq->id)->delete();
-                    $this->items = [];
+                $this->boqFileName = $fileName;
+            } else {
+                $storedAbsPath = $fallbackPath;
+            }
 
-                    foreach ($result['items'] as $aiItem) {
-                        $this->items[] = array_merge([
-                            'id'                   => null,
-                            'description'          => '',
-                            'quantity'             => 1,
-                            'unit'                 => '',
-                            'category'             => '',
-                            'brand'                => '',
-                            'status'               => 'pending',
-                            'engineering_required' => false,
-                            'confidence'           => null,
-                            'ai_extracted'         => true,
-                            'is_selected'          => false,
-                        ], $aiItem);
-                    }
+            // ── Step 3: AI extraction ────────────────────────────────────────
+            $ai     = app(QuotationAiService::class);
+            $result = $ai->parseBoq($storedAbsPath, [
+                'boq_id'       => $boq->id,
+                'project_name' => $this->projectName,
+            ]);
 
-                    $this->persistItems($boq);
+            if (! $result['success']) {
+                Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
+                $this->dispatch('toast', message: $result['error'] ?? 'AI extraction failed.', type: 'error');
+            } elseif (empty($result['items'])) {
+                Cache::put('boq_ai_status_' . Auth::id(), 'no_items', now()->addMinutes(30));
+                $this->dispatch('toast', message: 'The AI service could not extract any items from the uploaded file. Please add items manually.', type: 'warning');
+            } else {
+                BoqItem::where('boq_id', $boq->id)->delete();
+                $this->items = [];
 
-                    $this->dispatch('toast', message: count($result['items']) . ' items extracted successfully from the BOQ file.', type: 'success');
+                foreach ($result['items'] as $aiItem) {
+                    $this->items[] = array_merge([
+                        'id'                   => null,
+                        'description'          => '',
+                        'quantity'             => 1,
+                        'unit'                 => '',
+                        'category'             => '',
+                        'brand'                => '',
+                        'status'               => 'pending',
+                        'engineering_required' => false,
+                        'confidence'           => null,
+                        'ai_extracted'         => true,
+                        'is_selected'          => false,
+                    ], $aiItem);
                 }
 
-                $this->boqFile = null;
-            });
+                $this->persistItems($boq);
+                Cache::put('boq_ai_status_' . Auth::id(), 'done', now()->addMinutes(30));
+                $this->dispatch('toast', message: count($result['items']) . ' items extracted successfully from the BOQ file.', type: 'success');
+                $this->dispatch('boq-upload-done');
+            }
+
+            $this->boqFile = null;
 
         } catch (\Throwable $e) {
+            Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
             Log::error('CreateBoq::uploadBoq failed.', [
                 'message' => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
@@ -267,6 +343,27 @@ class CreateBoq extends Component
             BoqItem::where('id', $this->items[$index]['id'])
                 ->update(['status' => QuotationItemStatusEnum::Rejected]);
         }
+    }
+
+    public function approveAllItems(): void
+    {
+        $ids = [];
+
+        foreach ($this->items as $index => $item) {
+            $this->items[$index]['status'] = QuotationItemStatusEnum::Sourcing->value;
+
+            if (! empty($item['id'])) {
+                $ids[] = (int) $item['id'];
+            }
+        }
+
+        if (! empty($ids)) {
+            BoqItem::whereIn('id', $ids)->update([
+                'status' => QuotationItemStatusEnum::Sourcing,
+            ]);
+        }
+
+        $this->dispatch('toast', message: 'All items approved successfully.', type: 'success');
     }
 
     public function deleteItem(int $index): void
@@ -350,6 +447,7 @@ class CreateBoq extends Component
     {
         return view('livewire.enduser.boqs.create-boq', [
             'itemStatuses' => QuotationItemStatusEnum::cases(),
+            'boqTypes'     => BoqTypeEnum::cases(),
         ]);
     }
 
@@ -398,6 +496,8 @@ class CreateBoq extends Component
                 $boq->update($attrs);
             }
 
+            $this->draftBoqUuid = $boq->uuid;
+
             return $boq;
         }
 
@@ -406,9 +506,11 @@ class CreateBoq extends Component
             'client_id'  => Auth::id(),
             'boq_no'     => $this->generateBoqNo(),
             'status'     => $status ?? BoqStatusEnum::Draft,
+            'type'       => $this->boqType,
         ]);
 
-        $this->boqId = $boq->id;
+        $this->boqId        = $boq->id;
+        $this->draftBoqUuid = $boq->uuid;
 
         return $boq;
     }

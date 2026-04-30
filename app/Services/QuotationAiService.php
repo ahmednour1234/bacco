@@ -295,6 +295,12 @@ class QuotationAiService
             'gemini-flash-latest',
         ])));
 
+        // ── Check if Gemini API key is configured ───────────────────────────
+        if (empty($geminiKey)) {
+            Log::warning('QuotationAiService: GEMINI_API_KEY is not configured.');
+            return $this->failure('AI service is not configured. Please set GEMINI_API_KEY in your .env file.');
+        }
+
         try {
             if ($file instanceof UploadedFile) {
                 $absPath  = $file->getRealPath();
@@ -337,7 +343,7 @@ class QuotationAiService
             }
 
             // Files > 20 MB must go through the Gemini Files API.
-            $lastResult = $this->failure('Gemini AI fallback encountered an unexpected error.');
+            $lastResult = $this->failure('Failed to process file with all available AI models.');
 
             foreach ($geminiModels as $attemptModel) {
                 if (strlen($bytes) > 20 * 1024 * 1024) {
@@ -361,9 +367,10 @@ class QuotationAiService
         } catch (\Throwable $e) {
             Log::error('QuotationAiService: Gemini fallback threw an exception.', [
                 'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
 
-            return $this->failure('Gemini AI fallback encountered an unexpected error.');
+            return $this->failure('An error occurred while processing your file with AI. Please try again or upload a different file.');
         }
     }
 
@@ -389,13 +396,29 @@ class QuotationAiService
             );
 
         if (! $response->successful()) {
+            $status = $response->status();
+            $errorMsg = "Gemini API returned HTTP {$status}.";
+
+            // Provide specific error messages for common Gemini API errors
+            if ($status === 400) {
+                $errorMsg = "Invalid request to Gemini API. Your API key may be invalid or the file format is not supported.";
+            } elseif ($status === 401) {
+                $errorMsg = "Gemini API authentication failed. Please check your GEMINI_API_KEY in .env.";
+            } elseif ($status === 403) {
+                $errorMsg = "Gemini API access forbidden. Your API key may not have the required permissions.";
+            } elseif ($status === 429) {
+                $errorMsg = "Gemini API rate limit exceeded. Please try again in a few moments.";
+            } elseif ($status === 500) {
+                $errorMsg = "Gemini API server error. Please try again later.";
+            }
+
             Log::error('QuotationAiService: Gemini generateContent failed.', [
                 'model'  => $model,
-                'status' => $response->status(),
+                'status' => $status,
                 'body'   => $response->body(),
             ]);
 
-            return $this->failure("Gemini returned HTTP {$response->status()}.");
+            return $this->failure($errorMsg);
         }
 
         $text = (string) $response->json('candidates.0.content.parts.0.text');
@@ -476,12 +499,23 @@ class QuotationAiService
             ->post("https://generativelanguage.googleapis.com/upload/v1beta/files?key={$key}");
 
         if (! $uploadResponse->successful()) {
+            $status = $uploadResponse->status();
+            $errorMsg = "Gemini Files API upload failed with HTTP {$status}.";
+
+            if ($status === 401) {
+                $errorMsg = "Gemini API authentication failed. Please check your GEMINI_API_KEY in .env.";
+            } elseif ($status === 413) {
+                $errorMsg = "File is too large. Please upload a file smaller than 2GB.";
+            } elseif ($status === 429) {
+                $errorMsg = "Rate limit exceeded. Please wait a moment and try again.";
+            }
+
             Log::error('QuotationAiService: Gemini Files API upload failed.', [
-                'status' => $uploadResponse->status(),
+                'status' => $status,
                 'body'   => $uploadResponse->body(),
             ]);
 
-            return $this->failure("Gemini file upload failed (HTTP {$uploadResponse->status()}).");
+            return $this->failure($errorMsg);
         }
 
         $fileUri = (string) $uploadResponse->json('file.uri');

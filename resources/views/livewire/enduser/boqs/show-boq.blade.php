@@ -49,7 +49,7 @@
                     <h2 class="text-sm font-semibold text-slate-800">{{ __('app.boq_colon') }} {{ $boq->boq_no }}</h2>
                     <p class="text-xs text-slate-400">{{ __('app.project_colon') }} {{ $boq->project?->name ?? '—' }}</p>
                 </div>
-                <div class="ml-auto">
+                <div class="ml-auto flex items-center gap-2">
                     @php
                         $statusBadge = match($boq->status->value ?? 'draft') {
                             'submitted'  => 'bg-blue-100 text-blue-700',
@@ -57,9 +57,18 @@
                             'cancelled'  => 'bg-red-100 text-red-700',
                             default      => 'bg-amber-100 text-amber-700',
                         };
+                        
+                        $typeColors = [
+                            'tender'  => 'bg-blue-100 text-blue-700',
+                            'awarded' => 'bg-emerald-100 text-emerald-700',
+                        ];
+                        $typeColor = $typeColors[$boq->type->value ?? ''] ?? 'bg-slate-100 text-slate-700';
                     @endphp
                     <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $statusBadge }}">
                         {{ $boq->status->label() }}
+                    </span>
+                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $typeColor }}">
+                        {{ $boq->type?->label() ?? '—' }}
                     </span>
                 </div>
             </div>
@@ -93,6 +102,13 @@
                     <button type="button" wire:click="deselectAll"
                         class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100">
                         {{ __('app.deselect_all') }}
+                    </button>
+                    <button type="button" wire:click="approveAll"
+                        class="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        {{ __('app.approve_all') }}
                     </button>
                 </div>
             </div>

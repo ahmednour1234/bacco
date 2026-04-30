@@ -51,7 +51,6 @@ class Form extends Component
     public string $aiPriceContext      = 'vendor';
     public string $aiIncludesEng       = 'no';
     public string $aiIncludesInst      = 'no';
-    public string $aiMarginHandling    = 'auto_20';
     public string $aiCurrency          = 'SAR';
     public string $aiPastedText        = '';
     public $aiFile                     = null;
@@ -233,6 +232,7 @@ class Form extends Component
         $url    = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
         $parts = [];
+        $fileText = '';
 
         if ($this->aiFile) {
             $ext  = strtolower($this->aiFile->getClientOriginalExtension());
@@ -242,6 +242,45 @@ class Form extends Component
                 $parts[] = ['inline_data' => ['mime_type' => $mime, 'data' => $b64]];
             } elseif ($ext === 'pdf') {
                 $parts[] = ['inline_data' => ['mime_type' => 'application/pdf', 'data' => $b64]];
+            } elseif (in_array($ext, ['xlsx', 'xls', 'csv'])) {
+                // Parse spreadsheet into text for the AI prompt
+                try {
+                    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($this->aiFile->getRealPath());
+                    $rows = [];
+                    foreach ($spreadsheet->getAllSheets() as $sheet) {
+                        $sheetName = $sheet->getTitle();
+                        $rows[] = "--- Sheet: {$sheetName} ---";
+                        foreach ($sheet->toArray(null, true, true, true) as $row) {
+                            $cells = array_map(fn ($c) => trim((string) ($c ?? '')), $row);
+                            $line = implode(' | ', $cells);
+                            if (trim(str_replace('|', '', $line)) !== '') {
+                                $rows[] = $line;
+                            }
+                        }
+                    }
+                    $fileText = implode("\n", $rows);
+                } catch (\Throwable $e) {
+                    $this->addError('aiPastedText', 'Could not parse the spreadsheet: ' . $e->getMessage());
+                    $this->aiAnalyzing = false;
+                    return;
+                }
+            } elseif ($ext === 'docx') {
+                // Extract text from DOCX
+                try {
+                    $zip = new \ZipArchive();
+                    if ($zip->open($this->aiFile->getRealPath()) === true) {
+                        $content = $zip->getFromName('word/document.xml');
+                        $zip->close();
+                        if ($content) {
+                            $fileText = strip_tags(str_replace('<', ' <', $content));
+                            $fileText = preg_replace('/\s+/', ' ', $fileText);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    $this->addError('aiPastedText', 'Could not parse the document.');
+                    $this->aiAnalyzing = false;
+                    return;
+                }
             }
         }
 
@@ -254,19 +293,13 @@ class Form extends Component
             $this->aiIncludesInst === 'no'      ? 'prices do NOT include installation' : null,
         ]));
 
-        $marginHandling = match ($this->aiMarginHandling) {
-            'auto_20'  => 'Apply 20% margin automatically',
-            'auto_15'  => 'Apply 15% margin automatically',
-            'keep'     => 'Keep original price, margin = 0',
-            'override' => 'Set margin = 0, user will override',
-            default    => 'Apply 20% margin',
-        };
-
         $divisions = implode(', ', self::DIVISIONS);
+
+        $combinedText = trim($fileText . "\n\n" . $this->aiPastedText);
 
         $prompt = <<<PROMPT
 You are a data extraction assistant for a supplier catalogue. Extract ALL products from the provided document or text.
-Context: {$contextHints}. Margin handling: {$marginHandling}.
+Context: {$contextHints}. Use invoice prices as-is, no margin increase.
 Available divisions: {$divisions}.
 
 Return ONLY a valid JSON array (no markdown, no code fences) with this exact structure per item:
@@ -280,7 +313,7 @@ Return ONLY a valid JSON array (no markdown, no code fences) with this exact str
     "unit_price": 0.00,
     "engineering_price": 0.00,
     "installation_price": 0.00,
-    "margin_percentage": 20,
+        "margin_percentage": 0,
     "lead_time_days": null,
     "notes": ""
   }
@@ -288,20 +321,22 @@ Return ONLY a valid JSON array (no markdown, no code fences) with this exact str
 Rules:
 - unit_price: required numeric SAR value (use 0 if not found)
 - engineering_price and installation_price: numeric or 0
-- margin_percentage: percentage number (e.g. 20 for 20%)
+- margin_percentage: always 0
 - lead_time_days: integer or null
 - Extract every product, do not skip any
+- If the same product name appears more than once, return it only once as a single product row
+- Never return negative prices. All prices must be zero or positive
 
 Text:
-{$this->aiPastedText}
+{$combinedText}
 PROMPT;
 
         $parts[] = ['text' => $prompt];
 
         try {
-            $response = Http::timeout(60)->post($url, [
+            $response = Http::timeout(120)->post($url, [
                 'contents'         => [['parts' => $parts]],
-                'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 8192],
+                'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 65536],
             ]);
 
             if ($response->failed()) {
@@ -313,27 +348,37 @@ PROMPT;
             $raw  = $response->json('candidates.0.content.parts.0.text', '');
             $raw  = preg_replace('/^```(?:json)?\s*/i', '', trim($raw));
             $raw  = preg_replace('/\s*```$/i', '', $raw);
+
+            // Try direct decode first
             $data = json_decode($raw, true);
 
-            if (! is_array($data)) {
+            // If that fails, try to find JSON array in the response
+            if (! is_array($data) && preg_match('/\[[\s\S]*\]/', $raw, $m)) {
+                $data = json_decode($m[0], true);
+            }
+
+            if (! is_array($data) || empty($data)) {
+                \Log::warning('AI response could not be parsed', ['raw' => mb_substr($raw, 0, 2000)]);
                 $this->addError('aiPastedText', 'Could not parse AI response. Please try again.');
                 $this->aiAnalyzing = false;
                 return;
             }
 
+            $data = $this->deduplicateExtractedItems($data);
+
             $brands     = Brand::all()->keyBy(fn($b) => strtolower(trim($b->name)));
             $categories = Category::all()->keyBy(fn($c) => strtolower(trim($c->name)));
 
             foreach ($data as &$item) {
-                $item['unit_price']         = (float) ($item['unit_price'] ?? 0);
-                $item['engineering_price']  = (float) ($item['engineering_price'] ?? 0);
-                $item['installation_price'] = (float) ($item['installation_price'] ?? 0);
-                $item['margin_percentage']  = (float) ($item['margin_percentage'] ?? 20);
+                $item['unit_price']         = $this->sanitizeMoney($item['unit_price'] ?? 0);
+                $item['engineering_price']  = $this->sanitizeMoney($item['engineering_price'] ?? 0);
+                $item['installation_price'] = $this->sanitizeMoney($item['installation_price'] ?? 0);
+                $item['margin_percentage']  = 0;
                 $item['lead_time_days']     = isset($item['lead_time_days']) ? (int) $item['lead_time_days'] : null;
                 $item['notes']              = (string) ($item['notes'] ?? '');
 
                 $base          = $item['unit_price'] + $item['engineering_price'] + $item['installation_price'];
-                $item['total'] = $base * (1 + $item['margin_percentage'] / 100);
+                $item['total'] = $base;
 
                 $brandMatch          = $brands->get(strtolower(trim($item['brand'] ?? '')));
                 $item['brand_id']    = $brandMatch?->id;
@@ -352,12 +397,91 @@ PROMPT;
         $this->aiAnalyzing = false;
     }
 
+    /**
+     * Treat repeated product names as one product row.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function deduplicateExtractedItems(array $items): array
+    {
+        $bucket = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $name = trim((string) ($item['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $signature = $this->normaliseKeyPart($name);
+
+            if (! isset($bucket[$signature])) {
+                $bucket[$signature] = $item;
+                continue;
+            }
+
+            foreach (['division', 'brand', 'category', 'model_type', 'notes'] as $field) {
+                $current = trim((string) ($bucket[$signature][$field] ?? ''));
+                $incoming = trim((string) ($item[$field] ?? ''));
+
+                if ($current === '' && $incoming !== '') {
+                    $bucket[$signature][$field] = $incoming;
+                }
+            }
+
+            foreach (['unit_price', 'engineering_price', 'installation_price'] as $field) {
+                $current = $this->sanitizeMoney($bucket[$signature][$field] ?? 0);
+                $incoming = $this->sanitizeMoney($item[$field] ?? 0);
+
+                if ($incoming > $current) {
+                    $bucket[$signature][$field] = $incoming;
+                }
+            }
+
+            $currentLeadTime = $bucket[$signature]['lead_time_days'] ?? null;
+            $incomingLeadTime = $item['lead_time_days'] ?? null;
+
+            if (($currentLeadTime === null || $currentLeadTime === '') && $incomingLeadTime !== null && $incomingLeadTime !== '') {
+                $bucket[$signature]['lead_time_days'] = (int) $incomingLeadTime;
+            }
+        }
+
+        return array_values($bucket);
+    }
+
+    private function normaliseKeyPart(string $value): string
+    {
+        $value = strtr($value, [
+            'أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ٱ' => 'ا',
+            'ؤ' => 'و', 'ئ' => 'ي', 'ى' => 'ي', 'ة' => 'ه',
+            'ـ' => '',
+        ]);
+
+        $value = mb_strtolower(trim($value));
+        $value = preg_replace('/[\x{064B}-\x{065F}\x{0670}]/u', '', $value) ?? $value;
+        $value = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $value) ?? $value;
+        $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+
+        return $value;
+    }
+
+    private function sanitizeMoney(mixed $value): float
+    {
+        return max(0, (float) $value);
+    }
+
     public function confirmImport(): void
     {
         $supplierId = Auth::id();
         $imported   = 0;
 
-        foreach ($this->aiExtractedProducts as $item) {
+        $rows = $this->deduplicateExtractedItems($this->aiExtractedProducts);
+
+        foreach ($rows as $item) {
             if (empty(trim($item['name'] ?? ''))) {
                 continue;
             }
@@ -369,9 +493,9 @@ PROMPT;
                 'brand_id'           => $item['brand_id'] ?: null,
                 'category_id'        => $item['category_id'] ?: null,
                 'model_type'         => $item['model_type'] ?: null,
-                'unit_price'         => $item['unit_price'],
-                'engineering_price'  => $item['engineering_price'],
-                'installation_price' => $item['installation_price'],
+                'unit_price'         => $this->sanitizeMoney($item['unit_price'] ?? 0),
+                'engineering_price'  => $this->sanitizeMoney($item['engineering_price'] ?? 0),
+                'installation_price' => $this->sanitizeMoney($item['installation_price'] ?? 0),
                 'margin_percentage'  => 0,
                 'active'             => false,
             ]);
@@ -379,7 +503,7 @@ PROMPT;
             SupplierProduct::create([
                 'supplier_id'     => $supplierId,
                 'product_id'      => $product->id,
-                'price'           => $item['unit_price'],
+                'price'           => $this->sanitizeMoney($item['unit_price'] ?? 0),
                 'lead_time_days'  => $item['lead_time_days'] ?: null,
                 'notes'           => $item['notes'] ?: null,
                 'active'          => true,

@@ -258,17 +258,11 @@
                     </td>
                     <td class="px-4 py-4">
                         @php
-                            $orderStatus = $order->status?->value ?? 'pending';
+                            $orderStatus = $order->status?->value ?? 'open';
                             $orderBadge = match($orderStatus) {
-                                'pending'    => ['bg-yellow-100 text-yellow-700',  __('app.status_pending')],
-                                'confirmed'  => ['bg-blue-100 text-blue-700',      __('app.status_confirmed')],
-                                'processing' => ['bg-indigo-100 text-indigo-700',  __('app.status_processing')],
-                                'shipped'    => ['bg-cyan-100 text-cyan-700',      __('app.status_shipped')],
-                                'delivered'  => ['bg-emerald-100 text-emerald-700',__('app.status_delivered')],
-                                'completed'  => ['bg-green-100 text-green-700',    __('app.status_completed')],
-                                'cancelled'  => ['bg-red-100 text-red-700',        __('app.status_cancelled')],
-                                'refunded'   => ['bg-red-100 text-red-700',        __('app.status_refunded')],
-                                default      => ['bg-slate-100 text-slate-600',     ucfirst($orderStatus)],
+                                'open'   => ['bg-emerald-100 text-emerald-700', __('app.status_open')],
+                                'closed' => ['bg-slate-100 text-slate-600',     __('app.status_closed')],
+                                default  => ['bg-slate-100 text-slate-600',     ucfirst($orderStatus)],
                             };
                         @endphp
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $orderBadge[0] }}">

@@ -9,28 +9,21 @@
             <p class="mt-1 text-sm text-slate-400">{{ __('app.track_orders_engineering') }}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-            <a href="{{ route('admin.orders.index') }}?export=csv"
+            <a href="{{ route('admin.orders.export') }}"
                class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition">
                 <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
-                {{ __('app.export_csv') }}
+                {{ __('app.export_excel') }}
             </a>
-            <button onclick="window.print()"
-                class="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 transition">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                </svg>
-            </button>
         </div>
     </div>
 
     {{-- ═══════════════════════════════════════════════════════
          STAT CARDS
     ═══════════════════════════════════════════════════════ --}}
-    <div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 
         {{-- Total Orders --}}
         <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
@@ -41,70 +34,24 @@
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                 </div>
-                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">+12%</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
             <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.total_orders') }}</p>
         </div>
 
-        {{-- Engineering --}}
-        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <div class="mb-3 flex items-center justify-between">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50">
-                    <svg class="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">{{ __('app.active') }}</span>
-            </div>
-            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['engineering'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.engineering') }}</p>
-        </div>
-
-        {{-- Waiting --}}
-        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <div class="mb-3 flex items-center justify-between">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50">
-                    <svg class="h-5 w-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-500">-5%</span>
-            </div>
-            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['waiting'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.waiting') }}</p>
-        </div>
-
-        {{-- Logistics --}}
-        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <div class="mb-3 flex items-center justify-between">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50">
-                    <svg class="h-5 w-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                </div>
-                <span class="rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-semibold text-cyan-600">{{ __('app.in_transit') }}</span>
-            </div>
-            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['logistics'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.logistics_updates') }}</p>
-        </div>
-
-        {{-- Delivered --}}
+        {{-- Open --}}
         <div class="flex flex-col rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
             <div class="mb-3 flex items-center justify-between">
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
                     <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
                     </svg>
                 </div>
-                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">+8%</span>
+                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">{{ __('app.open') }}</span>
             </div>
-            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['delivered'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.status_delivered') }}</p>
+            <p class="text-3xl font-extrabold text-slate-900">{{ $stats['open'] }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.open_orders') }}</p>
         </div>
 
         {{-- Closed --}}
@@ -116,10 +63,10 @@
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
                 </div>
-                <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">Fixed</span>
+                <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">{{ __('app.closed') }}</span>
             </div>
             <p class="text-3xl font-extrabold text-slate-900">{{ $stats['closed'] }}</p>
-            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.closed') }}</p>
+            <p class="mt-1 text-xs font-medium text-slate-400">{{ __('app.closed_orders') }}</p>
         </div>
 
     </div>
@@ -134,7 +81,7 @@
 
             {{-- Search --}}
             <div class="relative flex-1 min-w-[240px]">
-                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                <span class="pointer-events-none absolute inset-y-0 start-3 flex items-center text-slate-400">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
@@ -144,7 +91,7 @@
                     type="search"
                     wire:model.live.debounce.300ms="search"
                     placeholder="{{ __('app.search_orders_projects_clients') }}"
-                    class="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    class="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 ps-9 pe-4 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
                 >
             </div>
 
@@ -165,14 +112,14 @@
                         </svg>
                     </button>
                     <div x-show="statusOpen" x-cloak @click.outside="statusOpen = false"
-                        class="absolute left-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
+                        class="absolute start-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
                         <button type="button" wire:click="$set('status', '')" @click="statusOpen = false"
-                            class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                            class="block w-full px-4 py-2 text-start text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                             {{ __('app.all_statuses') }}
                         </button>
                         @foreach($statuses as $s)
                             <button type="button" wire:click="$set('status', '{{ $s->value }}')" @click="statusOpen = false"
-                                class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === $s->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                                class="block w-full px-4 py-2 text-start text-sm hover:bg-slate-50 {{ $status === $s->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                                 {{ $s->label() }}
                             </button>
                         @endforeach
@@ -195,10 +142,10 @@
                         </svg>
                     </button>
                     <div x-show="dateOpen" x-cloak @click.outside="dateOpen = false"
-                        class="absolute left-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
+                        class="absolute start-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
                         @foreach([['7',__('app.last_7_days')],['30',__('app.last_30_days')],['90',__('app.last_90_days')],['',__('app.all_time')]] as [$val,$lbl])
                             <button type="button" wire:click="$set('dateRange', '{{ $val }}')" @click="dateOpen = false"
-                                class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $dateRange === $val ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                                class="block w-full px-4 py-2 text-start text-sm hover:bg-slate-50 {{ $dateRange === $val ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                                 {{ $lbl }}
                             </button>
                         @endforeach
@@ -220,14 +167,14 @@
                         </svg>
                     </button>
                     <div x-show="typeOpen" x-cloak @click.outside="typeOpen = false"
-                        class="absolute left-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
+                        class="absolute start-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
                         <button type="button" wire:click="$set('type', '')" @click="typeOpen = false"
-                            class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                            class="block w-full px-4 py-2 text-start text-sm hover:bg-slate-50 {{ $type === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                             {{ __('app.all_types') }}
                         </button>
                         @foreach($types as $t)
                             <button type="button" wire:click="$set('type', '{{ $t->value }}')" @click="typeOpen = false"
-                                class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === $t->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                                class="block w-full px-4 py-2 text-start text-sm hover:bg-slate-50 {{ $type === $t->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                                 {{ $t->label() }}
                             </button>
                         @endforeach
@@ -271,42 +218,30 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50/70 text-start">
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.order_hash') }}</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ __('app.project') }}</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ __('app.client') }}</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.type') }}</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-40">{{ __('app.amount_sar') }}</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.status') }}</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 w-32">{{ __('app.date') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.order_hash') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wider text-slate-400">{{ __('app.project') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wider text-slate-400">{{ __('app.client') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.type') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wider text-slate-400 w-40">{{ __('app.amount_sar') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wider text-slate-400 w-36">{{ __('app.status') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wider text-slate-400 w-32">{{ __('app.date') }}</th>
                             <th class="px-4 py-3 w-12"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @foreach($orders as $order)
                             @php
-                                $sv = $order->status->value ?? 'pending';
+                                $sv = $order->status->value ?? 'open';
 
                                 $dotClass = match($sv) {
-                                    'pending'    => 'bg-amber-400',
-                                    'confirmed'  => 'bg-blue-400',
-                                    'processing' => 'bg-indigo-400',
-                                    'shipped'    => 'bg-violet-400',
-                                    'delivered'  => 'bg-emerald-500',
-                                    'completed'  => 'bg-green-500',
-                                    'cancelled'  => 'bg-red-400',
-                                    'refunded'   => 'bg-slate-400',
-                                    default      => 'bg-slate-400',
+                                    'open'   => 'bg-emerald-500',
+                                    'closed' => 'bg-slate-400',
+                                    default  => 'bg-slate-400',
                                 };
                                 $statusTextClass = match($sv) {
-                                    'pending'    => 'text-amber-600',
-                                    'confirmed'  => 'text-blue-600',
-                                    'processing' => 'text-indigo-600',
-                                    'shipped'    => 'text-violet-600',
-                                    'delivered'  => 'text-emerald-600',
-                                    'completed'  => 'text-green-700',
-                                    'cancelled'  => 'text-red-600',
-                                    'refunded'   => 'text-slate-500',
-                                    default      => 'text-slate-500',
+                                    'open'   => 'text-emerald-600',
+                                    'closed' => 'text-slate-500',
+                                    default  => 'text-slate-500',
                                 };
 
                                 $typeLabel     = $order->quotationRequest?->project_status?->label() ?? '—';
@@ -389,7 +324,7 @@
                                             x-transition:leave="transition ease-in duration-75"
                                             x-transition:leave-start="opacity-100 scale-100"
                                             x-transition:leave-end="opacity-0 scale-95"
-                                            class="absolute right-0 top-full z-30 mt-1 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
+                                            class="absolute end-0 top-full z-30 mt-1 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
                                             <a href="{{ route('admin.orders.show', $order->uuid) }}"
                                                 class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                                                 <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -9,7 +9,10 @@
         body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; color: #1e293b; background: #fff; }
 
         /* ── Header ── */
-        .header { padding: 28px 36px 18px; border-bottom: 2px solid #059669; display: flex; justify-content: space-between; align-items: flex-start; }
+        .header { padding: 28px 36px 18px; border-bottom: 2px solid #059669; }
+        .header table { width: 100%; border-collapse: collapse; }
+        .header td { border: none; padding: 0; vertical-align: top; }
+        .logo-img { height: 40px; }
         .company-name { font-size: 22px; font-weight: 700; color: #059669; letter-spacing: -0.5px; }
         .company-sub  { font-size: 10px; color: #94a3b8; margin-top: 2px; }
         .doc-title    { text-align: right; }
@@ -17,9 +20,10 @@
         .doc-title p  { font-size: 10px; color: #64748b; margin-top: 3px; }
 
         /* ── Meta strip ── */
-        .meta { display: flex; gap: 0; border-bottom: 1px solid #e2e8f0; }
-        .meta-cell { flex: 1; padding: 12px 36px; border-right: 1px solid #f1f5f9; }
-        .meta-cell:last-child { border-right: none; }
+        .meta { border-bottom: 1px solid #e2e8f0; }
+        .meta table { width: 100%; border-collapse: collapse; }
+        .meta td { padding: 12px 20px; border-right: 1px solid #f1f5f9; vertical-align: top; }
+        .meta td:last-child { border-right: none; }
         .meta-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #94a3b8; margin-bottom: 4px; }
         .meta-value { font-size: 11px; font-weight: 600; color: #0f172a; }
         .status-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
@@ -58,58 +62,99 @@
         .price { font-family: monospace; font-weight: 700; color: #0f172a; }
 
         /* ── Totals ── */
-        .totals-wrap { padding: 18px 36px; display: flex; justify-content: flex-end; page-break-inside: avoid; }
-        .totals-box  { width: 280px; }
-        .totals-row  { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #f1f5f9; }
-        .totals-row:last-child { border-bottom: none; }
-        .totals-label { font-size: 10px; color: #64748b; }
-        .totals-val   { font-size: 11px; font-family: monospace; font-weight: 600; color: #0f172a; }
-        .totals-grand { border-top: 2px solid #059669; margin-top: 6px; padding-top: 8px; }
-        .totals-grand .totals-label { font-size: 11px; font-weight: 700; color: #0f172a; }
-        .totals-grand .totals-val   { font-size: 14px; font-weight: 700; color: #059669; }
+        .totals-wrap { padding: 18px 36px; page-break-inside: avoid; }
+        .totals-table { width: 280px; border-collapse: collapse; margin-left: auto; }
+        .totals-table td { padding: 6px 0; font-size: 11px; }
+        .totals-table td.label { color: #64748b; font-size: 10px; }
+        .totals-table td.val { text-align: right; font-family: monospace; font-weight: 600; color: #0f172a; }
+        .totals-table tr.grand td { border-top: 2px solid #059669; padding-top: 10px; }
+        .totals-table tr.grand td.label { font-size: 11px; font-weight: 700; color: #0f172a; }
+        .totals-table tr.grand td.val { font-size: 14px; font-weight: 700; color: #059669; }
+
+        /* ── Terms ── */
+        .terms { padding: 20px 36px; page-break-inside: avoid; }
+        .terms-title { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+        .terms-line { border-top: 2px solid #059669; margin-bottom: 12px; }
+        .terms-list { padding-left: 16px; }
+        .terms-list li { font-size: 10px; color: #475569; margin-bottom: 4px; line-height: 1.5; }
+
+        /* ── Authorization ── */
+        .auth { padding: 20px 36px; page-break-inside: avoid; }
+        .auth-title { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+        .auth-line  { border-top: 2px solid #059669; margin-bottom: 16px; }
+        .auth-table { width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; }
+        .auth-table td { padding: 14px 16px; border: 1px solid #e2e8f0; vertical-align: top; width: 50%; height: 80px; }
+        .auth-label { font-size: 11px; font-weight: 700; color: #0f172a; margin-bottom: 40px; }
+        .auth-hint  { font-size: 9px; color: #94a3b8; font-style: italic; }
 
         /* ── Footer ── */
-        .footer { margin-top: 30px; padding: 14px 36px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .footer { margin-top: 30px; padding: 14px 36px; border-top: 1px solid #e2e8f0; }
         .footer-note { font-size: 9px; color: #94a3b8; }
+        .footer-right { float: right; }
     </style>
 </head>
 <body>
 
     {{-- ── Header ── --}}
     <div class="header">
-        <div>
-            <div class="company-name">Qimta</div>
-            <div class="company-sub">Construction &amp; MEP Supply Platform</div>
-        </div>
-        <div class="doc-title">
-            <h1>Quotation #{{ $quotation->quotation_no }}</h1>
-            <p>Generated: {{ now()->format('M d, Y  H:i') }}</p>
-        </div>
+        <table>
+            <tr>
+                <td>
+                    @if(file_exists(public_path('images/logo.png')))
+                        <img src="{{ public_path('images/logo.png') }}" class="logo-img" alt="Qimta">
+                    @else
+                        <div class="company-name">Qimta</div>
+                    @endif
+                    <div class="company-sub">Construction &amp; MEP Supply Platform</div>
+                </td>
+                <td style="text-align:right;">
+                    <div class="doc-title">
+                        <h1>Quotation #{{ $quotation->quotation_no }}</h1>
+                        <p>Generated: {{ now()->format('M d, Y  H:i') }}</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     {{-- ── Meta strip ── --}}
     @php
         $sv = $quotation->status->value ?? 'draft';
+        $statusLabel = match($sv) {
+            'draft' => 'Draft',
+            'submitted' => 'Submitted',
+            'tender' => 'Tender',
+            'in_review' => 'In Review',
+            'quoted' => 'Quoted',
+            'accepted' => 'Accepted',
+            'rejected' => 'Rejected',
+            'cancelled' => 'Cancelled',
+            default => ucfirst($sv),
+        };
     @endphp
     <div class="meta">
-        <div class="meta-cell">
-            <div class="meta-label">Project</div>
-            <div class="meta-value">{{ $quotation->project_name ?: '—' }}</div>
-        </div>
-        <div class="meta-cell">
-            <div class="meta-label">Client</div>
-            <div class="meta-value">{{ $quotation->client?->name ?? '—' }}</div>
-        </div>
-        <div class="meta-cell">
-            <div class="meta-label">Date</div>
-            <div class="meta-value">{{ $quotation->created_at->format('M d, Y') }}</div>
-        </div>
-        <div class="meta-cell">
-            <div class="meta-label">Status</div>
-            <div class="meta-value">
-                <span class="status-badge status-{{ $sv }}">{{ $quotation->status->label() }}</span>
-            </div>
-        </div>
+        <table>
+            <tr>
+                <td>
+                    <div class="meta-label">Project</div>
+                    <div class="meta-value">{{ $quotation->project_name ?: '—' }}</div>
+                </td>
+                <td>
+                    <div class="meta-label">Client</div>
+                    <div class="meta-value">{{ $quotation->client?->name ?? '—' }}</div>
+                </td>
+                <td>
+                    <div class="meta-label">Date</div>
+                    <div class="meta-value">{{ $quotation->created_at->format('M d, Y') }}</div>
+                </td>
+                <td>
+                    <div class="meta-label">Status</div>
+                    <div class="meta-value">
+                        <span class="status-badge status-{{ $sv }}">{{ $statusLabel }}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     {{-- ── Items section ── --}}
@@ -184,26 +229,61 @@
 
     {{-- ── Totals ── --}}
     <div class="totals-wrap">
-        <div class="totals-box">
-            <div class="totals-row">
-                <span class="totals-label">Subtotal (selected items)</span>
-                <span class="totals-val">{{ number_format($subtotal, 2) }} SAR</span>
-            </div>
-            <div class="totals-row">
-                <span class="totals-label">Tax / VAT (15%)</span>
-                <span class="totals-val">{{ number_format($tax, 2) }} SAR</span>
-            </div>
-            <div class="totals-row totals-grand">
-                <span class="totals-label">Grand Total</span>
-                <span class="totals-val">{{ number_format($grand, 2) }} SAR</span>
-            </div>
-        </div>
+        <table class="totals-table">
+            <tr>
+                <td class="label">Subtotal (selected items)</td>
+                <td class="val">{{ number_format($subtotal, 2) }} SAR</td>
+            </tr>
+            <tr>
+                <td class="label">Tax / VAT (15%)</td>
+                <td class="val">{{ number_format($tax, 2) }} SAR</td>
+            </tr>
+            <tr class="grand">
+                <td class="label">Grand Total</td>
+                <td class="val">{{ number_format($grand, 2) }} SAR</td>
+            </tr>
+        </table>
+    </div>
+
+    {{-- ── Terms & Conditions ── --}}
+    <div class="terms">
+        <div class="terms-title">4. Terms &amp; Conditions</div>
+        <div class="terms-line"></div>
+        <ol class="terms-list">
+            <li>Prices are quoted in Saudi Riyals (SAR) and are exclusive of VAT unless stated otherwise.</li>
+            <li>This quotation is valid for 30 days from the date of issue.</li>
+            <li>Payment terms: 50% advance, 50% upon delivery, unless otherwise agreed.</li>
+            <li>Delivery schedule is subject to confirmation upon receipt of purchase order.</li>
+            <li>All materials comply with project specifications and Saudi building codes.</li>
+            <li>Warranty as per manufacturer standards unless otherwise specified.</li>
+            <li>Qimta reserves the right to revise pricing if project scope changes.</li>
+        </ol>
+    </div>
+
+    {{-- ── Authorization ── --}}
+    <div class="auth">
+        <div class="auth-title">5. Authorization</div>
+        <div class="auth-line"></div>
+        <table class="auth-table">
+            <tr>
+                <td>
+                    <div class="auth-label">Prepared By:</div>
+                    <br><br><br>
+                    <div class="auth-hint">Name / Signature / Date</div>
+                </td>
+                <td>
+                    <div class="auth-label">Approved By (Client):</div>
+                    <br><br><br>
+                    <div class="auth-hint">Name / Signature / Date / Stamp</div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     {{-- ── Footer ── --}}
     <div class="footer">
         <span class="footer-note">Qimta Platform — {{ config('app.url') }}</span>
-        <span class="footer-note">This document is system-generated and does not require a signature.</span>
+        <span class="footer-note footer-right">This document is system-generated and does not require a signature.</span>
     </div>
 
 </body>

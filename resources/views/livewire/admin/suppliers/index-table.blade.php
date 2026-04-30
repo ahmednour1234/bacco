@@ -3,16 +3,37 @@
     <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
             {{-- Search --}}
-            <div class="relative">
-                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('app.search_suppliers') }}"
-                    class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 sm:w-64">
+            <div class="relative w-full sm:w-80">
+                <div class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </span>
+                    <input
+                        wire:model.live.debounce.300ms="search"
+                        type="text"
+                        placeholder="{{ __('app.search_suppliers') }}"
+                        class="h-8 w-full border-0 bg-transparent p-0 text-sm text-slate-900 placeholder-slate-400 outline-none focus:ring-0"
+                    >
+
+                    @if($search !== '')
+                        <button
+                            type="button"
+                            wire:click="$set('search', '')"
+                            class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                            aria-label="Clear search"
+                        >
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    @endif
+                </div>
             </div>
 
             {{-- Status filter --}}
-            <select wire:model.live="statusFilter"
+            <select wire:model.live="status"
                 class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                 <option value="">{{ __('app.all_status') }}</option>
                 <option value="active">{{ __('app.status_active') }}</option>
@@ -41,30 +62,30 @@
     {{-- Table --}}
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100">
+            <table class="w-full table-fixed divide-y divide-slate-100">
                 <thead>
                     <tr class="bg-slate-50">
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.supplier_name') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.company') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.contact') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.products') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.activity') }}</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
-                        <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
+                        <th class="w-[16%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.supplier_name') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.company') }}</th>
+                        <th class="w-[20%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.contact') }}</th>
+                        <th class="w-[8%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.products') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.activity') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($suppliers as $supplier)
                         <tr class="group transition hover:bg-slate-50/60">
                             {{-- Name --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-xs font-bold text-indigo-600">
                                         {{ strtoupper(substr($supplier->name, 0, 2)) }}
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-semibold text-slate-900">{{ $supplier->name }}</p>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-semibold text-slate-900 truncate">{{ $supplier->name }}</p>
                                         @if($supplier->supplierProfile?->division)
                                             <p class="text-xs text-slate-400">{{ $supplier->supplierProfile->division }}</p>
                                         @endif
@@ -73,8 +94,8 @@
                             </td>
 
                             {{-- Company --}}
-                            <td class="whitespace-nowrap px-5 py-4">
-                                <span class="text-sm text-slate-700">{{ $supplier->supplierProfile?->company_name ?: '—' }}</span>
+                            <td class="px-5 py-4">
+                                <span class="text-sm text-slate-700 truncate block">{{ $supplier->supplierProfile?->company_name ?: '—' }}</span>
                             </td>
 
                             {{-- Contact --}}
@@ -86,14 +107,14 @@
                             </td>
 
                             {{-- Products --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 <span class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
                                     {{ $supplier->supplier_products_count }}
                                 </span>
                             </td>
 
                             {{-- Status --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 @if($supplier->active)
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.status_active') }}
@@ -106,17 +127,17 @@
                             </td>
 
                             {{-- Activity --}}
-                            <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-400">
+                            <td class="px-5 py-4 text-xs text-slate-400">
                                 {{ $supplier->updated_at?->diffForHumans() }}
                             </td>
 
                             {{-- Created --}}
-                            <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-400">
+                            <td class="px-5 py-4 text-xs text-slate-400">
                                 {{ $supplier->created_at?->format('M j, Y') }}
                             </td>
 
                             {{-- Actions --}}
-                            <td class="whitespace-nowrap px-5 py-4">
+                            <td class="px-5 py-4">
                                 <div class="flex items-center justify-end gap-1.5">
                                     {{-- View --}}
                                     <a href="{{ route('admin.suppliers.show', $supplier->uuid) }}" wire:navigate

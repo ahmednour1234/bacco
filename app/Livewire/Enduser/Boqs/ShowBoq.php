@@ -80,6 +80,21 @@ class ShowBoq extends Component
         }
     }
 
+    public function approveAll(): void
+    {
+        $ids = [];
+        foreach ($this->items as $index => $item) {
+            if (($item['status'] ?? '') !== 'rejected') {
+                $this->items[$index]['status'] = 'sourcing';
+                $ids[] = $item['id'];
+            }
+        }
+        if (! empty($ids)) {
+            BoqItem::whereIn('id', $ids)->update(['status' => 'sourcing']);
+        }
+        $this->dispatch('toast', message: 'All items approved successfully.', type: 'success');
+    }
+
     // -------------------------------------------------------------------------
     // Inline item editing
     // -------------------------------------------------------------------------

@@ -16,11 +16,7 @@ class DashboardController extends Controller
     public function index(): View
     {
         $totalQuotations = QuotationRequest::count();
-        $activeOrders    = Order::whereNotIn('status', [
-            OrderStatusEnum::Completed->value,
-            OrderStatusEnum::Cancelled->value,
-            OrderStatusEnum::Refunded->value,
-        ])->count();
+        $activeOrders    = Order::where('status', OrderStatusEnum::Open->value)->count();
         $totalClients    = User::where('user_type', UserTypeEnum::Client->value)->count();
         $activeProjects  = Project::where('status', 'active')->count();
 

@@ -47,10 +47,14 @@
     >
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-200">
-            <div class="flex items-center justify-center w-9 h-9 bg-emerald-600 rounded-lg shrink-0">
-                <img src="{{ asset('SVG.png') }}" alt="Qimta" class="h-5 w-5 object-contain brightness-0 invert">
-            </div>
-            <span class="text-slate-900 text-lg font-bold tracking-tight">Qimta</span>
+            @if(file_exists(public_path('images/logo.png')))
+                <img src="{{ asset('images/logo.png') }}" alt="Qimta" class="h-9 object-contain">
+            @else
+                <div class="flex items-center justify-center w-9 h-9 bg-emerald-600 rounded-lg shrink-0">
+                    <img src="{{ asset('SVG.png') }}" alt="Qimta" class="h-5 w-5 object-contain brightness-0 invert">
+                </div>
+                <span class="text-slate-900 text-lg font-bold tracking-tight">Qimta</span>
+            @endif
         </div>
 
         {{-- Navigation --}}
@@ -121,7 +125,7 @@
             </a>
 
             {{-- Reports --}}
-            <a href="{{ route('enduser.reports.index') }}"
+            <a href="{{ route('enduser.reports.index') }}" wire:navigate
                class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
                       {{ request()->routeIs('enduser.reports*')
                             ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
@@ -218,22 +222,35 @@
                 {{-- Right actions --}}
                 <div class="flex items-center gap-2 sm:gap-3">
 
-                    {{-- Language Flag Toggle --}}
-                    @if(app()->getLocale() === 'ar')
-                        <a href="{{ route('locale.switch', 'en') }}"
-                           title="Switch to English"
-                           class="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
-                           style="font-size: 1.5rem; line-height: 1;">
-                            🇬🇧
-                        </a>
-                    @else
-                        <a href="{{ route('locale.switch', 'ar') }}"
-                           title="التبديل إلى العربية"
-                           class="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
-                           style="font-size: 1.5rem; line-height: 1;">
-                            🇸🇦
-                        </a>
-                    @endif
+                    {{-- Language Switcher --}}
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-slate-600
+                                       hover:bg-slate-100 rounded-lg transition-colors">
+                            <span>{{ app()->getLocale() === 'ar' ? '🇸🇦' : '🇺🇸' }}</span>
+                            <span class="hidden sm:inline text-xs font-medium uppercase">{{ app()->getLocale() }}</span>
+                            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-cloak @click.outside="open = false"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} top-full mt-2 w-36 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-50">
+                            <a href="{{ route('locale.switch', 'en') }}"
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm {{ app()->getLocale() === 'en' ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-700 hover:bg-slate-50' }} transition-colors">
+                                <span>🇺🇸</span> {{ __('app.english') }}
+                            </a>
+                            <a href="{{ route('locale.switch', 'ar') }}"
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-sm {{ app()->getLocale() === 'ar' ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-700 hover:bg-slate-50' }} transition-colors">
+                                <span>🇸🇦</span> {{ __('app.arabic') }}
+                            </a>
+                        </div>
+                    </div>
 
                     {{-- Notifications --}}
                     @livewire('notification-dropdown')
@@ -323,5 +340,150 @@
 
     @livewireScripts
     @stack('scripts')
+
+    {{-- ── Persistent background-job pill (survives wire:navigate) ── --}}
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('bgJob', { active: false, done: null }); // null | 'success' | 'failed' | 'no_items'
+        });
+
+        /* Poll /boqs/draft-status every 4s while the pill is visible */
+        let _bgPollTimer = null;
+        function _bgPollStart() {
+            if (_bgPollTimer) return;
+            _bgPollTimer = setInterval(async () => {
+                if (!window.Alpine || !Alpine.store('bgJob').active) {
+                    _bgPollStop();
+                    return;
+                }
+                try {
+                    const res  = await fetch('{{ route('enduser.boqs.draft-status') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const data = await res.json();
+                    const onCreatePage = window.location.pathname.includes('/boqs/create');
+
+                    if (data.ai_status === 'done' || data.items_count > 0) {
+                        _bgPollStop();
+                        Alpine.store('bgJob').active = false;
+                        if (!onCreatePage) Alpine.store('bgJob').done = 'success';
+                    } else if (data.ai_status === 'failed' || data.ai_status === 'no_items') {
+                        _bgPollStop();
+                        Alpine.store('bgJob').active = false;
+                        if (!onCreatePage) Alpine.store('bgJob').done = data.ai_status;
+                    }
+                } catch (e) { /* ignore network errors */ }
+            }, 4000);
+        }
+        function _bgPollStop() {
+            clearInterval(_bgPollTimer);
+            _bgPollTimer = null;
+        }
+
+        document.addEventListener('alpine:initialized', () => {
+            Alpine.effect(() => {
+                Alpine.store('bgJob').active ? _bgPollStart() : _bgPollStop();
+            });
+        });
+    </script>
+
+    <div
+        x-data="{ isAr: document.documentElement.dir === 'rtl' }"
+        x-show="$store.bgJob.active"
+        x-cloak
+        x-on:boq-upload-done.window="$store.bgJob.active = false"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-2"
+        style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;pointer-events:auto;"
+    >
+        <div
+            style="background:#0f172a;color:#fff;border-radius:99px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.25);white-space:nowrap;"
+        >
+            {{-- Clickable area → navigate back to BOQ create (resumes latest draft) --}}
+            <a
+                href="{{ route('enduser.boqs.create') }}?resume=1"
+                wire:navigate
+                style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;"
+            >
+                <svg style="width:14px;height:14px;animation:gcw_pill 1.2s linear infinite;flex-shrink:0;" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="3" stroke-dasharray="40 20" stroke-linecap="round"/>
+                </svg>
+                <span x-text="isAr ? 'العملية جارية… اضغط للرجوع' : 'Processing… tap to return'"></span>
+            </a>
+            <button
+                @click.stop="$store.bgJob.active = false"
+                style="margin-inline-start:6px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;flex-shrink:0;"
+            >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <style>@keyframes gcw_pill { to { transform: rotate(360deg); } }</style>
+
+    {{-- ── BOQ done popup (shows on any page when processing completes) ── --}}
+    <div
+        x-data="{ isAr: document.documentElement.dir === 'rtl' }"
+        x-show="$store.bgJob.done !== null"
+        x-cloak
+        x-on:boq-upload-done.window="if (!window.location.pathname.includes('/boqs/create')) $store.bgJob.done = 'success'"
+        x-on:boq-resume-done.window="$store.bgJob.active = false; $store.bgJob.done = null"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999999;pointer-events:none;"
+    >
+        <div
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            style="pointer-events:auto;background:#fff;border-radius:24px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,0.18);text-align:center;max-width:380px;width:90%;"
+        >
+            {{-- Success --}}
+            <template x-if="$store.bgJob.done === 'success'">
+                <div>
+                    <div style="width:56px;height:56px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                        <svg width="28" height="28" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'اكتملت المعالجة بنجاح' : 'Processing Complete'"></p>
+                    <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'تم استخراج العناصر بنجاح، اضغط لمراجعتها' : 'Items extracted. Tap to review.'"></p>
+                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#10b981;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'عرض البيانات ←' : '→ View Data'"></a>
+                </div>
+            </template>
+
+            {{-- Failed --}}
+            <template x-if="$store.bgJob.done === 'failed'">
+                <div>
+                    <div style="width:56px;height:56px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                        <svg width="28" height="28" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/><circle cx="12" cy="12" r="10"/></svg>
+                    </div>
+                    <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'حدثت مشكلة أثناء المعالجة' : 'Processing Failed'"></p>
+                    <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'فشل استخراج العناصر. يمكنك إضافتها يدوياً أو إعادة المحاولة.' : 'Item extraction failed. You can add items manually or retry.'"></p>
+                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#ef4444;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'الرجوع وإضافة يدوياً ←' : '→ Add Manually'"></a>
+                </div>
+            </template>
+
+            {{-- No items --}}
+            <template x-if="$store.bgJob.done === 'no_items'">
+                <div>
+                    <div style="width:56px;height:56px;border-radius:50%;background:#fef9c3;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                        <svg width="28" height="28" fill="none" stroke="#ca8a04" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/><circle cx="12" cy="12" r="10"/></svg>
+                    </div>
+                    <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'لم يتم استخراج عناصر' : 'No Items Found'"></p>
+                    <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'لم يتمكن الذكاء الاصطناعي من قراءة الملف. يمكنك إضافة العناصر يدوياً.' : 'The AI could not read the file. Add items manually.'"></p>
+                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#f59e0b;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'إضافة يدوياً ←' : '→ Add Manually'"></a>
+                </div>
+            </template>
+
+            <button @click="$store.bgJob.done = null" style="margin-top:12px;width:100%;background:transparent;color:#94a3b8;border:none;font-size:0.8rem;cursor:pointer;font-family:'Cairo',sans-serif;" x-text="isAr ? 'إغلاق' : 'Dismiss'"></button>
+        </div>
+    </div>
+
 </body>
 </html>

@@ -27,6 +27,12 @@ class IndexTable extends Component
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'status']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $query = User::with('supplierProfile')
