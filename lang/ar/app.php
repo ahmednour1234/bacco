@@ -773,6 +773,21 @@ return [
     'no_users_found'                => 'لا يوجد مستخدمون',
     'no_boqs_found'                 => 'لا توجد جداول كميات',
 
+    // Articles
+    'articles'                      => 'المقالات',
+    'add_article'                   => 'إضافة مقال',
+    'manage_articles_desc'          => 'إدارة المقالات والمحتوى بلغتين.',
+    'search_articles'               => 'البحث في المقالات…',
+    'no_articles_found'             => 'لا توجد مقالات.',
+    'update_article'                => 'تحديث المقال',
+    'create_article'                => 'إنشاء مقال',
+    'name_en'                       => 'الاسم (بالإنجليزية)',
+    'name_ar'                       => 'الاسم (بالعربية)',
+    'title_en'                      => 'العنوان (بالإنجليزية)',
+    'title_ar'                      => 'العنوان (بالعربية)',
+    'desc_en'                       => 'الوصف (بالإنجليزية)',
+    'desc_ar'                       => 'الوصف (بالعربية)',
+
     // Excel Import
     'import_excel'                  => 'استيراد من Excel',
     'download_template'             => 'تحميل القالب',

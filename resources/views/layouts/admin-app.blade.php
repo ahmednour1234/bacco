@@ -203,6 +203,19 @@
                 <span>{{ __('app.users') }}</span>
             </a>
 
+            {{-- Articles --}}
+            <a href="{{ route('admin.articles.index') }}" wire:navigate
+               class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                      {{ request()->routeIs('admin.articles*')
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v10a2 2 0 01-2 2zM12 11v6M9 14h6"/>
+                </svg>
+                <span>{{ __('app.articles') }}</span>
+            </a>
+
             {{-- Profile --}}
 
 

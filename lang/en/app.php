@@ -777,6 +777,21 @@ return [
     'no_users_found'                => 'No users found',
     'no_boqs_found'                 => 'No BOQs found',
 
+    // Articles
+    'articles'                      => 'Articles',
+    'add_article'                   => 'Add Article',
+    'manage_articles_desc'          => 'Manage bilingual articles and content.',
+    'search_articles'               => 'Search articles…',
+    'no_articles_found'             => 'No articles found.',
+    'update_article'                => 'Update Article',
+    'create_article'                => 'Create Article',
+    'name_en'                       => 'Name (English)',
+    'name_ar'                       => 'Name (Arabic)',
+    'title_en'                      => 'Title (English)',
+    'title_ar'                      => 'Title (Arabic)',
+    'desc_en'                       => 'Description (English)',
+    'desc_ar'                       => 'Description (Arabic)',
+
     // Excel Import
     'import_excel'                  => 'Import Excel',
     'download_template'             => 'Download Template',

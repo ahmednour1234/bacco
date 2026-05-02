@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\BoqController as AdminBoqController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
@@ -28,6 +29,37 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+Route::get('/contact', function () {
+    return view('contact');
+})->name('contact');
+
+Route::get('/privacy-policy', function () {
+    return view('privacy');
+})->name('privacy');
+
+Route::get('/security', function () {
+    return view('security');
+})->name('security');
+
+Route::get('/support', function () {
+    return view('support');
+})->name('support');
+
+Route::get('/terms', function () {
+    return view('terms');
+})->name('terms');
+
+Route::get('/cookie-policy', function () {
+    return view('cookie');
+})->name('cookie');
+
+Route::get('/news', [App\Http\Controllers\NewsController::class, 'index'])->name('news');
+Route::get('/news/{uuid}', [App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
 
 // ─── Language Switch ──────────────────────────────────────────────────────────
 Route::get('/locale/{locale}', function (string $locale) {
@@ -154,6 +186,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Users
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+
+        // Articles
+        Route::resource('articles', AdminArticleController::class)->except(['show', 'store', 'update']);
     });
 });
 
