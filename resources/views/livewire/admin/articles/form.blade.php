@@ -444,25 +444,32 @@ function articleForm() {
         },
 
         _insertMediaFile(lang, file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const src = e.target.result;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+            fetch('{{ route("admin.articles.upload-media") }}', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Upload failed');
+                return res.json();
+            })
+            .then(data => {
                 let html = '';
-
                 if (file.type.startsWith('image/')) {
-                    html = `<img src="${src}" alt="${file.name}" style="max-width:100%;border-radius:8px;margin:8px 0;">`;
+                    html = `<img src="${data.url}" alt="${file.name}" style="max-width:100%;border-radius:8px;margin:8px 0;">`;
                 } else if (file.type.startsWith('video/')) {
-                    html = `<video src="${src}" controls style="max-width:100%;border-radius:8px;margin:8px 0;"></video>`;
-                } else {
-                    alert('Unsupported file type. Please use an image or video.');
-                    return;
+                    html = `<video src="${data.url}" controls style="max-width:100%;border-radius:8px;margin:8px 0;"></video>`;
                 }
-
                 this._restoreRange(lang);
                 document.execCommand('insertHTML', false, html);
                 lang === 'en' ? this.syncEn() : this.syncAr();
-            };
-            reader.readAsDataURL(file);
+            })
+            .catch(() => {
+                alert('Media upload failed. Please try again.');
+            });
         },
 
         syncEn() {

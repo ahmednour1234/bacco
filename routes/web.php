@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\Catalog\CatalogImportController;
+use App\Http\Controllers\Admin\Catalog\CatalogProductController as CatalogProductListController;
 use App\Http\Controllers\Enduser\BoqController as EnduserBoqController;
 use App\Http\Controllers\Enduser\OrderController as EnduserOrderController;
 use App\Http\Controllers\Enduser\AuthController as EnduserAuthController;
@@ -33,6 +35,10 @@ Route::get('/', function () {
 Route::get('/about', function () {
     return view('about');
 })->name('about');
+
+// ─── Public Catalog ───────────────────────────────────────────────────────────
+Route::get('/catalog', [\App\Http\Controllers\CatalogController::class, 'index'])->name('catalog.index');
+Route::get('/catalog/{slug}', [\App\Http\Controllers\CatalogController::class, 'show'])->name('catalog.division');
 
 Route::get('/contact', function () {
     return view('contact');
@@ -189,6 +195,22 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Articles
         Route::resource('articles', AdminArticleController::class)->except(['show', 'store', 'update']);
+        Route::post('/articles/upload-media', [AdminArticleController::class, 'uploadMedia'])->name('articles.upload-media');
+
+        // ── Product Catalog (separate MySQL DB) ──────────────────────────────
+        Route::prefix('catalog')->name('catalog.')->group(function () {
+            // Imports
+            Route::get('imports',               [CatalogImportController::class, 'index'])->name('imports.index');
+            Route::get('imports/create',        [CatalogImportController::class, 'create'])->name('imports.create');
+            Route::post('imports',              [CatalogImportController::class, 'store'])->name('imports.store');
+            Route::get('imports/{id}',          [CatalogImportController::class, 'show'])->name('imports.show');
+            Route::get('imports/{id}/failed',   [CatalogImportController::class, 'failedRows'])->name('imports.failed-rows');
+            Route::get('imports/{id}/progress', [CatalogImportController::class, 'progress'])->name('imports.progress');
+            Route::post('queue/run',              [CatalogImportController::class, 'runQueue'])->name('queue.run');
+
+            // Products
+            Route::get('products', [CatalogProductListController::class, 'index'])->name('products.index');
+        });
     });
 });
 

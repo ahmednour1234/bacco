@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @php
     $isAr  = app()->getLocale() === 'ar';
@@ -16,192 +16,224 @@
 @section('title', $title)
 
 @section('content')
-<div style="background:#f8f9fa; min-height:100vh;" dir="{{ $dir }}">
+<div class="ns-page" dir="{{ $dir }}">
 
     {{-- ── Breadcrumb ──────────────────────────────────────────────────── --}}
-    <div style="background:#fff; border-bottom:1px solid #eee; padding:10px 0;">
-        <div style="max-width:860px; margin:0 auto; padding:0 24px;">
-            <nav style="font-size:13px; color:#888; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                <a href="{{ url('/') }}" style="color:#888; text-decoration:none;">{{ $isAr ? 'الرئيسية' : 'Home' }}</a>
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="{{ $isAr ? 'transform:scaleX(-1)' : '' }}"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                <a href="{{ route('news') }}" style="color:#888; text-decoration:none;">{{ $isAr ? 'الأخبار' : 'News' }}</a>
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="{{ $isAr ? 'transform:scaleX(-1)' : '' }}"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                <span style="color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:280px;">{{ $title }}</span>
+    <div class="ns-breadcrumb-bar">
+        <div class="ns-container">
+            <nav class="ns-breadcrumb">
+                <a href="{{ url('/') }}">{{ $isAr ? 'الرئيسية' : 'HOME' }}</a>
+                <span class="ns-bc-sep">›</span>
+                <a href="{{ route('news') }}">{{ $isAr ? 'الأخبار' : 'NEWS' }}</a>
+                <span class="ns-bc-sep">›</span>
+                <a href="{{ route('news', ['category' => $article->name_en]) }}">{{ strtoupper($cat) }}</a>
+                <span class="ns-bc-sep">›</span>
+                <span class="ns-bc-current">{{ strtoupper($title) }}</span>
             </nav>
         </div>
     </div>
 
-    {{-- ── Article ──────────────────────────────────────────────────────── --}}
-    <div style="max-width:860px; margin:0 auto; padding:48px 24px 80px;">
+    {{-- ── Two-column layout ────────────────────────────────────────────── --}}
+    <div class="ns-container ns-layout">
 
-        {{-- Header --}}
-        <div style="margin-bottom:32px;">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-                <a href="{{ route('news', ['category' => $article->name_en]) }}"
-                   style="background:#006A3B; color:#fff; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:5px 12px; border-radius:5px; text-decoration:none;">
-                    {{ $cat }}
-                </a>
-                <span style="background:#f0f0f0; color:#666; font-size:11px; font-weight:600; padding:5px 12px; border-radius:5px; letter-spacing:.05em;">
-                    EN | AR
-                </span>
+        {{-- ════ Main Column ════ --}}
+        <main class="ns-main">
+
+            {{-- Category badge --}}
+            <div class="ns-badge-row">
+                <a href="{{ route('news', ['category' => $article->name_en]) }}" class="ns-badge">{{ strtoupper($cat) }}</a>
             </div>
 
-            <h1 style="font-size:clamp(1.5rem,4vw,2.4rem); font-weight:800; color:#111; margin:0 0 16px; line-height:1.2; font-family:'Cairo',sans-serif;">
-                {{ $title }}
-            </h1>
+            {{-- Title --}}
+            <h1 class="ns-title">{{ $title }}</h1>
 
-            <div style="display:flex; align-items:center; gap:20px; font-size:13px; color:#888; padding-bottom:24px; border-bottom:1px solid #eee; flex-wrap:wrap;">
-                <span style="display:flex; align-items:center; gap:5px;">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    {{ $article->created_at->format('d M Y') }}
+            {{-- Meta --}}
+            <div class="ns-meta">
+                <span class="ns-meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    {{ strtoupper($cat) }}
                 </span>
-                <span style="display:flex; align-items:center; gap:5px;">
+                <span class="ns-meta-dot">•</span>
+                <span class="ns-meta-item">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     {{ readTimeShow($desc) }} {{ $isAr ? 'دقيقة قراءة' : 'min read' }}
                 </span>
-                {{-- Language toggle --}}
-                <div style="display:flex; align-items:center; gap:6px; margin-{{ $isAr ? 'right' : 'left' }}:auto;">
-                    <a href="{{ route('locale.switch', 'en') }}"
-                       style="font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; text-decoration:none; transition:.15s;
-                              {{ !$isAr ? 'background:#006A3B;color:#fff;' : 'background:#f0f0f0;color:#555;' }}">EN</a>
-                    <a href="{{ route('locale.switch', 'ar') }}"
-                       style="font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; text-decoration:none; transition:.15s;
-                              {{ $isAr ? 'background:#006A3B;color:#fff;' : 'background:#f0f0f0;color:#555;' }}">AR</a>
+                <span class="ns-meta-dot">•</span>
+                <span class="ns-meta-item">Qimta {{ $isAr ? 'الفريق' : 'Team' }}</span>
+                <div class="ns-lang-toggle" style="{{ $isAr ? 'margin-right:auto' : 'margin-left:auto' }}">
+                    <a href="{{ route('locale.switch', 'en') }}" class="ns-lang {{ !$isAr ? 'active' : '' }}">EN</a>
+                    <a href="{{ route('locale.switch', 'ar') }}" class="ns-lang {{ $isAr ? 'active' : '' }}">AR</a>
                 </div>
             </div>
-        </div>
 
-        {{-- Featured image --}}
-        @if($article->image)
-        <div style="margin-bottom:32px; border-radius:16px; overflow:hidden; max-height:420px;">
-            <img src="{{ Storage::url($article->image) }}" alt="{{ $title }}"
-                 style="width:100%; height:420px; object-fit:cover; display:block;">
-        </div>
-        @endif
-
-        {{-- Article body --}}
-        <div class="article-content" dir="{{ $dir }}">
-            {!! $desc !!}
-        </div>
-
-        {{-- Share --}}
-        <div style="margin-top:48px; padding:24px; background:#fff; border-radius:12px; border:1px solid #efefef; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
-            <p style="font-size:14px; font-weight:600; color:#333; margin:0;">
-                {{ $isAr ? 'شارك هذا المقال' : 'Share this article' }}
-            </p>
-            <div style="display:flex; gap:10px;">
-                <a href="https://twitter.com/intent/tweet?text={{ urlencode($title) }}&url={{ urlencode(url()->current()) }}"
-                   target="_blank" rel="noopener"
-                   style="padding:8px 16px; background:#1da1f2; color:#fff; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none;">Twitter / X</a>
-                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(url()->current()) }}"
-                   target="_blank" rel="noopener"
-                   style="padding:8px 16px; background:#0077b5; color:#fff; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none;">LinkedIn</a>
+            {{-- Hero image --}}
+            @if($article->image)
+            <div class="ns-hero">
+                <img src="{{ Storage::url($article->image) }}" alt="{{ $title }}" class="ns-hero-img">
+                <div class="ns-hero-overlay">
+                    <div class="ns-play-btn">
+                        <svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                </div>
             </div>
-        </div>
+            @endif
 
-        {{-- Related --}}
-        @if($related->count())
-        <div style="margin-top:56px;">
-            <h3 style="font-size:18px; font-weight:800; color:#111; margin:0 0 20px; font-family:'Cairo',sans-serif;">
-                {{ $isAr ? 'مقالات ذات صلة' : 'Related Articles' }}
-            </h3>
-            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px;">
-                @foreach($related as $rel)
-                <a href="{{ route('news.show', $rel->uuid) }}"
-                   style="display:block; text-decoration:none; border-radius:12px; background:#fff; overflow:hidden; border:1px solid #efefef; transition:transform .2s, box-shadow .2s;"
-                   onmouseenter="this.style.transform='translateY(-3px)';this.style.boxShadow='0 6px 20px rgba(0,0,0,.1)'"
-                   onmouseleave="this.style.transform='translateY(0)';this.style.boxShadow='none'">
-                    <div style="height:130px; background:linear-gradient(135deg,#0d1b2a,#1b263b); overflow:hidden;">
-                        @if($rel->image)
-                            <img src="{{ Storage::url($rel->image) }}" alt="" style="width:100%; height:100%; object-fit:cover;">
-                        @endif
-                    </div>
-                    <div style="padding:14px;">
-                        <h4 style="font-size:13px; font-weight:700; color:#111; margin:0 0 6px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                            {{ $isAr ? $rel->title_ar : $rel->title_en }}
-                        </h4>
-                        <p style="font-size:11px; color:#999; margin:0;">{{ $rel->created_at->format('d M Y') }}</p>
-                    </div>
+            {{-- Article body --}}
+            <div class="ns-article-body" dir="{{ $dir }}">
+                {!! $desc !!}
+            </div>
+
+            {{-- Share --}}
+            <div class="ns-share-bar">
+                <span class="ns-share-label">{{ $isAr ? 'شارك هذا المقال' : 'Share this article' }}</span>
+                <div class="ns-share-btns">
+                    <a href="https://twitter.com/intent/tweet?text={{ urlencode($title) }}&url={{ urlencode(url()->current()) }}"
+                       target="_blank" rel="noopener" class="ns-share-btn ns-share-x">Twitter / X</a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(url()->current()) }}"
+                       target="_blank" rel="noopener" class="ns-share-btn ns-share-li">LinkedIn</a>
+                </div>
+            </div>
+
+            {{-- Back link --}}
+            <div class="ns-back-row">
+                <a href="{{ route('news') }}" class="ns-back-link" style="{{ $isAr ? 'flex-direction:row-reverse' : '' }}">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"
+                         style="{{ $isAr ? 'transform:scaleX(-1)' : '' }}"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                    {{ $isAr ? 'العودة إلى الأخبار' : 'Back to News' }}
                 </a>
+            </div>
+
+        </main>
+
+        {{-- ════ Sidebar ════ --}}
+        <aside class="ns-sidebar">
+
+            {{-- Related Reading --}}
+            @if($related->count())
+            <div class="ns-sidebar-card">
+                <p class="ns-sidebar-heading">{{ $isAr ? 'قراءة ذات صلة' : 'Related Reading' }}</p>
+                @php $byCategory = $related->groupBy('name_en'); @endphp
+                @foreach($byCategory as $catName => $items)
+                <div class="ns-related-group">
+                    <span class="ns-related-cat-label">{{ $catName }}</span>
+                    @foreach($items as $rel)
+                    <a href="{{ route('news.show', $rel->uuid) }}" class="ns-related-link">
+                        {{ $isAr ? $rel->title_ar : $rel->title_en }}
+                    </a>
+                    @endforeach
+                </div>
                 @endforeach
             </div>
-        </div>
-        @endif
+            @endif
 
-        {{-- Back link --}}
-        <div style="margin-top:40px;">
-            <a href="{{ route('news') }}"
-               style="display:inline-flex; align-items:center; gap:6px; font-size:14px; color:#006A3B; text-decoration:none; font-weight:600;">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="{{ $isAr ? 'transform:scaleX(-1)' : '' }}"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-                {{ $isAr ? 'العودة إلى الأخبار' : 'Back to News' }}
-            </a>
-        </div>
+            {{-- CTA Card --}}
+            <div class="ns-cta-card">
+                <p class="ns-cta-heading">{{ $isAr ? 'هل أنت مستعد للأتمتة؟' : 'Ready to automate?' }}</p>
+                <p class="ns-cta-sub">{{ $isAr ? 'اختبر مستقبل المشتريات بمحرك الذكاء الاصطناعي.' : 'Experience the future of construction procurement with our AI-driven engine.' }}</p>
+                <a href="{{ route('news') }}" class="ns-cta-btn">
+                    {{ $isAr ? 'جرّب محرك التسعير' : 'Try the pricing engine' }}
+                </a>
+            </div>
+
+        </aside>
+
     </div>
 
 </div>
 
 <style>
-.article-content {
-    font-size: 16px;
-    line-height: 1.85;
-    color: #2d2d2d;
-    font-family: 'Cairo', sans-serif;
-}
-.article-content h1 { font-size: 2rem;  font-weight: 800; margin: 1.5rem 0 .75rem; color: #111; }
-.article-content h2 { font-size: 1.5rem; font-weight: 700; margin: 1.4rem 0 .65rem; color: #111; }
-.article-content h3 { font-size: 1.2rem; font-weight: 600; margin: 1.2rem 0 .55rem; color: #333; }
-.article-content h4 { font-size: 1rem;   font-weight: 600; margin: 1rem 0 .5rem;    color: #444; }
-.article-content p  { margin-bottom: 1rem; }
-.article-content ul { list-style: disc;    padding-left: 1.5rem; margin: .8rem 0; }
-.article-content ol { list-style: decimal; padding-left: 1.5rem; margin: .8rem 0; }
-.article-content li { margin-bottom: .4rem; }
-.article-content a  { color: #006A3B; text-decoration: underline; }
-.article-content a:hover { color: #004d2a; }
-.article-content strong, .article-content b { font-weight: 700; }
-.article-content em, .article-content i  { font-style: italic; }
-.article-content blockquote {
-    border-left: 4px solid #006A3B;
-    margin: 1.5rem 0;
-    padding: 12px 20px;
-    background: rgba(0,106,59,.05);
-    border-radius: 0 8px 8px 0;
-    font-style: italic;
-    color: #555;
-}
-.article-content pre {
-    background: #f4f4f4;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
-    overflow-x: auto;
-    font-family: monospace;
-    font-size: 14px;
-    margin: 1rem 0;
-}
-.article-content img {
-    max-width: 100%;
-    border-radius: 12px;
-    margin: 1.2rem 0;
-}
-.article-content video {
-    max-width: 100%;
-    border-radius: 12px;
-    margin: 1.2rem 0;
-}
-.article-content table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1rem 0;
-    font-size: 14px;
-}
-.article-content th, .article-content td {
-    border: 1px solid #e0e0e0;
-    padding: 10px 14px;
-    text-align: start;
-}
-.article-content th { background: #f8f9fa; font-weight: 700; }
-[dir="rtl"] .article-content ul,
-[dir="rtl"] .article-content ol { padding-left: 0; padding-right: 1.5rem; }
-[dir="rtl"] .article-content blockquote { border-left: none; border-right: 4px solid #006A3B; border-radius: 8px 0 0 8px; }
+.ns-page { background:#f7f7f5; min-height:100vh; font-family:'Cairo','Inter',sans-serif; }
+.ns-container { max-width:1100px; margin:0 auto; padding:0 28px; }
+
+/* Breadcrumb */
+.ns-breadcrumb-bar { background:#fff; border-bottom:1px solid #e8e8e5; padding:11px 0; }
+.ns-breadcrumb { display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:11px; font-weight:600; letter-spacing:.06em; color:#999; text-transform:uppercase; }
+.ns-breadcrumb a { color:#999; text-decoration:none; transition:color .15s; }
+.ns-breadcrumb a:hover { color:#006A3B; }
+.ns-bc-sep { color:#bbb; margin:0 2px; font-size:13px; }
+.ns-bc-current { color:#333; }
+
+/* Layout */
+.ns-layout { display:grid; grid-template-columns:1fr 300px; gap:40px; padding-top:36px; padding-bottom:80px; align-items:start; }
+@media(max-width:840px) { .ns-layout { grid-template-columns:1fr; } .ns-sidebar { order:-1; } }
+
+/* Badge */
+.ns-badge-row { margin-bottom:14px; }
+.ns-badge { display:inline-block; background:#006A3B; color:#fff; font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; padding:5px 13px; border-radius:5px; text-decoration:none; transition:background .15s; }
+.ns-badge:hover { background:#004d2a; }
+
+/* Title */
+.ns-title { font-size:clamp(1.55rem,3.5vw,2.2rem); font-weight:800; color:#111; line-height:1.25; margin:0 0 18px; font-family:'Cairo',sans-serif; }
+
+/* Meta */
+.ns-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; color:#888; padding-bottom:22px; border-bottom:1px solid #e8e8e5; margin-bottom:24px; }
+.ns-meta-item { display:flex; align-items:center; gap:5px; }
+.ns-meta-dot { color:#ccc; }
+.ns-lang-toggle { display:flex; gap:4px; }
+.ns-lang { font-size:12px; font-weight:600; padding:3px 11px; border-radius:20px; text-decoration:none; background:#efefef; color:#555; transition:background .15s,color .15s; }
+.ns-lang.active { background:#006A3B; color:#fff; }
+
+/* Hero */
+.ns-hero { position:relative; border-radius:14px; overflow:hidden; margin-bottom:32px; max-height:420px; background:#1b263b; box-shadow:0 4px 24px rgba(0,0,0,.1); }
+.ns-hero-img { width:100%; height:420px; object-fit:cover; display:block; }
+.ns-hero-overlay { position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.45) 0%,rgba(0,0,0,.1) 60%,transparent 100%); display:flex; align-items:center; justify-content:center; }
+.ns-play-btn { width:60px; height:60px; background:rgba(255,255,255,.18); border:2px solid rgba(255,255,255,.55); border-radius:50%; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px); cursor:pointer; transition:background .2s,transform .2s; }
+.ns-play-btn:hover { background:rgba(255,255,255,.28); transform:scale(1.08); }
+
+/* Article body */
+.ns-article-body { font-size:16px; line-height:1.9; color:#2d2d2d; font-family:'Cairo','Inter',sans-serif; }
+.ns-article-body h1 { font-size:1.9rem; font-weight:800; margin:2rem 0 .8rem; color:#111; }
+.ns-article-body h2 { font-size:1.4rem; font-weight:700; margin:1.8rem 0 .7rem; color:#111; border-bottom:1px solid #e8e8e5; padding-bottom:8px; }
+.ns-article-body h3 { font-size:1.15rem; font-weight:700; margin:1.5rem 0 .6rem; color:#1a1a1a; }
+.ns-article-body h4 { font-size:1rem; font-weight:600; margin:1.2rem 0 .5rem; color:#333; }
+.ns-article-body p  { margin-bottom:1.1rem; }
+.ns-article-body ul { list-style:disc; padding-left:1.6rem; margin:.8rem 0 1.1rem; }
+.ns-article-body ol { list-style:decimal; padding-left:1.6rem; margin:.8rem 0 1.1rem; }
+.ns-article-body li { margin-bottom:.45rem; }
+.ns-article-body a  { color:#006A3B; text-decoration:underline; }
+.ns-article-body a:hover { color:#004d2a; }
+.ns-article-body strong,.ns-article-body b { font-weight:700; }
+.ns-article-body em,.ns-article-body i { font-style:italic; }
+.ns-article-body blockquote { border-left:4px solid #006A3B; margin:1.8rem 0; padding:14px 20px; background:rgba(0,106,59,.05); border-radius:0 10px 10px 0; font-style:italic; color:#555; }
+.ns-article-body pre { background:#f4f4f4; border:1px solid #e0e0e0; border-radius:10px; padding:18px; overflow-x:auto; font-family:monospace; font-size:14px; margin:1.2rem 0; }
+.ns-article-body img  { max-width:100%; border-radius:12px; margin:1.2rem 0; }
+.ns-article-body video { max-width:100%; border-radius:12px; margin:1.2rem 0; }
+.ns-article-body table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:14px; }
+.ns-article-body th,.ns-article-body td { border:1px solid #e0e0e0; padding:10px 14px; text-align:start; }
+.ns-article-body th { background:#f8f9fa; font-weight:700; }
+[dir="rtl"] .ns-article-body ul,[dir="rtl"] .ns-article-body ol { padding-left:0; padding-right:1.6rem; }
+[dir="rtl"] .ns-article-body blockquote { border-left:none; border-right:4px solid #006A3B; border-radius:10px 0 0 10px; }
+
+/* Share */
+.ns-share-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-top:48px; padding:20px 24px; background:#fff; border-radius:12px; border:1px solid #e8e8e5; }
+.ns-share-label { font-size:14px; font-weight:600; color:#333; }
+.ns-share-btns { display:flex; gap:10px; }
+.ns-share-btn { padding:8px 18px; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none; transition:opacity .15s; }
+.ns-share-btn:hover { opacity:.85; }
+.ns-share-x  { background:#1a1a1a; color:#fff; }
+.ns-share-li { background:#0077b5; color:#fff; }
+
+/* Back */
+.ns-back-row { margin-top:32px; }
+.ns-back-link { display:inline-flex; align-items:center; gap:7px; font-size:14px; font-weight:600; color:#006A3B; text-decoration:none; transition:gap .15s; }
+.ns-back-link:hover { gap:11px; }
+
+/* Sidebar */
+.ns-sidebar { display:flex; flex-direction:column; gap:20px; position:sticky; top:88px; }
+.ns-sidebar-card { background:#fff; border:1px solid #e8e8e5; border-radius:14px; padding:20px; }
+.ns-sidebar-heading { font-size:12px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#999; margin-bottom:16px; }
+.ns-related-group { margin-bottom:18px; }
+.ns-related-group:last-child { margin-bottom:0; }
+.ns-related-cat-label { display:inline-block; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#006A3B; margin-bottom:8px; }
+.ns-related-link { display:block; font-size:13.5px; font-weight:600; color:#1a1a1a; line-height:1.45; margin-bottom:10px; text-decoration:none; transition:color .15s; }
+.ns-related-link:last-child { margin-bottom:0; }
+.ns-related-link:hover { color:#006A3B; }
+
+/* CTA */
+.ns-cta-card { background:#0d1b2a; border-radius:14px; padding:24px 20px; color:#fff; }
+.ns-cta-heading { font-size:17px; font-weight:800; margin-bottom:8px; line-height:1.3; }
+.ns-cta-sub { font-size:13px; color:rgba(255,255,255,.65); line-height:1.6; margin-bottom:18px; }
+.ns-cta-btn { display:block; text-align:center; background:#006A3B; color:#fff; font-size:13.5px; font-weight:700; padding:11px 18px; border-radius:9px; text-decoration:none; transition:background .15s; }
+.ns-cta-btn:hover { background:#005530; }
 </style>
 @endsection

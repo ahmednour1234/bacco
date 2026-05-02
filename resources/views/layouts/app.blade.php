@@ -148,7 +148,7 @@
             <div class="nav-links">
                 <a href="#">{{ __('welcome.nav.for_buyers') }}</a>
                 <a href="#">{{ __('welcome.nav.for_brands') }}</a>
-                <a href="#">{{ __('welcome.nav.catalog') }}</a>
+                <a href="{{ route('catalog.index') }}" class="{{ Route::is('catalog.*') ? 'active' : '' }}">{{ __('welcome.nav.catalog') }}</a>
                 <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
                 <a href="#">{{ __('welcome.nav.how_it_works') }}</a>
                 <a href="{{ route('about') }}" class="{{ Route::is('about') ? 'active' : '' }}">{{ __('welcome.nav.about') }}</a>
@@ -217,7 +217,7 @@
     <div class="mobile-menu" id="mobileMenu">
         <a href="#">{{ __('welcome.nav.for_buyers') }}</a>
         <a href="#">{{ __('welcome.nav.for_brands') }}</a>
-        <a href="#">{{ __('welcome.nav.catalog') }}</a>
+        <a href="{{ route('catalog.index') }}">{{ __('welcome.nav.catalog') }}</a>
         <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
         <a href="#">{{ __('welcome.nav.how_it_works') }}</a>
         <a href="{{ route('about') }}">{{ __('welcome.nav.about') }}</a>
