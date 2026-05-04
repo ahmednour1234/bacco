@@ -195,7 +195,7 @@
                 </a>
                 <div class="nav-divider"></div>
                 @auth
-                    <a href="{{ url('/dashboard') }}" class="btn btn-ghost">{{ __('welcome.nav.dashboard') }}</a>
+                    <a href="{{ route('enduser.dashboard') }}" class="btn btn-ghost">{{ __('welcome.nav.dashboard') }}</a>
                 @else
                     <a href="{{ route('enduser.register') }}" class="btn btn-ghost">Join</a>
                 @endauth
@@ -222,7 +222,7 @@
         <a href="{{ route('locale.switch', $switchLocale) }}">&#127760; {{ $switchLabel }}</a>
         <div class="mobile-actions">
             @auth
-                <a href="{{ url('/dashboard') }}" class="btn btn-outline">{{ __('welcome.nav.dashboard') }}</a>
+                <a href="{{ route('enduser.dashboard') }}" class="btn btn-outline">{{ __('welcome.nav.dashboard') }}</a>
             @else
                 <a href="{{ route('enduser.register') }}" class="btn btn-outline">Join</a>
             @endauth

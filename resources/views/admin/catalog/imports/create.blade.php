@@ -83,7 +83,8 @@
                 Cancel
             </a>
             <button type="submit"
-                    class="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-green-700 transition">
+                    class="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-green-700 transition"
+                    style="background:#16a34a;color:#fff;padding:8px 20px;border-radius:8px;font-weight:600;font-size:14px;border:none;cursor:pointer;">
                 Upload &amp; Queue
             </button>
         </div>

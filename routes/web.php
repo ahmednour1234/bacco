@@ -32,6 +32,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// ─── Generic /dashboard redirect → enduser dashboard ─────────────────────────
+Route::get('/dashboard', function () {
+    return redirect()->route('enduser.dashboard');
+});
+
 Route::get('/about', function () {
     return view('about');
 })->name('about');
