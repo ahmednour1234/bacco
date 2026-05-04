@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'For Brands & Manufacturers — Qimta')
+@section('title', __('for-brands.title'))
 
 @section('styles')
 <style>
@@ -197,15 +197,15 @@
 <div class="container">
     <div class="brands-hero">
         <div>
-            <div class="brands-hero-eyebrow">For Brands &amp; Manufacturers</div>
-            <h1>Get your products priced, purchased, and delivered — globally.</h1>
-            <p>Qimta acts as your global merchant partner, managing the complexity of international procurement while preserving your brand identity and technical integrity.</p>
+            <div class="brands-hero-eyebrow">{{ __('for-brands.hero.eyebrow') }}</div>
+            <h1>{{ __('for-brands.hero.h1') }}</h1>
+            <p>{{ __('for-brands.hero.sub') }}</p>
             <div class="hero-cta">
                 <a href="#apply" class="btn-primary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    Join Qimta as a Brand
+                    {{ __('for-brands.hero.cta_join') }}
                 </a>
-                <a href="{{ route('catalog.index') }}" class="btn-outline-dark">Browse Catalog</a>
+                <a href="{{ route('catalog.index') }}" class="btn-outline-dark">{{ __('for-brands.hero.cta_browse') }}</a>
             </div>
         </div>
         <div class="hero-img-wrap">
@@ -228,24 +228,24 @@
             }
         @endphp
         <div class="stat-cell">
-            <div class="s-label">Divisions</div>
+            <div class="s-label">{{ __('for-brands.stats.divisions_label') }}</div>
             <div class="s-val">{{ $divisions }}</div>
-            <div class="s-sub">Engineering verticals</div>
+            <div class="s-sub">{{ __('for-brands.stats.divisions_sub') }}</div>
         </div>
         <div class="stat-cell">
-            <div class="s-label">Categories</div>
+            <div class="s-label">{{ __('for-brands.stats.categories_label') }}</div>
             <div class="s-val">{{ number_format($categories) }}</div>
-            <div class="s-sub">Indexed product types</div>
+            <div class="s-sub">{{ __('for-brands.stats.categories_sub') }}</div>
         </div>
         <div class="stat-cell">
-            <div class="s-label">Products</div>
+            <div class="s-label">{{ __('for-brands.stats.products_label') }}</div>
             <div class="s-val">{{ number_format($products) }}</div>
-            <div class="s-sub">Live in catalog</div>
+            <div class="s-sub">{{ __('for-brands.stats.products_sub') }}</div>
         </div>
         <div class="stat-cell">
-            <div class="s-label">Specifications</div>
-            <div class="s-val">~1B</div>
-            <div class="s-sub">BOQ line items served</div>
+            <div class="s-label">{{ __('for-brands.stats.specs_label') }}</div>
+            <div class="s-val">{{ __('for-brands.stats.specs_val') }}</div>
+            <div class="s-sub">{{ __('for-brands.stats.specs_sub') }}</div>
         </div>
     </div>
 </div>
@@ -253,8 +253,8 @@
 {{-- ── THE QIMTA ADVANTAGE ──────────────────────────────────── --}}
 <div class="container">
     <div class="advantages-section">
-        <div class="section-eyebrow">Why Qimta</div>
-        <div class="section-title">The Qimta <span>Advantage</span></div>
+        <div class="section-eyebrow">{{ __('for-brands.adv.eyebrow') }}</div>
+        <div class="section-title">{{ __('for-brands.adv.title') }}<span>{{ __('for-brands.adv.highlight') }}</span></div>
         <div class="advantages-grid">
             <div class="adv-card">
                 <div class="adv-icon">
@@ -263,8 +263,8 @@
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
                 </div>
-                <h4>Aggregated Buyer Demand</h4>
-                <p>Access a global stream of verified buyer intent. We consolidate fragmented demand from massive construction projects, streamlining your sales funnel into high-volume purchase orders.</p>
+                <h4>{{ __('for-brands.adv.demand_title') }}</h4>
+                <p>{{ __('for-brands.adv.demand_desc') }}</p>
             </div>
             <div class="adv-card">
                 <div class="adv-icon">
@@ -272,8 +272,8 @@
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
                 </div>
-                <h4>Identity Preserved</h4>
-                <p>We don't white-label. Your brand stays front and center. Customers buy your engineering excellence, powered by our infrastructure.</p>
+                <h4>{{ __('for-brands.adv.identity_title') }}</h4>
+                <p>{{ __('for-brands.adv.identity_desc') }}</p>
             </div>
             <div class="adv-card">
                 <div class="adv-icon">
@@ -282,8 +282,8 @@
                         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                     </svg>
                 </div>
-                <h4>Product Visibility</h4>
-                <p>Real-time indexing into Bill of Quantities (BOQs) globally. Ensure your specs are the standard for every new project that comes through our platform.</p>
+                <h4>{{ __('for-brands.adv.visibility_title') }}</h4>
+                <p>{{ __('for-brands.adv.visibility_desc') }}</p>
             </div>
             <div class="adv-card">
                 <div class="adv-icon">
@@ -291,8 +291,8 @@
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                     </svg>
                 </div>
-                <h4>Transparent Purchase Path</h4>
-                <p>Full traceability from initial query to final payment. No hidden intermediaries — just a direct, efficient path from your warehouse to the global construction site.</p>
+                <h4>{{ __('for-brands.adv.path_title') }}</h4>
+                <p>{{ __('for-brands.adv.path_desc') }}</p>
             </div>
         </div>
     </div>
@@ -301,28 +301,28 @@
 {{-- ── HOW IT WORKS ─────────────────────────────────────────── --}}
 <div class="container">
     <div class="how-section">
-        <div class="section-eyebrow">Engineered Fulfillment</div>
-        <div class="section-title">How Qimta integrates your<br>products into the global workflow.</div>
+        <div class="section-eyebrow">{{ __('for-brands.how.eyebrow') }}</div>
+        <div class="section-title">{{ __('for-brands.how.title') }}</div>
         <div class="how-steps">
             <div class="how-step">
                 <div class="step-num">1</div>
-                <h5>Data Submission</h5>
-                <p>Submit technical catalogs, price lists, and compliance certifications via our secure API or portal.</p>
+                <h5>{{ __('for-brands.how.step1_title') }}</h5>
+                <p>{{ __('for-brands.how.step1_desc') }}</p>
             </div>
             <div class="how-step">
                 <div class="step-num">2</div>
-                <h5>System Indexing</h5>
-                <p>Our engines structure your data into a searchable, relational format ready for complex procurement queries.</p>
+                <h5>{{ __('for-brands.how.step2_title') }}</h5>
+                <p>{{ __('for-brands.how.step2_desc') }}</p>
             </div>
             <div class="how-step">
                 <div class="step-num">3</div>
-                <h5>RAG Retrieval</h5>
-                <p>Retrieval-Augmented Generation pairs buyer needs with your specific technical parameters for precise matching.</p>
+                <h5>{{ __('for-brands.how.step3_title') }}</h5>
+                <p>{{ __('for-brands.how.step3_desc') }}</p>
             </div>
             <div class="how-step">
                 <div class="step-num">4</div>
-                <h5>Global Fulfillment</h5>
-                <p>Qimta manages the transaction, logistics, and delivery, ensuring your product reaches the end buyer securely.</p>
+                <h5>{{ __('for-brands.how.step4_title') }}</h5>
+                <p>{{ __('for-brands.how.step4_desc') }}</p>
             </div>
         </div>
     </div>
@@ -331,32 +331,32 @@
 {{-- ── MARKET POSITIONING ───────────────────────────────────── --}}
 <div class="container">
     <div class="pricing-section">
-        <div class="section-eyebrow">Market Positioning</div>
-        <div class="section-title">Choose your <span>partnership tier</span></div>
+        <div class="section-eyebrow">{{ __('for-brands.pricing.eyebrow') }}</div>
+        <div class="section-title">{{ __('for-brands.pricing.title') }}<span>{{ __('for-brands.pricing.highlight') }}</span></div>
         <div class="pricing-grid">
             <div class="pricing-card">
-                <div class="pricing-tier">Standard</div>
-                <div class="pricing-name">Listing Package</div>
-                <div class="pricing-desc">Unified listing across all Qimta marketplace verticals and global search results.</div>
+                <div class="pricing-tier">{{ __('for-brands.pricing.standard_tier') }}</div>
+                <div class="pricing-name">{{ __('for-brands.pricing.standard_name') }}</div>
+                <div class="pricing-desc">{{ __('for-brands.pricing.standard_desc') }}</div>
                 <ul class="pricing-features">
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Global Catalog Visibility</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Standard API Integration</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Data Refresh: Monthly</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.standard_f1') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.standard_f2') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.standard_f3') }}</li>
                 </ul>
-                <a href="#apply" class="pricing-btn outline">Select Listing</a>
+                <a href="#apply" class="pricing-btn outline">{{ __('for-brands.pricing.standard_cta') }}</a>
             </div>
             <div class="pricing-card featured">
-                <div class="pricing-badge">Recommended</div>
-                <div class="pricing-tier">Premium</div>
-                <div class="pricing-name">Exclusivity Package</div>
-                <div class="pricing-desc">Per-product category exclusivity, ensuring your brand is the primary recommendation for specific specs.</div>
+                <div class="pricing-badge">{{ __('for-brands.pricing.recommended') }}</div>
+                <div class="pricing-tier">{{ __('for-brands.pricing.premium_tier') }}</div>
+                <div class="pricing-name">{{ __('for-brands.pricing.premium_name') }}</div>
+                <div class="pricing-desc">{{ __('for-brands.pricing.premium_desc') }}</div>
                 <ul class="pricing-features">
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Category Dominance</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Priority RAG Retrieval</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Dedicated Account Engineering</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Real-time Inventory Sync</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f1') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f2') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f3') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f4') }}</li>
                 </ul>
-                <a href="#apply" class="pricing-btn solid">Select Exclusivity</a>
+                <a href="#apply" class="pricing-btn solid">{{ __('for-brands.pricing.premium_cta') }}</a>
             </div>
         </div>
     </div>
@@ -366,8 +366,8 @@
 <div class="container" id="apply">
     <div class="form-section">
         <div class="form-section-left">
-            <h2>Start your onboarding</h2>
-            <p>Our partnership engineering team will review your data and category fit within 48 hours.</p>
+            <h2>{{ __('for-brands.form.title') }}</h2>
+            <p>{{ __('for-brands.form.sub') }}</p>
             <div class="form-bullets">
                 <div class="form-bullet">
                     <div class="form-bullet-icon">
@@ -376,8 +376,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h5>Manufacturer Focus</h5>
-                        <p>Direct integration with production cycles to optimize lead times.</p>
+                        <h5>{{ __('for-brands.form.bullet1_title') }}</h5>
+                        <p>{{ __('for-brands.form.bullet1_desc') }}</p>
                     </div>
                 </div>
                 <div class="form-bullet">
@@ -388,8 +388,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h5>Global Logistics</h5>
-                        <p>We handle cross-border duties, taxes, and shipping compliance.</p>
+                        <h5>{{ __('for-brands.form.bullet2_title') }}</h5>
+                        <p>{{ __('for-brands.form.bullet2_desc') }}</p>
                     </div>
                 </div>
             </div>
@@ -400,48 +400,48 @@
                 @csrf
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Company Name</label>
-                        <input type="text" name="company" placeholder="Enterprise Ltd" required>
+                        <label>{{ __('for-brands.form.company') }}</label>
+                        <input type="text" name="company" placeholder="{{ __('for-brands.form.company_ph') }}" required>
                     </div>
                     <div class="form-group">
-                        <label>Contact Person</label>
-                        <input type="text" name="contact" placeholder="John Doe" required>
+                        <label>{{ __('for-brands.form.contact') }}</label>
+                        <input type="text" name="contact" placeholder="{{ __('for-brands.form.contact_ph') }}" required>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Work Email</label>
-                    <input type="email" name="email" placeholder="john@company.com" required>
+                    <label>{{ __('for-brands.form.email') }}</label>
+                    <input type="email" name="email" placeholder="{{ __('for-brands.form.email_ph') }}" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Product Category</label>
+                        <label>{{ __('for-brands.form.category') }}</label>
                         <select name="category">
-                            <option>Structural Steel</option>
-                            <option>Fire Fighting</option>
-                            <option>Electrical / ELV</option>
-                            <option>Mechanical / HVAC</option>
-                            <option>Plumbing</option>
-                            <option>Civil / Architecture</option>
-                            <option>Other</option>
+                            <option>{{ __('for-brands.form.cat_steel') }}</option>
+                            <option>{{ __('for-brands.form.cat_fire') }}</option>
+                            <option>{{ __('for-brands.form.cat_elec') }}</option>
+                            <option>{{ __('for-brands.form.cat_hvac') }}</option>
+                            <option>{{ __('for-brands.form.cat_plumb') }}</option>
+                            <option>{{ __('for-brands.form.cat_civil') }}</option>
+                            <option>{{ __('for-brands.form.cat_other') }}</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Region</label>
+                        <label>{{ __('for-brands.form.region') }}</label>
                         <select name="region">
-                            <option>North America</option>
-                            <option>Europe</option>
-                            <option>Middle East</option>
-                            <option>Asia Pacific</option>
-                            <option>Africa</option>
-                            <option>Other</option>
+                            <option>{{ __('for-brands.form.reg_na') }}</option>
+                            <option>{{ __('for-brands.form.reg_eu') }}</option>
+                            <option>{{ __('for-brands.form.reg_me') }}</option>
+                            <option>{{ __('for-brands.form.reg_apac') }}</option>
+                            <option>{{ __('for-brands.form.reg_africa') }}</option>
+                            <option>{{ __('for-brands.form.reg_other') }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Message</label>
-                    <textarea name="message" placeholder="Tell us about your product range..."></textarea>
+                    <label>{{ __('for-brands.form.message') }}</label>
+                    <textarea name="message" placeholder="{{ __('for-brands.form.message_ph') }}"></textarea>
                 </div>
-                <button type="submit" class="form-submit">Submit Application</button>
+                <button type="submit" class="form-submit">{{ __('for-brands.form.submit') }}</button>
             </form>
         </div>
     </div>
