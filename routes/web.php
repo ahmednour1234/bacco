@@ -41,6 +41,10 @@ Route::get('/about', function () {
     return view('about');
 })->name('about');
 
+Route::get('/for-brands', function () {
+    return view('for-brands');
+})->name('for-brands');
+
 // ─── Public Catalog ───────────────────────────────────────────────────────────
 Route::get('/catalog', [\App\Http\Controllers\CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/catalog/{divisionSlug}/{itemSlug}', [\App\Http\Controllers\CatalogController::class, 'showItem'])->name('catalog.item');
