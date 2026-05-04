@@ -58,19 +58,24 @@ class CatalogImportController extends Controller
 
     /**
      * Start a queue worker in the background to process pending jobs.
-     * Uses `start /B` on Windows so the web request returns immediately.
+     * Uses proc_open/popen on Windows, proc_open on Linux (avoids exec() which is disabled on many hosts).
      */
     public function runQueue(): RedirectResponse
     {
-        $php      = PHP_BINARY;
-        $artisan  = base_path('artisan');
-        $cmd      = escapeshellarg($php) . ' ' . escapeshellarg($artisan)
-                  . ' queue:work --stop-when-empty --timeout=10800 --memory=512';
+        $php     = PHP_BINARY;
+        $artisan = base_path('artisan');
+        $cmd     = escapeshellarg($php) . ' ' . escapeshellarg($artisan)
+                 . ' queue:work --stop-when-empty --timeout=10800 --memory=512';
 
         if (PHP_OS_FAMILY === 'Windows') {
             pclose(popen('start /B ' . $cmd . ' > NUL 2>&1', 'r'));
         } else {
-            exec($cmd . ' > /dev/null 2>&1 &');
+            // proc_open is available even when exec/shell_exec are disabled
+            $descriptors = [['pipe', 'r'], ['file', '/dev/null', 'w'], ['file', '/dev/null', 'w']];
+            $proc = @proc_open($cmd . ' &', $descriptors, $pipes);
+            if (is_resource($proc)) {
+                proc_close($proc);
+            }
         }
 
         return redirect()
