@@ -148,7 +148,7 @@
             <div class="nav-links">
                 <a href="{{ route('catalog.index') }}" class="{{ Route::is('catalog.*') ? 'active' : '' }}">{{ __('welcome.nav.catalog') }}</a>
                 <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
-                <a href="#">{{ __('welcome.nav.how_it_works') }}</a>
+                <a href="{{ route('for-brands') }}">For Brands</a>
                 <a href="{{ route('about') }}" class="{{ Route::is('about') ? 'active' : '' }}">{{ __('welcome.nav.about') }}</a>
                 {{-- More dropdown --}}
                 <div class="nav-more" id="navMore">
@@ -211,7 +211,7 @@
     <div class="mobile-menu" id="mobileMenu">
         <a href="{{ route('catalog.index') }}">{{ __('welcome.nav.catalog') }}</a>
         <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
-        <a href="#">{{ __('welcome.nav.how_it_works') }}</a>
+        <a href="{{ route('for-brands') }}">For Brands</a>
         <a href="{{ route('about') }}">{{ __('welcome.nav.about') }}</a>
         <a href="{{ route('contact') }}">{{ __('welcome.nav.contact') }}</a>
         <a href="{{ route('privacy') }}">{{ __('welcome.nav.privacy') }}</a>
