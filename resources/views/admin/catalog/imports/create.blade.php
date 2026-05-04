@@ -82,7 +82,7 @@
                class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
                 Cancel
             </a>
-            <button type="submit"
+            <button type="submit" id="submit-btn"
                     class="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-green-700 transition"
                     style="background:#16a34a;color:#fff;padding:8px 20px;border-radius:8px;font-weight:600;font-size:14px;border:none;cursor:pointer;">
                 Upload &amp; Queue
@@ -92,17 +92,40 @@
 </div>
 
 <script>
+const MAX_FILE_MB = 100;
+const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
+
 function showFileList(input) {
     const list = document.getElementById('file-list');
     list.innerHTML = '';
+    let hasOversized = false;
     Array.from(input.files).forEach(f => {
         const li = document.createElement('li');
         li.className = 'flex items-center gap-2';
-        li.innerHTML = `<svg class="h-3 w-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+        const oversized = f.size > MAX_FILE_BYTES;
+        if (oversized) hasOversized = true;
+        li.innerHTML = `<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20" style="color:${oversized ? '#dc2626' : '#16a34a'}">
             <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/>
-        </svg>${f.name} <span class="text-gray-400">(${(f.size/1024/1024).toFixed(1)} MB)</span>`;
+        </svg>${f.name} <span style="color:${oversized ? '#dc2626' : '#9ca3af'}">(${(f.size/1024/1024).toFixed(1)} MB${oversized ? ' — TOO LARGE' : ''})</span>`;
         list.appendChild(li);
     });
+    const btn = document.getElementById('submit-btn');
+    if (hasOversized) {
+        btn.disabled = true;
+        btn.style.background = '#9ca3af';
+        btn.style.cursor = 'not-allowed';
+        const warn = document.getElementById('size-warning') || document.createElement('p');
+        warn.id = 'size-warning';
+        warn.style.cssText = 'color:#dc2626;font-size:13px;margin-top:8px;';
+        warn.textContent = 'One or more files exceed 100 MB. Please reduce the file size before uploading.';
+        list.after(warn);
+    } else {
+        btn.disabled = false;
+        btn.style.background = '#16a34a';
+        btn.style.cursor = 'pointer';
+        const warn = document.getElementById('size-warning');
+        if (warn) warn.remove();
+    }
 }
 
 // Drag-and-drop

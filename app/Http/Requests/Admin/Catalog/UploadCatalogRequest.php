@@ -29,9 +29,12 @@ class UploadCatalogRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'files.max'     => 'You may upload a maximum of 7 files per batch.',
-            'files.*.mimes' => 'Only Excel (.xlsx, .xls) and CSV files are accepted.',
-            'files.*.max'   => 'Each file must be under 100 MB.',
+            'files.required' => 'Please select at least one file to upload.',
+            'files.max'      => 'You may upload a maximum of 7 files per batch.',
+            'files.*.mimes'  => 'Only Excel (.xlsx, .xls) and CSV files are accepted.',
+            'files.*.max'    => 'Each file must be under 100 MB.',
+            'files.*.file'   => 'One or more files failed to upload. The file may exceed the server upload limit (100 MB). Please try a smaller file or contact support.',
+            'files.*.uploaded' => 'One or more files failed to upload. The file may exceed the server upload limit (100 MB). Please try a smaller file or contact support.',
         ];
     }
 }
