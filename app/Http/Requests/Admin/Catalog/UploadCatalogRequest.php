@@ -33,8 +33,8 @@ class UploadCatalogRequest extends FormRequest
             'files.max'      => 'You may upload a maximum of 7 files per batch.',
             'files.*.mimes'  => 'Only Excel (.xlsx, .xls) and CSV files are accepted.',
             'files.*.max'    => 'Each file must be under 100 MB.',
-            'files.*.file'   => 'One or more files failed to upload. The file may exceed the server upload limit (100 MB). Please try a smaller file or contact support.',
-            'files.*.uploaded' => 'One or more files failed to upload. The file may exceed the server upload limit (100 MB). Please try a smaller file or contact support.',
+            'files.*.file'     => 'One or more files failed to upload. On the server, go to cPanel → MultiPHP INI Editor and set upload_max_filesize=150M, post_max_size=200M.',
+            'files.*.uploaded' => 'One or more files failed to upload. On the server, go to cPanel → MultiPHP INI Editor and set upload_max_filesize=150M, post_max_size=200M.',
         ];
     }
 }
