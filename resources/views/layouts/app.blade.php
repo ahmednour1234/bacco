@@ -146,8 +146,6 @@
                 QIMTA<span class="nav-logo-dot"></span>
             </a>
             <div class="nav-links">
-                <a href="#">{{ __('welcome.nav.for_buyers') }}</a>
-                <a href="#">{{ __('welcome.nav.for_brands') }}</a>
                 <a href="{{ route('catalog.index') }}" class="{{ Route::is('catalog.*') ? 'active' : '' }}">{{ __('welcome.nav.catalog') }}</a>
                 <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
                 <a href="#">{{ __('welcome.nav.how_it_works') }}</a>
@@ -196,15 +194,11 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                 </a>
                 <div class="nav-divider"></div>
-                @if (Route::has('login'))
-                    @auth
-                        <a href="{{ url('/dashboard') }}" class="btn btn-ghost">{{ __('welcome.nav.dashboard') }}</a>
-                    @else
-                        <a href="{{ route('login') }}" class="btn btn-ghost">{{ __('welcome.nav.login') }}</a>
-                    @endauth
+                @auth
+                    <a href="{{ url('/dashboard') }}" class="btn btn-ghost">{{ __('welcome.nav.dashboard') }}</a>
                 @else
-                    <a href="#" class="btn btn-ghost">{{ __('welcome.nav.login') }}</a>
-                @endif
+                    <a href="{{ route('enduser.register') }}" class="btn btn-ghost">Join</a>
+                @endauth
                 @yield('nav-cta')
             </div>
             <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
@@ -215,8 +209,6 @@
 
     {{-- Mobile Drawer --}}
     <div class="mobile-menu" id="mobileMenu">
-        <a href="#">{{ __('welcome.nav.for_buyers') }}</a>
-        <a href="#">{{ __('welcome.nav.for_brands') }}</a>
         <a href="{{ route('catalog.index') }}">{{ __('welcome.nav.catalog') }}</a>
         <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
         <a href="#">{{ __('welcome.nav.how_it_works') }}</a>
@@ -229,15 +221,11 @@
         <a href="{{ route('cookie') }}">{{ __('welcome.nav.cookie') }}</a>
         <a href="{{ route('locale.switch', $switchLocale) }}">&#127760; {{ $switchLabel }}</a>
         <div class="mobile-actions">
-            @if (Route::has('login'))
-                @auth
-                    <a href="{{ url('/dashboard') }}" class="btn btn-outline">{{ __('welcome.nav.dashboard') }}</a>
-                @else
-                    <a href="{{ route('login') }}" class="btn btn-outline">{{ __('welcome.nav.login') }}</a>
-                @endauth
+            @auth
+                <a href="{{ url('/dashboard') }}" class="btn btn-outline">{{ __('welcome.nav.dashboard') }}</a>
             @else
-                <a href="#" class="btn btn-outline">{{ __('welcome.nav.login') }}</a>
-            @endif
+                <a href="{{ route('enduser.register') }}" class="btn btn-outline">Join</a>
+            @endauth
             @yield('mobile-cta')
         </div>
     </div>

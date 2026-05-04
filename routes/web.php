@@ -38,6 +38,7 @@ Route::get('/about', function () {
 
 // ─── Public Catalog ───────────────────────────────────────────────────────────
 Route::get('/catalog', [\App\Http\Controllers\CatalogController::class, 'index'])->name('catalog.index');
+Route::get('/catalog/{divisionSlug}/{itemSlug}', [\App\Http\Controllers\CatalogController::class, 'showItem'])->name('catalog.item');
 Route::get('/catalog/{slug}', [\App\Http\Controllers\CatalogController::class, 'show'])->name('catalog.division');
 
 Route::get('/contact', function () {

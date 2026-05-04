@@ -116,4 +116,68 @@ class CatalogController extends Controller
 
         return view('catalog.division', compact('division', 'slug', 'items', 'stats', 'materials', 'sizes', 'leadTimes'));
     }
+
+    public function showItem(string $divisionSlug, string $itemSlug)
+    {
+        $db = DB::connection('catalog');
+
+        // Resolve division
+        $division = $db->table('catalog_products')
+            ->whereNotNull('division')
+            ->distinct()
+            ->pluck('division')
+            ->first(fn($d) => Str::slug($d) === $divisionSlug);
+
+        abort_if(!$division, 404);
+
+        // Resolve item description
+        $itemDescription = $db->table('catalog_products')
+            ->where('division', $division)
+            ->whereNotNull('item_description')
+            ->distinct()
+            ->pluck('item_description')
+            ->first(fn($i) => Str::slug($i) === $itemSlug);
+
+        abort_if(!$itemDescription, 404);
+
+        // Aggregate item data
+        $product = $db->table('catalog_products as p')
+            ->leftJoin('catalog_categories as c', 'c.id', '=', 'p.category_id')
+            ->where('p.division', $division)
+            ->where('p.item_description', $itemDescription)
+            ->select(
+                DB::raw('MAX(c.name) as category'),
+                DB::raw('MAX(p.lead_time) as lead_time'),
+                DB::raw('MAX(p.sub_type) as sub_type'),
+                DB::raw('GROUP_CONCAT(DISTINCT p.type_of_material ORDER BY p.type_of_material SEPARATOR "|||") as materials'),
+                DB::raw('GROUP_CONCAT(DISTINCT p.size ORDER BY p.size SEPARATOR "|||") as sizes'),
+                DB::raw('count(*) as product_count'),
+            )
+            ->first();
+
+        abort_if(!$product, 404);
+
+        $materials = collect(array_filter(explode('|||', $product->materials ?? '')));
+        $sizes     = collect(array_filter(explode('|||', $product->sizes ?? '')));
+
+        // Related items: other item_descriptions in the same division
+        $related = $db->table('catalog_products')
+            ->where('division', $division)
+            ->where('item_description', '!=', $itemDescription)
+            ->whereNotNull('item_description')
+            ->where('item_description', '!=', '')
+            ->distinct()
+            ->orderBy('item_description')
+            ->limit(12)
+            ->pluck('item_description')
+            ->map(fn($i) => (object) [
+                'name' => $i,
+                'slug' => Str::slug($i),
+            ]);
+
+        return view('catalog.item', compact(
+            'division', 'divisionSlug', 'itemDescription', 'itemSlug',
+            'product', 'materials', 'sizes', 'related'
+        ));
+    }
 }

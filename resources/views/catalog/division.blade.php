@@ -203,7 +203,7 @@
                         <div class="item-materials-label">Common Materials</div>
                         <div class="item-materials-val">{{ Str::limit($item->common_materials, 80) }}</div>
                     @endif
-                    <a href="{{ route('catalog.index') }}?item={{ urlencode($item->item_description) }}" class="item-view-btn">
+                    <a href="{{ route('catalog.item', [$slug, Str::slug($item->item_description)]) }}" class="item-view-btn">
                         View Specifications
                     </a>
                 </div>
