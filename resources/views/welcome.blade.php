@@ -520,7 +520,7 @@
         <div class="container">
             <div class="news-top">
                 <p class="news-top-title">{{ __('welcome.news.title') }}</p>
-                <a href="#" class="news-link">{{ __('welcome.news.view_all') }} &#8599;</a>
+                <a href="{{ route('news') }}" class="news-link">{{ __('welcome.news.view_all') }} &#8599;</a>
             </div>
             <div class="news-grid">
                 <div class="news-card">
