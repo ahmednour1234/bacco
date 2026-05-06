@@ -7,7 +7,7 @@
 
 <style>
 /* ── SHARED ──────────────────────────────────────────────────────────────── */
-.sec-page { font-family: 'Cairo', 'Inter', sans-serif; color: var(--dark); }
+.sec-page { font-family: 'The Year of The Camel', serif; color: var(--dark); }
 
 /* ── HERO ────────────────────────────────────────────────────────────────── */
 .sec-hero {
@@ -63,7 +63,7 @@
     font-weight: 700;
     cursor: pointer;
     text-decoration: none;
-    font-family: 'Cairo', 'Inter', sans-serif;
+    font-family: 'The Year of The Camel', serif;
     transition: background .2s;
 }
 .sec-btn-primary:hover { background: #005530; }
@@ -77,7 +77,7 @@
     font-weight: 700;
     cursor: pointer;
     text-decoration: none;
-    font-family: 'Cairo', 'Inter', sans-serif;
+    font-family: 'The Year of The Camel', serif;
     transition: background .2s, color .2s;
 }
 .sec-btn-outline:hover { background: var(--dark); color: #fff; }
@@ -405,7 +405,7 @@
     font-weight: 600;
     color: var(--dark);
     cursor: pointer;
-    font-family: 'Cairo', 'Inter', sans-serif;
+    font-family: 'The Year of The Camel', serif;
     gap: 12px;
 }
 [dir=rtl] .faq-question { text-align: right; }
@@ -463,7 +463,7 @@
     font-weight: 700;
     cursor: pointer;
     text-decoration: none;
-    font-family: 'Cairo', 'Inter', sans-serif;
+    font-family: 'The Year of The Camel', serif;
     white-space: nowrap;
     flex-shrink: 0;
     transition: background .2s, color .2s;

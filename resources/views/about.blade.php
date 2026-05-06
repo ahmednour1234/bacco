@@ -62,7 +62,7 @@
     .stats-bar-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #5DFFA3; margin-bottom: 32px; }
     [dir="rtl"] .stats-bar-label { letter-spacing: 0; }
     .stats-bar-grid { display: flex; gap: 48px; align-items: flex-end; flex-wrap: wrap; }
-    .stat-item .stat-val { font-family: 'Cairo', sans-serif; font-size: 38px; font-weight: 800; color: #5DFFA3; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
+    .stat-item .stat-val { font-family: 'The Year of The Camel', serif; font-size: 38px; font-weight: 800; color: #5DFFA3; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
     [dir="rtl"] .stat-item .stat-val { letter-spacing: 0; }
     .stat-item .stat-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #888; }
     [dir="rtl"] .stat-item .stat-label { letter-spacing: 0; }

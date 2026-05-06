@@ -17,10 +17,18 @@
     .brands-hero-eyebrow {
         font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
         color: var(--green); margin-bottom: 18px;
+        font-family: 'The Year of The Camel', serif;
     }
     .brands-hero h1 {
         font-size: clamp(32px, 4.5vw, 52px); font-weight: 900; letter-spacing: -1.5px;
         line-height: 1.1; margin-bottom: 20px; color: var(--dark);
+        font-family: 'The Year of The Camel', serif;
+    }
+    /* RTL (Arabic) hero keeps the same font */
+    [dir="rtl"] .brands-hero-eyebrow,
+    [dir="rtl"] .brands-hero h1 {
+        font-family: 'The Year of The Camel', serif;
+        letter-spacing: 0;
     }
     .brands-hero p {
         font-size: 15px; color: #555; line-height: 1.75; max-width: 460px; margin-bottom: 32px;

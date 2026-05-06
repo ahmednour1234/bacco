@@ -21,7 +21,7 @@
             --border:#e0e0e0;
         }
         body {
-            font-family: 'Cairo','Inter',sans-serif;
+            font-family: 'The Year of The Camel', serif;
             background: #fff;
             color: var(--dark);
             min-height: 100vh;
@@ -32,7 +32,7 @@
             padding: 40px 24px;
             text-align: center;
         }
-        [dir=rtl] body { font-family: 'Cairo', sans-serif; }
+        [dir=rtl] body { font-family: 'The Year of The Camel', serif; }
 
         /* ── 500 giant text ── */
         .err-bg {
@@ -131,7 +131,7 @@
             font-weight: 700;
             cursor: pointer;
             text-decoration: none;
-            font-family: 'Cairo','Inter',sans-serif;
+            font-family: 'The Year of The Camel', serif;
             transition: background .2s;
         }
         .btn-green:hover { background: #005530; }
@@ -145,7 +145,7 @@
             font-weight: 700;
             cursor: pointer;
             text-decoration: none;
-            font-family: 'Cairo','Inter',sans-serif;
+            font-family: 'The Year of The Camel', serif;
             transition: background .2s, color .2s;
         }
         .btn-green-outline:hover { background: var(--green); color: #fff; }

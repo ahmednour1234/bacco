@@ -15,6 +15,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'The Year of The Camel';
+            src: url('/fonts/YearOfTheCamelBold.woff2') format('woff2');
+            font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
             --green: #006A3B;
@@ -28,8 +35,8 @@
             --border: #e0e0e0;
         }
         html { scroll-behavior: smooth; }
-        body { font-family: 'Cairo', 'Inter', sans-serif; background: var(--white); color: var(--dark); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
-        [dir="rtl"] { font-family: 'Cairo', sans-serif; }
+        body { font-family: 'The Year of The Camel', 'Cairo', 'Inter', serif; background: var(--white); color: var(--dark); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
+        [dir="rtl"] { font-family: 'The Year of The Camel', 'Cairo', serif; }
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
         img { max-width: 100%; display: block; }
@@ -148,7 +155,7 @@
             <div class="nav-links">
                 <a href="{{ route('catalog.index') }}" class="{{ Route::is('catalog.*') ? 'active' : '' }}">{{ __('welcome.nav.catalog') }}</a>
                 <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
-                <a href="{{ route('for-brands') }}">For Brands</a>
+                <a href="{{ route('for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
                 <a href="{{ route('about') }}" class="{{ Route::is('about') ? 'active' : '' }}">{{ __('welcome.nav.about') }}</a>
                 {{-- More dropdown --}}
                 <div class="nav-more" id="navMore">
@@ -211,7 +218,7 @@
     <div class="mobile-menu" id="mobileMenu">
         <a href="{{ route('catalog.index') }}">{{ __('welcome.nav.catalog') }}</a>
         <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
-        <a href="{{ route('for-brands') }}">For Brands</a>
+        <a href="{{ route('for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
         <a href="{{ route('about') }}">{{ __('welcome.nav.about') }}</a>
         <a href="{{ route('contact') }}">{{ __('welcome.nav.contact') }}</a>
         <a href="{{ route('privacy') }}">{{ __('welcome.nav.privacy') }}</a>

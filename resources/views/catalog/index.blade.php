@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Browse the Qimta Construction Catalog')
+@section('title', __('catalog.title'))
 
 @section('styles')
 <style>
@@ -65,38 +65,39 @@
     {{-- Breadcrumb --}}
     <div style="padding-top:32px;">
         <div class="breadcrumb">
-            <a href="/">HOME</a>
+            <a href="/">{{ __('catalog.breadcrumb_home') }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <span>CATALOG</span>
+            <span>{{ __('catalog.breadcrumb_catalog') }}</span>
         </div>
     </div>
 
     {{-- Header --}}
     <div class="catalog-header">
-        <h1>Browse the Qimta Construction Catalog</h1>
+        <h1>{{ __('catalog.header.h1') }}</h1>
         <p class="subtitle">
-            Access the industry's most rigorous data set. Explore
-            <span>{{ number_format($totals['divisions']) }} divisions</span>,
-            <span>{{ number_format($totals['categories']) }} categories</span>,
-            <span>{{ number_format($totals['items']) }} items</span>, and
-            <span>{{ number_format($totals['products']) }} verified products</span>.
+        {!! __('catalog.header.subtitle', [
+                'divisions'  => '<span>'.number_format($totals['divisions']).'</span>',
+                'categories' => '<span>'.number_format($totals['categories']).'</span>',
+                'items'      => '<span>'.number_format($totals['items']).'</span>',
+                'products'   => '<span>'.number_format($totals['products']).'</span>',
+            ]) !!}
         </p>
 
         {{-- Search --}}
         <div class="catalog-search-wrap">
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input class="catalog-search" id="divSearch" type="text" placeholder="Search by division or keyword..." autocomplete="off">
+            <input class="catalog-search" id="divSearch" type="text" placeholder="{{ __('catalog.search_placeholder') }}" autocomplete="off">
         </div>
 
         {{-- Info Banner --}}
         <div class="catalog-info">
             <div class="catalog-info-col">
-                <h6>Public catalog structure</h6>
-                <p>Our technical hierarchy follows international construction standards. Navigate through Division Hubs to Category Hubs and finally to specific Item&nbsp;Description Pages for technical specifications.</p>
+                <h6>{{ __('catalog.info.structure_title') }}</h6>
+                <p>{{ __('catalog.info.structure_body') }}</p>
             </div>
             <div class="catalog-info-note">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <p><strong>Note:</strong> Live pricing data and specific manufacturer SKUs are restricted to registered enterprise accounts. <a href="{{ route('enduser.register') }}">Sign up to access verified rates.</a></p>
+                <p><strong>{{ __('catalog.info.note_label') }}</strong> {{ __('catalog.info.note_body') }} <a href="{{ route('enduser.register') }}">{{ __('catalog.info.note_signup') }}</a></p>
             </div>
         </div>
     </div>
@@ -105,8 +106,8 @@
     @if($rows->isEmpty())
         <div class="catalog-empty">
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            <h3>No catalog data yet</h3>
-            <p>Import your first catalog file to get started.</p>
+            <h3>{{ __('catalog.empty.title') }}</h3>
+            <p>{{ __('catalog.empty.body') }}</p>
         </div>
     @else
         <div class="division-grid" id="divGrid">
@@ -119,19 +120,19 @@
                 <div class="div-stats">
                     <div class="div-stat">
                         <strong>{{ number_format($d->products) }}</strong>
-                        <span>Products</span>
+                        <span>{{ __('catalog.card.products') }}</span>
                     </div>
                     <div class="div-stat">
                         <strong>{{ number_format($d->items) }}</strong>
-                        <span>Items</span>
+                        <span>{{ __('catalog.card.items') }}</span>
                     </div>
                     <div class="div-stat">
                         <strong>{{ number_format($d->cats) }}</strong>
-                        <span>Cats</span>
+                        <span>{{ __('catalog.card.cats') }}</span>
                     </div>
                 </div>
                 <div class="div-browse">
-                    Browse Division
+                    {{ __('catalog.card.browse_division') }}
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </div>
             </a>
