@@ -82,6 +82,12 @@
     [dir="rtl"] .channel-label { letter-spacing: 0; }
     .channel-email { font-size: 13px; font-weight: 600; color: var(--green); text-decoration: none; word-break: break-all; }
     .channel-email:hover { text-decoration: underline; }
+    .channel-phone { font-size: 13px; font-weight: 600; color: var(--dark); text-decoration: none; direction: ltr; display: inline-block; }
+    .channel-phone:hover { color: var(--green); }
+    .channel-social-row { display: flex; flex-direction: column; gap: 6px; }
+    .channel-social-link { font-size: 12px; font-weight: 600; color: var(--green); text-decoration: none; display: flex; align-items: center; gap: 6px; }
+    .channel-social-link:hover { text-decoration: underline; }
+    .channel-social-link svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
     .region-card { border: 1px solid #d1fae5; border-radius: 10px; padding: 16px; background: #f0fdf4; margin-top: auto; }
     .region-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
     [dir="rtl"] .region-badge { letter-spacing: 0; }
@@ -351,6 +357,31 @@
                     <div class="channel-label">{{ __('contact.channels.press') }}</div>
                     <a href="mailto:press@qimta.com" class="channel-email">press@qimta.com</a>
                 </div>
+                <div class="channel-item">
+                    <div class="channel-label">{{ __('contact.channels.phone_sy') }}</div>
+                    <a href="tel:+963937101976" class="channel-phone" dir="ltr">+963 937 101 976</a>
+                </div>
+                <div class="channel-item">
+                    <div class="channel-label">{{ __('contact.channels.phone_tn') }}</div>
+                    <a href="tel:+21652380804" class="channel-phone" dir="ltr">+216 52 380 804</a>
+                </div>
+                <div class="channel-item">
+                    <div class="channel-label">{{ __('contact.channels.social') }}</div>
+                    <div class="channel-social-row">
+                        <a href="https://www.linkedin.com/company/qimta/about/?viewAsMember=true" target="_blank" rel="noopener" class="channel-social-link">
+                            <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                            LinkedIn
+                        </a>
+                        <a href="https://x.com/QimtaSm" target="_blank" rel="noopener" class="channel-social-link">
+                            <svg viewBox="0 0 24 24"><path d="M4 4l16 16M4 20L20 4"/></svg>
+                            X (Twitter)
+                        </a>
+                        <a href="https://www.youtube.com/@Qimtatech" target="_blank" rel="noopener" class="channel-social-link">
+                            <svg viewBox="0 0 24 24"><path d="M22.54 6.42A2.78 2.78 0 0 0 20.6 4.46C18.88 4 12 4 12 4s-6.88 0-8.6.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.4 19.54C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+                            YouTube
+                        </a>
+                    </div>
+                </div>
 
                 <div class="region-card">
                     <div class="region-badge">{{ __('contact.region.title') }}</div>
@@ -395,7 +426,7 @@
                                     <polygon points="49,55 44,44 54,44" fill="#006A3B"/>
                                     {{-- Label --}}
                                     <rect x="20" y="68" width="60" height="14" rx="4" fill="white" opacity=".9"/>
-                                    <text x="50" y="78" text-anchor="middle" font-size="6" fill="#333" font-weight="bold">DIFC - Gate Village</text>
+                                    <text x="50" y="78" text-anchor="middle" font-size="6" fill="#333" font-weight="bold">QIMTA — Damascus</text>
                                 </svg>
                             </div>
                         </div>
@@ -407,7 +438,7 @@
                             <div class="loc-pin-icon">
                                 <div class="loc-pin-inner">Q</div>
                             </div>
-                            <div class="loc-pin-label">DIFC - Gate Village</div>
+                            <div class="loc-pin-label">QIMTA — Damascus</div>
                         </div>
                         {{-- SVG skyline --}}
                         <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.25" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
@@ -445,15 +476,14 @@
                     <div class="office-card">
                         <div class="office-card-header">
                             <span class="office-dot"></span>
-                            <span class="office-title">{{ __('contact.locations.dubai_title') }}</span>
+                            <span class="office-title">{{ __('contact.locations.syria_title') }}</span>
                         </div>
                         <div class="office-address">
-                            {{ __('contact.locations.dubai_line1') }}<br>
-                            {{ __('contact.locations.dubai_line2') }}<br>
-                            {{ __('contact.locations.dubai_line3') }}
+                            {{ __('contact.locations.syria_line1') }}<br>
+                            {{ __('contact.locations.syria_line2') }}
                         </div>
-                        <a href="https://maps.google.com/?q=DIFC+Gate+Village+Dubai" target="_blank" rel="noopener" class="office-dir">
-                            {{ __('contact.locations.dubai_dir') }}
+                        <a href="https://maps.google.com/?q=Damascus+Syria" target="_blank" rel="noopener" class="office-dir">
+                            {{ __('contact.locations.get_dir') }}
                             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                         </a>
                     </div>
@@ -461,15 +491,44 @@
                     <div class="office-card">
                         <div class="office-card-header">
                             <span class="office-dot"></span>
-                            <span class="office-title">{{ __('contact.locations.riyadh_title') }}</span>
+                            <span class="office-title">{{ __('contact.locations.tunisia_title') }}</span>
                         </div>
                         <div class="office-address">
-                            {{ __('contact.locations.riyadh_line1') }}<br>
-                            {{ __('contact.locations.riyadh_line2') }}<br>
-                            {{ __('contact.locations.riyadh_line3') }}
+                            {{ __('contact.locations.tunisia_line1') }}<br>
+                            {{ __('contact.locations.tunisia_line2') }}
                         </div>
-                        <a href="https://maps.google.com/?q=Al+Ziya+Riyadh+Saudi+Arabia" target="_blank" rel="noopener" class="office-dir">
-                            {{ __('contact.locations.riyadh_dir') }}
+                        <a href="https://maps.google.com/?q=Tunis+Tunisia" target="_blank" rel="noopener" class="office-dir">
+                            {{ __('contact.locations.get_dir') }}
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </a>
+                    </div>
+
+                    <div class="office-card">
+                        <div class="office-card-header">
+                            <span class="office-dot"></span>
+                            <span class="office-title">{{ __('contact.locations.uae_title') }}</span>
+                        </div>
+                        <div class="office-address">
+                            {{ __('contact.locations.uae_line1') }}<br>
+                            {{ __('contact.locations.uae_line2') }}
+                        </div>
+                        <a href="https://maps.google.com/?q=Abu+Dhabi+UAE" target="_blank" rel="noopener" class="office-dir">
+                            {{ __('contact.locations.get_dir') }}
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </a>
+                    </div>
+
+                    <div class="office-card">
+                        <div class="office-card-header">
+                            <span class="office-dot"></span>
+                            <span class="office-title">{{ __('contact.locations.ksa_title') }}</span>
+                        </div>
+                        <div class="office-address">
+                            {{ __('contact.locations.ksa_line1') }}<br>
+                            {{ __('contact.locations.ksa_line2') }}
+                        </div>
+                        <a href="https://maps.google.com/?q=Saudi+Arabia" target="_blank" rel="noopener" class="office-dir">
+                            {{ __('contact.locations.get_dir') }}
                             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                         </a>
                     </div>
@@ -486,7 +545,7 @@
         <div class="cta-inner">
             <h2 class="cta-h2">{{ __('contact.cta.h2') }}</h2>
             <p class="cta-sub">{{ __('contact.cta.sub') }}</p>
-            <a href="#" class="cta-btn">
+            <a href="{{ route('enduser.register') }}" class="cta-btn">
                 {{ __('contact.cta.btn') }}
                 <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
