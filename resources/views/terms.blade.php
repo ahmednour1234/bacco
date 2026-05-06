@@ -11,103 +11,7 @@
     font-family: 'Cairo','Inter',sans-serif;
     color: var(--dark);
     background: #fff;
-    display: grid;
-    grid-template-columns: 220px 1fr;
     min-height: 100vh;
-    align-items: start;
-}
-
-/* ── SIDEBAR ─────────────────────────────────────────────────────────────── */
-.terms-sidebar {
-    position: sticky;
-    top: 68px;
-    height: calc(100vh - 68px);
-    overflow-y: auto;
-    border-right: 1px solid var(--border);
-    padding: 28px 0 40px;
-    background: #fff;
-    flex-shrink: 0;
-}
-[dir=rtl] .terms-sidebar {
-    border-right: none;
-    border-left: 1px solid var(--border);
-}
-.terms-sidebar::-webkit-scrollbar { width: 4px; }
-.terms-sidebar::-webkit-scrollbar-track { background: transparent; }
-.terms-sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
-
-.sb-heading {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--dark);
-    padding: 0 20px 2px;
-}
-.sb-version {
-    font-size: 11px;
-    color: #aaa;
-    padding: 0 20px 18px;
-}
-.sb-nav-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 20px;
-    font-size: 13px;
-    color: var(--gray);
-    text-decoration: none;
-    border-left: 3px solid transparent;
-    transition: color .2s, border-color .2s, background .2s;
-    line-height: 1.4;
-}
-[dir=rtl] .sb-nav-link {
-    border-left: none;
-    border-right: 3px solid transparent;
-}
-.sb-nav-link:hover { color: var(--dark); background: #f7f7f5; }
-.sb-nav-link.active {
-    color: var(--green);
-    border-left-color: var(--green);
-    background: rgba(0,106,59,.05);
-    font-weight: 600;
-}
-[dir=rtl] .sb-nav-link.active {
-    border-left-color: transparent;
-    border-right-color: var(--green);
-}
-.sb-nav-link svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-.sb-divider { height: 1px; background: var(--border); margin: 14px 20px; }
-
-.sb-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: #aaa;
-    padding: 0 20px 8px;
-}
-.sb-section-link {
-    display: block;
-    padding: 6px 20px;
-    font-size: 12.5px;
-    color: var(--gray);
-    text-decoration: none;
-    border-left: 3px solid transparent;
-    transition: color .2s, border-color .2s;
-}
-[dir=rtl] .sb-section-link {
-    border-left: none;
-    border-right: 3px solid transparent;
-}
-.sb-section-link:hover { color: var(--dark); }
-.sb-section-link.active {
-    color: var(--green);
-    border-left-color: var(--green);
-    font-weight: 600;
-}
-[dir=rtl] .sb-section-link.active {
-    border-left-color: transparent;
-    border-right-color: var(--green);
 }
 
 /* ── MAIN CONTENT ────────────────────────────────────────────────────────── */
@@ -368,9 +272,6 @@
 
 /* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
 @media (max-width: 860px) {
-    .terms-page { grid-template-columns: 1fr; }
-    .terms-sidebar { position: static; height: auto; border: none; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 0; padding: 12px 0; }
-    .sb-section-link, .sb-nav-link { padding: 6px 12px; border: none; }
     .terms-account-grid { grid-template-columns: 1fr; }
     .terms-circuit-img { max-width: 200px; }
 }
@@ -381,42 +282,6 @@
 </style>
 
 <div class="terms-page">
-
-    {{-- ── SIDEBAR ──────────────────────────────────────────────────────── --}}
-    <aside class="terms-sidebar">
-        <div class="sb-heading">{{ __('terms.sidebar.heading') }}</div>
-        <div class="sb-version">{{ __('terms.sidebar.version') }}</div>
-
-        <a href="{{ route('privacy') }}" class="sb-nav-link {{ Route::is('privacy') ? 'active' : '' }}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            {{ __('terms.sidebar.privacy') }}
-        </a>
-        <a href="{{ route('terms') }}" class="sb-nav-link {{ Route::is('terms') ? 'active' : '' }}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            {{ __('terms.sidebar.terms') }}
-        </a>
-        <a href="{{ route('cookie') }}" class="sb-nav-link {{ Route::is('cookie') ? 'active' : '' }}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            {{ __('terms.sidebar.cookie') }}
-        </a>
-        <a href="#" class="sb-nav-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            {{ __('terms.sidebar.compliance') }}
-        </a>
-        <a href="{{ route('security') }}" class="sb-nav-link {{ Route::is('security') ? 'active' : '' }}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            {{ __('terms.sidebar.security') }}
-        </a>
-
-        <div class="sb-divider"></div>
-        <div class="sb-label">{{ __('terms.sidebar.sections') }}</div>
-
-        @foreach(range(1,10) as $i)
-        <a href="#s{{ $i }}" class="sb-section-link" data-sec="s{{ $i }}">
-            {{ __("terms.sidebar.s{$i}") }}
-        </a>
-        @endforeach
-    </aside>
 
     {{-- ── MAIN ─────────────────────────────────────────────────────────── --}}
     <main class="terms-main">
@@ -590,28 +455,4 @@
     </main>
 </div>
 
-<script>
-// Highlight sidebar section links on scroll
-(function () {
-    var links = document.querySelectorAll('.sb-section-link[data-sec]');
-    var sections = [];
-    links.forEach(function (l) {
-        var el = document.getElementById(l.dataset.sec);
-        if (el) sections.push({ el: el, link: l });
-    });
-
-    function onScroll() {
-        var scrollY = window.pageYOffset + 100;
-        var active = null;
-        sections.forEach(function (s) {
-            if (s.el.offsetTop <= scrollY) active = s;
-        });
-        links.forEach(function (l) { l.classList.remove('active'); });
-        if (active) active.link.classList.add('active');
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-})();
-</script>
 @endsection

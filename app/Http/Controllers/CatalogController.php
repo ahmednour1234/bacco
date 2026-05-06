@@ -11,27 +11,32 @@ class CatalogController extends Controller
     public function index()
     {
         try {
-            $rows = DB::connection('catalog')
-                ->table('catalog_products')
-                ->whereNotNull('division')
+            $db = DB::connection('catalog');
+
+            $rows = $db->table('catalog_categories as c')
+                ->join('catalog_products as p', 'p.category_id', '=', 'c.id')
+                ->whereNotNull('c.name')
+                ->where('c.name', '!=', '')
                 ->select(
-                    'division',
-                    DB::raw('count(*) as products'),
-                    DB::raw('count(distinct item_description) as items'),
-                    DB::raw('count(distinct category_id) as cats'),
+                    'c.id',
+                    'c.name',
+                    'c.slug',
+                    DB::raw('count(p.id) as products'),
+                    DB::raw('count(distinct p.item_description) as items'),
+                    DB::raw('MAX(p.division) as division'),
                 )
-                ->groupBy('division')
-                ->orderBy('division')
+                ->groupBy('c.id', 'c.name', 'c.slug')
+                ->orderBy('c.name')
                 ->get()
-                ->map(fn($d) => (object) array_merge((array) $d, [
-                    'slug' => Str::slug($d->division),
+                ->map(fn($r) => (object) array_merge((array) $r, [
+                    'slug' => $r->slug ?: Str::slug($r->name),
                 ]));
 
             $totals = [
-                'divisions' => $rows->count(),
-                'categories' => DB::connection('catalog')->table('catalog_products')->whereNotNull('category_id')->distinct()->count('category_id'),
-                'items' => DB::connection('catalog')->table('catalog_products')->whereNotNull('item_description')->distinct()->count('item_description'),
-                'products' => DB::connection('catalog')->table('catalog_products')->count(),
+                'divisions'  => $db->table('catalog_products')->whereNotNull('division')->distinct()->count('division'),
+                'categories' => $rows->count(),
+                'items'      => $db->table('catalog_products')->whereNotNull('item_description')->where('item_description', '!=', '')->distinct()->count('item_description'),
+                'products'   => $db->table('catalog_products')->count(),
             ];
         } catch (\Exception $e) {
             $rows   = collect();
@@ -39,6 +44,93 @@ class CatalogController extends Controller
         }
 
         return view('catalog.index', compact('rows', 'totals'));
+    }
+
+    public function showCategory(Request $request, string $slug)
+    {
+        try {
+            $db = DB::connection('catalog');
+
+            $category = $db->table('catalog_categories')
+                ->where('slug', $slug)
+                ->first();
+
+            if (!$category) {
+                // fallback: resolve by slug-matching name
+                $category = $db->table('catalog_categories')
+                    ->get()
+                    ->first(fn($c) => Str::slug($c->name) === $slug);
+            }
+
+            abort_if(!$category, 404);
+
+            $materials = $db->table('catalog_products')
+                ->where('category_id', $category->id)
+                ->whereNotNull('type_of_material')
+                ->where('type_of_material', '!=', '')
+                ->distinct()->orderBy('type_of_material')->pluck('type_of_material');
+
+            $sizes = $db->table('catalog_products')
+                ->where('category_id', $category->id)
+                ->whereNotNull('size')->where('size', '!=', '')
+                ->distinct()->orderBy('size')->pluck('size');
+
+            $leadTimes = $db->table('catalog_products')
+                ->where('category_id', $category->id)
+                ->whereNotNull('lead_time')->where('lead_time', '!=', '')
+                ->distinct()->orderBy('lead_time')->pluck('lead_time');
+
+            $query = $db->table('catalog_products')
+                ->where('category_id', $category->id)
+                ->whereNotNull('item_description')
+                ->where('item_description', '!=', '');
+
+            if ($request->filled('material')) {
+                $query->where('type_of_material', $request->material);
+            }
+            if ($request->filled('size')) {
+                $query->where('size', $request->size);
+            }
+            if ($request->filled('lead_time')) {
+                $query->where('lead_time', $request->lead_time);
+            }
+            if ($request->filled('q')) {
+                $query->where('item_description', 'like', '%' . $request->q . '%');
+            }
+
+            $items = $query
+                ->select(
+                    'item_description',
+                    DB::raw('count(*) as products'),
+                    DB::raw('GROUP_CONCAT(DISTINCT type_of_material ORDER BY type_of_material SEPARATOR ", ") as common_materials'),
+                    DB::raw('MAX(lead_time) as lead_time'),
+                )
+                ->groupBy('item_description')
+                ->orderBy('item_description')
+                ->paginate(12)
+                ->withQueryString();
+
+            $stats = [
+                'products'   => $db->table('catalog_products')->where('category_id', $category->id)->count(),
+                'items'      => $db->table('catalog_products')->where('category_id', $category->id)->whereNotNull('item_description')->where('item_description', '!=', '')->distinct()->count('item_description'),
+                'categories' => 1,
+            ];
+
+            $division = $db->table('catalog_products')->where('category_id', $category->id)->value('division') ?? '';
+
+        } catch (\Exception $e) {
+            abort(503, 'Catalog database unavailable.');
+        }
+
+        return view('catalog.division', [
+            'division'  => $category->name,
+            'slug'      => $slug,
+            'items'     => $items,
+            'stats'     => $stats,
+            'materials' => $materials,
+            'sizes'     => $sizes,
+            'leadTimes' => $leadTimes,
+        ]);
     }
 
     public function show(Request $request, string $slug)

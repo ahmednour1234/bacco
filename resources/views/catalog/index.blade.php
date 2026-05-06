@@ -112,11 +112,11 @@
     @else
         <div class="division-grid" id="divGrid">
             @foreach($rows as $d)
-            <a href="{{ route('catalog.division', $d->slug) }}" class="div-card" data-name="{{ strtolower($d->division) }}">
+        <a href="{{ route('catalog.category', $d->slug) }}" class="div-card" data-name="{{ strtolower($d->name) }}">
                 <div class="div-card-top">
-                    <span class="div-card-num">DIV-{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                    <span class="div-card-num">CAT-{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
                 </div>
-                <h3>{{ $d->division }}</h3>
+                <h3>{{ $d->name }}</h3>
                 <div class="div-stats">
                     <div class="div-stat">
                         <strong>{{ number_format($d->products) }}</strong>
@@ -125,10 +125,6 @@
                     <div class="div-stat">
                         <strong>{{ number_format($d->items) }}</strong>
                         <span>{{ __('catalog.card.items') }}</span>
-                    </div>
-                    <div class="div-stat">
-                        <strong>{{ number_format($d->cats) }}</strong>
-                        <span>{{ __('catalog.card.cats') }}</span>
                     </div>
                 </div>
                 <div class="div-browse">
@@ -146,7 +142,7 @@
 document.getElementById('divSearch').addEventListener('input', function () {
     const q = this.value.toLowerCase().trim();
     document.querySelectorAll('#divGrid .div-card').forEach(card => {
-        card.style.display = (!q || card.dataset.name.includes(q)) ? '' : 'none';
+    card.style.display = (!q || card.dataset.name.includes(q)) ? '' : 'none';
     });
 });
 </script>

@@ -155,6 +155,24 @@
             <div class="nav-links">
                 <a href="{{ route('catalog.index') }}" class="{{ Route::is('catalog.*') ? 'active' : '' }}">{{ __('welcome.nav.catalog') }}</a>
                 <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
+                {{-- Solutions dropdown --}}
+                <div class="nav-more" id="navSolutions">
+                    <button class="nav-more-btn" id="navSolutionsBtn" aria-haspopup="true" aria-expanded="false">
+                        {{ __('welcome.nav.solutions') }}
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="nav-more-dropdown" id="navSolutionsDropdown" role="menu">
+                        <a href="{{ route('enduser.register') }}" role="menuitem">
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            {{ __('welcome.nav.sol_contractors') }}
+                        </a>
+                        <div class="nav-more-sep"></div>
+                        <a href="{{ route('for-brands') }}" role="menuitem">
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                            {{ __('welcome.nav.sol_manufacturers') }}
+                        </a>
+                    </div>
+                </div>
                 <a href="{{ route('for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
                 <a href="{{ route('about') }}" class="{{ Route::is('about') ? 'active' : '' }}">{{ __('welcome.nav.about') }}</a>
                 {{-- More dropdown --}}
@@ -304,6 +322,23 @@
                 document.body.style.overflow = '';
             }
         });
+        // ── Solutions dropdown ──────────────────────────────────────────────
+        var navSolutions    = document.getElementById('navSolutions');
+        var navSolutionsBtn = document.getElementById('navSolutionsBtn');
+        if (navSolutions && navSolutionsBtn) {
+            navSolutionsBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var open = navSolutions.classList.toggle('open');
+                navSolutionsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                if (navMore) { navMore.classList.remove('open'); }
+            });
+            document.addEventListener('click', function (e) {
+                if (!navSolutions.contains(e.target)) {
+                    navSolutions.classList.remove('open');
+                    navSolutionsBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
         // ── More dropdown ───────────────────────────────────────────────────
         var navMore    = document.getElementById('navMore');
         var navMoreBtn = document.getElementById('navMoreBtn');
@@ -312,6 +347,7 @@
                 e.stopPropagation();
                 var open = navMore.classList.toggle('open');
                 navMoreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                if (navSolutions) { navSolutions.classList.remove('open'); }
             });
             document.addEventListener('click', function (e) {
                 if (!navMore.contains(e.target)) {
@@ -323,6 +359,7 @@
                 if (e.key === 'Escape') {
                     navMore.classList.remove('open');
                     navMoreBtn.setAttribute('aria-expanded', 'false');
+                    if (navSolutions) { navSolutions.classList.remove('open'); }
                 }
             });
         }

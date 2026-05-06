@@ -303,8 +303,8 @@
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
             {{ __('support.hero.label') }}
         </div>
-        <h1>{{ __('support.hero.h1') }}</h1>
-        <span class="sup-hero-ar">{{ __('support.hero.h1_ar') }}</span>
+        <h1>{{ $isAr ? __('support.hero.h1_ar') : __('support.hero.h1') }}</h1>
+        <span class="sup-hero-ar" style="{{ $isAr ? 'display:none' : '' }}">{{ __('support.hero.h1_ar') }}</span>
         <p class="sup-hero-sub">{{ __('support.hero.sub') }}</p>
         <div class="sup-search-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -488,7 +488,7 @@
         <h2>{{ __('support.cta.title') }}</h2>
         <p>{{ __('support.cta.sub') }}</p>
         <div class="sup-cta-btns">
-            <a href="#" class="sup-btn-primary">{{ __('support.cta.btn1') }}</a>
+            <a href="{{ route('enduser.register') }}" class="sup-btn-primary">{{ __('support.cta.btn1') }}</a>
             <a href="{{ route('contact') }}" class="sup-btn-outline">{{ __('support.cta.btn2') }}</a>
         </div>
     </div>

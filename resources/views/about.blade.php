@@ -5,11 +5,11 @@
 @section('title', __('about.nav.about') . ' — QIMTA')
 
 @section('nav-cta')
-    <a href="#" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
+    <a href="{{ route('enduser.register') }}" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
 @endsection
 
 @section('mobile-cta')
-    <a href="#" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
+    <a href="{{ route('enduser.register') }}" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
 @endsection
 
 @section('styles')
@@ -310,8 +310,8 @@
                 <h2>{{ __('about.cta.h2') }}</h2>
                 <p>{{ __('about.cta.sub') }}</p>
                 <div class="cta-btns">
-                    <a href="#" class="btn-cta-primary">{{ __('about.cta.btn_free') }}</a>
-                    <a href="#" class="btn-cta-outline">{{ __('about.cta.btn_contact') }}</a>
+                    <a href="{{ route('enduser.register') }}" class="btn-cta-primary">{{ __('about.cta.btn_free') }}</a>
+                    <a href="{{ route('contact') }}" class="btn-cta-outline">{{ __('about.cta.btn_contact') }}</a>
                 </div>
             </div>
         </div>

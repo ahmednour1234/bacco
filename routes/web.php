@@ -47,6 +47,7 @@ Route::get('/for-brands', function () {
 
 // ─── Public Catalog ───────────────────────────────────────────────────────────
 Route::get('/catalog', [\App\Http\Controllers\CatalogController::class, 'index'])->name('catalog.index');
+Route::get('/catalog/category/{slug}', [\App\Http\Controllers\CatalogController::class, 'showCategory'])->name('catalog.category');
 Route::get('/catalog/{divisionSlug}/{itemSlug}', [\App\Http\Controllers\CatalogController::class, 'showItem'])->name('catalog.item');
 Route::get('/catalog/{slug}', [\App\Http\Controllers\CatalogController::class, 'show'])->name('catalog.division');
 
