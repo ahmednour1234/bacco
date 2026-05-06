@@ -22,12 +22,12 @@
     <div class="ns-breadcrumb-bar">
         <div class="ns-container">
             <nav class="ns-breadcrumb">
-                <a href="{{ url('/') }}">{{ $isAr ? '????????' : 'HOME' }}</a>
-                <span class="ns-bc-sep">�</span>
-                <a href="{{ route('news') }}">{{ $isAr ? '???????' : 'NEWS' }}</a>
-                <span class="ns-bc-sep">�</span>
+                <a href="{{ url('/') }}">{{ $isAr ? 'الرئيسية' : 'HOME' }}</a>
+                <span class="ns-bc-sep">�</span>
+                <a href="{{ route('news') }}">{{ $isAr ? 'الأخبار' : 'NEWS' }}</a>
+                <span class="ns-bc-sep">�</span>
                 <a href="{{ route('news', ['category' => $article->name_en]) }}">{{ strtoupper($cat) }}</a>
-                <span class="ns-bc-sep">�</span>
+                <span class="ns-bc-sep">�</span>
                 <span class="ns-bc-current">{{ strtoupper($title) }}</span>
             </nav>
         </div>
@@ -53,13 +53,13 @@
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                     {{ strtoupper($cat) }}
                 </span>
-                <span class="ns-meta-dot">�</span>
+                <span class="ns-meta-dot">�</span>
                 <span class="ns-meta-item">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    {{ readTimeShow($desc) }} {{ $isAr ? '????? ?????' : 'min read' }}
+                    {{ readTimeShow($desc) }} {{ $isAr ? 'دقيقة قراءة' : 'min read' }}
                 </span>
-                <span class="ns-meta-dot">�</span>
-                <span class="ns-meta-item">Qimta {{ $isAr ? '??????' : 'Team' }}</span>
+                <span class="ns-meta-dot">�</span>
+                <span class="ns-meta-item">Qimta {{ $isAr ? 'فريق' : 'Team' }}</span>
                 <div class="ns-lang-toggle" style="{{ $isAr ? 'margin-right:auto' : 'margin-left:auto' }}">
                     <a href="{{ route('locale.switch', 'en') }}" class="ns-lang {{ !$isAr ? 'active' : '' }}">EN</a>
                     <a href="{{ route('locale.switch', 'ar') }}" class="ns-lang {{ $isAr ? 'active' : '' }}">AR</a>
@@ -85,7 +85,7 @@
 
             {{-- Share --}}
             <div class="ns-share-bar">
-                <span class="ns-share-label">{{ $isAr ? '???? ??? ??????' : 'Share this article' }}</span>
+                <span class="ns-share-label">{{ $isAr ? 'شارك هذا المقال' : 'Share this article' }}</span>
                 <div class="ns-share-btns">
                     <a href="https://twitter.com/intent/tweet?text={{ urlencode($title) }}&url={{ urlencode(url()->current()) }}"
                        target="_blank" rel="noopener" class="ns-share-btn ns-share-x">Twitter / X</a>
@@ -99,7 +99,7 @@
                 <a href="{{ route('news') }}" class="ns-back-link" style="{{ $isAr ? 'flex-direction:row-reverse' : '' }}">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"
                          style="{{ $isAr ? 'transform:scaleX(-1)' : '' }}"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-                    {{ $isAr ? '?????? ??? ???????' : 'Back to News' }}
+                    {{ $isAr ? 'العودة إلى الأخبار' : 'Back to News' }}
                 </a>
             </div>
 
@@ -111,7 +111,7 @@
             {{-- Related Reading --}}
             @if($related->count())
             <div class="ns-sidebar-card">
-                <p class="ns-sidebar-heading">{{ $isAr ? '????? ??? ???' : 'Related Reading' }}</p>
+                <p class="ns-sidebar-heading">{{ $isAr ? 'مقالات ذات صلة' : 'Related Reading' }}</p>
                 @php $byCategory = $related->groupBy('name_en'); @endphp
                 @foreach($byCategory as $catName => $items)
                 <div class="ns-related-group">
@@ -128,10 +128,10 @@
 
             {{-- CTA Card --}}
             <div class="ns-cta-card">
-                <p class="ns-cta-heading">{{ $isAr ? '?? ??? ????? ????????' : 'Ready to automate?' }}</p>
-                <p class="ns-cta-sub">{{ $isAr ? '????? ?????? ????????? ????? ?????? ?????????.' : 'Experience the future of construction procurement with our AI-driven engine.' }}</p>
+                <p class="ns-cta-heading">{{ $isAr ? 'هل أنت مستعد للأتمتة؟' : 'Ready to automate?' }}</p>
+                <p class="ns-cta-sub">{{ $isAr ? 'اختبر مستقبل المشتريات الإنشائية مع محرك الذكاء الاصطناعي لدينا.' : 'Experience the future of construction procurement with our AI-driven engine.' }}</p>
                 <a href="{{ route('news') }}" class="ns-cta-btn">
-                    {{ $isAr ? '???? ???? ???????' : 'Try the pricing engine' }}
+                    {{ $isAr ? 'جرّب محرك التسعير' : 'Try the pricing engine' }}
                 </a>
             </div>
 
