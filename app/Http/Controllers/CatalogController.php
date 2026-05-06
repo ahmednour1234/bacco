@@ -10,34 +10,40 @@ class CatalogController extends Controller
 {
     public function index()
     {
-        $rows = DB::connection('catalog')
-            ->table('catalog_products')
-            ->whereNotNull('division')
-            ->select(
-                'division',
-                DB::raw('count(*) as products'),
-                DB::raw('count(distinct item_description) as items'),
-                DB::raw('count(distinct category_id) as cats'),
-            )
-            ->groupBy('division')
-            ->orderBy('division')
-            ->get()
-            ->map(fn($d) => (object) array_merge((array) $d, [
-                'slug' => Str::slug($d->division),
-            ]));
+        try {
+            $rows = DB::connection('catalog')
+                ->table('catalog_products')
+                ->whereNotNull('division')
+                ->select(
+                    'division',
+                    DB::raw('count(*) as products'),
+                    DB::raw('count(distinct item_description) as items'),
+                    DB::raw('count(distinct category_id) as cats'),
+                )
+                ->groupBy('division')
+                ->orderBy('division')
+                ->get()
+                ->map(fn($d) => (object) array_merge((array) $d, [
+                    'slug' => Str::slug($d->division),
+                ]));
 
-        $totals = [
-            'divisions' => $rows->count(),
-            'categories' => DB::connection('catalog')->table('catalog_products')->whereNotNull('category_id')->distinct()->count('category_id'),
-            'items' => DB::connection('catalog')->table('catalog_products')->whereNotNull('item_description')->distinct()->count('item_description'),
-            'products' => DB::connection('catalog')->table('catalog_products')->count(),
-        ];
+            $totals = [
+                'divisions' => $rows->count(),
+                'categories' => DB::connection('catalog')->table('catalog_products')->whereNotNull('category_id')->distinct()->count('category_id'),
+                'items' => DB::connection('catalog')->table('catalog_products')->whereNotNull('item_description')->distinct()->count('item_description'),
+                'products' => DB::connection('catalog')->table('catalog_products')->count(),
+            ];
+        } catch (\Exception $e) {
+            $rows   = collect();
+            $totals = ['divisions' => 0, 'categories' => 0, 'items' => 0, 'products' => 0];
+        }
 
         return view('catalog.index', compact('rows', 'totals'));
     }
 
     public function show(Request $request, string $slug)
     {
+        try {
         // Resolve slug → actual division name
         $division = DB::connection('catalog')
             ->table('catalog_products')
@@ -113,12 +119,16 @@ class CatalogController extends Controller
             'items'      => DB::connection('catalog')->table('catalog_products')->where('division', $division)->whereNotNull('item_description')->where('item_description', '!=', '')->distinct()->count('item_description'),
             'categories' => DB::connection('catalog')->table('catalog_products')->where('division', $division)->whereNotNull('category_id')->distinct()->count('category_id'),
         ];
+        } catch (\Exception $e) {
+            abort(503, 'Catalog database unavailable.');
+        }
 
         return view('catalog.division', compact('division', 'slug', 'items', 'stats', 'materials', 'sizes', 'leadTimes'));
     }
 
     public function showItem(string $divisionSlug, string $itemSlug)
     {
+        try {
         $db = DB::connection('catalog');
 
         // Resolve division
@@ -174,6 +184,9 @@ class CatalogController extends Controller
                 'name' => $i,
                 'slug' => Str::slug($i),
             ]);
+        } catch (\Exception $e) {
+            abort(503, 'Catalog database unavailable.');
+        }
 
         return view('catalog.item', compact(
             'division', 'divisionSlug', 'itemDescription', 'itemSlug',
