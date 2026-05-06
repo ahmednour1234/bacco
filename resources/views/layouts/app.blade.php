@@ -255,32 +255,32 @@
                 </div>
                 <div class="footer-col">
                     <h5>{{ __('welcome.footer.sol_h') }}</h5>
-                    <a href="#">{{ __('welcome.footer.sol_1') }}</a>
-                    <a href="#">{{ __('welcome.footer.sol_2') }}</a>
-                    <a href="#">{{ __('welcome.footer.sol_3') }}</a>
-                    <a href="#">{{ __('welcome.footer.sol_4') }}</a>
+                    <a href="{{ route('enduser.register') }}">{{ __('welcome.footer.sol_1') }}</a>
+                    <a href="{{ route('enduser.register') }}">{{ __('welcome.footer.sol_2') }}</a>
+                    <a href="{{ route('for-brands') }}">{{ __('welcome.footer.sol_3') }}</a>
+                    <a href="{{ route('contact') }}">{{ __('welcome.footer.sol_4') }}</a>
                 </div>
                 <div class="footer-col">
                     <h5>{{ __('welcome.footer.platform_h') }}</h5>
-                    <a href="#">{{ __('welcome.footer.platform_1') }}</a>
-                    <a href="#">{{ __('welcome.footer.platform_2') }}</a>
-                    <a href="#">{{ __('welcome.footer.platform_3') }}</a>
-                    <a href="#">{{ __('welcome.footer.platform_4') }}</a>
+                    <a href="{{ route('about') }}">{{ __('welcome.footer.platform_1') }}</a>
+                    <a href="{{ route('catalog.index') }}">{{ __('welcome.footer.platform_2') }}</a>
+                    <a href="{{ route('catalog.index') }}">{{ __('welcome.footer.platform_3') }}</a>
+                    <a href="{{ route('about') }}">{{ __('welcome.footer.platform_4') }}</a>
                 </div>
                 <div class="footer-col">
                     <h5>{{ __('welcome.footer.company_h') }}</h5>
-                    <a href="#">{{ __('welcome.footer.company_1') }}</a>
-                    <a href="#">{{ __('welcome.footer.company_2') }}</a>
-                    <a href="#">{{ __('welcome.footer.company_3') }}</a>
-                    <a href="#">{{ __('welcome.footer.company_4') }}</a>
+                    <a href="{{ route('about') }}">{{ __('welcome.footer.company_1') }}</a>
+                    <a href="{{ route('contact') }}">{{ __('welcome.footer.company_2') }}</a>
+                    <a href="{{ route('news') }}">{{ __('welcome.footer.company_3') }}</a>
+                    <a href="{{ route('contact') }}">{{ __('welcome.footer.company_4') }}</a>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p class="footer-copy">{{ __('welcome.footer.copy') }}</p>
                 <div class="footer-legal">
-                    <a href="#">{{ __('welcome.footer.compliance') }}</a>
-                    <a href="#">{{ __('welcome.footer.docs') }}</a>
-                    <a href="#">{{ __('welcome.footer.api_status') }}</a>
+                    <a href="{{ route('privacy') }}">{{ __('welcome.footer.compliance') }}</a>
+                    <a href="{{ route('support') }}">{{ __('welcome.footer.docs') }}</a>
+                    <a href="{{ route('security') }}">{{ __('welcome.footer.api_status') }}</a>
                     <a href="{{ route('privacy') }}">{{ __('welcome.footer.privacy') }}</a>
                 </div>
             </div>
