@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\BoqController as AdminBoqController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
+use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmissionController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\QuotationController as AdminQuotationController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
@@ -54,6 +55,7 @@ Route::get('/catalog/{slug}', [\App\Http\Controllers\CatalogController::class, '
 Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
+Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
 
 Route::get('/privacy-policy', function () {
     return view('privacy');
@@ -207,6 +209,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Articles
         Route::resource('articles', AdminArticleController::class)->except(['show', 'store', 'update']);
         Route::post('/articles/upload-media', [AdminArticleController::class, 'uploadMedia'])->name('articles.upload-media');
+
+        // Contact Submissions
+        Route::get('/contact-submissions', [AdminContactSubmissionController::class, 'index'])->name('contact-submissions.index');
+        Route::get('/contact-submissions/{contactSubmission}', [AdminContactSubmissionController::class, 'show'])->name('contact-submissions.show');
+        Route::patch('/contact-submissions/{contactSubmission}/status', [AdminContactSubmissionController::class, 'updateStatus'])->name('contact-submissions.update-status');
+        Route::delete('/contact-submissions/{contactSubmission}', [AdminContactSubmissionController::class, 'destroy'])->name('contact-submissions.destroy');
 
         // ── Product Catalog (separate MySQL DB) ──────────────────────────────
         Route::prefix('catalog')->name('catalog.')->group(function () {

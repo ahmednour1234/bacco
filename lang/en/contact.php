@@ -47,6 +47,7 @@ return [
         'message'      => 'MESSAGE',
         'message_ph'   => 'How can our technical team assist you?',
         'submit'       => 'SUBMIT REQUEST',
+        'success'      => 'Thank you! Your message has been received. We will get back to you shortly.',
     ],
     'channels' => [
         'title' => 'Direct Channels',

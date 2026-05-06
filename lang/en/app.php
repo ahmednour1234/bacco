@@ -783,6 +783,9 @@ return [
     'manage_articles_desc'          => 'Manage bilingual articles and content.',
     'search_articles'               => 'Search articles…',
     'no_articles_found'             => 'No articles found.',
+
+    // Contact Submissions
+    'contact_submissions'           => 'Contact Submissions',
     'update_article'                => 'Update Article',
     'create_article'                => 'Create Article',
     'name_en'                       => 'Name (English)',

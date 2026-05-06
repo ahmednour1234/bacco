@@ -254,8 +254,14 @@
 
             {{-- Left: Form --}}
             <div class="form-left">
+                @if(session('success'))
+                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#15803d;display:flex;align-items:center;gap:10px;">
+                        <svg style="width:16px;height:16px;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        {{ session('success') }}
+                    </div>
+                @endif
                 <div class="form-title">{{ __('contact.form.title') }}</div>
-                <form action="#" method="POST">
+                <form action="{{ route('contact.store') }}" method="POST">
                     @csrf
                     <div class="form-row">
                         <div class="form-group">
