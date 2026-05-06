@@ -32,10 +32,10 @@
         <div style="max-width:1200px; margin:0 auto; padding:0 24px;">
             <div style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:24px;">
                 <div>
-                    <h1 style="font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:#111; margin:0 0 4px; font-family:'Cairo',sans-serif; line-height:1.15;">
+                    <h1 style="font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:#111; margin:0 0 4px; font-family:'The Year of The Camel','Cairo',serif; line-height:1.15;">
                         {{ $isAr ? 'الأخبار والمقالات' : 'News & Insights' }}
                     </h1>
-                    <p style="font-size:14px; color:#006A3B; font-family:'Cairo',sans-serif; margin:0 0 12px; font-weight:600;">
+                    <p style="font-size:14px; color:#006A3B; font-family:'The Year of The Camel','Cairo',serif; margin:0 0 12px; font-weight:600;">
                         {{ $isAr ? 'News & Insights' : 'الأخبار والمقالات' }}
                     </p>
                     <p style="font-size:14px; color:#666; max-width:520px; line-height:1.7; margin:0;">
@@ -128,7 +128,7 @@
                                 EN | AR
                             </span>
                         </div>
-                        <h2 style="font-size:clamp(1.2rem,2.5vw,1.75rem); font-weight:800; color:#fff; margin:0 0 14px; line-height:1.25; font-family:'Cairo',sans-serif;">
+                        <h2 style="font-size:clamp(1.2rem,2.5vw,1.75rem); font-weight:800; color:#fff; margin:0 0 14px; line-height:1.25; font-family:'The Year of The Camel','Cairo',serif;">
                             {{ $isAr ? $featured->title_ar : $featured->title_en }}
                         </h2>
                         <p style="font-size:13px; color:#999; line-height:1.7; margin:0 0 20px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
@@ -182,7 +182,7 @@
 
                     {{-- Body --}}
                     <div style="padding:16px;">
-                        <h3 style="font-size:14px; font-weight:700; color:#111; margin:0 0 10px; line-height:1.4; font-family:'Cairo',sans-serif; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                        <h3 style="font-size:14px; font-weight:700; color:#111; margin:0 0 10px; line-height:1.4; font-family:'The Year of The Camel','Cairo',serif; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
                             {{ $isAr ? $article->title_ar : $article->title_en }}
                         </h3>
                         <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; color:#999;">
@@ -219,7 +219,7 @@
     {{-- ── CTA ──────────────────────────────────────────────────────────── --}}
     <div style="background:#111; padding:80px 24px; text-align:center;">
         <div style="max-width:600px; margin:0 auto;">
-            <h2 style="font-size:clamp(1.5rem,3vw,2.2rem); font-weight:800; color:#fff; margin:0 0 12px; font-family:'Cairo',sans-serif;">
+            <h2 style="font-size:clamp(1.5rem,3vw,2.2rem); font-weight:800; color:#fff; margin:0 0 12px; font-family:'The Year of The Camel','Cairo',serif;">
                 {{ $isAr ? 'جرّب محرك التسعير' : 'Try the pricing engine' }}
             </h2>
             <p style="font-size:15px; color:#999; margin:0 0 32px; line-height:1.7;">

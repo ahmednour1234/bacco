@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @php
     $isAr  = app()->getLocale() === 'ar';
@@ -18,25 +18,25 @@
 @section('content')
 <div class="ns-page" dir="{{ $dir }}">
 
-    {{-- ── Breadcrumb ──────────────────────────────────────────────────── --}}
+    {{-- -- Breadcrumb ---------------------------------------------------- --}}
     <div class="ns-breadcrumb-bar">
         <div class="ns-container">
             <nav class="ns-breadcrumb">
-                <a href="{{ url('/') }}">{{ $isAr ? 'الرئيسية' : 'HOME' }}</a>
-                <span class="ns-bc-sep">›</span>
-                <a href="{{ route('news') }}">{{ $isAr ? 'الأخبار' : 'NEWS' }}</a>
-                <span class="ns-bc-sep">›</span>
+                <a href="{{ url('/') }}">{{ $isAr ? '????????' : 'HOME' }}</a>
+                <span class="ns-bc-sep">�</span>
+                <a href="{{ route('news') }}">{{ $isAr ? '???????' : 'NEWS' }}</a>
+                <span class="ns-bc-sep">�</span>
                 <a href="{{ route('news', ['category' => $article->name_en]) }}">{{ strtoupper($cat) }}</a>
-                <span class="ns-bc-sep">›</span>
+                <span class="ns-bc-sep">�</span>
                 <span class="ns-bc-current">{{ strtoupper($title) }}</span>
             </nav>
         </div>
     </div>
 
-    {{-- ── Two-column layout ────────────────────────────────────────────── --}}
+    {{-- -- Two-column layout ---------------------------------------------- --}}
     <div class="ns-container ns-layout">
 
-        {{-- ════ Main Column ════ --}}
+        {{-- ---- Main Column ---- --}}
         <main class="ns-main">
 
             {{-- Category badge --}}
@@ -53,13 +53,13 @@
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                     {{ strtoupper($cat) }}
                 </span>
-                <span class="ns-meta-dot">•</span>
+                <span class="ns-meta-dot">�</span>
                 <span class="ns-meta-item">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    {{ readTimeShow($desc) }} {{ $isAr ? 'دقيقة قراءة' : 'min read' }}
+                    {{ readTimeShow($desc) }} {{ $isAr ? '????? ?????' : 'min read' }}
                 </span>
-                <span class="ns-meta-dot">•</span>
-                <span class="ns-meta-item">Qimta {{ $isAr ? 'الفريق' : 'Team' }}</span>
+                <span class="ns-meta-dot">�</span>
+                <span class="ns-meta-item">Qimta {{ $isAr ? '??????' : 'Team' }}</span>
                 <div class="ns-lang-toggle" style="{{ $isAr ? 'margin-right:auto' : 'margin-left:auto' }}">
                     <a href="{{ route('locale.switch', 'en') }}" class="ns-lang {{ !$isAr ? 'active' : '' }}">EN</a>
                     <a href="{{ route('locale.switch', 'ar') }}" class="ns-lang {{ $isAr ? 'active' : '' }}">AR</a>
@@ -85,7 +85,7 @@
 
             {{-- Share --}}
             <div class="ns-share-bar">
-                <span class="ns-share-label">{{ $isAr ? 'شارك هذا المقال' : 'Share this article' }}</span>
+                <span class="ns-share-label">{{ $isAr ? '???? ??? ??????' : 'Share this article' }}</span>
                 <div class="ns-share-btns">
                     <a href="https://twitter.com/intent/tweet?text={{ urlencode($title) }}&url={{ urlencode(url()->current()) }}"
                        target="_blank" rel="noopener" class="ns-share-btn ns-share-x">Twitter / X</a>
@@ -99,19 +99,19 @@
                 <a href="{{ route('news') }}" class="ns-back-link" style="{{ $isAr ? 'flex-direction:row-reverse' : '' }}">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"
                          style="{{ $isAr ? 'transform:scaleX(-1)' : '' }}"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-                    {{ $isAr ? 'العودة إلى الأخبار' : 'Back to News' }}
+                    {{ $isAr ? '?????? ??? ???????' : 'Back to News' }}
                 </a>
             </div>
 
         </main>
 
-        {{-- ════ Sidebar ════ --}}
+        {{-- ---- Sidebar ---- --}}
         <aside class="ns-sidebar">
 
             {{-- Related Reading --}}
             @if($related->count())
             <div class="ns-sidebar-card">
-                <p class="ns-sidebar-heading">{{ $isAr ? 'قراءة ذات صلة' : 'Related Reading' }}</p>
+                <p class="ns-sidebar-heading">{{ $isAr ? '????? ??? ???' : 'Related Reading' }}</p>
                 @php $byCategory = $related->groupBy('name_en'); @endphp
                 @foreach($byCategory as $catName => $items)
                 <div class="ns-related-group">
@@ -128,10 +128,10 @@
 
             {{-- CTA Card --}}
             <div class="ns-cta-card">
-                <p class="ns-cta-heading">{{ $isAr ? 'هل أنت مستعد للأتمتة؟' : 'Ready to automate?' }}</p>
-                <p class="ns-cta-sub">{{ $isAr ? 'اختبر مستقبل المشتريات بمحرك الذكاء الاصطناعي.' : 'Experience the future of construction procurement with our AI-driven engine.' }}</p>
+                <p class="ns-cta-heading">{{ $isAr ? '?? ??? ????? ????????' : 'Ready to automate?' }}</p>
+                <p class="ns-cta-sub">{{ $isAr ? '????? ?????? ????????? ????? ?????? ?????????.' : 'Experience the future of construction procurement with our AI-driven engine.' }}</p>
                 <a href="{{ route('news') }}" class="ns-cta-btn">
-                    {{ $isAr ? 'جرّب محرك التسعير' : 'Try the pricing engine' }}
+                    {{ $isAr ? '???? ???? ???????' : 'Try the pricing engine' }}
                 </a>
             </div>
 
@@ -142,7 +142,7 @@
 </div>
 
 <style>
-.ns-page { background:#f7f7f5; min-height:100vh; font-family:'Cairo','Inter',sans-serif; }
+.ns-page { background:#f7f7f5; min-height:100vh; font-family:'The Year of The Camel','Cairo',serif; }
 .ns-container { max-width:1100px; margin:0 auto; padding:0 28px; }
 
 /* Breadcrumb */
@@ -163,7 +163,7 @@
 .ns-badge:hover { background:#004d2a; }
 
 /* Title */
-.ns-title { font-size:clamp(1.55rem,3.5vw,2.2rem); font-weight:800; color:#111; line-height:1.25; margin:0 0 18px; font-family:'Cairo',sans-serif; }
+.ns-title { font-size:clamp(1.55rem,3.5vw,2.2rem); font-weight:800; color:#111; line-height:1.25; margin:0 0 18px; font-family:'The Year of The Camel','Cairo',serif; }
 
 /* Meta */
 .ns-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; color:#888; padding-bottom:22px; border-bottom:1px solid #e8e8e5; margin-bottom:24px; }
@@ -181,7 +181,7 @@
 .ns-play-btn:hover { background:rgba(255,255,255,.28); transform:scale(1.08); }
 
 /* Article body */
-.ns-article-body { font-size:16px; line-height:1.9; color:#2d2d2d; font-family:'Cairo','Inter',sans-serif; }
+.ns-article-body { font-size:16px; line-height:1.9; color:#2d2d2d; font-family:'The Year of The Camel','Cairo',serif; }
 .ns-article-body h1 { font-size:1.9rem; font-weight:800; margin:2rem 0 .8rem; color:#111; }
 .ns-article-body h2 { font-size:1.4rem; font-weight:700; margin:1.8rem 0 .7rem; color:#111; border-bottom:1px solid #e8e8e5; padding-bottom:8px; }
 .ns-article-body h3 { font-size:1.15rem; font-weight:700; margin:1.5rem 0 .6rem; color:#1a1a1a; }
