@@ -261,53 +261,64 @@
                     </div>
                 @endif
                 <div class="form-title">{{ __('contact.form.title') }}</div>
-                <form action="{{ route('contact.store') }}" method="POST">
+                <form action="{{ route('contact.store') }}" method="POST" novalidate>
                     @csrf
                     <div class="form-row">
                         <div class="form-group">
                             <label>{{ __('contact.form.name') }}</label>
-                            <input type="text" name="name" placeholder="{{ __('contact.form.name_ph') }}">
+                            <input type="text" name="name" value="{{ old('name') }}"
+                                   placeholder="{{ __('contact.form.name_ph') }}"
+                                   style="{{ $errors->has('name') ? 'border-color:#ef4444;' : '' }}">
+                            @error('name')<span style="font-size:11px;color:#ef4444;margin-top:4px;">{{ $message }}</span>@enderror
                         </div>
                         <div class="form-group">
                             <label>{{ __('contact.form.email') }}</label>
-                            <input type="email" name="email" placeholder="{{ __('contact.form.email_ph') }}">
+                            <input type="email" name="email" value="{{ old('email') }}"
+                                   placeholder="{{ __('contact.form.email_ph') }}"
+                                   style="{{ $errors->has('email') ? 'border-color:#ef4444;' : '' }}">
+                            @error('email')<span style="font-size:11px;color:#ef4444;margin-top:4px;">{{ $message }}</span>@enderror
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>{{ __('contact.form.phone') }}</label>
-                        <div class="phone-wrap">
+                        <div class="phone-wrap" style="{{ $errors->has('phone') ? 'border-color:#ef4444;' : '' }}">
                             <span class="phone-prefix">+966</span>
-                            <input type="tel" name="phone" placeholder="5X XXX XXXX">
+                            <input type="tel" name="phone_local" value="{{ old('phone_local') }}" placeholder="5X XXX XXXX">
                         </div>
+                        @error('phone')<span style="font-size:11px;color:#ef4444;margin-top:4px;">{{ $message }}</span>@enderror
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>{{ __('contact.form.company') }}</label>
-                            <input type="text" name="company" placeholder="{{ __('contact.form.company_ph') }}">
+                            <input type="text" name="company" value="{{ old('company') }}"
+                                   placeholder="{{ __('contact.form.company_ph') }}">
                         </div>
                         <div class="form-group">
                             <label>{{ __('contact.form.role') }}</label>
-                            <input type="text" name="role" placeholder="{{ __('contact.form.role_ph') }}">
+                            <input type="text" name="role" value="{{ old('role') }}"
+                                   placeholder="{{ __('contact.form.role_ph') }}">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>{{ __('contact.form.inquiry_type') }}</label>
                         <select name="inquiry_type">
-                            <option value="">{{ __('contact.form.type_boq') }}</option>
-                            <option value="brand">{{ __('contact.form.type_brand') }}</option>
-                            <option value="enterprise">{{ __('contact.form.type_enterprise') }}</option>
-                            <option value="support">{{ __('contact.form.type_support') }}</option>
-                            <option value="partner">{{ __('contact.form.type_partner') }}</option>
-                            <option value="press">{{ __('contact.form.type_press') }}</option>
+                            <option value="boq"        {{ old('inquiry_type') === 'boq'        ? 'selected' : '' }}>{{ __('contact.form.type_boq') }}</option>
+                            <option value="brand"      {{ old('inquiry_type') === 'brand'      ? 'selected' : '' }}>{{ __('contact.form.type_brand') }}</option>
+                            <option value="enterprise" {{ old('inquiry_type') === 'enterprise' ? 'selected' : '' }}>{{ __('contact.form.type_enterprise') }}</option>
+                            <option value="support"    {{ old('inquiry_type') === 'support'    ? 'selected' : '' }}>{{ __('contact.form.type_support') }}</option>
+                            <option value="partner"    {{ old('inquiry_type') === 'partner'    ? 'selected' : '' }}>{{ __('contact.form.type_partner') }}</option>
+                            <option value="press"      {{ old('inquiry_type') === 'press'      ? 'selected' : '' }}>{{ __('contact.form.type_press') }}</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>{{ __('contact.form.message') }}</label>
-                        <textarea name="message" placeholder="{{ __('contact.form.message_ph') }}"></textarea>
+                        <textarea name="message" placeholder="{{ __('contact.form.message_ph') }}"
+                                  style="{{ $errors->has('message') ? 'border-color:#ef4444;' : '' }}">{{ old('message') }}</textarea>
+                        @error('message')<span style="font-size:11px;color:#ef4444;margin-top:4px;">{{ $message }}</span>@enderror
                     </div>
 
                     <button type="submit" class="btn-submit">
