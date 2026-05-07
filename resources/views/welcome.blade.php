@@ -5,7 +5,7 @@
 @section('title')QIMTA &mdash; {{ __('welcome.hero.tag') }}@endsection
 
 @section('nav-cta')
-    <a href="#" class="btn-nav-cta">
+    <a href="{{ route('enduser.login') }}" class="btn-nav-cta">
         {{ __('welcome.nav.price_boq') }}
         <span class="cta-badge">{{ $isAr ? 'مجاني' : 'FREE' }}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -13,7 +13,7 @@
 @endsection
 
 @section('mobile-cta')
-    <a href="#" class="btn btn-primary">{{ __('welcome.nav.price_boq') }}</a>
+    <a href="{{ route('enduser.login') }}" class="btn btn-primary">{{ __('welcome.nav.price_boq') }}</a>
 @endsection
 
 @section('styles')
@@ -246,7 +246,7 @@
                 <h1>{{ __('welcome.hero.h1') }}</h1>
                 <p class="hero-sub">{{ __('welcome.hero.sub') }}</p>
                 <div class="hero-btns">
-                    <a href="#" class="btn btn-dark btn-lg">{{ __('welcome.hero.btn_primary') }}</a>
+                    <a href="{{ route('enduser.login') }}" class="btn btn-dark btn-lg">{{ __('welcome.hero.btn_primary') }}</a>
                     <a href="#" class="btn btn-outline btn-lg">{{ __('welcome.hero.btn_secondary') }}</a>
                 </div>
             </div>
@@ -597,7 +597,7 @@
         <div class="container">
             <h2>{{ __('welcome.cta.h2') }}</h2>
             <p>{{ __('welcome.cta.sub') }}</p>
-            <a href="#" class="btn btn-primary btn-lg">{{ __('welcome.cta.btn') }}</a>
+            <a href="{{ route('enduser.login') }}" class="btn btn-primary btn-lg">{{ __('welcome.cta.btn') }}</a>
         </div>
     </section>
 
