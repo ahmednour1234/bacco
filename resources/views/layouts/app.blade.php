@@ -45,8 +45,8 @@
         /* ── NAV ── */
         .nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.07); box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
         .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 16px; }
-        .nav-logo { display: flex; align-items: center; gap: 8px; font-size: 21px; font-weight: 900; letter-spacing: -0.8px; color: var(--green); flex-shrink: 0; text-decoration: none; }
-        .nav-logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); opacity: 0.5; margin-bottom: -6px; }
+        .nav-logo { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; }
+        .nav-logo img { height: 38px; width: auto; display: block; }
         .nav-links { display: flex; align-items: center; gap: 4px; }
         .nav-links a { position: relative; font-size: 14px; font-weight: 500; color: #444; padding: 6px 12px; border-radius: 6px; transition: color .2s, background .2s; white-space: nowrap; text-decoration: none; }
         .nav-links a::after { content: ''; position: absolute; bottom: 2px; left: 12px; right: 12px; height: 2px; border-radius: 2px; background: var(--green); transform: scaleX(0); transform-origin: center; transition: transform .25s ease; }
@@ -108,8 +108,8 @@
         /* ── FOOTER ── */
         .footer { background: var(--white); padding: 64px 0 32px; border-top: 1px solid var(--border); }
         .footer-top { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
-        .footer-logo { font-size: 22px; font-weight: 800; color: var(--dark); letter-spacing: -0.5px; margin-bottom: 10px; }
-        [dir="rtl"] .footer-logo { letter-spacing: 0; }
+        .footer-logo { margin-bottom: 10px; }
+        .footer-logo img { height: 34px; width: auto; display: block; }
         .footer-tagline { font-size: 13px; color: #666; line-height: 1.65; max-width: 240px; margin-bottom: 20px; }
         .footer-socials { display: flex; gap: 12px; }
         .social-btn { width: 36px; height: 36px; border-radius: 8px; background: #f1f1f1; display: flex; align-items: center; justify-content: center; color: #444; transition: background .2s, color .2s; }
@@ -150,7 +150,7 @@
     <nav class="nav">
         <div class="container nav-inner">
             <a href="/" class="nav-logo">
-                QIMTA<span class="nav-logo-dot"></span>
+                <img src="/images/qimta-logo.svg" alt="QIMTA" />
             </a>
             <div class="nav-links">
                 <a href="{{ route('catalog.index') }}" class="{{ Route::is('catalog.*') ? 'active' : '' }}">{{ __('welcome.nav.catalog') }}</a>
@@ -263,7 +263,7 @@
         <div class="container">
             <div class="footer-top">
                 <div>
-                    <p class="footer-logo">QIMTA</p>
+                    <p class="footer-logo"><img src="/images/qimta-logo.svg" alt="QIMTA" /></p>
                     <p class="footer-tagline">{{ __('welcome.footer.tagline') }}</p>
                     <div class="footer-socials">
                         <a href="https://www.youtube.com/@Qimtatech" target="_blank" rel="noopener" class="social-btn" title="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.4a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white"/></svg></a>
