@@ -29,9 +29,8 @@
                 px-10 xl:px-16 py-12 relative shrink-0">
 
         {{-- Logo --}}
-        <div class="flex items-center gap-2.5">
-            <img src="{{ asset('SVG.png') }}" alt="Qimta" class="h-9 w-9 object-contain">
-            <span class="text-slate-900 text-xl font-bold tracking-tight">Qimta</span>
+        <div class="flex items-center">
+            <img src="{{ asset('images/qimta-logo.svg') }}" alt="Qimta" class="h-10 w-auto object-contain">
         </div>
 
         {{-- Hero copy – centred vertically --}}
@@ -64,9 +63,8 @@
         {{-- ── Mobile / Tablet sticky header ─────────────────── --}}
         <header class="lg:hidden sticky top-0 z-10 bg-white border-b border-slate-100
                        px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-2.5">
-                <img src="{{ asset('SVG.png') }}" alt="Qimta" class="h-8 w-8 object-contain">
-                <span class="text-slate-900 text-base font-bold tracking-tight">Qimta</span>
+            <div class="flex items-center">
+                <img src="{{ asset('images/qimta-logo.svg') }}" alt="Qimta" class="h-9 w-auto object-contain">
             </div>
             @yield('mobile-header-action')
         </header>
