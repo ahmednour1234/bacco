@@ -29,9 +29,7 @@ use App\Http\Controllers\Supplier\ProductController as SupplierProductController
 use App\Http\Controllers\Supplier\ProfileController as SupplierProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [\App\Http\Controllers\CatalogController::class, 'home']);
 
 // ─── Generic /dashboard redirect → enduser dashboard ─────────────────────────
 Route::get('/dashboard', function () {

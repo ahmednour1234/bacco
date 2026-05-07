@@ -8,6 +8,33 @@ use Illuminate\Support\Str;
 
 class CatalogController extends Controller
 {
+    public function home()
+    {
+        $divisions = collect();
+        try {
+            $db = DB::connection('catalog');
+            $divisions = $db->table('catalog_products')
+                ->whereNotNull('division')
+                ->where('division', '!=', '')
+                ->select(
+                    'division',
+                    DB::raw('count(*) as products'),
+                )
+                ->groupBy('division')
+                ->orderBy('division')
+                ->get()
+                ->map(fn($r) => (object)[
+                    'name'     => $r->division,
+                    'slug'     => \Illuminate\Support\Str::slug($r->division),
+                    'products' => $r->products,
+                ]);
+        } catch (\Exception $e) {
+            // catalog DB unavailable — welcome page still renders, cards are hidden
+        }
+
+        return view('welcome', compact('divisions'));
+    }
+
     public function index()
     {
         try {
