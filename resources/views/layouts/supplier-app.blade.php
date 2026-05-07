@@ -48,18 +48,10 @@
                transition-transform duration-300 ease-in-out
                lg:translate-x-0">
         {{-- Logo --}}
-        <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-200">
-            @if(file_exists(public_path('images/logo.png')))
-                <img src="{{ asset('images/logo.png') }}" alt="Qimta" class="h-9 object-contain">
-            @else
-                <div class="flex items-center justify-center w-9 h-9 bg-emerald-600 rounded-lg shrink-0">
-                    <img src="{{ asset('SVG.png') }}" alt="Qimta" class="h-5 w-5 object-contain brightness-0 invert">
-                </div>
-                <span class="block text-slate-900 text-lg font-bold tracking-tight leading-none">Qimta</span>
-            @endif
-            <div>
-                <p class="text-xs text-slate-400 font-medium mt-0.5">{{ __('app.supplier_portal') }}</p>
-            </div>
+        <div class="flex items-center px-6 py-5 border-b border-slate-200">
+            <a href="{{ route('supplier.dashboard') }}">
+                <img src="{{ asset('images/qimta-logo.svg') }}" alt="Qimta" class="h-9 w-auto object-contain">
+            </a>
         </div>
 
         {{-- Navigation --}}
