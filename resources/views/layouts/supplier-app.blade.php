@@ -23,9 +23,6 @@
         * {
             font-family: 'The Year of The Camel', 'Cairo', sans-serif;
         }
-        [dir="rtl"] * {
-            font-family: 'Cairo', sans-serif;
-        }
 
         [x-cloak] {
             display: none !important;
