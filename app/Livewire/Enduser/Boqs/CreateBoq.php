@@ -233,7 +233,10 @@ class CreateBoq extends Component
 
             if (! $result['success']) {
                 Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
-                $this->dispatch('toast', message: $result['error'] ?? 'AI extraction failed.', type: 'error');
+                $message = ($result['service_unavailable'] ?? false)
+                    ? __('app.ai_service_unavailable')
+                    : ($result['error'] ?? 'AI extraction failed.');
+                $this->dispatch('toast', message: $message, type: 'error');
             } elseif (empty($result['items'])) {
                 Cache::put('boq_ai_status_' . Auth::id(), 'no_items', now()->addMinutes(30));
                 $this->dispatch('toast', message: 'The AI service could not extract any items from the uploaded file. Please add items manually.', type: 'warning');

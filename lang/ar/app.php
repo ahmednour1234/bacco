@@ -434,6 +434,7 @@ return [
     'no_file'                  => 'لا يوجد ملف',
     'submit_boq'               => 'إرسال جدول الكميات',
     'general'                  => 'عام',
+    'ai_service_unavailable'   => 'الخدمة حاليا غير متوفرة. يرجى المحاولة مرة أخرى لاحقاً.',
 
     // ── Create/Edit Quotation (extra) ────────────────────────────────────────
     'section_pricing_review'   => 'القسم 2ب: مراجعة التسعير',

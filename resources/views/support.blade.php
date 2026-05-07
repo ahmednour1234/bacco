@@ -488,7 +488,7 @@
         <h2>{{ __('support.cta.title') }}</h2>
         <p>{{ __('support.cta.sub') }}</p>
         <div class="sup-cta-btns">
-            <a href="{{ route('enduser.register') }}" class="sup-btn-primary">{{ __('support.cta.btn1') }}</a>
+            <a href="{{ route('enduser.login') }}" class="sup-btn-primary">{{ __('support.cta.btn1') }}</a>
             <a href="{{ route('contact') }}" class="sup-btn-outline">{{ __('support.cta.btn2') }}</a>
         </div>
     </div>

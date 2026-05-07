@@ -545,7 +545,7 @@
         <div class="cta-inner">
             <h2 class="cta-h2">{{ __('contact.cta.h2') }}</h2>
             <p class="cta-sub">{{ __('contact.cta.sub') }}</p>
-            <a href="{{ route('enduser.register') }}" class="cta-btn">
+            <a href="{{ route('enduser.login') }}" class="cta-btn">
                 {{ __('contact.cta.btn') }}
                 <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>

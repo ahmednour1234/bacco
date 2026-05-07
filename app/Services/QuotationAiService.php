@@ -208,14 +208,14 @@ class QuotationAiService
                 'message' => $e->getMessage(),
             ]);
 
-            return $this->failure('AI service timed out or is unavailable. Please try again later.');
+            return $this->failure('AI service timed out or is unavailable. Please try again later.', true);
         } catch (\Throwable $e) {
             Log::error('QuotationAiService: Unexpected error calling AI endpoint.', [
                 'url'     => $url,
                 'message' => $e->getMessage(),
             ]);
 
-            return $this->failure('An unexpected error occurred while contacting the AI service.');
+            return $this->failure('An unexpected error occurred while contacting the AI service.', true);
         }
 
         if (! $response->successful()) {
@@ -400,16 +400,20 @@ class QuotationAiService
             $errorMsg = "Gemini API returned HTTP {$status}.";
 
             // Provide specific error messages for common Gemini API errors
+            $isUnavailable = false;
             if ($status === 400) {
                 $errorMsg = "Invalid request to Gemini API. Your API key may be invalid or the file format is not supported.";
             } elseif ($status === 401) {
                 $errorMsg = "Gemini API authentication failed. Please check your GEMINI_API_KEY in .env.";
             } elseif ($status === 403) {
                 $errorMsg = "Gemini API access forbidden. Your API key may not have the required permissions.";
+                $isUnavailable = true;
             } elseif ($status === 429) {
                 $errorMsg = "Gemini API rate limit exceeded. Please try again in a few moments.";
-            } elseif ($status === 500) {
+                $isUnavailable = true;
+            } elseif ($status === 500 || $status === 503) {
                 $errorMsg = "Gemini API server error. Please try again later.";
+                $isUnavailable = true;
             }
 
             Log::error('QuotationAiService: Gemini generateContent failed.', [
@@ -418,7 +422,7 @@ class QuotationAiService
                 'body'   => $response->body(),
             ]);
 
-            return $this->failure($errorMsg);
+            return $this->failure($errorMsg, $isUnavailable);
         }
 
         $text = (string) $response->json('candidates.0.content.parts.0.text');
@@ -502,12 +506,17 @@ class QuotationAiService
             $status = $uploadResponse->status();
             $errorMsg = "Gemini Files API upload failed with HTTP {$status}.";
 
+            $isUnavailable = false;
             if ($status === 401) {
                 $errorMsg = "Gemini API authentication failed. Please check your GEMINI_API_KEY in .env.";
             } elseif ($status === 413) {
                 $errorMsg = "File is too large. Please upload a file smaller than 2GB.";
             } elseif ($status === 429) {
                 $errorMsg = "Rate limit exceeded. Please wait a moment and try again.";
+                $isUnavailable = true;
+            } elseif ($status === 503) {
+                $errorMsg = "Gemini API is temporarily unavailable. Please try again later.";
+                $isUnavailable = true;
             }
 
             Log::error('QuotationAiService: Gemini Files API upload failed.', [
@@ -515,7 +524,7 @@ class QuotationAiService
                 'body'   => $uploadResponse->body(),
             ]);
 
-            return $this->failure($errorMsg);
+            return $this->failure($errorMsg, $isUnavailable);
         }
 
         $fileUri = (string) $uploadResponse->json('file.uri');
@@ -646,9 +655,9 @@ PROMPT);
     /**
      * @return array{success: bool, items: array, error: string}
      */
-    private function failure(string $message): array
+    private function failure(string $message, bool $serviceUnavailable = false): array
     {
-        return ['success' => false, 'items' => [], 'error' => $message];
+        return ['success' => false, 'items' => [], 'error' => $message, 'service_unavailable' => $serviceUnavailable];
     }
 
     private function mimeForExtension(string $ext): string

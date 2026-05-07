@@ -119,7 +119,7 @@ class CatalogController extends Controller
             $division = $db->table('catalog_products')->where('category_id', $category->id)->value('division') ?? '';
 
         } catch (\Exception $e) {
-            abort(503, 'Catalog database unavailable.');
+            return response()->view('errors.503', [], 503);
         }
 
         return view('catalog.division', [
@@ -212,7 +212,7 @@ class CatalogController extends Controller
             'categories' => DB::connection('catalog')->table('catalog_products')->where('division', $division)->whereNotNull('category_id')->distinct()->count('category_id'),
         ];
         } catch (\Exception $e) {
-            abort(503, 'Catalog database unavailable.');
+            return response()->view('errors.503', [], 503);
         }
 
         return view('catalog.division', compact('division', 'slug', 'items', 'stats', 'materials', 'sizes', 'leadTimes'));
@@ -277,7 +277,7 @@ class CatalogController extends Controller
                 'slug' => Str::slug($i),
             ]);
         } catch (\Exception $e) {
-            abort(503, 'Catalog database unavailable.');
+            return response()->view('errors.503', [], 503);
         }
 
         return view('catalog.item', compact(

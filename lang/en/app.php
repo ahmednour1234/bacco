@@ -434,6 +434,7 @@ return [
     // ── BOQ Create ───────────────────────────────────────────────────────────
     'extracting_boq_items'     => 'Extracting BOQ Items',
     'ai_extracting_items'      => 'AI is extracting items from your file...',
+    'ai_service_unavailable'   => 'The AI service is currently unavailable. Please try again later.',
     'section_project_info'     => 'Section 1: Project Information',
     'project_description_label' => 'Project Description',
     'optional'                 => '(optional)',
