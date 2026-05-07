@@ -5,11 +5,11 @@
 @section('title', __('contact.hero.h1') . ' — QIMTA')
 
 @section('nav-cta')
-    <a href="#" class="btn-demo">{{ __('contact.nav.get_demo') }}</a>
+    <a href="{{ route('enduser.login') }}" class="btn-demo">{{ __('contact.nav.get_demo') }}</a>
 @endsection
 
 @section('mobile-cta')
-    <a href="#" class="btn-demo">{{ __('contact.nav.get_demo') }}</a>
+    <a href="{{ route('enduser.login') }}" class="btn-demo">{{ __('contact.nav.get_demo') }}</a>
 @endsection
 
 @section('styles')
