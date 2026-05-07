@@ -5,11 +5,11 @@
 @section('title', __('about.nav.about') . ' — QIMTA')
 
 @section('nav-cta')
-    <a href="{{ route('enduser.register') }}" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
+    <a href="{{ route('enduser.login') }}" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
 @endsection
 
 @section('mobile-cta')
-    <a href="{{ route('enduser.register') }}" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
+    <a href="{{ route('enduser.login') }}" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
 @endsection
 
 @section('styles')
