@@ -13,7 +13,17 @@
     @livewireStyles
 
     <style>
+        @font-face {
+            font-family: 'The Year of The Camel';
+            src: url('/fonts/YearOfTheCamelBold.woff2') format('woff2');
+            font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
         * {
+            font-family: 'The Year of The Camel', 'Cairo', sans-serif;
+        }
+        [dir="rtl"] * {
             font-family: 'Cairo', sans-serif;
         }
 
