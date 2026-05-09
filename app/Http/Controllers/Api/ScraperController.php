@@ -118,14 +118,7 @@ class ScraperController extends Controller
             $query->where('source_id', $request->integer('source_id'));
         }
 
-        if ($request->boolean('unsynced')) {
-            $query->where('is_synced', false);
-        }
-
-        $brands = $query->get([
-            'id', 'source_id', 'external_id', 'name',
-            'is_synced', 'synced_at', 'last_scraped_at',
-        ]);
+        $brands = $query->get(['id', 'source_id', 'external_id', 'name']);
 
         return response()->json([
             'total' => $brands->count(),
@@ -146,14 +139,7 @@ class ScraperController extends Controller
             $query->where('source_id', $request->integer('source_id'));
         }
 
-        if ($request->boolean('unsynced')) {
-            $query->where('is_synced', false);
-        }
-
-        $categories = $query->get([
-            'id', 'source_id', 'external_id', 'name', 'url',
-            'is_synced', 'synced_at', 'last_scraped_at',
-        ]);
+        $categories = $query->get(['id', 'source_id', 'external_id', 'name', 'url']);
 
         return response()->json([
             'total' => $categories->count(),
