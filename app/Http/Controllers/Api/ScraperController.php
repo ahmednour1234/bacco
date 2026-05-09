@@ -102,6 +102,104 @@ class ScraperController extends Controller
     }
 
     // =========================================================================
+    // SCRAPER DB  –  read directly from qimta_ai
+    // =========================================================================
+
+    // -------------------------------------------------------------------------
+    // GET /api/scraper/scraper-brands
+    // -------------------------------------------------------------------------
+
+    public function scraperBrands(Request $request): JsonResponse
+    {
+        $query = ScraperBrand::with('source:id,name,base_url')
+            ->orderBy('name');
+
+        if ($request->filled('source_id')) {
+            $query->where('source_id', $request->integer('source_id'));
+        }
+
+        if ($request->boolean('unsynced')) {
+            $query->where('is_synced', false);
+        }
+
+        $brands = $query->get([
+            'id', 'source_id', 'external_id', 'name',
+            'is_synced', 'synced_at', 'last_scraped_at',
+        ]);
+
+        return response()->json([
+            'total' => $brands->count(),
+            'data'  => $brands,
+        ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /api/scraper/scraper-categories
+    // -------------------------------------------------------------------------
+
+    public function scraperCategories(Request $request): JsonResponse
+    {
+        $query = ScraperCategory::with('source:id,name,base_url')
+            ->orderBy('name');
+
+        if ($request->filled('source_id')) {
+            $query->where('source_id', $request->integer('source_id'));
+        }
+
+        if ($request->boolean('unsynced')) {
+            $query->where('is_synced', false);
+        }
+
+        $categories = $query->get([
+            'id', 'source_id', 'external_id', 'name', 'url',
+            'is_synced', 'synced_at', 'last_scraped_at',
+        ]);
+
+        return response()->json([
+            'total' => $categories->count(),
+            'data'  => $categories,
+        ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /api/scraper/scraper-products
+    // -------------------------------------------------------------------------
+
+    public function scraperProducts(Request $request): JsonResponse
+    {
+        $query = ScraperProduct::with([
+            'source:id,name,base_url',
+            'scraperBrand:id,name',
+            'scraperCategory:id,name',
+        ])->orderBy('name');
+
+        if ($request->filled('source_id')) {
+            $query->where('source_id', $request->integer('source_id'));
+        }
+
+        if ($request->filled('scraper_brand_id')) {
+            $query->where('scraper_brand_id', $request->integer('scraper_brand_id'));
+        }
+
+        if ($request->filled('scraper_category_id')) {
+            $query->where('scraper_category_id', $request->integer('scraper_category_id'));
+        }
+
+        if ($request->boolean('unsynced')) {
+            $query->where('is_synced', false);
+        }
+
+        $perPage  = min($request->integer('per_page', 50), 200);
+        $products = $query->paginate($perPage, [
+            'id', 'source_id', 'scraper_brand_id', 'scraper_category_id',
+            'external_id', 'source_url', 'sku', 'name', 'description',
+            'price', 'is_synced', 'synced_at', 'last_scraped_at',
+        ]);
+
+        return response()->json($products);
+    }
+
+    // =========================================================================
     // SYNC  –  pull from qimta_ai → push into main DB via queue
     // =========================================================================
 

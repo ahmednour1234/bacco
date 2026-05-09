@@ -22,6 +22,11 @@ Route::prefix('scraper')->name('api.scraper.')->group(function () {
     Route::get('/sources',    [ScraperController::class, 'sources'])->name('sources');
     Route::post('/sources',   [ScraperController::class, 'storeSource'])->name('sources.store');
 
+    // ── Read from scraper (qimta_ai) DB ─────────────────────────────────────
+    Route::get('/scraper-brands',     [ScraperController::class, 'scraperBrands'])->name('scraper.brands');
+    Route::get('/scraper-categories', [ScraperController::class, 'scraperCategories'])->name('scraper.categories');
+    Route::get('/scraper-products',   [ScraperController::class, 'scraperProducts'])->name('scraper.products');
+
     // ── Stats (both DBs) ───────────────────────────────────────────────────
     Route::get('/stats', [ScraperController::class, 'stats'])->name('stats');
 
