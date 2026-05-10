@@ -48,9 +48,9 @@
                lg:translate-x-0"
     >
         {{-- Logo --}}
-        <div class="flex items-center px-6 py-5 border-b border-slate-200">
+        <div class="flex items-center px-4 py-4 border-b border-slate-200">
             <a href="{{ route('admin.dashboard') }}">
-                <x-logo class="h-14 w-auto" />
+                <x-logo class="h-20 w-auto max-w-full" />
             </a>
         </div>
 
