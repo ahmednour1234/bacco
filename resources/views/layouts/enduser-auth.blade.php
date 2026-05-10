@@ -23,7 +23,7 @@
 
         {{-- Logo --}}
         <div class="flex items-center">
-            <img src="{{ asset('images/qimta-logo.svg') }}" alt="Qimta" class="h-10 w-auto object-contain">
+            <x-logo class="h-10 w-auto" />
         </div>
 
         {{-- Hero copy – centred vertically --}}
@@ -57,7 +57,7 @@
         <header class="lg:hidden sticky top-0 z-10 bg-white border-b border-slate-100
                        px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm">
             <div class="flex items-center">
-                <img src="{{ asset('images/qimta-logo.svg') }}" alt="Qimta" class="h-9 w-auto object-contain">
+                <x-logo class="h-9 w-auto" />
             </div>
             @yield('mobile-header-action')
         </header>

@@ -43,7 +43,7 @@
         {{-- Logo --}}
         <div class="flex items-center px-6 py-5 border-b border-slate-200">
             <a href="{{ route('supplier.dashboard') }}">
-                <img src="{{ asset('images/qimta-logo.svg') }}" alt="Qimta" class="h-9 w-auto object-contain">
+                <x-logo class="h-9 w-auto" />
             </a>
         </div>
 
