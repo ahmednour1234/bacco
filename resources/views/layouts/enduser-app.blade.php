@@ -48,7 +48,7 @@
         {{-- Logo --}}
         <div class="flex items-center px-6 py-5 border-b border-slate-200">
             <a href="{{ route('enduser.dashboard') }}">
-                <x-logo class="h-9 w-auto" />
+                <x-logo class="h-14 w-auto" />
             </a>
         </div>
 
