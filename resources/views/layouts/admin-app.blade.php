@@ -50,7 +50,7 @@
         {{-- Logo --}}
         <div class="flex items-center px-4 py-4 border-b border-slate-200">
             <a href="{{ route('admin.dashboard') }}">
-                <x-logo class="h-20 w-auto max-w-full" />
+                <x-logo class="h-10 w-auto max-w-[160px]" />
             </a>
         </div>
 
