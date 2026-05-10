@@ -13,15 +13,8 @@
     <title>@yield('title', 'QIMTA')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        @font-face {
-            font-family: 'The Year of The Camel';
-            src: url('/fonts/YearOfTheCamelBold.woff2') format('woff2');
-            font-weight: bold;
-            font-style: normal;
-            font-display: swap;
-        }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
             --green: #006A3B;
@@ -35,8 +28,8 @@
             --border: #e0e0e0;
         }
         html { scroll-behavior: smooth; }
-        body { font-family: 'The Year of The Camel', 'Cairo', 'Inter', serif; background: var(--white); color: var(--dark); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
-        [dir="rtl"] { font-family: 'The Year of The Camel', 'Cairo', serif; }
+        body { font-family: 'Cairo', sans-serif; background: var(--white); color: var(--dark); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
+        [dir="rtl"] { font-family: 'Cairo', sans-serif; }
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
         img { max-width: 100%; display: block; }

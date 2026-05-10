@@ -10,14 +10,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        @font-face {
-            font-family: 'The Year of The Camel';
-            src: url('/fonts/YearOfTheCamelBold.woff2') format('woff2');
-            font-weight: bold;
-            font-style: normal;
-            font-display: swap;
-        }
-        * { font-family: 'The Year of The Camel', 'Cairo', sans-serif; }
+        * { font-family: 'Cairo', sans-serif; }
     </style>
 </head>
 <body class="min-h-screen bg-slate-100 lg:bg-white lg:h-screen lg:overflow-hidden lg:flex antialiased">
