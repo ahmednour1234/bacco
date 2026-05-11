@@ -2,16 +2,24 @@
     $locale = app()->getLocale();
     $isAr   = $locale === 'ar';
     $dir    = $isAr ? 'rtl' : 'ltr';
-    $switchLocale = $isAr ? 'en' : 'ar';
     $switchLabel  = $isAr ? 'EN' : 'AR';
+    // Route prefix: 'ar.' for Arabic pages, '' for English pages
+    $__rp = $isAr ? 'ar.' : '';
+    // Locale-aware SEO defaults
+    $__defaultTitle = $isAr
+        ? 'كيمتا — منصة تسعير مواد البناء | السعودية والخليج'
+        : 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia';
+    $__defaultDesc = $isAr
+        ? 'كيمتا تُسعّر كل بند في جدول الكميات مقابل 418,326 منتجاً إنشائياً. فوري، دقيق، جاهز للخليج العربي.'
+        : 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Access 418K products, instant BOQ matching, and verified manufacturer prices.';
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}" dir="{{ $dir }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'QIMTA')</title>
-    <meta name="description" content="@yield('description', 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Access 418K products, instant BOQ matching, and verified manufacturer prices.')">
+    <title>@yield('title', $__defaultTitle)</title>
+    <meta name="description" content="@yield('description', $__defaultDesc)">
     {{-- Canonical + Hreflang: /ar/ prefix routes for Google-crawlable Arabic --}}
     @php
         $__path = rtrim(request()->getPathInfo(), '/') ?: '/';
@@ -38,16 +46,16 @@
     {{-- Open Graph / Twitter Card (after @php block so $__canonical is defined) --}}
     <meta property="og:type"        content="@yield('og_type', 'website')">
     <meta property="og:site_name"   content="Qimta Technology Company">
-    <meta property="og:title"       content="@yield('title', 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia')">
-    <meta property="og:description" content="@yield('description', 'Qimta prices every BOQ line item against 418K construction products. Instant, accurate, GCC-ready.')">
+    <meta property="og:title"       content="@yield('title', $__defaultTitle)">
+    <meta property="og:description" content="@yield('description', $__defaultDesc)">
     <meta property="og:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
     <meta property="og:url"         content="{{ $__canonical }}">
     <meta property="og:locale"           content="{{ $isAr ? 'ar_SA' : 'en_US' }}">
     <meta property="og:locale:alternate" content="{{ $isAr ? 'en_US' : 'ar_SA' }}">
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:site"        content="@@QimtaSm">
-    <meta name="twitter:title"       content="@yield('title', 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia')">
-    <meta name="twitter:description" content="@yield('description', 'Qimta prices every BOQ line item against 418K construction products. Instant, accurate, GCC-ready.')">
+    <meta name="twitter:title"       content="@yield('title', $__defaultTitle)">
+    <meta name="twitter:description" content="@yield('description', $__defaultDesc)">
     <meta name="twitter:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
     {{-- Self-hosted Cairo variable font: eliminates 2 external DNS lookups (FCP fix) --}}
     <link rel="preload" href="/fonts/cairo/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
@@ -215,8 +223,8 @@
                 <x-logo class="h-14 w-auto" />
             </a>
             <div class="nav-links">
-                <a href="{{ route('catalog.index') }}" class="{{ Route::is('catalog.*') ? 'active' : '' }}">{{ __('welcome.nav.catalog') }}</a>
-                <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
+                <a href="{{ route($__rp . 'catalog.index') }}" class="{{ (Route::is('catalog.*') || Route::is('ar.catalog.*')) ? 'active' : '' }}">{{ __('welcome.nav.catalog') }}</a>
+                <a href="{{ route($__rp . 'news') }}">{{ __('welcome.nav.news') }}</a>
                 {{-- Solutions dropdown --}}
                 <div class="nav-more" id="navSolutions">
                     <button class="nav-more-btn" id="navSolutionsBtn" aria-haspopup="true" aria-expanded="false">
@@ -229,14 +237,14 @@
                             {{ __('welcome.nav.sol_contractors') }}
                         </a>
                         <div class="nav-more-sep"></div>
-                        <a href="{{ route('for-brands') }}" role="menuitem">
+                        <a href="{{ route($__rp . 'for-brands') }}" role="menuitem">
                             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                             {{ __('welcome.nav.sol_manufacturers') }}
                         </a>
                     </div>
                 </div>
-                <a href="{{ route('for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
-                <a href="{{ route('about') }}" class="{{ Route::is('about') ? 'active' : '' }}">{{ __('welcome.nav.about') }}</a>
+                <a href="{{ route($__rp . 'for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
+                <a href="{{ route($__rp . 'about') }}" class="{{ Route::is($__rp . 'about') ? 'active' : '' }}">{{ __('welcome.nav.about') }}</a>
                 {{-- More dropdown --}}
                 <div class="nav-more" id="navMore">
                     <button class="nav-more-btn" id="navMoreBtn" aria-haspopup="true" aria-expanded="false">
@@ -244,17 +252,17 @@
                         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                     <div class="nav-more-dropdown" id="navMoreDropdown" role="menu">
-                        <a href="{{ route('contact') }}" class="{{ Route::is('contact') ? 'active' : '' }}" role="menuitem">
+                        <a href="{{ route($__rp . 'contact') }}" class="{{ Route::is($__rp . 'contact') ? 'active' : '' }}" role="menuitem">
                             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                             {{ __('welcome.nav.contact') }}
                         </a>
                         <div class="nav-more-sep"></div>
-                        <a href="{{ route('support') }}" class="{{ Route::is('support') ? 'active' : '' }}" role="menuitem">
+                        <a href="{{ route($__rp . 'support') }}" class="{{ Route::is($__rp . 'support') ? 'active' : '' }}" role="menuitem">
                             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                             {{ __('welcome.nav.support') }}
                         </a>
                         <div class="nav-more-sep"></div>
-                        <a href="{{ route('cookie') }}" class="{{ Route::is('cookie') ? 'active' : '' }}" role="menuitem">
+                        <a href="{{ route($__rp . 'cookie') }}" class="{{ Route::is($__rp . 'cookie') ? 'active' : '' }}" role="menuitem">
                             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             {{ __('welcome.nav.cookie') }}
                         </a>
@@ -262,7 +270,7 @@
                 </div>
             </div>
             <div class="nav-actions">
-                <a href="{{ route('locale.switch', $switchLocale) }}" class="lang-btn" title="{{ $switchLabel }}">
+                <a href="{{ $isAr ? $__enUrl : $__arUrl }}" class="lang-btn" title="{{ $switchLabel }}" rel="alternate" hreflang="{{ $isAr ? 'en' : 'ar' }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                 </a>
                 <div class="nav-divider"></div>
@@ -281,13 +289,13 @@
 
     {{-- Mobile Drawer --}}
     <div class="mobile-menu" id="mobileMenu">
-        <a href="{{ route('catalog.index') }}">{{ __('welcome.nav.catalog') }}</a>
-        <a href="{{ route('news') }}">{{ __('welcome.nav.news') }}</a>
-        <a href="{{ route('for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
-        <a href="{{ route('about') }}">{{ __('welcome.nav.about') }}</a>
-        <a href="{{ route('contact') }}">{{ __('welcome.nav.contact') }}</a>
-        <a href="{{ route('support') }}">{{ __('welcome.nav.support') }}</a>
-        <a href="{{ route('locale.switch', $switchLocale) }}">&#127760; {{ $switchLabel }}</a>
+        <a href="{{ route($__rp . 'catalog.index') }}">{{ __('welcome.nav.catalog') }}</a>
+        <a href="{{ route($__rp . 'news') }}">{{ __('welcome.nav.news') }}</a>
+        <a href="{{ route($__rp . 'for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
+        <a href="{{ route($__rp . 'about') }}">{{ __('welcome.nav.about') }}</a>
+        <a href="{{ route($__rp . 'contact') }}">{{ __('welcome.nav.contact') }}</a>
+        <a href="{{ route($__rp . 'support') }}">{{ __('welcome.nav.support') }}</a>
+        <a href="{{ $isAr ? $__enUrl : $__arUrl }}" rel="alternate" hreflang="{{ $isAr ? 'en' : 'ar' }}">&#127760; {{ $switchLabel }}</a>
         <div class="mobile-actions">
             @auth
                 <a href="{{ route('enduser.dashboard') }}" class="btn btn-outline">{{ __('welcome.nav.dashboard') }}</a>
@@ -320,31 +328,31 @@
                     <h3>{{ __('welcome.footer.sol_h') }}</h3>
                     <a href="{{ route('enduser.register') }}">{{ __('welcome.footer.sol_1') }}</a>
                     <a href="{{ route('enduser.register') }}">{{ __('welcome.footer.sol_2') }}</a>
-                    <a href="{{ route('for-brands') }}">{{ __('welcome.footer.sol_3') }}</a>
-                    <a href="{{ route('contact') }}">{{ __('welcome.footer.sol_4') }}</a>
+                    <a href="{{ route($__rp . 'for-brands') }}">{{ __('welcome.footer.sol_3') }}</a>
+                    <a href="{{ route($__rp . 'contact') }}">{{ __('welcome.footer.sol_4') }}</a>
                 </div>
                 <div class="footer-col">
                     <h3>{{ __('welcome.footer.platform_h') }}</h3>
-                    <a href="{{ route('about') }}">{{ __('welcome.footer.platform_1') }}</a>
-                    <a href="{{ route('catalog.index') }}">{{ __('welcome.footer.platform_2') }}</a>
-                    <a href="{{ route('catalog.index') }}">{{ __('welcome.footer.platform_3') }}</a>
-                    <a href="{{ route('about') }}">{{ __('welcome.footer.platform_4') }}</a>
+                    <a href="{{ route($__rp . 'about') }}">{{ __('welcome.footer.platform_1') }}</a>
+                    <a href="{{ route($__rp . 'catalog.index') }}">{{ __('welcome.footer.platform_2') }}</a>
+                    <a href="{{ route($__rp . 'catalog.index') }}">{{ __('welcome.footer.platform_3') }}</a>
+                    <a href="{{ route($__rp . 'about') }}">{{ __('welcome.footer.platform_4') }}</a>
                 </div>
                 <div class="footer-col">
                     <h3>{{ __('welcome.footer.company_h') }}</h3>
-                    <a href="{{ route('about') }}">{{ __('welcome.footer.company_1') }}</a>
-                    <a href="{{ route('contact') }}">{{ __('welcome.footer.company_2') }}</a>
-                    <a href="{{ route('news') }}">{{ __('welcome.footer.company_3') }}</a>
-                    <a href="{{ route('contact') }}">{{ __('welcome.footer.company_4') }}</a>
+                    <a href="{{ route($__rp . 'about') }}">{{ __('welcome.footer.company_1') }}</a>
+                    <a href="{{ route($__rp . 'contact') }}">{{ __('welcome.footer.company_2') }}</a>
+                    <a href="{{ route($__rp . 'news') }}">{{ __('welcome.footer.company_3') }}</a>
+                    <a href="{{ route($__rp . 'contact') }}">{{ __('welcome.footer.company_4') }}</a>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p class="footer-copy">{{ __('welcome.footer.copy') }}</p>
                 <div class="footer-legal">
-                    <a href="{{ route('privacy') }}">{{ __('welcome.footer.compliance') }}</a>
-                    <a href="{{ route('support') }}">{{ __('welcome.footer.docs') }}</a>
-                    <a href="{{ route('security') }}">{{ __('welcome.footer.api_status') }}</a>
-                    <a href="{{ route('privacy') }}">{{ __('welcome.footer.privacy') }}</a>
+                    <a href="{{ route($__rp . 'privacy') }}">{{ __('welcome.footer.compliance') }}</a>
+                    <a href="{{ route($__rp . 'support') }}">{{ __('welcome.footer.docs') }}</a>
+                    <a href="{{ route($__rp . 'security') }}">{{ __('welcome.footer.api_status') }}</a>
+                    <a href="{{ route($__rp . 'privacy') }}">{{ __('welcome.footer.privacy') }}</a>
                 </div>
             </div>
         </div>
