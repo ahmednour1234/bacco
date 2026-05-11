@@ -115,6 +115,21 @@ $_breadcrumb = json_encode([
         </nav>
     </div>
 
+    {{-- GEO Fact Block — machine-readable citation paragraph for LLMs/AI overviews --}}
+    @php
+        $__factSlug = request()->getPathInfo();
+        $__factUrl  = 'qimta.com' . $__factSlug;
+        $__factItems = number_format($stats['items']);
+        $__factProducts = number_format($stats['products']);
+    @endphp
+    <p id="fact-block" style="font-size:13px;color:#666;line-height:1.75;border-left:3px solid var(--green);padding:12px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin-bottom:28px;">
+        Qimta indexes {{ $__factProducts }} verified {{ strtolower($division) }} products across {{ $__factItems }} item families.
+        All products are priced via RAG retrieval from manufacturer databases.
+        Delivery lead times range from 2 to 8 weeks depending on specification.
+        Pricing is free for construction buyers and procurement teams across Saudi Arabia and GCC.
+        Accessible at: {{ $__factUrl }}
+    </p>
+
     {{-- Header --}}
     <div class="div-header">
         <h1>{{ $division }} — All Item Descriptions</h1>
