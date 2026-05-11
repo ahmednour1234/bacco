@@ -209,9 +209,9 @@
 <div class="container">
 <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 @if(app()->getLocale() === 'ar')
-    تتيح شركة كيمتا للتكنولوجيا للعلامات التجارية ومصنّعي مواد البناء إدراج بيانات منتجاتهم المعتمدة عبر 72 فئة و206 قسماً. يُفهرس كل منتج مقابل 418,326 رقم SKU ويُطابق مع طلبات جداول الكميات الفعلية من مقاولين وفرق مشتريات في السعودية ودول الخليج.
+    تتيح شركة كيمتا للتكنولوجيا للعلامات التجارية ومصنّعي مواد البناء إدراج بيانات منتجاتهم المعتمدة عبر {{ $catalogStats['categories'] }} فئة و{{ $catalogStats['divisions'] }} قسماً. يُفهرس كل منتج مقابل {{ number_format($catalogStats['products']) }} رقم SKU ويُطابق مع طلبات جداول الكميات الفعلية من مقاولين وفرق مشتريات في السعودية ودول الخليج.
 @else
-    Qimta Technology Company enables construction material brands and manufacturers to list verified product data across 72 categories and 206 divisions. Listed products are indexed against 418,326 SKUs and matched to live BOQ requests from contractors and procurement teams in Saudi Arabia and GCC.
+    Qimta Technology Company enables construction material brands and manufacturers to list verified product data across {{ $catalogStats['categories'] }} categories and {{ $catalogStats['divisions'] }} divisions. Listed products are indexed against {{ number_format($catalogStats['products']) }} SKUs and matched to live BOQ requests from contractors and procurement teams in Saudi Arabia and GCC.
 @endif
 </p>
 </div>
@@ -242,13 +242,9 @@
 <div class="container">
     <div class="stats-bar">
         @php
-            try {
-                $divisions  = \Illuminate\Support\Facades\DB::connection('catalog')->table('catalog_products')->distinct()->count('division');
-                $categories = \Illuminate\Support\Facades\DB::connection('catalog')->table('catalog_products')->distinct()->count('category_id');
-                $products   = \Illuminate\Support\Facades\DB::connection('catalog')->table('catalog_products')->count();
-            } catch(\Exception $e) {
-                $divisions = 15; $categories = 206; $products = 418326;
-            }
+                $divisions  = $catalogStats['divisions'];
+                $categories = $catalogStats['categories'];
+                $products   = $catalogStats['products'];
         @endphp
         <div class="stat-cell">
             <div class="s-label">{{ __('for-brands.stats.divisions_label') }}</div>

@@ -29,7 +29,7 @@ return [
     'hero' => [
         'tag'       => 'The Global Construction Pricing Platform',
         'h1'        => 'Price every BOQ line, across every brand.',
-        'sub'       => 'Access 418,326 products and 1B technical specs. Our RAG engine matches your requirements to manufacturer reality in seconds.',
+        'sub'       => 'Access :products verified products and 1B technical specs. Our RAG engine matches your requirements to manufacturer reality in seconds.',
         'btn_primary'   => 'Price a BOQ — Free',
         'btn_secondary' => 'View Enterprise Solutions',
         'mock_live'     => 'Live',
@@ -187,7 +187,7 @@ return [
         'q5'     => 'Can I integrate Qimta with my ERP?',
         'a5'     => 'Yes. Our REST API supports integration with major ERP systems. Contact our enterprise team for custom integration support and documentation.',
         'q6'     => 'How does Qimta compare to manual BOQ pricing?',
-        'a6'     => 'Manual BOQ pricing takes days and relies on outdated supplier quotes. Qimta retrieves verified prices for 418,326 construction products in under 60 seconds using our RAG engine, eliminating human error and reducing procurement cycle time by up to 80%.',
+        'a6'     => 'Manual BOQ pricing takes days and relies on outdated supplier quotes. Qimta retrieves verified prices for :products construction products in under 60 seconds using our RAG engine, eliminating human error and reducing procurement cycle time by up to 80%.',
     ],
 
     // ── FOOTER ───────────────────────────────────────────────────────────────

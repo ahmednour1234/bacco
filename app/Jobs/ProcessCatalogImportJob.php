@@ -63,6 +63,8 @@ class ProcessCatalogImportJob implements ShouldQueue
             // Refresh to get final counts
             $import->refresh();
             $importRepo->markCompleted($import);
+            // Bust the catalog stats cache so new counts appear immediately
+            \App\Services\CatalogStats::flush();
 
         } catch (\Throwable $e) {
             $importRepo->markFailed($import, $e->getMessage());

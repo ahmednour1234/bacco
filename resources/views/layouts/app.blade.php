@@ -10,7 +10,7 @@
         ? 'كيمتا — منصة تسعير مواد البناء | السعودية والخليج'
         : 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia';
     $__defaultDesc = $isAr
-        ? 'كيمتا تُسعّر كل بند في جدول الكميات مقابل 418,326 منتجاً إنشائياً. فوري، دقيق، جاهز للخليج العربي.'
+        ? 'كيمتا تُسعّر كل بند في جدول الكميات مقابل آلاف المنتجات الإنشائية. فوري، دقيق، جاهز للخليج العربي.'
         : 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Access 418K products, instant BOQ matching, and verified manufacturer prices.';
 @endphp
 <!DOCTYPE html>

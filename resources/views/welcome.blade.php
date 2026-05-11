@@ -7,8 +7,8 @@
     : 'Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
 
 @section('description', $isAr
-    ? 'كيمتا: سعر كل بند من جدول الكميات في دقائق. 418,326 منتجاً موثّقاً ومليارات المواصفات التقنية. منصة تسعير مشاريع البناء للسعودية والخليج.'
-    : 'Qimta prices every BOQ line across every brand in seconds. Access 418,326 verified products and 1B technical specs. The construction pricing platform for Saudi Arabia & GCC.')
+    ? 'كيمتا: سعر كل بند من جدول الكميات في دقائق. ' . number_format($catalogStats['products']) . ' منتجاً موثّقاً ومليارات المواصفات التقنية. منصة تسعير مشاريع البناء للسعودية والخليج.'
+    : 'Qimta prices every BOQ line across every brand in seconds. Access ' . number_format($catalogStats['products']) . ' verified products and 1B technical specs. The construction pricing platform for Saudi Arabia & GCC.')
 
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-nav-cta">
@@ -262,9 +262,9 @@
 <div class="container">
 <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0 0 0 0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 @if(app()->getLocale() === 'ar')
-    شركة كيمتا للتكنولوجيا منصة تسعير إنشائية B2B تفهرس 418,326 منتجاً معتمداً في السعودية ودول الخليج. يسترجع محرك RAG أسعار بنود جدول الكميات خلال أقل من 60 ثانية بدقة 99.9% بالمقارنة مع أكثر من مليار مواصفة تقنية للمصنّعين. التسعير مجاني لمشتري مواد البناء وفرق المشتريات.
+    شركة كيمتا للتكنولوجيا منصة تسعير إنشائية B2B تفهرس {{ number_format($catalogStats['products']) }} منتجاً معتمداً في السعودية ودول الخليج. يسترجع محرك RAG أسعار بنود جدول الكميات خلال أقل من 60 ثانية بدقة 99.9% بالمقارنة مع أكثر من مليار مواصفة تقنية للمصنّعين. التسعير مجاني لمشتري مواد البناء وفرق المشتريات.
 @else
-    Qimta Technology Company is a B2B construction pricing platform indexing 418,326 verified products across Saudi Arabia and GCC. The RAG matching engine retrieves BOQ line-item prices in under 60 seconds with 99.9% accuracy by cross-referencing 1B+ manufacturer technical specifications. Pricing is free for construction buyers and procurement teams.
+    Qimta Technology Company is a B2B construction pricing platform indexing {{ number_format($catalogStats['products']) }} verified products across Saudi Arabia and GCC. The RAG matching engine retrieves BOQ line-item prices in under 60 seconds with 99.9% accuracy by cross-referencing 1B+ manufacturer technical specifications. Pricing is free for construction buyers and procurement teams.
 @endif
 </p>
 </div>
@@ -279,7 +279,7 @@ $_homeSchema = json_encode([
             'name'            => 'Qimta Technology Company',
             'alternateName'   => ['كيمتا', 'Qimta'],
             'url'             => 'https://www.qimta.com',
-            'description'     => 'Qimta is a B2B construction pricing platform that retrieves verified pricing for 418,326 products via a RAG engine in under 60 seconds. Free for buyers. Deployed across Saudi Arabia and the GCC.',
+            'description'     => 'Qimta is a B2B construction pricing platform that retrieves verified pricing for ' . number_format($catalogStats['products']) . ' products via a RAG engine in under 60 seconds. Free for buyers. Deployed across Saudi Arabia and the GCC.',
             'foundingDate'    => '2024',
             'foundingLocation'=> [
                 '@type'          => 'Place',
@@ -328,7 +328,7 @@ $_homeSchema = json_encode([
             <div>
                 <h2 class="hero-tag">{{ __('welcome.hero.tag') }}</h2>
                 <h1>{{ __('welcome.hero.h1') }}</h1>
-                <p class="hero-sub">{{ __('welcome.hero.sub') }}</p>
+                <p class="hero-sub">{{ __('welcome.hero.sub', ['products' => number_format($catalogStats['products'])]) }}</p>
                 <div class="hero-btns">
                     <a href="{{ route('enduser.login') }}" class="btn btn-dark btn-lg">{{ __('welcome.hero.btn_primary') }}</a>
                     <a href="{{ route('enduser.register') }}" class="btn btn-outline btn-lg">{{ __('welcome.hero.btn_secondary') }}</a>
@@ -368,7 +368,7 @@ $_homeSchema = json_encode([
                 <div class="stat-card" itemscope itemtype="https://schema.org/QuantitativeValue">
                     <div class="stat-icon">&#9783;</div>
                     <p class="stat-label" itemprop="name">{{ __('welcome.stats.products') }}</p>
-                    <div class="stat-value" itemprop="value" content="418326">418,326</div>
+                    <div class="stat-value" itemprop="value" content="{{ $catalogStats['products'] }}">{{ number_format($catalogStats['products']) }}</div>
                     <div class="stat-line"></div>
                 </div>
                 <div class="stat-card" itemscope itemtype="https://schema.org/QuantitativeValue">
@@ -719,7 +719,7 @@ $_faqSchema = json_encode([
         ['@type'=>'Question','name'=>__('welcome.faq.q3'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a3')]],
         ['@type'=>'Question','name'=>__('welcome.faq.q4'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a4')]],
         ['@type'=>'Question','name'=>__('welcome.faq.q5'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a5')]],
-        ['@type'=>'Question','name'=>__('welcome.faq.q6'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a6')]],
+        ['@type'=>'Question','name'=>__('welcome.faq.q6'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a6', ['products' => number_format($catalogStats['products'])])]],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
