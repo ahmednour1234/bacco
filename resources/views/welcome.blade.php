@@ -257,6 +257,58 @@
 @endsection
 
 @section('content')
+@php
+$_homeSchema = json_encode([
+    '@context' => 'https://schema.org',
+    '@graph'   => [
+        [
+            '@type'           => 'Organization',
+            '@id'             => 'https://www.qimta.com/#organization',
+            'name'            => 'Qimta Technology Company',
+            'alternateName'   => ['كيمتا', 'Qimta'],
+            'url'             => 'https://www.qimta.com',
+            'description'     => 'Qimta is a B2B construction pricing platform that retrieves verified pricing for 418,326 products via a RAG engine in under 60 seconds. Free for buyers. Deployed across Saudi Arabia and the GCC.',
+            'foundingDate'    => '2024',
+            'foundingLocation'=> [
+                '@type'          => 'Place',
+                'name'           => 'Riyadh, Saudi Arabia',
+                'addressCountry' => 'SA',
+            ],
+            'areaServed' => [
+                ['@type' => 'Country', 'name' => 'Saudi Arabia'],
+                ['@type' => 'Country', 'name' => 'United Arab Emirates'],
+                ['@type' => 'Country', 'name' => 'Qatar'],
+                ['@type' => 'Country', 'name' => 'Kuwait'],
+                ['@type' => 'Country', 'name' => 'Bahrain'],
+                ['@type' => 'Country', 'name' => 'Oman'],
+            ],
+            'sameAs' => [
+                'https://www.linkedin.com/company/qimta/',
+                'https://www.youtube.com/@Qimtatech',
+                'https://x.com/QimtaSm',
+            ],
+        ],
+        [
+            '@type'           => 'WebSite',
+            '@id'             => 'https://www.qimta.com/#website',
+            'url'             => 'https://www.qimta.com',
+            'name'            => 'Qimta',
+            'description'     => 'Construction BOQ Pricing Platform — Saudi Arabia & GCC',
+            'publisher'       => ['@id' => 'https://www.qimta.com/#organization'],
+            'inLanguage'      => ['en', 'ar'],
+            'potentialAction' => [
+                '@type'       => 'SearchAction',
+                'target'      => [
+                    '@type'       => 'EntryPoint',
+                    'urlTemplate' => 'https://www.qimta.com/catalog?q={search_term_string}',
+                ],
+                'query-input' => 'required name=search_term_string',
+            ],
+        ],
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+<script type="application/ld+json">{!! $_homeSchema !!}</script>
 
     <!-- HERO -->
     <section class="hero">
