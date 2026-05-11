@@ -30,6 +30,12 @@
     .catalog-layout { display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding-bottom: 64px; align-items: start; }
     @media (max-width: 820px) { .catalog-layout { grid-template-columns: 1fr; } }
 
+    /* ── MOBILE FILTER TOGGLE ── */
+    .filter-toggle-btn { display: none; width: 100%; margin-bottom: 12px; padding: 11px 16px; background: var(--white); border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; font-weight: 700; font-family: inherit; color: var(--dark); cursor: pointer; text-align: left; align-items: center; justify-content: space-between; gap: 8px; }
+    .filter-toggle-btn svg { width: 16px; height: 16px; stroke: var(--green); fill: none; stroke-width: 2; flex-shrink: 0; transition: transform .25s; }
+    .filter-toggle-btn svg.open { transform: rotate(180deg); }
+    @media (max-width: 820px) { .filter-toggle-btn { display: flex; } }
+
     /* ── SIDEBAR ── */
     .filter-sidebar { border: 1.5px solid var(--border); border-radius: 14px; padding: 24px; background: var(--white); position: sticky; top: 88px; }
     .filter-sidebar h6 { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; margin-bottom: 12px; margin-top: 20px; }
@@ -91,7 +97,7 @@ $_breadcrumb = json_encode([
     'itemListElement' => [
         ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>url('/')],
         ['@type'=>'ListItem','position'=>2,'name'=>'Catalog','item'=>route('catalog.index')],
-        ['@type'=>'ListItem','position'=>3,'name'=>$division,'item'=>route('catalog.division',$slug)],
+        ['@type'=>'ListItem','position'=>3,'name'=>$division,'item'=>route($filterRoute,$slug)],
     ],
 ], JSON_UNESCAPED_SLASHES);
 @endphp
@@ -143,8 +149,13 @@ $_breadcrumb = json_encode([
     <div class="catalog-layout">
 
         {{-- Sidebar Filters --}}
-        <aside class="filter-sidebar">
-            <form method="GET" action="{{ route('catalog.division', $slug) }}">
+        <aside class="filter-sidebar" x-data="{ open: window.innerWidth > 820 }">
+            <button type="button" class="filter-toggle-btn" @click="open = !open" aria-expanded="open" aria-controls="filter-body">
+                <span>Filter Selection</span>
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" :class="open ? 'open' : ''"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div id="filter-body" x-show="open" x-collapse.duration.200ms>
+            <form method="GET" action="{{ route($filterRoute, $slug) }}">
                 <h6>Filter Selection</h6>
 
                 @if($materials->isNotEmpty())
@@ -179,7 +190,7 @@ $_breadcrumb = json_encode([
 
                 <button type="submit" class="filter-apply">Apply Filters</button>
                 @if(request()->hasAny(['material','size','lead_time','q']))
-                    <a href="{{ route('catalog.division', $slug) }}" class="filter-reset">Clear all filters</a>
+                    <a href="{{ route($filterRoute, $slug) }}" class="filter-reset">Clear all filters</a>
                 @endif
             </form>
 
@@ -187,12 +198,13 @@ $_breadcrumb = json_encode([
                 <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 <span>Compliance verification is available for all technical items in this catalog.</span>
             </div>
+            </div>{{-- /filter-body --}}
         </aside>
 
         {{-- Items --}}
         <div>
             <div class="items-topbar">
-                <form method="GET" action="{{ route('catalog.division', $slug) }}" style="display:contents;">
+                <form method="GET" action="{{ route($filterRoute, $slug) }}" style="display:contents;">
                     @foreach(request()->except('q') as $key => $val)
                         <input type="hidden" name="{{ $key }}" value="{{ $val }}">
                     @endforeach
@@ -201,6 +213,7 @@ $_breadcrumb = json_encode([
                         <input class="items-search" type="text" name="q" value="{{ request('q') }}" placeholder="Search items...">
                     </div>
                 </form>
+                {{-- Topbar form action must also use $filterRoute --}}
                 <div class="items-count">
                     Showing <strong>{{ $items->firstItem() }}–{{ $items->lastItem() }}</strong> of <strong>{{ number_format($items->total()) }}</strong> items
                 </div>
@@ -224,7 +237,7 @@ $_breadcrumb = json_encode([
                 @empty
                 <div class="items-empty">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <p>No items match your filters. <a href="{{ route('catalog.division', $slug) }}" style="color:var(--green);">Clear filters</a></p>
+                    <p>No items match your filters. <a href="{{ route($filterRoute, $slug) }}" style="color:var(--green);">Clear filters</a></p>
                 </div>
                 @endforelse
             </div>

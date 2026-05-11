@@ -152,13 +152,14 @@ class CatalogController extends Controller
         }
 
         return view('catalog.division', [
-            'division'  => $category->name,
-            'slug'      => $slug,
-            'items'     => $items,
-            'stats'     => $stats,
-            'materials' => $materials,
-            'sizes'     => $sizes,
-            'leadTimes' => $leadTimes,
+            'division'    => $category->name,
+            'slug'        => $slug,
+            'filterRoute' => 'catalog.category',
+            'items'       => $items,
+            'stats'       => $stats,
+            'materials'   => $materials,
+            'sizes'       => $sizes,
+            'leadTimes'   => $leadTimes,
         ]);
     }
 
@@ -245,7 +246,7 @@ class CatalogController extends Controller
             return response()->view('errors.503', [], 503);
         }
 
-        return view('catalog.division', compact('division', 'slug', 'items', 'stats', 'materials', 'sizes', 'leadTimes'));
+        return view('catalog.division', compact('division', 'slug', 'items', 'stats', 'materials', 'sizes', 'leadTimes') + ['filterRoute' => 'catalog.division']);
     }
 
     public function showItem(string $divisionSlug, string $itemSlug)
