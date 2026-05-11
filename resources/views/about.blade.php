@@ -2,7 +2,9 @@
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
-@section('title', __('about.nav.about') . ' — QIMTA')
+@section('title', $isAr
+    ? 'عن قيمتا — منصة تسعير مشاريع البناء | السعودية والخليج'
+    : 'About Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
 
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-demo">{{ __('about.nav.get_demo') }}</a>

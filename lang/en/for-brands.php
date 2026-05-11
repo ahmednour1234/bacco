@@ -2,7 +2,7 @@
 
 return [
 
-    'title'   => 'For Brands & Manufacturers — Qimta',
+    'title'   => 'List Your Products on Qimta — BOQ Visibility | Saudi Arabia & GCC',
 
     // ── HERO ──────────────────────────────────────────────────────────────────
     'hero' => [

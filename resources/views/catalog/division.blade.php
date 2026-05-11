@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $division . ' — Qimta Catalog')
+@section('title', $division . ' — BOQ Pricing & Specifications | Qimta Catalog')
 
 @section('styles')
 <style>

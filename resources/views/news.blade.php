@@ -11,7 +11,9 @@
     }
 @endphp
 
-@section('title', $isAr ? 'الأخبار والمقالات' : 'News & Insights')
+@section('title', $isAr
+    ? 'أخبار ومقالات قطاع البناء والمشتريات في الخليج | قيمتا'
+    : 'Construction & Procurement News — Gulf Market Pricing | Qimta')
 
 @section('content')
 <div style="background:#f8f9fa; min-height:100vh;" dir="{{ $dir }}">

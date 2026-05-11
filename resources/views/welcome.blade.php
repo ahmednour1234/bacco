@@ -2,7 +2,9 @@
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
-@section('title')QIMTA &mdash; {{ __('welcome.hero.tag') }}@endsection
+@section('title', $isAr
+    ? 'قيمتا — منصة تسعير جداول الكميات | السعودية والخليج'
+    : 'Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
 
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-nav-cta">
