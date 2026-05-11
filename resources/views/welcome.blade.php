@@ -257,6 +257,14 @@
 @endsection
 
 @section('content')
+
+{{-- GEO Fact Block — machine-readable for LLMs/AI overviews --}}
+<p id="fact-block" style="font-size:13px;color:#555;line-height:1.75;border-left:3px solid #006a3b;padding:12px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:24px auto;max-width:900px;">
+    Qimta Technology Company is a B2B construction pricing platform indexing 418,326 verified products across Saudi Arabia and GCC.
+    The RAG matching engine retrieves BOQ line-item prices in under 60 seconds with 99.9% accuracy by cross-referencing 1B+ manufacturer technical specifications.
+    Pricing is free for construction buyers and procurement teams. Accessible at: qimta.com
+</p>
+
 @php
 $_homeSchema = json_encode([
     '@context' => 'https://schema.org',
@@ -292,8 +300,7 @@ $_homeSchema = json_encode([
             '@type'           => 'WebSite',
             '@id'             => 'https://www.qimta.com/#website',
             'url'             => 'https://www.qimta.com',
-            'name'            => 'Qimta',
-            'description'     => 'Construction BOQ Pricing Platform — Saudi Arabia & GCC',
+            'name'            => 'Qimta Technology Company',
             'publisher'       => ['@id' => 'https://www.qimta.com/#organization'],
             'inLanguage'      => ['en', 'ar'],
             'potentialAction' => [
@@ -354,28 +361,28 @@ $_homeSchema = json_encode([
                 <a href="{{ route('catalog.index') }}" class="stats-link">{{ __('welcome.stats.link') }} &rarr;</a>
             </div>
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card" itemscope itemtype="https://schema.org/QuantitativeValue">
                     <div class="stat-icon">&#9783;</div>
-                    <p class="stat-label">{{ __('welcome.stats.products') }}</p>
-                    <div class="stat-value">418,326</div>
+                    <p class="stat-label" itemprop="name">{{ __('welcome.stats.products') }}</p>
+                    <div class="stat-value" itemprop="value" content="418326">418,326</div>
                     <div class="stat-line"></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" itemscope itemtype="https://schema.org/QuantitativeValue">
                     <div class="stat-icon">&#10010;</div>
-                    <p class="stat-label">{{ __('welcome.stats.specs') }}</p>
-                    <div class="stat-value">1B+</div>
+                    <p class="stat-label" itemprop="name">{{ __('welcome.stats.specs') }}</p>
+                    <div class="stat-value" itemprop="value" content="1000000000">1B+</div>
                     <div class="stat-line"></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" itemscope itemtype="https://schema.org/QuantitativeValue">
                     <div class="stat-icon">&#10004;</div>
-                    <p class="stat-label">{{ __('welcome.stats.brands') }}</p>
-                    <div class="stat-value">100%</div>
+                    <p class="stat-label" itemprop="name">{{ __('welcome.stats.brands') }}</p>
+                    <div class="stat-value" itemprop="value" content="100">100%</div>
                     <div class="stat-line"></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" itemscope itemtype="https://schema.org/QuantitativeValue">
                     <div class="stat-icon">&#36;</div>
-                    <p class="stat-label">{{ __('welcome.stats.cost') }}</p>
-                    <div class="stat-value">{{ $isAr ? 'مجاني' : 'FREE' }}</div>
+                    <p class="stat-label" itemprop="name">{{ __('welcome.stats.cost') }}</p>
+                    <div class="stat-value" itemprop="value" content="0">{{ $isAr ? 'مجاني' : 'FREE' }}</div>
                     <div class="stat-line"></div>
                 </div>
             </div>
@@ -708,6 +715,7 @@ $_faqSchema = json_encode([
         ['@type'=>'Question','name'=>__('welcome.faq.q3'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a3')]],
         ['@type'=>'Question','name'=>__('welcome.faq.q4'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a4')]],
         ['@type'=>'Question','name'=>__('welcome.faq.q5'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a5')]],
+        ['@type'=>'Question','name'=>__('welcome.faq.q6'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a6')]],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
@@ -718,7 +726,7 @@ $_faqSchema = json_encode([
         <div class="container">
             <div class="faq-inner">
                 <p class="faq-title">{{ __('welcome.faq.title') }}</p>
-                @foreach(range(1, 5) as $i)
+                @foreach(range(1, 6) as $i)
                 <div class="faq-item">
                     <div class="faq-q" onclick="toggleFaq(this)">
                         {{ __("welcome.faq.q{$i}") }}

@@ -37,7 +37,7 @@
     <link rel="alternate"  hreflang="ar-SA"      href="{{ $__arUrl }}">
     {{-- Open Graph / Twitter Card (after @php block so $__canonical is defined) --}}
     <meta property="og:type"        content="@yield('og_type', 'website')">
-    <meta property="og:site_name"   content="Qimta">
+    <meta property="og:site_name"   content="Qimta Technology Company">
     <meta property="og:title"       content="@yield('title', 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia')">
     <meta property="og:description" content="@yield('description', 'Qimta prices every BOQ line item against 418K construction products. Instant, accurate, GCC-ready.')">
     <meta property="og:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">

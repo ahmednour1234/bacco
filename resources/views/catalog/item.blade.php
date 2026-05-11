@@ -49,7 +49,7 @@
     .use-case-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 24px; background: var(--white); }
     .use-case-card .uc-icon { width: 32px; height: 32px; margin-bottom: 12px; }
     .use-case-card .uc-icon svg { width: 32px; height: 32px; stroke: var(--green); fill: none; stroke-width: 1.5; }
-    .use-case-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .use-case-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
     .use-case-card p { font-size: 13px; color: #666; line-height: 1.6; }
 
     /* ── STANDARDS ── */
@@ -125,7 +125,7 @@ $_productSchema = json_encode([
         '@type'        => 'Offer',
         'priceCurrency'=> 'SAR',
         'availability' => 'https://schema.org/InStock',
-        'seller'       => ['@type'=>'Organization','name'=>'Qimta','url'=>'https://www.qimta.com'],
+        'seller'       => ['@type'=>'Organization','name'=>'Qimta Technology Company','url'=>'https://www.qimta.com'],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
@@ -233,7 +233,7 @@ $_productSchema = json_encode([
                     <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
                 </svg>
             </div>
-            <h4>System Performance</h4>
+            <h2>System Performance</h2>
             <p>Use in {{ strtolower($division) }} networks where {{ strtolower($itemDescription) }} affects system stability and operational efficiency.</p>
         </div>
         <div class="use-case-card">
@@ -242,7 +242,7 @@ $_productSchema = json_encode([
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
             </div>
-            <h4>Pressure Rating</h4>
+            <h2>Pressure Rating</h2>
             <p>Use where project specifications require pressure-rated components for high-rise or industrial safety.</p>
         </div>
         <div class="use-case-card">
@@ -251,7 +251,7 @@ $_productSchema = json_encode([
                     <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
                 </svg>
             </div>
-            <h4>BOQ Consistency</h4>
+            <h2>BOQ Consistency</h2>
             <p>Use when BOQ lines need brand-visible matching across multiple manufacturers for unified procurement packages.</p>
         </div>
     </div>

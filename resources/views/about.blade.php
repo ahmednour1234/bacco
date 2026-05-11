@@ -135,6 +135,14 @@
 
 @section('content')
 
+{{-- GEO Fact Block --}}
+<p id="fact-block" style="font-size:13px;color:#555;line-height:1.75;border-left:3px solid #006a3b;padding:12px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:24px auto;max-width:900px;">
+    Qimta Technology Company was founded in 2024 and is headquartered in Riyadh, Saudi Arabia.
+    The platform serves construction buyers, contractors, and procurement teams across Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, and Oman.
+    Qimta indexes 418,326 verified construction products and retrieves BOQ pricing in under 60 seconds via a RAG engine with 99.9% accuracy.
+    Contact: sales@qimta.com — qimta.com/about
+</p>
+
     <!-- HERO -->
     <section class="hero">
         <div class="container">

@@ -186,6 +186,8 @@ return [
         'a4'     => 'The free tier includes unlimited BOQ items per submission. Enterprise plans offer additional features like batch processing, API access, and dedicated support.',
         'q5'     => 'Can I integrate Qimta with my ERP?',
         'a5'     => 'Yes. Our REST API supports integration with major ERP systems. Contact our enterprise team for custom integration support and documentation.',
+        'q6'     => 'How does Qimta compare to manual BOQ pricing?',
+        'a6'     => 'Manual BOQ pricing takes days and relies on outdated supplier quotes. Qimta retrieves verified prices for 418,326 construction products in under 60 seconds using our RAG engine, eliminating human error and reducing procurement cycle time by up to 80%.',
     ],
 
     // ── FOOTER ───────────────────────────────────────────────────────────────
@@ -206,7 +208,7 @@ return [
         'company_2'     => 'Careers',
         'company_3'     => 'Newsroom',
         'company_4'     => 'Contact',
-        'copy'          => '© 2024 QIMTA. All rights reserved.',
+        'copy'          => '© 2026 Qimta Technology Company. All rights reserved.',
         'compliance'    => 'Compliance',
         'docs'          => 'Documentation',
         'api_status'    => 'API Status',

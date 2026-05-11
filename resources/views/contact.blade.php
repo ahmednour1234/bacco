@@ -172,19 +172,53 @@
 @section('content')
 @php
 $_localBiz = json_encode([
-    '@context'     => 'https://schema.org',
-    '@type'        => 'LocalBusiness',
-    'name'         => 'Qimta',
-    'url'          => 'https://www.qimta.com',
-    'logo'         => 'https://www.qimta.com/images/qimta-og.jpg',
-    'email'        => 'sales@qimta.com',
-    'telephone'    => '+963937101976',
-    'address'      => ['@type'=>'PostalAddress','addressCountry'=>'SA','addressRegion'=>'Riyadh'],
-    'areaServed'   => ['SA','AE','KW','QA','BH','OM'],
-    'sameAs'       => ['https://x.com/QimtaSm','https://www.linkedin.com/company/qimta/'],
+    '@context'           => 'https://schema.org',
+    '@type'              => ['LocalBusiness','SoftwareApplication'],
+    '@id'                => 'https://www.qimta.com/#organization',
+    'name'               => 'Qimta Technology Company',
+    'legalName'          => 'Qimta Technology Company',
+    'alternateName'      => 'كيمتا تكنولوجيا',
+    'description'        => 'Qimta is a B2B construction pricing platform that retrieves verified pricing for 418,326 products via a RAG engine in under 60 seconds. Free for construction buyers and procurement teams. Available in Arabic and English. Deployed across Saudi Arabia and GCC.',
+    'url'                => 'https://www.qimta.com',
+    'logo'               => 'https://www.qimta.com/images/qimta-og.jpg',
+    'email'              => 'sales@qimta.com',
+    'telephone'          => '+963937101976',
+    'priceRange'         => 'مجاني للمشترين / Free for buyers',
+    'applicationCategory'=> 'BusinessApplication',
+    'address'            => [
+        '@type'           => 'PostalAddress',
+        'addressLocality' => 'Riyadh',
+        'addressRegion'   => 'Riyadh Province',
+        'addressCountry'  => 'SA',
+    ],
+    'areaServed' => [
+        ['@type'=>'Country','name'=>'Saudi Arabia'],
+        ['@type'=>'Country','name'=>'United Arab Emirates'],
+        ['@type'=>'Country','name'=>'Kuwait'],
+        ['@type'=>'Country','name'=>'Qatar'],
+        ['@type'=>'Country','name'=>'Bahrain'],
+        ['@type'=>'Country','name'=>'Oman'],
+    ],
+    'sameAs' => [
+        'https://x.com/QimtaSm',
+        'https://www.linkedin.com/company/qimta/',
+        'https://www.youtube.com/@Qimtatech',
+    ],
     'contactPoint' => [
         ['@type'=>'ContactPoint','contactType'=>'sales','email'=>'sales@qimta.com','availableLanguage'=>['English','Arabic']],
         ['@type'=>'ContactPoint','contactType'=>'customer support','email'=>'support@qimta.com','availableLanguage'=>['English','Arabic']],
+        ['@type'=>'ContactPoint','contactType'=>'sales','email'=>'brands@qimta.com','availableLanguage'=>['English','Arabic']],
+    ],
+    'hasOfferCatalog' => [
+        '@type' => 'OfferCatalog',
+        'name'  => 'BOQ Pricing Services',
+        'itemListElement' => [
+            ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'BOQ Pricing']],
+            ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Construction Materials Catalog']],
+            ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Brand Listing']],
+            ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'Enterprise Procurement Integration']],
+            ['@type'=>'Offer','itemOffered'=>['@type'=>'Service','name'=>'API Access']],
+        ],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
