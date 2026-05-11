@@ -12,17 +12,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'QIMTA')</title>
     <meta name="description" content="@yield('description', 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Access 418K products, instant BOQ matching, and verified manufacturer prices.')">
-    {{-- Canonical: strip trailing slash, always use https --}}
+    {{-- Canonical + Hreflang: /ar/ prefix routes for Google-crawlable Arabic --}}
     @php
-        $_canonicalPath = rtrim(request()->getPathInfo(), '/') ?: '/';
-        $_canonical = 'https://qimta.com' . $_canonicalPath;
-        $_hreflangEn = $_canonical;
-        $_hreflangAr = $_canonical;  {{-- same URL, content switches by session locale --}}
+        $__path = rtrim(request()->getPathInfo(), '/') ?: '/';
+        // Canonical is always the current URL (without trailing slash)
+        $__canonical = 'https://qimta.com' . $__path;
+        // Derive the EN path (strip /ar prefix if present)
+        if ($__path === '/ar') {
+            $__enPath = '/';
+        } elseif (str_starts_with($__path, '/ar/')) {
+            $__enPath = substr($__path, 3) ?: '/';
+        } else {
+            $__enPath = $__path;
+        }
+        // Arabic path always has /ar prefix
+        $__arPath = ($__enPath === '/') ? '/ar/' : '/ar' . $__enPath;
+        $__enUrl  = 'https://qimta.com' . $__enPath;
+        $__arUrl  = 'https://qimta.com' . $__arPath;
     @endphp
-    <link rel="canonical" href="{{ $_canonical }}">
-    <link rel="alternate" hreflang="x-default" href="{{ $_hreflangEn }}">
-    <link rel="alternate" hreflang="en" href="{{ $_hreflangEn }}">
-    <link rel="alternate" hreflang="ar" href="{{ $_hreflangAr }}">
+    <link rel="canonical"  href="{{ $__canonical }}">
+    <link rel="alternate"  hreflang="x-default" href="{{ $__enUrl }}">
+    <link rel="alternate"  hreflang="en"         href="{{ $__enUrl }}">
+    <link rel="alternate"  hreflang="ar"         href="{{ $__arUrl }}">
+    <link rel="alternate"  hreflang="ar-SA"      href="{{ $__arUrl }}">
     {{-- Self-hosted Cairo variable font: eliminates 2 external DNS lookups (FCP fix) --}}
     <link rel="preload" href="/fonts/cairo/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/cairo/cairo-latin.woff2" as="font" type="font/woff2" crossorigin>

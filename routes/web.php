@@ -78,11 +78,54 @@ Route::get('/cookie-policy', function () {
 Route::get('/news', [App\Http\Controllers\NewsController::class, 'index'])->name('news');
 Route::get('/news/{slugOrUuid}', [App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
 
+// ─── Arabic URL prefix — crawlable by Google ──────────────────────────────────
+// These mirror every public EN route under /ar/ so Googlebot can index Arabic.
+// SetLocale middleware detects the /ar/ prefix and sets locale to 'ar'.
+Route::prefix('ar')->name('ar.')->group(function () {
+    Route::get('/',           [\App\Http\Controllers\CatalogController::class, 'home'])->name('home');
+    Route::get('/about',      fn () => view('about'))->name('about');
+    Route::get('/for-brands', fn () => view('for-brands'))->name('for-brands');
+    Route::get('/contact',    fn () => view('contact'))->name('contact');
+    Route::post('/contact',   [\App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
+    Route::get('/support',    fn () => view('support'))->name('support');
+    Route::get('/privacy-policy', fn () => view('privacy'))->name('privacy');
+    Route::get('/security',   fn () => view('security'))->name('security');
+    Route::get('/terms',      fn () => view('terms'))->name('terms');
+    Route::get('/cookie-policy', fn () => view('cookie'))->name('cookie');
+    Route::get('/news',       [App\Http\Controllers\NewsController::class, 'index'])->name('news');
+    Route::get('/news/{slugOrUuid}', [App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
+    Route::get('/catalog',    [\App\Http\Controllers\CatalogController::class, 'index'])->name('catalog.index');
+    Route::get('/catalog/category/{slug}', [\App\Http\Controllers\CatalogController::class, 'showCategory'])->name('catalog.category');
+    Route::get('/catalog/{divisionSlug}/{itemSlug}', [\App\Http\Controllers\CatalogController::class, 'showItem'])->name('catalog.item');
+    Route::get('/catalog/{slug}', [\App\Http\Controllers\CatalogController::class, 'show'])->name('catalog.division');
+});
+
 // ─── Language Switch ──────────────────────────────────────────────────────────
 Route::get('/locale/{locale}', function (string $locale) {
-    if (in_array($locale, ['en', 'ar'])) {
-        session(['locale' => $locale]);
+    if (!in_array($locale, ['en', 'ar'])) {
+        return redirect()->back();
     }
+    session(['locale' => $locale]);
+
+    $current = request()->header('Referer', '/');
+    $path    = parse_url($current, PHP_URL_PATH) ?? '/';
+
+    if ($locale === 'ar') {
+        // If not already under /ar/, prepend it
+        if (!str_starts_with($path, '/ar/') && $path !== '/ar') {
+            $arPath = '/ar' . ($path === '/' ? '/' : $path);
+            return redirect($arPath);
+        }
+    } else {
+        // Strip /ar prefix to go back to EN URL
+        if (str_starts_with($path, '/ar/')) {
+            return redirect(substr($path, 3) ?: '/');
+        }
+        if ($path === '/ar') {
+            return redirect('/');
+        }
+    }
+
     return redirect()->back();
 })->name('locale.switch');
 
