@@ -42,7 +42,7 @@
         .nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.07); box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
         .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 16px; }
         .nav-logo { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; }
-        .nav-logo img { height: 100px; width: auto; display: block; }
+        .nav-logo img, .nav-logo svg { height: 40px; width: auto; display: block; }
         .nav-links { display: flex; align-items: center; gap: 4px; }
         .nav-links a { position: relative; font-size: 14px; font-weight: 500; color: #444; padding: 6px 12px; border-radius: 6px; transition: color .2s, background .2s; white-space: nowrap; text-decoration: none; }
         .nav-links a::after { content: ''; position: absolute; bottom: 2px; left: 12px; right: 12px; height: 2px; border-radius: 2px; background: var(--green); transform: scaleX(0); transform-origin: center; transition: transform .25s ease; }
@@ -105,7 +105,7 @@
         .footer { background: var(--white); padding: 64px 0 32px; border-top: 1px solid var(--border); }
         .footer-top { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
         .footer-logo { margin-bottom: 10px; }
-        .footer-logo img { height: 34px; width: auto; display: block; }
+        .footer-logo img, .footer-logo svg { height: 30px; width: auto; display: block; }
         .footer-tagline { font-size: 13px; color: #666; line-height: 1.65; max-width: 240px; margin-bottom: 20px; }
         .footer-socials { display: flex; gap: 12px; }
         .social-btn { width: 36px; height: 36px; border-radius: 8px; background: #f1f1f1; display: flex; align-items: center; justify-content: center; color: #444; transition: background .2s, color .2s; }

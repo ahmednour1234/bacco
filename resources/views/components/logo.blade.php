@@ -1,4 +1,30 @@
-<img {{ $attributes->merge(['class' => '', 'alt' => 'QIMTA - منصة تسعير مواد البناء']) }}
-     src="{{ asset('images/qimta-logo.svg') }}"
-     width="160" height="40"
-     fetchpriority="high">
+<svg {{ $attributes->merge(['role' => 'img', 'aria-label' => 'QIMTA']) }}
+     xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 245 68"
+     fill="none"
+     style="width:auto;overflow:visible">
+    <title>QIMTA</title>
+
+    {{-- Wordmark --}}
+    <text x="2" y="52"
+          font-family="Cairo, system-ui, sans-serif"
+          font-size="46"
+          font-weight="800"
+          fill="#1a5c2a">Qimta</text>
+
+    {{-- Icon: rounded square outline --}}
+    <rect x="168" y="4" width="62" height="62" rx="13"
+          stroke="#1a5c2a" stroke-width="3.5" fill="none"/>
+
+    {{-- Two angled vertical strokes (SAR / price symbol) --}}
+    <line x1="184" y1="17" x2="181" y2="54"
+          stroke="#1a5c2a" stroke-width="5" stroke-linecap="round"/>
+    <line x1="201" y1="17" x2="198" y2="54"
+          stroke="#1a5c2a" stroke-width="5" stroke-linecap="round"/>
+
+    {{-- Two horizontal crossbars --}}
+    <line x1="177" y1="30" x2="208" y2="30"
+          stroke="#1a5c2a" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="177" y1="43" x2="208" y2="43"
+          stroke="#1a5c2a" stroke-width="3.5" stroke-linecap="round"/>
+</svg>
