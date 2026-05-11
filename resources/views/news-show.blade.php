@@ -168,7 +168,7 @@ $_breadcrumb = json_encode([
 
 /* Layout */
 .ns-layout { display:grid; grid-template-columns:1fr 300px; gap:40px; padding-top:36px; padding-bottom:80px; align-items:start; }
-@media(max-width:840px) { .ns-layout { grid-template-columns:1fr; } .ns-sidebar { order:-1; } }
+@media(max-width:840px) { .ns-layout { grid-template-columns:1fr; } .ns-sidebar { order:1; position:static; } }
 
 /* Badge */
 .ns-badge-row { margin-bottom:14px; }
