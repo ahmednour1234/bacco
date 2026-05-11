@@ -258,12 +258,28 @@ class CatalogController extends Controller
         try {
         $db = DB::connection('catalog');
 
-        // Resolve division
+        // Resolve division — first param may be a division slug OR a category slug
         $division = $db->table('catalog_products')
             ->whereNotNull('division')
             ->distinct()
             ->pluck('division')
             ->first(fn($d) => Str::slug($d) === $divisionSlug);
+
+        if (!$division) {
+            // Try resolving via category slug
+            $cat = $db->table('catalog_categories')->where('slug', $divisionSlug)->first();
+            if (!$cat) {
+                $cat = $db->table('catalog_categories')
+                    ->get()
+                    ->first(fn($c) => Str::slug($c->name) === $divisionSlug);
+            }
+            if ($cat) {
+                $division = $db->table('catalog_products')
+                    ->where('category_id', $cat->id)
+                    ->whereNotNull('division')
+                    ->value('division');
+            }
+        }
 
         abort_if(!$division, 404);
 

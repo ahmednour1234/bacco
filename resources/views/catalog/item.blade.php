@@ -99,13 +99,14 @@
 
 @section('content')
 @php
+$__divSlugForSchema = \Illuminate\Support\Str::slug($division);
 $_breadcrumb = json_encode([
     '@context' => 'https://schema.org',
     '@type'    => 'BreadcrumbList',
     'itemListElement' => [
         ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>'https://www.qimta.com/'],
         ['@type'=>'ListItem','position'=>2,'name'=>'Construction Catalog','item'=>'https://www.qimta.com/catalog'],
-        ['@type'=>'ListItem','position'=>3,'name'=>$division,'item'=>'https://www.qimta.com/catalog/'.$divisionSlug],
+        ['@type'=>'ListItem','position'=>3,'name'=>$division,'item'=>'https://www.qimta.com/catalog/'.$__divSlugForSchema],
         ['@type'=>'ListItem','position'=>4,'name'=>$itemDescription,'item'=>'https://www.qimta.com'.request()->getPathInfo()],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -130,12 +131,13 @@ $_productSchema = json_encode([
 @endphp
 <script type="application/ld+json">{!! $_productSchema !!}</script>
     <div style="padding-top:32px;">
+        @php $__divSlug = \Illuminate\Support\Str::slug($division); @endphp
         <nav aria-label="breadcrumb" class="breadcrumb">
             <a href="/">Home</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             <a href="{{ route('catalog.index') }}">Catalog</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <a href="{{ route('catalog.division', $divisionSlug) }}">{{ $division }}</a>
+            <a href="{{ route('catalog.division', $__divSlug) }}">{{ $division }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             <span aria-current="page">{{ $itemDescription }}</span>
         </nav>
