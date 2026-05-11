@@ -68,7 +68,7 @@
 
         /* ── NAV ── */
         .nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.07); box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
-        .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 16px; }
+        .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 16px; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
         .nav-logo { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; }
         .nav-logo img, .nav-logo svg { height: 36px; width: auto; display: block; }
         .nav-links { display: flex; align-items: center; gap: 4px; }
@@ -122,7 +122,7 @@
         .hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
         .hamburger.open span:nth-child(2) { opacity: 0; }
         .hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
-        .mobile-menu { display: none; position: fixed; top: 68px; left: 0; right: 0; bottom: 0; background: var(--white); z-index: 99; padding: 20px 24px; flex-direction: column; gap: 0; overflow-y: auto; border-top: 1px solid var(--border); }
+        .mobile-menu { display: none; position: fixed; top: 68px; left: 0; right: 0; bottom: 0; background: var(--white); z-index: 99; padding: 20px 24px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); flex-direction: column; gap: 0; overflow-y: auto; border-top: 1px solid var(--border); }
         .mobile-menu.open { display: flex; }
         .mobile-menu a { font-size: 15px; font-weight: 600; color: var(--dark); padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.06); display: block; }
         .mobile-menu a:hover { color: var(--green); }
@@ -263,11 +263,7 @@
         <a href="{{ route('for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
         <a href="{{ route('about') }}">{{ __('welcome.nav.about') }}</a>
         <a href="{{ route('contact') }}">{{ __('welcome.nav.contact') }}</a>
-        <a href="{{ route('privacy') }}">{{ __('welcome.nav.privacy') }}</a>
-        <a href="{{ route('security') }}">{{ __('welcome.nav.security') }}</a>
         <a href="{{ route('support') }}">{{ __('welcome.nav.support') }}</a>
-        <a href="{{ route('terms') }}">{{ __('welcome.nav.terms') }}</a>
-        <a href="{{ route('cookie') }}">{{ __('welcome.nav.cookie') }}</a>
         <a href="{{ route('locale.switch', $switchLocale) }}">&#127760; {{ $switchLabel }}</a>
         <div class="mobile-actions">
             @auth

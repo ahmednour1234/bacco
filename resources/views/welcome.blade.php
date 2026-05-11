@@ -247,7 +247,7 @@
                 <p class="hero-sub">{{ __('welcome.hero.sub') }}</p>
                 <div class="hero-btns">
                     <a href="{{ route('enduser.login') }}" class="btn btn-dark btn-lg">{{ __('welcome.hero.btn_primary') }}</a>
-                    <a href="#" class="btn btn-outline btn-lg">{{ __('welcome.hero.btn_secondary') }}</a>
+                    <a href="{{ route('enduser.register') }}" class="btn btn-outline btn-lg">{{ __('welcome.hero.btn_secondary') }}</a>
                 </div>
             </div>
             <div class="hero-mockup">
@@ -278,7 +278,7 @@
                     <p class="stats-label">{{ __('welcome.stats.label') }}</p>
                     <p class="stats-sub">{{ __('welcome.stats.sub') }}</p>
                 </div>
-                <a href="#" class="stats-link">{{ __('welcome.stats.link') }} &rarr;</a>
+                <a href="{{ route('catalog.index') }}" class="stats-link">{{ __('welcome.stats.link') }} &rarr;</a>
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
@@ -400,17 +400,17 @@
                 <div class="eco-card">
                     <p class="eco-title">{{ __('welcome.eco.contractors_title') }}</p>
                     <p class="eco-desc">{{ __('welcome.eco.contractors_desc') }}</p>
-                    <a href="#" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
+                    <a href="{{ route('enduser.register') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
                 </div>
                 <div class="eco-card">
                     <p class="eco-title">{{ __('welcome.eco.procurement_title') }}</p>
                     <p class="eco-desc">{{ __('welcome.eco.procurement_desc') }}</p>
-                    <a href="#" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
+                    <a href="{{ route('catalog.index') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
                 </div>
                 <div class="eco-card">
                     <p class="eco-title">{{ __('welcome.eco.brands_title') }}</p>
                     <p class="eco-desc">{{ __('welcome.eco.brands_desc') }}</p>
-                    <a href="#" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
+                    <a href="{{ route('for-brands') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
                 </div>
             </div>
         </div>

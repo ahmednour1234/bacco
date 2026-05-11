@@ -96,19 +96,31 @@
 @endsection
 
 @section('content')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Home","item":"{{ url('/') }}"},
+    {"@type":"ListItem","position":2,"name":"Catalog","item":"{{ route('catalog.index') }}"},
+    {"@type":"ListItem","position":3,"name":"{{ $division }}","item":"{{ route('catalog.division', $divisionSlug) }}"},
+    {"@type":"ListItem","position":4,"name":"{{ $itemDescription }}","item":"{{ url()->current() }}"}
+  ]
+}
+</script>
 <div class="container">
 
     {{-- Breadcrumb --}}
     <div style="padding-top:32px;">
-        <div class="breadcrumb">
+        <nav aria-label="breadcrumb" class="breadcrumb">
             <a href="/">Home</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             <a href="{{ route('catalog.index') }}">Catalog</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             <a href="{{ route('catalog.division', $divisionSlug) }}">{{ $division }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <span>{{ $itemDescription }}</span>
-        </div>
+            <span aria-current="page">{{ $itemDescription }}</span>
+        </nav>
     </div>
 
     {{-- Hero --}}

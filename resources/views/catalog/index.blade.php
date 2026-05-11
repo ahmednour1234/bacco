@@ -60,15 +60,25 @@
 @endsection
 
 @section('content')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Home","item":"{{ url('/') }}"},
+    {"@type":"ListItem","position":2,"name":"Catalog","item":"{{ route('catalog.index') }}"}
+  ]
+}
+</script>
 <div class="container">
 
     {{-- Breadcrumb --}}
     <div style="padding-top:32px;">
-        <div class="breadcrumb">
+        <nav aria-label="breadcrumb" class="breadcrumb">
             <a href="/">{{ __('catalog.breadcrumb_home') }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <span>{{ __('catalog.breadcrumb_catalog') }}</span>
-        </div>
+            <span aria-current="page">{{ __('catalog.breadcrumb_catalog') }}</span>
+        </nav>
     </div>
 
     {{-- Header --}}

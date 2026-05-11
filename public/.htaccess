@@ -24,6 +24,46 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
+# ── Compression (Gzip fallback when Brotli unavailable) ──────────────────────
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml font/woff2
+</IfModule>
+
+# ── Cache-Control for immutable static assets ─────────────────────────────────
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Fonts — immutable (versioned via content hash)
+    <FilesMatch "\.(woff2|woff|ttf|otf)$">
+        ExpiresDefault "access plus 1 year"
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # Images
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|avif|svg|ico)$">
+        ExpiresDefault "access plus 1 year"
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # CSS & JS (versioned by Vite build hash)
+    <FilesMatch "\.(css|js)$">
+        ExpiresDefault "access plus 1 year"
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # HTML — always revalidate
+    <FilesMatch "\.html$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+</IfModule>
+
+# ── Security headers ──────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
 # ── PHP upload limits for large catalog files ─────────────────────────────────
 <IfModule mod_php.c>
     php_value upload_max_filesize 150M

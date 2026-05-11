@@ -16,19 +16,31 @@
 @section('title', $title)
 
 @section('content')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"{{ $isAr ? 'الرئيسية' : 'Home' }}","item":"{{ url('/') }}"},
+    {"@type":"ListItem","position":2,"name":"{{ $isAr ? 'الأخبار' : 'News' }}","item":"{{ route('news') }}"},
+    {"@type":"ListItem","position":3,"name":"{{ $cat }}","item":"{{ route('news', ['category' => $article->name_en]) }}"},
+    {"@type":"ListItem","position":4,"name":"{{ addslashes($title) }}","item":"{{ url()->current() }}"}
+  ]
+}
+</script>
 <div class="ns-page" dir="{{ $dir }}">
 
     {{-- -- Breadcrumb ---------------------------------------------------- --}}
     <div class="ns-breadcrumb-bar">
         <div class="ns-container">
-            <nav class="ns-breadcrumb">
+            <nav class="ns-breadcrumb" aria-label="breadcrumb">
                 <a href="{{ url('/') }}">{{ $isAr ? 'الرئيسية' : 'HOME' }}</a>
-                <span class="ns-bc-sep">�</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 <a href="{{ route('news') }}">{{ $isAr ? 'الأخبار' : 'NEWS' }}</a>
-                <span class="ns-bc-sep">�</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 <a href="{{ route('news', ['category' => $article->name_en]) }}">{{ strtoupper($cat) }}</a>
-                <span class="ns-bc-sep">�</span>
-                <span class="ns-bc-current">{{ strtoupper($title) }}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                <span class="ns-bc-current" aria-current="page">{{ strtoupper($title) }}</span>
             </nav>
         </div>
     </div>

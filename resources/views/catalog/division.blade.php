@@ -82,17 +82,28 @@
 @endsection
 
 @section('content')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Home","item":"{{ url('/') }}"},
+    {"@type":"ListItem","position":2,"name":"Catalog","item":"{{ route('catalog.index') }}"},
+    {"@type":"ListItem","position":3,"name":"{{ $division }}","item":"{{ route('catalog.division', $divisionSlug) }}"}
+  ]
+}
+</script>
 <div class="container">
 
     {{-- Breadcrumb --}}
     <div style="padding-top:32px;">
-        <div class="breadcrumb">
+        <nav aria-label="breadcrumb" class="breadcrumb">
             <a href="/">Home</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             <a href="{{ route('catalog.index') }}">Catalog</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <span>{{ $division }}</span>
-        </div>
+            <span aria-current="page">{{ $division }}</span>
+        </nav>
     </div>
 
     {{-- Header --}}
