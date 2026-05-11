@@ -95,11 +95,11 @@ $_breadcrumb = json_encode([
     '@context' => 'https://schema.org',
     '@type'    => 'BreadcrumbList',
     'itemListElement' => [
-        ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>url('/')],
-        ['@type'=>'ListItem','position'=>2,'name'=>'Catalog','item'=>route('catalog.index')],
-        ['@type'=>'ListItem','position'=>3,'name'=>$division,'item'=>route($filterRoute,$slug)],
+        ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>'https://www.qimta.com/'],
+        ['@type'=>'ListItem','position'=>2,'name'=>'Construction Catalog','item'=>'https://www.qimta.com/catalog'],
+        ['@type'=>'ListItem','position'=>3,'name'=>$division,'item'=>'https://www.qimta.com' . request()->getPathInfo()],
     ],
-], JSON_UNESCAPED_SLASHES);
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 <script type="application/ld+json">{!! $_breadcrumb !!}</script>
 <div class="container">

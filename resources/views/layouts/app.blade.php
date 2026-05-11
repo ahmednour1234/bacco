@@ -299,7 +299,9 @@
     </div>
 
     {{-- PAGE CONTENT --}}
+    <main id="main-content">
     @yield('content')
+    </main>
 
     {{-- FOOTER --}}
     <footer class="footer">

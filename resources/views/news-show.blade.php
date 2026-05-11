@@ -25,10 +25,10 @@ $_breadcrumb = json_encode([
     '@context' => 'https://schema.org',
     '@type'    => 'BreadcrumbList',
     'itemListElement' => [
-        ['@type'=>'ListItem','position'=>1,'name'=>($isAr?'الرئيسية':'Home'),'item'=>url('/')],
-        ['@type'=>'ListItem','position'=>2,'name'=>($isAr?'الأخبار':'News'),'item'=>route('news')],
-        ['@type'=>'ListItem','position'=>3,'name'=>$cat,'item'=>route('news',['category'=>$article->name_en])],
-        ['@type'=>'ListItem','position'=>4,'name'=>$title,'item'=>url()->current()],
+        ['@type'=>'ListItem','position'=>1,'name'=>($isAr?'الرئيسية':'Home'),'item'=>'https://www.qimta.com/'],
+        ['@type'=>'ListItem','position'=>2,'name'=>($isAr?'الأخبار':'News'),'item'=>'https://www.qimta.com/news'],
+        ['@type'=>'ListItem','position'=>3,'name'=>$cat,'item'=>'https://www.qimta.com/news?category='.urlencode($article->name_en)],
+        ['@type'=>'ListItem','position'=>4,'name'=>$title,'item'=>'https://www.qimta.com/news/'.$article->slug],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
