@@ -146,6 +146,8 @@ class CatalogController extends Controller
 
             $division = $db->table('catalog_products')->where('category_id', $category->id)->value('division') ?? '';
 
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
         } catch (\Exception $e) {
             Log::error('Catalog showCategory 503', ['slug' => $slug, 'error' => $e->getMessage()]);
             return response()->view('errors.503', [], 503);
@@ -241,6 +243,8 @@ class CatalogController extends Controller
             'items'      => DB::connection('catalog')->table('catalog_products')->where('division', $division)->whereNotNull('item_description')->where('item_description', '!=', '')->distinct()->count('item_description'),
             'categories' => DB::connection('catalog')->table('catalog_products')->where('division', $division)->whereNotNull('category_id')->distinct()->count('category_id'),
         ];
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
         } catch (\Exception $e) {
             Log::error('Catalog show (division) 503', ['slug' => $slug, 'error' => $e->getMessage()]);
             return response()->view('errors.503', [], 503);
@@ -307,6 +311,8 @@ class CatalogController extends Controller
                 'name' => $i,
                 'slug' => Str::slug($i),
             ]);
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
         } catch (\Exception $e) {
             Log::error('Catalog showItem 503', ['divisionSlug' => $divisionSlug, 'itemSlug' => $itemSlug, 'error' => $e->getMessage()]);
             return response()->view('errors.503', [], 503);
