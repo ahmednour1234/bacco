@@ -42,7 +42,8 @@
     <meta property="og:description" content="@yield('description', 'Qimta prices every BOQ line item against 418K construction products. Instant, accurate, GCC-ready.')">
     <meta property="og:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
     <meta property="og:url"         content="{{ $__canonical }}">
-    <meta property="og:locale"      content="{{ $isAr ? 'ar_SA' : 'en_US' }}">
+    <meta property="og:locale"           content="{{ $isAr ? 'ar_SA' : 'en_US' }}">
+    <meta property="og:locale:alternate" content="{{ $isAr ? 'en_US' : 'ar_SA' }}">
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:site"        content="@@QimtaSm">
     <meta name="twitter:title"       content="@yield('title', 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia')">

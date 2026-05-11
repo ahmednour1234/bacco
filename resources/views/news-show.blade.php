@@ -147,8 +147,29 @@ $_breadcrumb = json_encode([
             <div class="ns-cta-card">
                 <p class="ns-cta-heading">{{ $isAr ? 'هل أنت مستعد للأتمتة؟' : 'Ready to automate?' }}</p>
                 <p class="ns-cta-sub">{{ $isAr ? 'اختبر مستقبل المشتريات الإنشائية مع محرك الذكاء الاصطناعي لدينا.' : 'Experience the future of construction procurement with our AI-driven engine.' }}</p>
-                <a href="{{ route('news') }}" class="ns-cta-btn">
+                <a href="{{ route('enduser.register') }}" class="ns-cta-btn">
                     {{ $isAr ? 'جرّب محرك التسعير' : 'Try the pricing engine' }}
+                </a>
+            </div>
+
+            {{-- Explore links --}}
+            <div class="ns-sidebar-card">
+                <p class="ns-sidebar-heading">{{ $isAr ? 'استكشف المنصة' : 'Explore Qimta' }}</p>
+                <a href="{{ route('catalog.index') }}" class="ns-related-link">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-{{ $isAr ? 'left' : 'right' }}:6px"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    {{ $isAr ? 'كتالوج مواد البناء — 418 ألف منتج' : 'Construction Materials Catalog — 418K Products' }}
+                </a>
+                <a href="{{ route('for-brands') }}" class="ns-related-link">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-{{ $isAr ? 'left' : 'right' }}:6px"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+                    {{ $isAr ? 'أدرج علامتك التجارية على كيمتا' : 'List Your Brand on Qimta' }}
+                </a>
+                <a href="{{ route('about') }}" class="ns-related-link">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-{{ $isAr ? 'left' : 'right' }}:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ $isAr ? 'عن كيمتا — كيف نعمل' : 'About Qimta — How We Work' }}
+                </a>
+                <a href="{{ route('contact') }}" class="ns-related-link">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-{{ $isAr ? 'left' : 'right' }}:6px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    {{ $isAr ? 'تواصل مع فريق كيمتا' : 'Contact the Qimta Team' }}
                 </a>
             </div>
 

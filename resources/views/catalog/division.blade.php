@@ -270,4 +270,29 @@ $_breadcrumb = json_encode([
 
     </div>
 </div>
+
+{{-- Related articles section --}}
+@php
+    $relatedArticles = \App\Models\Article::where('active', true)
+        ->whereNotNull('slug')->where('slug', '!=', '')
+        ->latest()->limit(3)->get();
+    $__catIsAr = app()->getLocale() === 'ar';
+@endphp
+@if($relatedArticles->count())
+<div class="container" style="padding-bottom:64px;">
+    <div style="border-top:1px solid var(--border);padding-top:48px;">
+        <h2 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:24px;color:var(--dark);">
+            {{ $__catIsAr ? 'مقالات ذات صلة' : 'Related Articles' }}
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;">
+            @foreach($relatedArticles as $ra)
+            <a href="{{ route('news.show', $ra->slug) }}" style="display:block;border:1.5px solid var(--border);border-radius:12px;padding:20px;background:var(--white);text-decoration:none;color:inherit;transition:border-color .2s,box-shadow .2s;" onmouseover="this.style.borderColor='var(--green)';this.style.boxShadow='0 4px 16px rgba(0,106,59,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+                <p style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">{{ $ra->name_en }}</p>
+                <p style="font-size:14px;font-weight:700;line-height:1.4;color:var(--dark);">{{ $__catIsAr ? $ra->title_ar : $ra->title_en }}</p>
+            </a>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
 @endsection

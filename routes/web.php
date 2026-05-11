@@ -33,6 +33,8 @@ Route::get('/', [\App\Http\Controllers\CatalogController::class, 'home']);
 
 // ─── Sitemaps ─────────────────────────────────────────────────────────────────
 Route::get('/sitemap.xml',      [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-en.xml',   [\App\Http\Controllers\SitemapController::class, 'en'])->name('sitemap.en');
+Route::get('/sitemap-ar.xml',   [\App\Http\Controllers\SitemapController::class, 'ar'])->name('sitemap.ar');
 Route::get('/sitemap-news.xml', [\App\Http\Controllers\SitemapController::class, 'news'])->name('sitemap.news');
 
 // ─── Generic /dashboard redirect → enduser dashboard ─────────────────────────
