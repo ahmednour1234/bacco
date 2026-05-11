@@ -1,2 +1,11 @@
 User-agent: *
-Disallow:
+Disallow: /enduser/login
+Disallow: /enduser/register
+Disallow: /enduser/dashboard
+Disallow: /enduser/
+Disallow: /admin/
+Disallow: /supplier/
+Disallow: /dashboard
+
+Sitemap: https://qimta.com/sitemap.xml
+Sitemap: https://qimta.com/sitemap-news.xml

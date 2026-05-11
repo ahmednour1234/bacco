@@ -14,6 +14,10 @@
 @endphp
 
 @section('title', $title)
+@section('og_type', 'article')
+@if($article->image)
+@section('og_image', Storage::url($article->image))
+@endif
 
 @section('content')
 @php

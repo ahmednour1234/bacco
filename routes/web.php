@@ -31,6 +31,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [\App\Http\Controllers\CatalogController::class, 'home']);
 
+// ─── Sitemaps ─────────────────────────────────────────────────────────────────
+Route::get('/sitemap.xml',      [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-news.xml', [\App\Http\Controllers\SitemapController::class, 'news'])->name('sitemap.news');
+
 // ─── Generic /dashboard redirect → enduser dashboard ─────────────────────────
 Route::get('/dashboard', function () {
     return redirect()->route('enduser.dashboard');
