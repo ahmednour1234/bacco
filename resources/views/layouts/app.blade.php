@@ -12,19 +12,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'QIMTA')</title>
     <meta name="description" content="@yield('description', 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Access 418K products, instant BOQ matching, and verified manufacturer prices.')">
-    {{-- Open Graph / Twitter Card --}}
-    <meta property="og:type"        content="@yield('og_type', 'website')">
-    <meta property="og:site_name"   content="Qimta">
-    <meta property="og:title"       content="@yield('title', 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia')">
-    <meta property="og:description" content="@yield('description', 'Qimta prices every BOQ line item against 418K construction products. Instant, accurate, GCC-ready.')">
-    <meta property="og:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
-    <meta property="og:url"         content="{{ $__canonical }}">
-    <meta property="og:locale"      content="{{ $isAr ? 'ar_SA' : 'en_US' }}">
-    <meta name="twitter:card"        content="summary_large_image">
-    <meta name="twitter:site"        content="@@QimtaSm">
-    <meta name="twitter:title"       content="@yield('title', 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia')">
-    <meta name="twitter:description" content="@yield('description', 'Qimta prices every BOQ line item against 418K construction products. Instant, accurate, GCC-ready.')">
-    <meta name="twitter:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
     {{-- Canonical + Hreflang: /ar/ prefix routes for Google-crawlable Arabic --}}
     @php
         $__path = rtrim(request()->getPathInfo(), '/') ?: '/';
@@ -48,6 +35,19 @@
     <link rel="alternate"  hreflang="en"         href="{{ $__enUrl }}">
     <link rel="alternate"  hreflang="ar"         href="{{ $__arUrl }}">
     <link rel="alternate"  hreflang="ar-SA"      href="{{ $__arUrl }}">
+    {{-- Open Graph / Twitter Card (after @php block so $__canonical is defined) --}}
+    <meta property="og:type"        content="@yield('og_type', 'website')">
+    <meta property="og:site_name"   content="Qimta">
+    <meta property="og:title"       content="@yield('title', 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia')">
+    <meta property="og:description" content="@yield('description', 'Qimta prices every BOQ line item against 418K construction products. Instant, accurate, GCC-ready.')">
+    <meta property="og:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
+    <meta property="og:url"         content="{{ $__canonical }}">
+    <meta property="og:locale"      content="{{ $isAr ? 'ar_SA' : 'en_US' }}">
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:site"        content="@@QimtaSm">
+    <meta name="twitter:title"       content="@yield('title', 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia')">
+    <meta name="twitter:description" content="@yield('description', 'Qimta prices every BOQ line item against 418K construction products. Instant, accurate, GCC-ready.')">
+    <meta name="twitter:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
     {{-- Self-hosted Cairo variable font: eliminates 2 external DNS lookups (FCP fix) --}}
     <link rel="preload" href="/fonts/cairo/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/cairo/cairo-latin.woff2" as="font" type="font/woff2" crossorigin>
