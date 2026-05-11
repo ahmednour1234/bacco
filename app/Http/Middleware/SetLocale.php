@@ -10,17 +10,17 @@ class SetLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Priority 1: URL prefix /ar/... sets Arabic regardless of session
-        if (str_starts_with($request->getPathInfo(), '/ar/') || $request->getPathInfo() === '/ar') {
+        $path = $request->getPathInfo();
+
+        // URL is the single source of truth for locale.
+        // /ar/... or /ar  → Arabic (and remember it in session)
+        // Any other path  → English (reset session to en)
+        if (str_starts_with($path, '/ar/') || $path === '/ar') {
             app()->setLocale('ar');
             session(['locale' => 'ar']);
-            return $next($request);
-        }
-
-        // Priority 2: session-stored preference (used by non-ar URL paths)
-        $locale = session('locale', config('app.locale', 'en'));
-        if (in_array($locale, ['en', 'ar'])) {
-            app()->setLocale($locale);
+        } else {
+            app()->setLocale('en');
+            session(['locale' => 'en']);
         }
 
         return $next($request);

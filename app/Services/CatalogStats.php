@@ -15,13 +15,13 @@ class CatalogStats
 
     /**
      * Fallback values used when the catalog DB is unreachable.
-     * Update these to match the last known real values.
+     * Last verified against production DB (May 2026).
      */
     private const FALLBACK = [
-        'products'   => 418326,
-        'items'      => 148000,   // distinct item_descriptions
-        'categories' => 206,
-        'divisions'  => 15,
+        'products'   => 13190,
+        'items'      => 1334,
+        'categories' => 72,
+        'divisions'  => 5,
         'brands'     => 72,
     ];
 
