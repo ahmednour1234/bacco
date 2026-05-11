@@ -1,14 +1,20 @@
 @extends('layouts.app')
 
-@php $isAr = app()->getLocale() === 'ar'; $__rp = $isAr ? 'ar.' : ''; @endphp
+@php 
+    $isAr   = app()->getLocale() === 'ar'; 
+    $__rp   = $isAr ? 'ar.' : '';
+    $_p     = number_format($catalogStats['products']);
+    $_cats  = $catalogStats['categories'];
+    $_brands = $catalogStats['brands'];
+@endphp
 
 @section('title', $isAr
     ? 'منصة مشتريات الإنشاء B2B — كيمتا | السعودية والخليج'
     : 'B2B Construction Procurement Platform — Qimta | Saudi Arabia & GCC')
 
 @section('description', $isAr
-    ? 'كيمتا: منصة مشتريات الإنشاء B2B للسعودية والخليج. تربط المقاولين وفرق المشتريات بـ 418,326 منتج إنشائي من 72 علامة تجارية معتمدة — بتسعير فوري وموثّق.'
-    : 'Qimta: B2B construction procurement platform for Saudi Arabia and GCC. Connects contractors and procurement teams to 418,326 construction products from 72 verified brands — with instant, verified pricing.')
+    ? 'كيمتا: منصة مشتريات الإنشاء B2B للسعودية والخليج. تربط المقاولين وفرق المشتريات بـ ' . $_p . ' منتج إنشائي من ' . $_brands . ' علامة تجارية معتمدة — بتسعير فوري وموثّق.'
+    : 'Qimta: B2B construction procurement platform for Saudi Arabia and GCC. Connects contractors and procurement teams to ' . $_p . ' construction products from ' . $_brands . ' verified brands — with instant, verified pricing.')
 
 @section('styles')
 <style>
@@ -76,15 +82,15 @@ $_lpSchema = json_encode([
                     '@type' => 'Question',
                     'name' => $isAr ? 'ما هي منصة مشتريات الإنشاء؟' : 'What is a construction procurement platform?',
                     'acceptedAnswer' => ['@type'=>'Answer','text' => $isAr
-                        ? 'منصة مشتريات الإنشاء هي نظام رقمي يربط المقاولين وفرق المشتريات بموردي مواد البناء المعتمدين، ويُسهّل عمليات التسعير وإصدار طلبات الشراء ومقارنة الأسعار. كيمتا تقدم هذه الخدمة مجاناً مع فهرسة 418,326 منتجاً إنشائياً.'
-                        : 'A construction procurement platform is a digital system connecting contractors and procurement teams to verified building materials suppliers, streamlining pricing, purchase requests, and price comparison. Qimta provides this service free with 418,326 indexed construction products.'],
+                        ? 'منصة مشتريات الإنشاء هي نظام رقمي يربط المقاولين وفرق المشتريات بموردي مواد البناء المعتمدين، ويُسهّل عمليات التسعير وإصدار طلبات الشراء ومقارنة الأسعار. كيمتا تقدم هذه الخدمة مجاناً مع فهرسة ' . $_p . ' منتجاً إنشائياً.'
+                        : 'A construction procurement platform is a digital system connecting contractors and procurement teams to verified building materials suppliers, streamlining pricing, purchase requests, and price comparison. Qimta provides this service free with ' . $_p . ' indexed construction products.'],
                 ],
                 [
                     '@type' => 'Question',
                     'name' => $isAr ? 'كيف تُميّز كيمتا نفسها عن منصات المشتريات الأخرى؟' : 'How does Qimta differentiate from other procurement platforms?',
                     'acceptedAnswer' => ['@type'=>'Answer','text' => $isAr
-                        ? 'كيمتا الوحيدة التي تُسعّر كل بند في جدول الكميات بشكل تلقائي من قواعد بيانات المصنّعين المباشرة — لا تقديرات، لا وسطاء. 418,326 منتج، دقة 99.9%، في أقل من 60 ثانية.'
-                        : 'Qimta is the only platform that auto-prices every BOQ line item from direct manufacturer databases — no estimates, no middlemen. 418,326 products, 99.9% accuracy, in under 60 seconds.'],
+                        ? 'كيمتا الوحيدة التي تُسعّر كل بند في جدول الكميات بشكل تلقائي من قواعد بيانات المصنّعين المباشرة — لا تقديرات، لا وسطاء. ' . $_p . ' منتج، دقة 99.9%، في أقل من 60 ثانية.'
+                        : 'Qimta is the only platform that auto-prices every BOQ line item from direct manufacturer databases — no estimates, no middlemen. ' . $_p . ' products, 99.9% accuracy, in under 60 seconds.'],
                 ],
                 [
                     '@type' => 'Question',
@@ -115,8 +121,8 @@ $_lpSchema = json_encode([
         <p class="lp-eyebrow">{{ $isAr ? 'منصة المشتريات الإنشائية B2B' : 'B2B Construction Procurement' }}</p>
         <h1>{{ $isAr ? 'منصة مشتريات الإنشاء للسعودية والخليج' : 'Construction Procurement Platform for Saudi Arabia & GCC' }}</h1>
         <p>{{ $isAr
-            ? 'كيمتا تربط المقاولين وفرق المشتريات بـ 418,326 منتج إنشائي معتمد من 72 علامة تجارية. تسعير فوري، بيانات موثّقة، مجاناً.'
-            : 'Qimta connects contractors and procurement teams to 418,326 verified construction products from 72 brands. Instant pricing, verified data, free.' }}</p>
+            ? 'كيمتا تربط المقاولين وفرق المشتريات بـ ' . $_p . ' منتج إنشائي معتمد من ' . $_brands . ' علامة تجارية. تسعير فوري، بيانات موثّقة، مجاناً.'
+            : 'Qimta connects contractors and procurement teams to ' . $_p . ' verified construction products from ' . $_brands . ' brands. Instant pricing, verified data, free.' }}</p>
         <div class="lp-cta">
             <a href="{{ route('enduser.register') }}" class="btn-primary">{{ $isAr ? 'ابدأ مجاناً' : 'Start Free' }}</a>
             <a href="{{ route($__rp . 'for-brands') }}" class="btn-outline">{{ $isAr ? 'للعلامات التجارية' : 'For Brands' }}</a>
@@ -129,7 +135,7 @@ $_lpSchema = json_encode([
     <div class="container">
         <div class="lp-stats-grid">
             <div class="lp-stat">
-                <div class="lp-stat-val" content="418326">418,326</div>
+                <div class="lp-stat-val" content="{{ $catalogStats['products'] }}">{{ $_p }}</div>
                 <div class="lp-stat-label">{{ $isAr ? 'منتج إنشائي في الفهرس' : 'Construction products indexed' }}</div>
             </div>
             <div class="lp-stat">
@@ -137,7 +143,7 @@ $_lpSchema = json_encode([
                 <div class="lp-stat-label">{{ $isAr ? 'علامة تجارية معتمدة' : 'Verified brands' }}</div>
             </div>
             <div class="lp-stat">
-                <div class="lp-stat-val" content="206">206</div>
+                <div class="lp-stat-val" content="{{ $catalogStats['categories'] }}">{{ $_cats }}</div>
                 <div class="lp-stat-label">{{ $isAr ? 'قسم إنشائي مغطى' : 'Construction divisions covered' }}</div>
             </div>
             <div class="lp-stat">
@@ -163,7 +169,7 @@ $_lpSchema = json_encode([
             </div>
             <div class="lp-card">
                 <h3>{{ $isAr ? '📦 فهرس موحّد' : '📦 Unified Catalog' }}</h3>
-                <p>{{ $isAr ? '418,326 منتج إنشائي عبر 206 قسماً و72 علامة تجارية في مكان واحد.' : '418,326 construction products across 206 divisions and 72 brands in one place.' }}</p>
+                <p>{{ $isAr ? $_p . ' منتج إنشائي عبر ' . $_cats . ' قسماً و' . $_brands . ' علامة تجارية في مكان واحد.' : $_p . ' construction products across ' . $_cats . ' divisions and ' . $_brands . ' brands in one place.' }}</p>
             </div>
             <div class="lp-card">
                 <h3>{{ $isAr ? '🏗️ مبني للخليج' : '🏗️ Built for GCC' }}</h3>
@@ -207,7 +213,7 @@ $_lpSchema = json_encode([
                 </tr>
                 <tr>
                     <td>{{ $isAr ? 'حجم الفهرس' : 'Catalog size' }}</td>
-                    <td class="check">418,326</td>
+                    <td class="check">{{ $_p }}</td>
                     <td class="cross">{{ $isAr ? 'محدود' : 'Limited' }}</td>
                     <td class="cross">{{ $isAr ? 'متفاوت' : 'Varies' }}</td>
                 </tr>
@@ -236,8 +242,8 @@ $_lpSchema = json_encode([
             ? 'مشتريات الإنشاء في المملكة العربية السعودية تعرف نمواً استثنائياً مع مشاريع Vision 2030 التي تتجاوز قيمتها 1.3 تريليون دولار. المقاولون وفرق المشتريات يواجهون تحديات متزايدة في إدارة سلاسل التوريد وتسعير المواد بدقة.'
             : 'Construction procurement in Saudi Arabia is experiencing exceptional growth with Vision 2030 projects exceeding $1.3 trillion. Contractors and procurement teams face increasing challenges in managing supply chains and pricing materials accurately.' }}</p>
         <p>{{ $isAr
-            ? 'الحل الأمثل هو منصة مشتريات رقمية مبنية خصيصاً للسوق السعودي: تفهم متطلبات ضريبة القيمة المضافة، وأوقات استيراد المواد من أوروبا وآسيا، والفروق في الأسعار بين المناطق. كيمتا توفر هذا الحل مع فهرس يضم 418,326 منتجاً إنشائياً معتمداً.'
-            : 'The optimal solution is a digital procurement platform built specifically for the Saudi market: understanding VAT requirements, import lead times from Europe and Asia, and regional price differences. Qimta provides this solution with an index of 418,326 verified construction products.' }}</p>
+            ? 'الحل الأمثل هو منصة مشتريات رقمية مبنية خصيصاً للسوق السعودي: تفهم متطلبات ضريبة القيمة المضافة، وأوقات استيراد المواد من أوروبا وآسيا، والفروق في الأسعار بين المناطق. كيمتا توفر هذا الحل مع فهرس يضم ' . $_p . ' منتجاً إنشائياً معتمداً.'
+            : 'The optimal solution is a digital procurement platform built specifically for the Saudi market: understanding VAT requirements, import lead times from Europe and Asia, and regional price differences. Qimta provides this solution with an index of ' . $_p . ' verified construction products.' }}</p>
     </div>
 </section>
 
@@ -247,7 +253,7 @@ $_lpSchema = json_encode([
         <h2>{{ $isAr ? 'أسئلة شائعة' : 'Frequently Asked Questions' }}</h2>
         @foreach([
             ['q'=> $isAr ? 'ما هي منصة مشتريات الإنشاء؟' : 'What is a construction procurement platform?',
-             'a'=> $isAr ? 'نظام رقمي يربط المقاولين وفرق المشتريات بموردي مواد البناء المعتمدين مع تسعير فوري وموثّق. كيمتا توفر هذا مجاناً مع 418,326 منتج.' : 'A digital system connecting contractors and procurement teams to verified building materials suppliers with instant, verified pricing. Qimta provides this free with 418,326 products.'],
+             'a'=> $isAr ? 'نظام رقمي يربط المقاولين وفرق المشتريات بموردي مواد البناء المعتمدين مع تسعير فوري وموثّق. كيمتا توفر هذا مجاناً مع ' . $_p . ' منتج.' : 'A digital system connecting contractors and procurement teams to verified building materials suppliers with instant, verified pricing. Qimta provides this free with ' . $_p . ' products.'],
             ['q'=> $isAr ? 'هل تعمل في دول الخليج الأخرى؟' : 'Does it work in other GCC countries?',
              'a'=> $isAr ? 'نعم، كيمتا تخدم السعودية والإمارات وقطر والكويت والبحرين وعُمان.' : 'Yes, Qimta serves Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, and Oman.'],
             ['q'=> $isAr ? 'هل يمكن التكامل مع ERP؟' : 'Can it integrate with ERP systems?',

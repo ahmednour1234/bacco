@@ -4,7 +4,7 @@
 
 @section('description', app()->getLocale() === 'ar'
     ? 'أدرج منتجاتك على كيمتا لتظهر في جداول الكميات B2B لمشاريع البناء في الخليج. وكن أول بحضور أمام مشترين أمام Qimta RAG.'
-    : 'Get your products priced in Gulf B2B BOQs. Qimta exposes your brand to 418,326 catalog positions and live buyer demand across Saudi Arabia and GCC.')
+    : 'Get your products priced in Gulf B2B BOQs. Qimta exposes your brand to ' . number_format($catalogStats['products']) . ' catalog positions and live buyer demand across Saudi Arabia and GCC.')
 
 @section('styles')
 <style>

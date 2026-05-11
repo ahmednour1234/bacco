@@ -1,14 +1,20 @@
 @extends('layouts.app')
 
-@php $isAr = app()->getLocale() === 'ar'; $__rp = $isAr ? 'ar.' : ''; @endphp
+@php 
+    $isAr   = app()->getLocale() === 'ar'; 
+    $__rp   = $isAr ? 'ar.' : '';
+    $_p     = number_format($catalogStats['products']);
+    $_cats  = $catalogStats['categories'];
+    $_brands = $catalogStats['brands'];
+@endphp
 
 @section('title', $isAr
-    ? 'تسعير مواد البناء في السعودية والخليج — كيمتا | 418,326 منتج'
-    : 'Construction Materials Pricing in Saudi Arabia & GCC — Qimta | 418,326 Products')
+    ? 'تسعير مواد البناء في السعودية والخليج — كيمتا | ' . $_p . ' منتج'
+    : 'Construction Materials Pricing in Saudi Arabia & GCC — Qimta | ' . $_p . ' Products')
 
 @section('description', $isAr
-    ? 'احصل على أسعار مواد البناء فوراً لأي مشروع في السعودية والخليج. كيمتا تفهرس 418,326 منتجاً من 72 علامة تجارية مع تسعير تلقائي لجداول الكميات.'
-    : 'Get instant construction materials pricing for any project in Saudi Arabia and GCC. Qimta indexes 418,326 products from 72 brands with automatic BOQ pricing.')
+    ? 'احصل على أسعار مواد البناء فوراً لأي مشروع في السعودية والخليج. كيمتا تفهرس ' . $_p . ' منتجاً من ' . $_brands . ' علامة تجارية مع تسعير تلقائي لجداول الكميات.'
+    : 'Get instant construction materials pricing for any project in Saudi Arabia and GCC. Qimta indexes ' . $_p . ' products from ' . $_brands . ' brands with automatic BOQ pricing.')
 
 @section('styles')
 <style>
@@ -74,8 +80,8 @@ $_lpSchema = json_encode([
                     '@type' => 'Question',
                     'name' => $isAr ? 'كيف تسعّر كيمتا مواد البناء؟' : 'How does Qimta price construction materials?',
                     'acceptedAnswer' => ['@type'=>'Answer','text' => $isAr
-                        ? 'تستخدم كيمتا محرك RAG (Retrieval-Augmented Generation) لمطابقة كل بند في جدول الكميات مع 418,326 منتجاً معتمداً من قواعد بيانات المصنّعين، وتُرجع الأسعار في أقل من 60 ثانية بدقة 99.9%.'
-                        : 'Qimta uses a RAG (Retrieval-Augmented Generation) engine to match every BOQ line item against 418,326 verified products from manufacturer databases, returning prices in under 60 seconds with 99.9% accuracy.'],
+                        ? 'تستخدم كيمتا محرك RAG (Retrieval-Augmented Generation) لمطابقة كل بند في جدول الكميات مع ' . $_p . ' منتجاً معتمداً من قواعد بيانات المصنّعين، وتُرجع الأسعار في أقل من 60 ثانية بدقة 99.9%.'
+                        : 'Qimta uses a RAG (Retrieval-Augmented Generation) engine to match every BOQ line item against ' . $_p . ' verified products from manufacturer databases, returning prices in under 60 seconds with 99.9% accuracy.'],
                 ],
                 [
                     '@type' => 'Question',
@@ -88,8 +94,8 @@ $_lpSchema = json_encode([
                     '@type' => 'Question',
                     'name' => $isAr ? 'ما المواد الإنشائية التي تغطيها كيمتا؟' : 'What construction materials does Qimta cover?',
                     'acceptedAnswer' => ['@type'=>'Answer','text' => $isAr
-                        ? 'تغطي كيمتا 418,326 منتجاً عبر 206 قسماً إنشائياً تشمل: الهياكل الفولاذية، العزل، الزجاج والواجهات، الأنظمة الكهربائية، السباكة، الأرضيات، الإنهاء والتشطيب، وغيرها.'
-                        : 'Qimta covers 418,326 products across 206 construction divisions including: steel structures, insulation, glazing & facades, electrical systems, plumbing, flooring, finishing, and more.'],
+                        ? 'تغطي كيمتا ' . $_p . ' منتجاً عبر ' . $_cats . ' قسماً إنشائياً تشمل: الهياكل الفولاذية، العزل، الزجاج والواجهات، الأنظمة الكهربائية، السباكة، الأرضيات، الإنهاء والتشطيب، وغيرها.'
+                        : 'Qimta covers ' . $_p . ' products across ' . $_cats . ' construction divisions including: steel structures, insulation, glazing & facades, electrical systems, plumbing, flooring, finishing, and more.'],
                 ],
                 [
                     '@type' => 'Question',
@@ -118,8 +124,8 @@ $_lpSchema = json_encode([
         <p class="lp-eyebrow">{{ $isAr ? 'منصة التسعير الإنشائي' : 'Construction Pricing Platform' }}</p>
         <h1>{{ $isAr ? 'تسعير مواد البناء في ثوانٍ' : 'Construction Materials Pricing in Seconds' }}</h1>
         <p>{{ $isAr
-            ? 'كيمتا تُسعّر كل بند في جدول كمياتك مقابل 418,326 منتجاً إنشائياً معتمداً في السعودية والخليج. دقة 99.9%، في أقل من 60 ثانية، مجاناً.'
-            : 'Qimta prices every line item in your BOQ against 418,326 verified construction products across Saudi Arabia and GCC. 99.9% accuracy, under 60 seconds, free.' }}</p>
+            ? 'كيمتا تُسعّر كل بند في جدول كمياتك مقابل ' . $_p . ' منتجاً إنشائياً معتمداً في السعودية والخليج. دقة 99.9%، في أقل من 60 ثانية، مجاناً.'
+            : 'Qimta prices every line item in your BOQ against ' . $_p . ' verified construction products across Saudi Arabia and GCC. 99.9% accuracy, under 60 seconds, free.' }}</p>
         <div class="lp-cta">
             <a href="{{ route('enduser.register') }}" class="btn-primary">{{ $isAr ? 'ابدأ مجاناً' : 'Start Free' }}</a>
             <a href="{{ route($__rp . 'catalog.index') }}" class="btn-outline">{{ $isAr ? 'تصفح الكتالوج' : 'Browse Catalog' }}</a>
@@ -132,7 +138,7 @@ $_lpSchema = json_encode([
     <div class="container">
         <div class="lp-stats-grid">
             <div class="lp-stat">
-                <div class="lp-stat-val" itemprop="value" content="418326">418,326</div>
+                <div class="lp-stat-val" itemprop="value" content="{{ $catalogStats['products'] }}">{{ $_p }}</div>
                 <div class="lp-stat-label">{{ $isAr ? 'منتج إنشائي معتمد' : 'Verified Construction Products' }}</div>
             </div>
             <div class="lp-stat">
@@ -179,7 +185,7 @@ $_lpSchema = json_encode([
                     </div>
                     <div class="lp-card">
                         <h3>{{ $isAr ? '🏗️ شامل' : '🏗️ Comprehensive' }}</h3>
-                        <p>{{ $isAr ? '418,326 منتج عبر 206 قسم إنشائي' : '418,326 products across 206 construction divisions' }}</p>
+                        <p>{{ $isAr ? $_p . ' منتج عبر ' . $_cats . ' قسم إنشائي' : $_p . ' products across ' . $_cats . ' construction divisions' }}</p>
                     </div>
                 </div>
             </div>
@@ -194,7 +200,7 @@ $_lpSchema = json_encode([
             {{ $isAr ? 'فئات مواد البناء الرئيسية' : 'Main Construction Material Categories' }}
         </h2>
         <p style="text-align:center;color:#555;margin-bottom:40px;">
-            {{ $isAr ? '206 قسماً إنشائياً — 72 علامة تجارية معتمدة' : '206 construction divisions — 72 verified brands' }}
+            {{ $isAr ? $_cats . ' قسماً إنشائياً — ' . $_brands . ' علامة تجارية معتمدة' : $_cats . ' construction divisions — ' . $_brands . ' verified brands' }}
         </p>
         <div class="lp-cards">
             @foreach([
@@ -220,13 +226,13 @@ $_lpSchema = json_encode([
         <h2>{{ $isAr ? 'أسئلة شائعة عن تسعير مواد البناء' : 'FAQ — Construction Materials Pricing' }}</h2>
         @foreach([
             ['q'=> $isAr ? 'كيف تسعّر كيمتا مواد البناء؟' : 'How does Qimta price construction materials?',
-             'a'=> $isAr ? 'تستخدم كيمتا محرك RAG لمطابقة كل بند مع 418,326 منتج معتمد من قواعد بيانات المصنّعين، وتُرجع الأسعار في أقل من 60 ثانية بدقة 99.9%.' : 'Qimta uses a RAG engine to match every BOQ line item against 418,326 verified products from manufacturer databases, returning prices in under 60 seconds with 99.9% accuracy.'],
+             'a'=> $isAr ? 'تستخدم كيمتا محرك RAG لمطابقة كل بند مع ' . $_p . ' منتج معتمد من قواعد بيانات المصنّعين، وتُرجع الأسعار في أقل من 60 ثانية بدقة 99.9%.' : 'Qimta uses a RAG engine to match every BOQ line item against ' . $_p . ' verified products from manufacturer databases, returning prices in under 60 seconds with 99.9% accuracy.'],
             ['q'=> $isAr ? 'هل التسعير مجاني للمقاولين؟' : 'Is pricing free for contractors?',
              'a'=> $isAr ? 'نعم، التسعير مجاني تماماً لمشتري مواد البناء والمقاولين وفرق المشتريات.' : 'Yes, pricing is completely free for construction buyers, contractors, and procurement teams.'],
             ['q'=> $isAr ? 'هل يعمل في السعودية والخليج؟' : 'Does it work in Saudi Arabia and GCC?',
              'a'=> $isAr ? 'نعم، كيمتا مبنية خصيصاً للسوق السعودي ودول الخليج مع امتثال لضريبة القيمة المضافة وأسعار السوق المحلية.' : 'Yes, Qimta is purpose-built for Saudi Arabia and GCC with local market rates and VAT compliance.'],
             ['q'=> $isAr ? 'ما حجم الكتالوج؟' : 'How large is the catalog?',
-             'a'=> $isAr ? '418,326 منتجاً عبر 206 قسماً إنشائياً و72 علامة تجارية معتمدة.' : '418,326 products across 206 construction divisions and 72 verified brands.'],
+             'a'=> $isAr ? $_p . ' منتجاً عبر ' . $_cats . ' قسماً إنشائياً و' . $_brands . ' علامة تجارية معتمدة.' : $_p . ' products across ' . $_cats . ' construction divisions and ' . $_brands . ' verified brands.'],
         ] as $faq)
         <div class="lp-faq-item">
             <div class="lp-faq-q">{{ $faq['q'] }}</div>

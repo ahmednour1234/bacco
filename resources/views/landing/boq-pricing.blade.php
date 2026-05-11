@@ -1,14 +1,20 @@
 @extends('layouts.app')
 
-@php $isAr = app()->getLocale() === 'ar'; $__rp = $isAr ? 'ar.' : ''; @endphp
+@php 
+    $isAr   = app()->getLocale() === 'ar'; 
+    $__rp   = $isAr ? 'ar.' : '';
+    $_p     = number_format($catalogStats['products']);
+    $_cats  = $catalogStats['categories'];
+    $_brands = $catalogStats['brands'];
+@endphp
 
 @section('title', $isAr
     ? 'تسعير BOQ — جداول الكميات الإنشائية | كيمتا | السعودية والخليج'
     : 'BOQ Pricing — Construction Bill of Quantities | Qimta | Saudi Arabia & GCC')
 
 @section('description', $isAr
-    ? 'سعّر جدول الكميات بالكامل خلال 60 ثانية. كيمتا تُطابق كل بند مع 418,326 منتج إنشائي معتمد — مجاناً للمقاولين وفرق المشتريات في السعودية والخليج.'
-    : 'Price your entire Bill of Quantities in 60 seconds. Qimta matches every line item against 418,326 verified construction products — free for contractors and procurement teams in Saudi Arabia and GCC.')
+    ? 'سعّر جدول الكميات بالكامل خلال 60 ثانية. كيمتا تُطابق كل بند مع ' . $_p . ' منتج إنشائي معتمد — مجاناً للمقاولين وفرق المشتريات في السعودية والخليج.'
+    : 'Price your entire Bill of Quantities in 60 seconds. Qimta matches every line item against ' . $_p . ' verified construction products — free for contractors and procurement teams in Saudi Arabia and GCC.')
 
 @section('styles')
 <style>
@@ -71,8 +77,8 @@ $_lpSchema = json_encode([
                     '@type' => 'Question',
                     'name' => $isAr ? 'ما هو BOQ وكيف يُسعَّر؟' : 'What is a BOQ and how is it priced?',
                     'acceptedAnswer' => ['@type'=>'Answer','text' => $isAr
-                        ? 'BOQ (Bill of Quantities) هو وثيقة تُدرج كل مواد ومنتجات المشروع الإنشائي مع الكميات. تسعيره يعني إيجاد السعر الحالي لكل بند. كيمتا تُسعّر الـBOQ تلقائياً في أقل من 60 ثانية من خلال مطابقة كل بند مع 418,326 منتج معتمد.'
-                        : 'A BOQ (Bill of Quantities) lists all materials and products for a construction project with quantities. Pricing it means finding current market prices for each item. Qimta auto-prices BOQs in under 60 seconds by matching each line against 418,326 verified products.'],
+                        ? 'BOQ (Bill of Quantities) هو وثيقة تُدرج كل مواد ومنتجات المشروع الإنشائي مع الكميات. تسعيره يعني إيجاد السعر الحالي لكل بند. كيمتا تُسعّر الـBOQ تلقائياً في أقل من 60 ثانية من خلال مطابقة كل بند مع ' . $_p . ' منتج معتمد.'
+                        : 'A BOQ (Bill of Quantities) lists all materials and products for a construction project with quantities. Pricing it means finding current market prices for each item. Qimta auto-prices BOQs in under 60 seconds by matching each line against ' . $_p . ' verified products.'],
                 ],
                 [
                     '@type' => 'Question',
@@ -114,8 +120,8 @@ $_lpSchema = json_encode([
         <p class="lp-eyebrow">{{ $isAr ? 'تسعير جداول الكميات' : 'Bill of Quantities Pricing' }}</p>
         <h1>{{ $isAr ? 'سعّر جدول كمياتك في 60 ثانية' : 'Price Your BOQ in 60 Seconds' }}</h1>
         <p>{{ $isAr
-            ? 'ارفع جدول كمياتك — كيمتا تُطابق كل بند مع 418,326 منتج إنشائي معتمد وتُرجع أسعاراً موثّقة من المصنّعين مباشرةً. مجاناً للمقاولين وفرق المشتريات.'
-            : 'Upload your BOQ — Qimta matches every line item against 418,326 verified construction products and returns prices verified directly from manufacturers. Free for contractors and procurement teams.' }}</p>
+            ? 'ارفع جدول كمياتك — كيمتا تُطابق كل بند مع ' . $_p . ' منتج إنشائي معتمد وتُرجع أسعاراً موثّقة من المصنّعين مباشرةً. مجاناً للمقاولين وفرق المشتريات.'
+            : 'Upload your BOQ — Qimta matches every line item against ' . $_p . ' verified construction products and returns prices verified directly from manufacturers. Free for contractors and procurement teams.' }}</p>
         <div class="lp-cta">
             <a href="{{ route('enduser.register') }}" class="btn-primary">{{ $isAr ? 'سعّر جدول كمياتي' : 'Price My BOQ' }}</a>
             <a href="{{ route($__rp . 'catalog.index') }}" class="btn-outline">{{ $isAr ? 'تصفح الكتالوج' : 'Browse Catalog' }}</a>
@@ -132,7 +138,7 @@ $_lpSchema = json_encode([
                 <div class="lp-stat-label">{{ $isAr ? 'لتسعير جدول الكميات بالكامل' : 'To price a full BOQ' }}</div>
             </div>
             <div class="lp-stat">
-                <div class="lp-stat-val" content="418326">418,326</div>
+                <div class="lp-stat-val" content="{{ $catalogStats['products'] }}">{{ $_p }}</div>
                 <div class="lp-stat-label">{{ $isAr ? 'منتج إنشائي معتمد' : 'Verified products in database' }}</div>
             </div>
             <div class="lp-stat">
@@ -163,7 +169,7 @@ $_lpSchema = json_encode([
             <div class="lp-step">
                 <div class="lp-step-num">2</div>
                 <h3>{{ $isAr ? 'المطابقة التلقائية' : 'Automatic Matching' }}</h3>
-                <p>{{ $isAr ? 'محرك RAG يُطابق كل بند مع 418,326 منتج معتمد من قواعد بيانات المصنّعين المباشرة.' : 'RAG engine matches every line item against 418,326 verified products from direct manufacturer databases.' }}</p>
+                <p>{{ $isAr ? 'محرك RAG يُطابق كل بند مع ' . $_p . ' منتج معتمد من قواعد بيانات المصنّعين المباشرة.' : 'RAG engine matches every line item against ' . $_p . ' verified products from direct manufacturer databases.' }}</p>
             </div>
             <div class="lp-step">
                 <div class="lp-step-num">3</div>
@@ -188,13 +194,13 @@ $_lpSchema = json_encode([
             : 'In Saudi Arabia and GCC, BOQ pricing faces unique challenges: steel price volatility, 15% VAT, foreign materials import lead times, and price differences between Riyadh, Jeddah, and the Eastern Province. These challenges make manual pricing unreliable and slow.' }}</p>
 
         <p>{{ $isAr
-            ? 'كيمتا تحل هذه التحديات بفهرسة 418,326 منتجاً إنشائياً من 72 علامة تجارية معتمدة، مُعايَرة وفق أسعار السوق السعودي الفعلية. محرك RAG يُطابق كل بند في جدول الكميات مع المنتج الأدق مطابقة من قاعدة البيانات ويُرجع السعر الموثّق في أقل من 60 ثانية.'
-            : 'Qimta solves these challenges by indexing 418,326 construction products from 72 verified brands, calibrated to actual Saudi market rates. The RAG engine matches every BOQ line item with the most accurate product from the database and returns the verified price in under 60 seconds.' }}</p>
+            ? 'كيمتا تحل هذه التحديات بفهرسة ' . $_p . ' منتجاً إنشائياً من ' . $_brands . ' علامة تجارية معتمدة، مُعايَرة وفق أسعار السوق السعودي الفعلية. محرك RAG يُطابق كل بند في جدول الكميات مع المنتج الأدق مطابقة من قاعدة البيانات ويُرجع السعر الموثّق في أقل من 60 ثانية.'
+            : 'Qimta solves these challenges by indexing ' . $_p . ' construction products from ' . $_brands . ' verified brands, calibrated to actual Saudi market rates. The RAG engine matches every BOQ line item with the most accurate product from the database and returns the verified price in under 60 seconds.' }}</p>
 
         <h2 style="margin-top:48px;">{{ $isAr ? 'فئات BOQ الأكثر طلباً' : 'Most Requested BOQ Categories' }}</h2>
         <p>{{ $isAr
-            ? 'من خلال تحليل آلاف جداول الكميات في السعودية والخليج، الفئات الأكثر طلباً تشمل: الهياكل الفولاذية، أنظمة العزل الحراري، الواجهات الزجاجية، الأنظمة الكهربائية والميكانيكية، أنظمة الصرف الصحي، ومواد التشطيب. كيمتا تغطي جميع هذه الفئات عبر 206 قسماً إنشائياً.'
-            : 'From analyzing thousands of BOQs across Saudi Arabia and GCC, the most requested categories include: steel structures, thermal insulation systems, glass facades, electrical and mechanical systems, drainage systems, and finishing materials. Qimta covers all these categories across 206 construction divisions.' }}</p>
+            ? 'من خلال تحليل آلاف جداول الكميات في السعودية والخليج، الفئات الأكثر طلباً تشمل: الهياكل الفولاذية، أنظمة العزل الحراري، الواجهات الزجاجية، الأنظمة الكهربائية والميكانيكية، أنظمة الصرف الصحي، ومواد التشطيب. كيمتا تغطي جميع هذه الفئات عبر ' . $_cats . ' قسماً إنشائياً.'
+            : 'From analyzing thousands of BOQs across Saudi Arabia and GCC, the most requested categories include: steel structures, thermal insulation systems, glass facades, electrical and mechanical systems, drainage systems, and finishing materials. Qimta covers all these categories across ' . $_cats . ' construction divisions.' }}</p>
     </div>
 </section>
 
@@ -204,7 +210,7 @@ $_lpSchema = json_encode([
         <h2>{{ $isAr ? 'أسئلة شائعة عن تسعير BOQ' : 'Frequently Asked Questions — BOQ Pricing' }}</h2>
         @foreach([
             ['q'=> $isAr ? 'ما هو BOQ وكيف يُسعَّر؟' : 'What is a BOQ and how is it priced?',
-             'a'=> $isAr ? 'BOQ (جدول الكميات) يُدرج كل مواد المشروع الإنشائي. كيمتا تُسعّره تلقائياً بمطابقة كل بند مع 418,326 منتج معتمد في أقل من 60 ثانية.' : 'A BOQ (Bill of Quantities) lists all materials for a construction project. Qimta prices it automatically by matching every line against 418,326 verified products in under 60 seconds.'],
+             'a'=> $isAr ? 'BOQ (جدول الكميات) يُدرج كل مواد المشروع الإنشائي. كيمتا تُسعّره تلقائياً بمطابقة كل بند مع ' . $_p . ' منتج معتمد في أقل من 60 ثانية.' : 'A BOQ (Bill of Quantities) lists all materials for a construction project. Qimta prices it automatically by matching every line against ' . $_p . ' verified products in under 60 seconds.'],
             ['q'=> $isAr ? 'هل تسعير BOQ مجاني؟' : 'Is BOQ pricing free?',
              'a'=> $isAr ? 'نعم، مجاني تماماً بلا حد لعدد البنود أو المشاريع للمشترين والمقاولين وفرق المشتريات.' : 'Yes, completely free with no limit on line items or projects for buyers, contractors, and procurement teams.'],
             ['q'=> $isAr ? 'ما الصيغ المدعومة للـ BOQ؟' : 'What BOQ formats are supported?',
