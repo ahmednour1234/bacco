@@ -176,8 +176,8 @@
         .footer-socials { display: flex; gap: 12px; }
         .social-btn { width: 36px; height: 36px; border-radius: 8px; background: #f1f1f1; display: flex; align-items: center; justify-content: center; color: #444; transition: background .2s, color .2s; }
         .social-btn:hover { background: var(--green); color: var(--white); }
-        .footer-col h5 { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #999; margin-bottom: 16px; }
-        [dir="rtl"] .footer-col h5 { letter-spacing: 0; }
+        .footer-col h3 { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #999; margin-bottom: 16px; }
+        [dir="rtl"] .footer-col h3 { letter-spacing: 0; }
         .footer-col a { display: block; font-size: 13px; color: #555; margin-bottom: 10px; transition: color .2s; }
         .footer-col a:hover { color: var(--green); }
         .footer-bottom { border-top: 1px solid var(--border); padding-top: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
@@ -317,21 +317,21 @@
                     </div>
                 </div>
                 <div class="footer-col">
-                    <h5>{{ __('welcome.footer.sol_h') }}</h5>
+                    <h3>{{ __('welcome.footer.sol_h') }}</h3>
                     <a href="{{ route('enduser.register') }}">{{ __('welcome.footer.sol_1') }}</a>
                     <a href="{{ route('enduser.register') }}">{{ __('welcome.footer.sol_2') }}</a>
                     <a href="{{ route('for-brands') }}">{{ __('welcome.footer.sol_3') }}</a>
                     <a href="{{ route('contact') }}">{{ __('welcome.footer.sol_4') }}</a>
                 </div>
                 <div class="footer-col">
-                    <h5>{{ __('welcome.footer.platform_h') }}</h5>
+                    <h3>{{ __('welcome.footer.platform_h') }}</h3>
                     <a href="{{ route('about') }}">{{ __('welcome.footer.platform_1') }}</a>
                     <a href="{{ route('catalog.index') }}">{{ __('welcome.footer.platform_2') }}</a>
                     <a href="{{ route('catalog.index') }}">{{ __('welcome.footer.platform_3') }}</a>
                     <a href="{{ route('about') }}">{{ __('welcome.footer.platform_4') }}</a>
                 </div>
                 <div class="footer-col">
-                    <h5>{{ __('welcome.footer.company_h') }}</h5>
+                    <h3>{{ __('welcome.footer.company_h') }}</h3>
                     <a href="{{ route('about') }}">{{ __('welcome.footer.company_1') }}</a>
                     <a href="{{ route('contact') }}">{{ __('welcome.footer.company_2') }}</a>
                     <a href="{{ route('news') }}">{{ __('welcome.footer.company_3') }}</a>

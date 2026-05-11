@@ -170,6 +170,25 @@
 @endsection
 
 @section('content')
+@php
+$_localBiz = json_encode([
+    '@context'     => 'https://schema.org',
+    '@type'        => 'LocalBusiness',
+    'name'         => 'Qimta',
+    'url'          => 'https://www.qimta.com',
+    'logo'         => 'https://www.qimta.com/images/qimta-og.jpg',
+    'email'        => 'sales@qimta.com',
+    'telephone'    => '+963937101976',
+    'address'      => ['@type'=>'PostalAddress','addressCountry'=>'SA','addressRegion'=>'Riyadh'],
+    'areaServed'   => ['SA','AE','KW','QA','BH','OM'],
+    'sameAs'       => ['https://x.com/QimtaSm','https://www.linkedin.com/company/qimta/'],
+    'contactPoint' => [
+        ['@type'=>'ContactPoint','contactType'=>'sales','email'=>'sales@qimta.com','availableLanguage'=>['English','Arabic']],
+        ['@type'=>'ContactPoint','contactType'=>'customer support','email'=>'support@qimta.com','availableLanguage'=>['English','Arabic']],
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+<script type="application/ld+json">{!! $_localBiz !!}</script>
 
 {{-- ── HERO ── --}}
 <section class="contact-hero">

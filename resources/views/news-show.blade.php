@@ -33,7 +33,23 @@ $_breadcrumb = json_encode([
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 <script type="application/ld+json">{!! $_breadcrumb !!}</script>
-<div class="ns-page" dir="{{ $dir }}">
+@php
+$_articleSchema = json_encode([
+    '@context'         => 'https://schema.org',
+    '@type'            => 'NewsArticle',
+    'headline'         => $title,
+    'description'      => mb_substr(strip_tags($desc), 0, 200),
+    'image'            => $article->image ? 'https://www.qimta.com'.Storage::url($article->image) : 'https://www.qimta.com/images/qimta-og.jpg',
+    'datePublished'    => $article->created_at?->toISOString(),
+    'dateModified'     => $article->updated_at?->toISOString(),
+    'author'           => ['@type'=>'Organization','name'=>'Qimta','url'=>'https://www.qimta.com'],
+    'publisher'        => ['@type'=>'Organization','name'=>'Qimta','url'=>'https://www.qimta.com','logo'=>['@type'=>'ImageObject','url'=>'https://www.qimta.com/images/qimta-og.jpg']],
+    'url'              => 'https://www.qimta.com/news/'.$article->slug,
+    'inLanguage'       => $isAr ? 'ar' : 'en',
+    'mainEntityOfPage' => ['@type'=>'WebPage','@id'=>'https://www.qimta.com/news/'.$article->slug],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+<script type="application/ld+json">{!! $_articleSchema !!}</script>
 
     {{-- -- Breadcrumb ---------------------------------------------------- --}}
     <div class="ns-breadcrumb-bar">

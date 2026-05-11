@@ -668,7 +668,7 @@ $_homeSchema = json_encode([
     <section class="brand">
         <div class="brand-inner">
             <div class="brand-left">
-                <h3>{{ __('welcome.brand.h3') }}</h3>
+                <h2>{{ __('welcome.brand.h3') }}</h2>
                 <p>{{ __('welcome.brand.sub') }}</p>
                 <div class="listing-row">
                     <span>{{ __('welcome.brand.basic') }}</span>
@@ -680,7 +680,7 @@ $_homeSchema = json_encode([
                 </div>
             </div>
             <div class="brand-right">
-                <h4>{{ __('welcome.brand.benefits_h') }}</h4>
+                <h3>{{ __('welcome.brand.benefits_h') }}</h3>
                 <div class="brand-benefit">{{ __('welcome.brand.benefit1') }}</div>
                 <div class="brand-benefit">{{ __('welcome.brand.benefit2') }}</div>
                 <div class="brand-benefit">{{ __('welcome.brand.benefit3') }}</div>

@@ -111,9 +111,24 @@ $_breadcrumb = json_encode([
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 <script type="application/ld+json">{!! $_breadcrumb !!}</script>
-<div class="container">
-
-    {{-- Breadcrumb --}}
+@php
+$_productSchema = json_encode([
+    '@context'    => 'https://schema.org',
+    '@type'       => 'Product',
+    'name'        => $itemDescription,
+    'description' => $itemDescription.' — BOQ pricing, technical specifications, material types, and lead times. Part of Qimta\'s verified '.$division.' catalog for Saudi Arabia and GCC construction projects.',
+    'category'    => $division,
+    'brand'       => ['@type'=>'Brand','name'=>$division],
+    'url'         => 'https://www.qimta.com'.request()->getPathInfo(),
+    'offers'      => [
+        '@type'        => 'Offer',
+        'priceCurrency'=> 'SAR',
+        'availability' => 'https://schema.org/InStock',
+        'seller'       => ['@type'=>'Organization','name'=>'Qimta','url'=>'https://www.qimta.com'],
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+<script type="application/ld+json">{!! $_productSchema !!}</script>
     <div style="padding-top:32px;">
         <nav aria-label="breadcrumb" class="breadcrumb">
             <a href="/">Home</a>
