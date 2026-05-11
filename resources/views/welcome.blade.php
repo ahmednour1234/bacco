@@ -535,7 +535,14 @@
             <div class="news-grid">
                 <div class="news-card">
                     <div class="news-img-placeholder">
-                        <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=700&q=80&auto=format&fit=crop" alt="Construction site" loading="lazy">
+                        {{-- TODO: Download and host locally at /images/news/construction-materials.jpg --}}
+                        <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=700&q=80&auto=format&fit=crop"
+                             srcset="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75&auto=format&fit=crop 400w,
+                                     https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=700&q=80&auto=format&fit=crop 700w"
+                             sizes="(max-width: 768px) 100vw, 370px"
+                             width="700" height="467"
+                             alt="{{ $isAr ? 'أسعار مواد البناء في السعودية - بلاطة خرسانية وحديد تسليح' : 'Construction materials pricing in Saudi Arabia - concrete and rebar' }}"
+                             loading="lazy">
                     </div>
                     <div class="news-body">
                         <p class="news-tag market">{{ __('welcome.news.tag_market') }}</p>
@@ -545,7 +552,13 @@
                 </div>
                 <div class="news-card">
                     <div class="news-img-placeholder">
-                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&q=80&auto=format&fit=crop" alt="Technology circuit board" loading="lazy">
+                        {{-- Local image (circuit-board.jpg already in /public/images/) --}}
+                        <img src="{{ asset('images/circuit-board.jpg') }}"
+                             srcset="{{ asset('images/circuit-board.jpg') }} 700w"
+                             sizes="(max-width: 768px) 100vw, 370px"
+                             width="700" height="467"
+                             alt="{{ $isAr ? 'تقنية التسعير الذكي لمواد البناء - قيمتا للإنشاء' : 'Smart construction pricing technology - QIMTA platform' }}"
+                             loading="lazy">
                     </div>
                     <div class="news-body">
                         <p class="news-tag tech">{{ __('welcome.news.tag_tech') }}</p>
@@ -555,7 +568,14 @@
                 </div>
                 <div class="news-card">
                     <div class="news-img-placeholder">
-                        <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=700&q=80&auto=format&fit=crop" alt="Business meeting" loading="lazy">
+                        {{-- TODO: Download and host locally at /images/news/business-meeting.jpg --}}
+                        <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=700&q=80&auto=format&fit=crop"
+                             srcset="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=75&auto=format&fit=crop 400w,
+                                     https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=700&q=80&auto=format&fit=crop 700w"
+                             sizes="(max-width: 768px) 100vw, 370px"
+                             width="700" height="467"
+                             alt="{{ $isAr ? 'نجاح عملاء قيمتا - مقاول يوفر تكاليف المشاريع الإنشائية' : 'QIMTA client success - contractor reducing construction project costs' }}"
+                             loading="lazy">
                     </div>
                     <div class="news-body">
                         <p class="news-tag case">{{ __('welcome.news.tag_case') }}</p>
