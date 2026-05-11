@@ -248,7 +248,7 @@ $_breadcrumb = json_encode([
                 @if($items->onFirstPage())
                     <span class="disabled">&laquo;</span>
                 @else
-                    <a href="{{ $items->previousPageUrl() }}">&laquo;</a>
+                    <a href="{{ $items->previousPageUrl() }}" aria-label="Previous page">&laquo;</a>
                 @endif
 
                 @foreach($items->getUrlRange(max(1, $items->currentPage()-2), min($items->lastPage(), $items->currentPage()+2)) as $page => $url)
@@ -260,7 +260,7 @@ $_breadcrumb = json_encode([
                 @endforeach
 
                 @if($items->hasMorePages())
-                    <a href="{{ $items->nextPageUrl() }}">&raquo;</a>
+                    <a href="{{ $items->nextPageUrl() }}" aria-label="Next page">&raquo;</a>
                 @else
                     <span class="disabled">&raquo;</span>
                 @endif

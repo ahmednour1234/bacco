@@ -29,7 +29,7 @@
     /* ── INFO BANNER ── */
     .catalog-info { display: flex; gap: 24px; flex-wrap: wrap; background: #f9f9f9; border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 40px; font-size: 13px; color: #555; line-height: 1.6; }
     .catalog-info-col { flex: 1; min-width: 260px; }
-    .catalog-info-col h6 { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #999; margin-bottom: 6px; }
+    .catalog-info-col h2 { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #999; margin-bottom: 6px; }
     .catalog-info-col p { color: #555; font-size: 13px; }
     .catalog-info-col p a { color: var(--green); font-weight: 600; }
     .catalog-info-note { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 260px; }
@@ -107,7 +107,7 @@ $_breadcrumb = json_encode([
         {{-- Info Banner --}}
         <div class="catalog-info">
             <div class="catalog-info-col">
-                <h6>{{ __('catalog.info.structure_title') }}</h6>
+                <h2>{{ __('catalog.info.structure_title') }}</h2>
                 <p>{{ __('catalog.info.structure_body') }}</p>
             </div>
             <div class="catalog-info-note">
