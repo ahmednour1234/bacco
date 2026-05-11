@@ -245,29 +245,7 @@
                 </div>
                 <a href="{{ route($__rp . 'for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
                 <a href="{{ route($__rp . 'about') }}" class="{{ Route::is($__rp . 'about') ? 'active' : '' }}">{{ __('welcome.nav.about') }}</a>
-                {{-- More dropdown --}}
-                <div class="nav-more" id="navMore">
-                    <button class="nav-more-btn" id="navMoreBtn" aria-haspopup="true" aria-expanded="false">
-                        {{ __('welcome.nav.more') }}
-                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
-                    <div class="nav-more-dropdown" id="navMoreDropdown" role="menu">
-                        <a href="{{ route($__rp . 'contact') }}" class="{{ Route::is($__rp . 'contact') ? 'active' : '' }}" role="menuitem">
-                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                            {{ __('welcome.nav.contact') }}
-                        </a>
-                        <div class="nav-more-sep"></div>
-                        <a href="{{ route($__rp . 'support') }}" class="{{ Route::is($__rp . 'support') ? 'active' : '' }}" role="menuitem">
-                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            {{ __('welcome.nav.support') }}
-                        </a>
-                        <div class="nav-more-sep"></div>
-                        <a href="{{ route($__rp . 'cookie') }}" class="{{ Route::is($__rp . 'cookie') ? 'active' : '' }}" role="menuitem">
-                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                            {{ __('welcome.nav.cookie') }}
-                        </a>
-                    </div>
-                </div>
+                <a href="{{ route($__rp . 'contact') }}" class="{{ Route::is($__rp . 'contact') ? 'active' : '' }}">{{ __('welcome.nav.contact') }}</a>
             </div>
             <div class="nav-actions">
                 <a href="{{ $isAr ? $__enUrl : $__arUrl }}" class="lang-btn" title="{{ $switchLabel }}" rel="alternate" hreflang="{{ $isAr ? 'en' : 'ar' }}">
@@ -294,7 +272,6 @@
         <a href="{{ route($__rp . 'for-brands') }}">{{ __('welcome.nav.for_brands') }}</a>
         <a href="{{ route($__rp . 'about') }}">{{ __('welcome.nav.about') }}</a>
         <a href="{{ route($__rp . 'contact') }}">{{ __('welcome.nav.contact') }}</a>
-        <a href="{{ route($__rp . 'support') }}">{{ __('welcome.nav.support') }}</a>
         <a href="{{ $isAr ? $__enUrl : $__arUrl }}" rel="alternate" hreflang="{{ $isAr ? 'en' : 'ar' }}">&#127760; {{ $switchLabel }}</a>
         <div class="mobile-actions">
             @auth

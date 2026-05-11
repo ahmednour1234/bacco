@@ -81,6 +81,11 @@ Route::get('/cookie-policy', function () {
     return view('cookie');
 })->name('cookie');
 
+// ─── SEO Landing Pages ────────────────────────────────────────────────────────
+Route::get('/construction-pricing', fn () => view('landing.construction-pricing'))->name('landing.construction-pricing');
+Route::get('/boq-pricing',          fn () => view('landing.boq-pricing'))->name('landing.boq-pricing');
+Route::get('/procurement-platform', fn () => view('landing.procurement-platform'))->name('landing.procurement-platform');
+
 Route::get('/news', [App\Http\Controllers\NewsController::class, 'index'])->name('news');
 Route::get('/news/{slugOrUuid}', [App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
 
@@ -98,6 +103,10 @@ Route::prefix('ar')->name('ar.')->group(function () {
     Route::get('/security',   fn () => view('security'))->name('security');
     Route::get('/terms',      fn () => view('terms'))->name('terms');
     Route::get('/cookie-policy', fn () => view('cookie'))->name('cookie');
+    // ─── AR SEO Landing Pages ─────────────────────────────────────────────────
+    Route::get('/construction-pricing', fn () => view('landing.construction-pricing'))->name('landing.construction-pricing');
+    Route::get('/boq-pricing',          fn () => view('landing.boq-pricing'))->name('landing.boq-pricing');
+    Route::get('/procurement-platform', fn () => view('landing.procurement-platform'))->name('landing.procurement-platform');
     Route::get('/news',       [App\Http\Controllers\NewsController::class, 'index'])->name('news');
     Route::get('/news/{slugOrUuid}', [App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
     Route::get('/catalog',    [\App\Http\Controllers\CatalogController::class, 'index'])->name('catalog.index');
