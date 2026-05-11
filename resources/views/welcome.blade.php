@@ -535,13 +535,9 @@
             <div class="news-grid">
                 <div class="news-card">
                     <div class="news-img-placeholder">
-                        {{-- TODO: Download and host locally at /images/news/construction-materials.jpg --}}
-                        <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=700&q=80&auto=format&fit=crop"
-                             srcset="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75&auto=format&fit=crop 400w,
-                                     https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=700&q=80&auto=format&fit=crop 700w"
-                             sizes="(max-width: 768px) 100vw, 370px"
-                             width="700" height="467"
-                             alt="{{ $isAr ? 'أسعار مواد البناء في السعودية - بلاطة خرسانية وحديد تسليح' : 'Construction materials pricing in Saudi Arabia - concrete and rebar' }}"
+                        <img src="{{ asset('images/news/construction-materials.jpg') }}"
+                             width="800" height="534"
+                             alt="{{ $isAr ? 'أسعار مواد البناء في السعودية - مشروع إنشائي بالسعودية' : 'Construction materials pricing in Saudi Arabia - local building project' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">
@@ -552,12 +548,9 @@
                 </div>
                 <div class="news-card">
                     <div class="news-img-placeholder">
-                        {{-- Local image (circuit-board.jpg already in /public/images/) --}}
-                        <img src="{{ asset('images/circuit-board.jpg') }}"
-                             srcset="{{ asset('images/circuit-board.jpg') }} 700w"
-                             sizes="(max-width: 768px) 100vw, 370px"
-                             width="700" height="467"
-                             alt="{{ $isAr ? 'تقنية التسعير الذكي لمواد البناء - قيمتا للإنشاء' : 'Smart construction pricing technology - QIMTA platform' }}"
+                        <img src="{{ asset('images/news/smart-pricing-tech.jpg') }}"
+                             width="800" height="534"
+                             alt="{{ $isAr ? 'تقنية التسعير الذكي لمواد البناء - منصة قيمتا للإنشاء' : 'Smart construction pricing technology powered by QIMTA platform' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">
@@ -568,12 +561,8 @@
                 </div>
                 <div class="news-card">
                     <div class="news-img-placeholder">
-                        {{-- TODO: Download and host locally at /images/news/business-meeting.jpg --}}
-                        <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=700&q=80&auto=format&fit=crop"
-                             srcset="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=75&auto=format&fit=crop 400w,
-                                     https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=700&q=80&auto=format&fit=crop 700w"
-                             sizes="(max-width: 768px) 100vw, 370px"
-                             width="700" height="467"
+                        <img src="{{ asset('images/news/business-meeting.jpg') }}"
+                             width="800" height="534"
                              alt="{{ $isAr ? 'نجاح عملاء قيمتا - مقاول يوفر تكاليف المشاريع الإنشائية' : 'QIMTA client success - contractor reducing construction project costs' }}"
                              loading="lazy">
                     </div>
