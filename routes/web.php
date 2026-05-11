@@ -76,7 +76,7 @@ Route::get('/cookie-policy', function () {
 })->name('cookie');
 
 Route::get('/news', [App\Http\Controllers\NewsController::class, 'index'])->name('news');
-Route::get('/news/{uuid}', [App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
+Route::get('/news/{slugOrUuid}', [App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
 
 // ─── Language Switch ──────────────────────────────────────────────────────────
 Route::get('/locale/{locale}', function (string $locale) {

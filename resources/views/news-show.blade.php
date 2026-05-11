@@ -130,7 +130,7 @@ $_breadcrumb = json_encode([
                 <div class="ns-related-group">
                     <span class="ns-related-cat-label">{{ $catName }}</span>
                     @foreach($items as $rel)
-                    <a href="{{ route('news.show', $rel->uuid) }}" class="ns-related-link">
+                    <a href="{{ route('news.show', $rel->slug) }}" class="ns-related-link">
                         {{ $isAr ? $rel->title_ar : $rel->title_en }}
                     </a>
                     @endforeach

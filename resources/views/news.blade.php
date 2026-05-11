@@ -101,7 +101,7 @@
 
             {{-- ── Featured hero card ──────────────────────────────────── --}}
             @if($featured)
-            <a href="{{ route('news.show', $featured->uuid) }}" style="display:block; text-decoration:none; margin-bottom:40px;">
+            <a href="{{ route('news.show', $featured->slug) }}" style="display:block; text-decoration:none; margin-bottom:40px;">
                 <div style="border-radius:16px; overflow:hidden; background:#111; min-height:340px; display:grid; grid-template-columns:55% 1fr; position:relative; box-shadow:0 4px 30px rgba(0,0,0,.13); transition:transform .2s; cursor:pointer;"
                      onmouseenter="this.style.transform='translateY(-3px)'"
                      onmouseleave="this.style.transform='translateY(0)'">
@@ -160,7 +160,7 @@
             @if($rest->count())
             <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:24px; margin-bottom:40px;">
                 @foreach($rest as $article)
-                <a href="{{ route('news.show', $article->uuid) }}"
+                <a href="{{ route('news.show', $article->slug) }}"
                    style="display:block; text-decoration:none; border-radius:12px; background:#fff; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.07); border:1px solid #efefef; transition:transform .2s, box-shadow .2s;"
                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.12)'"
                    onmouseleave="this.style.transform='translateY(0)';this.style.boxShadow='0 1px 4px rgba(0,0,0,.07)'">

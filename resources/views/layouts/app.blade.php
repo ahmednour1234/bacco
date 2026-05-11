@@ -12,6 +12,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'QIMTA')</title>
     <meta name="description" content="@yield('description', 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Access 418K products, instant BOQ matching, and verified manufacturer prices.')">
+    {{-- Canonical: strip trailing slash, always use https --}}
+    @php
+        $_canonicalPath = rtrim(request()->getPathInfo(), '/') ?: '/';
+        $_canonical = 'https://qimta.com' . $_canonicalPath;
+        $_hreflangEn = $_canonical;
+        $_hreflangAr = $_canonical;  {{-- same URL, content switches by session locale --}}
+    @endphp
+    <link rel="canonical" href="{{ $_canonical }}">
+    <link rel="alternate" hreflang="x-default" href="{{ $_hreflangEn }}">
+    <link rel="alternate" hreflang="en" href="{{ $_hreflangEn }}">
+    <link rel="alternate" hreflang="ar" href="{{ $_hreflangAr }}">
     {{-- Self-hosted Cairo variable font: eliminates 2 external DNS lookups (FCP fix) --}}
     <link rel="preload" href="/fonts/cairo/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/cairo/cairo-latin.woff2" as="font" type="font/woff2" crossorigin>

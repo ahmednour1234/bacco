@@ -30,10 +30,17 @@ class NewsController extends Controller
         return view('news', compact('featured', 'rest', 'categories', 'category', 'search', 'isAr'));
     }
 
-    public function show(string $uuid)
+    public function show(string $slugOrUuid)
     {
-        $isAr    = app()->getLocale() === 'ar';
-        $article = Article::where('uuid', $uuid)->where('active', true)->firstOrFail();
+        $isAr = app()->getLocale() === 'ar';
+
+        // Support old UUID-based URLs with a permanent redirect to slug URL
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $slugOrUuid)) {
+            $article = Article::where('uuid', $slugOrUuid)->where('active', true)->firstOrFail();
+            return redirect()->route('news.show', $article->slug, 301);
+        }
+
+        $article = Article::where('slug', $slugOrUuid)->where('active', true)->firstOrFail();
         $related = Article::where('active', true)
             ->where('name_en', $article->name_en)
             ->where('id', '!=', $article->id)
