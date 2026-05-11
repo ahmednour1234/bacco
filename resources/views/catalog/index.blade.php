@@ -60,16 +60,17 @@
 @endsection
 
 @section('content')
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {"@type":"ListItem","position":1,"name":"Home","item":"{{ url('/') }}"},
-    {"@type":"ListItem","position":2,"name":"Catalog","item":"{{ route('catalog.index') }}"}
-  ]
-}
-</script>
+@php
+$_breadcrumb = json_encode([
+    '@context' => 'https://schema.org',
+    '@type'    => 'BreadcrumbList',
+    'itemListElement' => [
+        ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>url('/')],
+        ['@type'=>'ListItem','position'=>2,'name'=>'Catalog','item'=>route('catalog.index')],
+    ],
+], JSON_UNESCAPED_SLASHES);
+@endphp
+<script type="application/ld+json">{!! $_breadcrumb !!}</script>
 <div class="container">
 
     {{-- Breadcrumb --}}

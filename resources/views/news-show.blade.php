@@ -16,18 +16,19 @@
 @section('title', $title)
 
 @section('content')
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {"@type":"ListItem","position":1,"name":"{{ $isAr ? 'الرئيسية' : 'Home' }}","item":"{{ url('/') }}"},
-    {"@type":"ListItem","position":2,"name":"{{ $isAr ? 'الأخبار' : 'News' }}","item":"{{ route('news') }}"},
-    {"@type":"ListItem","position":3,"name":"{{ $cat }}","item":"{{ route('news', ['category' => $article->name_en]) }}"},
-    {"@type":"ListItem","position":4,"name":"{{ addslashes($title) }}","item":"{{ url()->current() }}"}
-  ]
-}
-</script>
+@php
+$_breadcrumb = json_encode([
+    '@context' => 'https://schema.org',
+    '@type'    => 'BreadcrumbList',
+    'itemListElement' => [
+        ['@type'=>'ListItem','position'=>1,'name'=>($isAr?'الرئيسية':'Home'),'item'=>url('/')],
+        ['@type'=>'ListItem','position'=>2,'name'=>($isAr?'الأخبار':'News'),'item'=>route('news')],
+        ['@type'=>'ListItem','position'=>3,'name'=>$cat,'item'=>route('news',['category'=>$article->name_en])],
+        ['@type'=>'ListItem','position'=>4,'name'=>$title,'item'=>url()->current()],
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+<script type="application/ld+json">{!! $_breadcrumb !!}</script>
 <div class="ns-page" dir="{{ $dir }}">
 
     {{-- -- Breadcrumb ---------------------------------------------------- --}}
