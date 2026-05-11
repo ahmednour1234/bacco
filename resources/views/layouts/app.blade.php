@@ -11,6 +11,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'QIMTA')</title>
+    <meta name="description" content="@yield('description', 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Access 418K products, instant BOQ matching, and verified manufacturer prices.')">
     {{-- Self-hosted Cairo variable font: eliminates 2 external DNS lookups (FCP fix) --}}
     <link rel="preload" href="/fonts/cairo/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/cairo/cairo-latin.woff2" as="font" type="font/woff2" crossorigin>

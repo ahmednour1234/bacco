@@ -6,6 +6,10 @@
     ? 'قيمتا — منصة تسعير جداول الكميات | السعودية والخليج'
     : 'Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
 
+@section('description', $isAr
+    ? 'قيمتا: سعر كل بند من جدول الكميات في دقائق. 418,326 منتجاً موثّقاً ومليارات المواصفات التقنية. منصة تسعير مشاريع البناء للسعودية والخليج.'
+    : 'Qimta prices every BOQ line across every brand in seconds. Access 418,326 verified products and 1B technical specs. The construction pricing platform for Saudi Arabia & GCC.')
+
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-nav-cta">
         {{ __('welcome.nav.price_boq') }}
@@ -259,7 +263,7 @@
         <div class="container">
             <div class="hero-inner">
             <div>
-                <p class="hero-tag">{{ __('welcome.hero.tag') }}</p>
+                <h2 class="hero-tag">{{ __('welcome.hero.tag') }}</h2>
                 <h1>{{ __('welcome.hero.h1') }}</h1>
                 <p class="hero-sub">{{ __('welcome.hero.sub') }}</p>
                 <div class="hero-btns">

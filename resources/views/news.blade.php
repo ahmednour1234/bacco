@@ -15,6 +15,10 @@
     ? 'أخبار ومقالات قطاع البناء والمشتريات في الخليج | قيمتا'
     : 'Construction & Procurement News — Gulf Market Pricing | Qimta')
 
+@section('description', $isAr
+    ? 'أحدث أخبار قطاع البناء والمشتريات في الخليج: أسعار المواد، اتجاهات السوق، وتحليلات من فريق قيمتا.'
+    : 'Construction industry news, material pricing trends, and procurement insights for Saudi Arabia and GCC markets — by the Qimta team.')
+
 @section('content')
 <div style="background:#f8f9fa; min-height:100vh;" dir="{{ $dir }}">
 

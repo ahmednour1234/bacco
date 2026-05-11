@@ -2,6 +2,8 @@
 
 @section('title', $division . ' — BOQ Pricing & Specifications | Qimta Catalog')
 
+@section('description', $division . ' construction materials — browse item descriptions, BOQ pricing, technical specifications, and verified products in Qimta’s Gulf catalog.')
+
 @section('styles')
 <style>
     /* ── BREADCRUMB ── */

@@ -2,6 +2,8 @@
 
 @section('title', $itemDescription . ' — BOQ Price & Specs | ' . $division . ' | Qimta')
 
+@section('description', $itemDescription . ' — BOQ pricing, technical specifications, material types, and lead times. Part of Qimta’s verified ' . $division . ' catalog for Saudi Arabia and GCC construction projects.')
+
 @section('styles')
 <style>
     /* ── BREADCRUMB ── */

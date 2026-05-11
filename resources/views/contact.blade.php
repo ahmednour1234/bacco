@@ -6,6 +6,10 @@
     ? 'تواصل مع قيمتا — Onboarding المشترين والعلامات التجارية | مشاريع الخليج'
     : 'Contact Qimta — Brand Onboarding & Enterprise Inquiries | Gulf Projects')
 
+@section('description', $isAr
+    ? 'تواصل مع فريق قيمتا للاستفسار عن خدماتنا للعلامات التجارية والمشترين والمشاريع في الخليج.'
+    : 'Get in touch with Qimta for brand listing, enterprise BOQ solutions, or buyer onboarding. Serving construction projects across Saudi Arabia and the GCC.')
+
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-demo">{{ __('contact.nav.get_demo') }}</a>
 @endsection

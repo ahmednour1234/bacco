@@ -6,6 +6,10 @@
     ? 'عن قيمتا — منصة تسعير مشاريع البناء | السعودية والخليج'
     : 'About Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
 
+@section('description', $isAr
+    ? 'تعرف على قيمتا: منصة تسعير جداول الكميات لمشاريع البناء في السعودية والخليج. نربط المشترين بالعلامات التجارية ببيانات معتمدة وتسعير فوري.'
+    : 'Learn how Qimta is building the Gulf’s construction pricing layer — connecting buyers with 418K verified products, manufacturer data, and instant BOQ pricing.')
+
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
 @endsection
