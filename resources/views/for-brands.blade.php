@@ -1,9 +1,9 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', __('for-brands.title'))
 
 @section('description', app()->getLocale() === 'ar'
-    ? 'أدرج منتجاتك على قيمتا لتظهر في جداول الكميات B2B لمشاريع البناء في الخليج. وكن أول بحضور أمام مشترين أمام Qimta RAG.'
+    ? 'أدرج منتجاتك على كيمتا لتظهر في جداول الكميات B2B لمشاريع البناء في الخليج. وكن أول بحضور أمام مشترين أمام Qimta RAG.'
     : 'Get your products priced in Gulf B2B BOQs. Qimta exposes your brand to 418,326 catalog positions and live buyer demand across Saudi Arabia and GCC.')
 
 @section('styles')

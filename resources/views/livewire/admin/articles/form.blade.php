@@ -1,4 +1,4 @@
-<form wire:submit="save" class="space-y-6" x-data="articleForm()" x-init="init()">
+﻿<form wire:submit="save" class="space-y-6" x-data="articleForm()" x-init="init()">
     {{-- ── Basic Info ──────────────────────────────────────────────────── --}}
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 class="mb-5 text-sm font-semibold text-slate-700 uppercase tracking-wide">Article Names</h3>
@@ -42,7 +42,7 @@
                     Title <span class="text-slate-400 font-normal">(Arabic)</span>
                 </label>
                 <input type="text" wire:model.blur="title_ar" dir="rtl"
-                       placeholder="مثال: الحفاظ على أمان حساب قيمتا"
+                       placeholder="مثال: الحفاظ على أمان حساب كيمتا"
                        class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                 @error('title_ar') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>

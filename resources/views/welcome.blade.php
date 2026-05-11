@@ -1,13 +1,13 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
 @section('title', $isAr
-    ? 'قيمتا — منصة تسعير جداول الكميات | السعودية والخليج'
+    ? 'كيمتا — منصة تسعير جداول الكميات | السعودية والخليج'
     : 'Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
 
 @section('description', $isAr
-    ? 'قيمتا: سعر كل بند من جدول الكميات في دقائق. 418,326 منتجاً موثّقاً ومليارات المواصفات التقنية. منصة تسعير مشاريع البناء للسعودية والخليج.'
+    ? 'كيمتا: سعر كل بند من جدول الكميات في دقائق. 418,326 منتجاً موثّقاً ومليارات المواصفات التقنية. منصة تسعير مشاريع البناء للسعودية والخليج.'
     : 'Qimta prices every BOQ line across every brand in seconds. Access 418,326 verified products and 1B technical specs. The construction pricing platform for Saudi Arabia & GCC.')
 
 @section('nav-cta')
@@ -586,7 +586,7 @@
                     <div class="news-img-placeholder">
                         <img src="{{ asset('images/news/smart-pricing-tech.jpg') }}"
                              width="800" height="534"
-                             alt="{{ $isAr ? 'تقنية التسعير الذكي لمواد البناء - منصة قيمتا للإنشاء' : 'Smart construction pricing technology powered by QIMTA platform' }}"
+                             alt="{{ $isAr ? 'تقنية التسعير الذكي لمواد البناء - منصة كيمتا للإنشاء' : 'Smart construction pricing technology powered by QIMTA platform' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">
@@ -599,7 +599,7 @@
                     <div class="news-img-placeholder">
                         <img src="{{ asset('images/news/business-meeting.jpg') }}"
                              width="800" height="534"
-                             alt="{{ $isAr ? 'نجاح عملاء قيمتا - مقاول يوفر تكاليف المشاريع الإنشائية' : 'QIMTA client success - contractor reducing construction project costs' }}"
+                             alt="{{ $isAr ? 'نجاح عملاء كيمتا - مقاول يوفر تكاليف المشاريع الإنشائية' : 'QIMTA client success - contractor reducing construction project costs' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">

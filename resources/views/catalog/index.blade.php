@@ -1,9 +1,9 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', __('catalog.title'))
 
 @section('description', app()->getLocale() === 'ar'
-    ? 'تصفح كتالوج قيمتا: 418 ألف منتج بناء، تسعير فوري لجداول الكميات، مواصفات تقنية معتمدة. استكشف مواد البناء في السعودية والخليج.'
+    ? 'تصفح كتالوج كيمتا: 418 ألف منتج بناء، تسعير فوري لجداول الكميات، مواصفات تقنية معتمدة. استكشف مواد البناء في السعودية والخليج.'
     : 'Browse Qimta’s construction materials catalog: 418K products, instant BOQ pricing, verified technical specs across Saudi Arabia and GCC markets.')
 
 @section('styles')

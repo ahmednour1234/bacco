@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @php
     $isAr   = app()->getLocale() === 'ar';
@@ -12,11 +12,11 @@
 @endphp
 
 @section('title', $isAr
-    ? 'أخبار ومقالات قطاع البناء والمشتريات في الخليج | قيمتا'
+    ? 'أخبار ومقالات قطاع البناء والمشتريات في الخليج | كيمتا'
     : 'Construction & Procurement News — Gulf Market Pricing | Qimta')
 
 @section('description', $isAr
-    ? 'أحدث أخبار قطاع البناء والمشتريات في الخليج: أسعار المواد، اتجاهات السوق، وتحليلات من فريق قيمتا.'
+    ? 'أحدث أخبار قطاع البناء والمشتريات في الخليج: أسعار المواد، اتجاهات السوق، وتحليلات من فريق كيمتا.'
     : 'Construction industry news, material pricing trends, and procurement insights for Saudi Arabia and GCC markets — by the Qimta team.')
 
 @section('content')

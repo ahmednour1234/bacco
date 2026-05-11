@@ -1,13 +1,13 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
 @section('title', $isAr
-    ? 'عن قيمتا — منصة تسعير مشاريع البناء | السعودية والخليج'
+    ? 'عن كيمتا — منصة تسعير مشاريع البناء | السعودية والخليج'
     : 'About Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
 
 @section('description', $isAr
-    ? 'تعرف على قيمتا: منصة تسعير جداول الكميات لمشاريع البناء في السعودية والخليج. نربط المشترين بالعلامات التجارية ببيانات معتمدة وتسعير فوري.'
+    ? 'تعرف على كيمتا: منصة تسعير جداول الكميات لمشاريع البناء في السعودية والخليج. نربط المشترين بالعلامات التجارية ببيانات معتمدة وتسعير فوري.'
     : 'Learn how Qimta is building the Gulf’s construction pricing layer — connecting buyers with 418K verified products, manufacturer data, and instant BOQ pricing.')
 
 @section('nav-cta')

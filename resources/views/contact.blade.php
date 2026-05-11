@@ -1,13 +1,13 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
 @section('title', $isAr
-    ? 'تواصل مع قيمتا — Onboarding المشترين والعلامات التجارية | مشاريع الخليج'
+    ? 'تواصل مع كيمتا — Onboarding المشترين والعلامات التجارية | مشاريع الخليج'
     : 'Contact Qimta — Brand Onboarding & Enterprise Inquiries | Gulf Projects')
 
 @section('description', $isAr
-    ? 'تواصل مع فريق قيمتا للاستفسار عن خدماتنا للعلامات التجارية والمشترين والمشاريع في الخليج.'
+    ? 'تواصل مع فريق كيمتا للاستفسار عن خدماتنا للعلامات التجارية والمشترين والمشاريع في الخليج.'
     : 'Get in touch with Qimta for brand listing, enterprise BOQ solutions, or buyer onboarding. Serving construction projects across Saudi Arabia and the GCC.')
 
 @section('nav-cta')
