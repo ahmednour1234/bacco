@@ -1,25 +1,25 @@
 @extends('layouts.admin-app')
 
 @section('title', 'تعديل الحساب – Qimta Admin')
-@section('page-title', 'Admin Management')
+@section('page-title', 'إدارة المشرفين')
 
 @section('breadcrumb')
-    <span class="text-xs text-slate-400">Management</span>
+    <span class="text-xs text-slate-400">الإدارة</span>
     <span class="text-xs text-slate-300">/</span>
-    <a href="{{ route('admin.admins.index') }}" class="text-xs text-slate-400 hover:text-slate-600">Admins</a>
+    <a href="{{ route('admin.admins.index') }}" class="text-xs text-slate-400 hover:text-slate-600">المشرفون</a>
     <span class="text-xs text-slate-300">/</span>
     <span class="text-xs font-medium text-slate-600">تعديل: {{ $admin->name }}</span>
 @endsection
 
 @section('content')
-<div class="mx-auto max-w-xl">
+<div class="mx-auto max-w-lg">
 
     {{-- Card --}}
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
         {{-- Header --}}
-        <div class="flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-5">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
+        <div class="flex items-center gap-3 px-6 py-5" style="background: linear-gradient(135deg, #059669, #047857);">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style="background:rgba(255,255,255,0.18);">
                 <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -27,7 +27,7 @@
             </div>
             <div>
                 <p class="text-sm font-bold text-white">تعديل عضو الفريق</p>
-                <p class="text-xs text-emerald-100/70">{{ $admin->email }}</p>
+                <p class="text-xs" style="color:rgba(209,250,229,0.8);">{{ $admin->email }}</p>
             </div>
         </div>
 
@@ -91,21 +91,22 @@
             </div>
 
             {{-- Actions --}}
-            <div class="flex items-center justify-between gap-3 pt-1">
-                <a href="{{ route('admin.admins.index') }}"
-                    class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    رجوع
-                </a>
+            <div class="flex items-center gap-3 border-t border-slate-100 pt-4">
                 <button type="submit"
-                    class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">
+                    class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+                    style="background:#059669;" onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                     حفظ التعديلات
                 </button>
+                <a href="{{ route('admin.admins.index') }}"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    رجوع
+                </a>
             </div>
         </form>
     </div>
