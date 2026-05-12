@@ -1,41 +1,8 @@
 <div class="space-y-6">
 
     {{-- ══════════════════════════════════════════════════
-         TAB BAR
+         MANUAL ENTRY
     ══════════════════════════════════════════════════ --}}
-    <div class="mb-6 flex items-center gap-1 border-b border-slate-200">
-        <button
-            wire:click="$set('activeTab', 'manual')"
-            class="flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors
-                   {{ $activeTab === 'manual'
-                        ? 'border-b-2 border-emerald-500 text-emerald-600'
-                        : 'text-slate-500 hover:text-slate-700' }}">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-            </svg>
-            {{ __('app.manual_entry') }}
-        </button>
-        @if(!$isEditing)
-        <button
-            wire:click="$set('activeTab', 'ai')"
-            class="flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors
-                   {{ $activeTab === 'ai'
-                        ? 'border-b-2 border-emerald-500 text-emerald-600'
-                        : 'text-slate-500 hover:text-slate-700' }}">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-            </svg>
-            {{ __('app.ai_assisted_import') }}
-        </button>
-        @endif
-    </div>
-
-    {{-- ══════════════════════════════════════════════════
-         MANUAL ENTRY TAB
-    ══════════════════════════════════════════════════ --}}
-    @if ($activeTab === 'manual')
 
     <form wire:submit="save" class="space-y-6">
 
@@ -337,13 +304,6 @@
         </div>
 
     </form>
-
-    @endif
-
-    {{-- ══════════════════════════════════════════════════
-         AI-ASSISTED IMPORT TAB
-    ══════════════════════════════════════════════════ --}}
-    @if ($activeTab === 'ai')
 
     <div class="space-y-6">
 
@@ -653,8 +613,5 @@
         </div>
         @endif
 
-    </div>
-
-    @endif
 </div>
 
