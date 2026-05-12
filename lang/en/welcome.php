@@ -13,7 +13,7 @@ return [
         'contact'            => 'Contact',
         'more'               => 'More',
         'solutions'          => 'Solutions',
-        'sol_contractors'    => 'For Contractors',
+        'sol_contractors'    => 'For Clients',
         'sol_manufacturers'  => 'For Manufacturers',
         'privacy'            => 'Privacy Policy',
         'security'           => 'Security',
@@ -89,8 +89,8 @@ return [
     // ── ECOSYSTEM ────────────────────────────────────────────────────────────
     'eco' => [
         'label'             => 'Built for the Ecosystem',
-        'contractors_title' => 'Contractors',
-        'contractors_desc'  => 'Winning more bids by pricing 10x faster with verified technical data.',
+        'contractors_title' => 'Clients',
+        'contractors_desc'  => 'Manage projects and price BOQs 10x faster with verified technical data.',
         'procurement_title' => 'Procurement',
         'procurement_desc'  => 'Centralizing data across projects to leverage volume and ensure compliance.',
         'brands_title'      => 'Brands',
@@ -194,7 +194,7 @@ return [
     'footer' => [
         'tagline'       => 'Engineering-led pricing intelligence for the global construction ecosystem. We unify manufacturer reality with project requirements.',
         'sol_h'         => 'Solutions',
-        'sol_1'         => 'For Contractors',
+        'sol_1'         => 'For Clients',
         'sol_2'         => 'For Procurement Teams',
         'sol_3'         => 'For Manufacturers',
         'sol_4'         => 'Enterprise Integration',
