@@ -126,6 +126,15 @@ Route::get('/locale/{locale}', function (string $locale) {
     $current = request()->header('Referer', '/');
     $path    = parse_url($current, PHP_URL_PATH) ?? '/';
 
+    // Portal paths don't use /ar/ URL prefix — just save session and stay
+    $isPortal = str_starts_with($path, '/admin')
+             || str_starts_with($path, '/enduser')
+             || str_starts_with($path, '/supplier');
+
+    if ($isPortal) {
+        return redirect()->back();
+    }
+
     if ($locale === 'ar') {
         // If not already under /ar/, prepend it
         if (!str_starts_with($path, '/ar/') && $path !== '/ar') {
