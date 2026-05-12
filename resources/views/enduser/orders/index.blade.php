@@ -12,5 +12,7 @@
 @endsection
 
 @section('content')
-<livewire:enduser.orders.index-list />
+<div class="mx-auto max-w-5xl">
+    <livewire:enduser.orders.index-list />
+</div>
 @endsection
