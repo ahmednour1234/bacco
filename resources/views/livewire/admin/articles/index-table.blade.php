@@ -111,7 +111,7 @@
                                         {{ __('app.edit') }}
                                     </a>
                                     <button type="button"
-                                            onclick="if(!confirm('{{ __(\'app.delete_article_confirm\') }}')) return;"
+                                            onclick="if(!confirm(@js(__('app.delete_article_confirm')))) return;"
                                             wire:click="delete('{{ $article->uuid }}')"
                                             class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100">
                                         {{ __('app.delete') }}

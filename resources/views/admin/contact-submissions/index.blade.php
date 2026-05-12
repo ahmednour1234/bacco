@@ -190,7 +190,7 @@
                                         {{ __('app.view') }}
                                     </a>
                                     <form method="POST" action="{{ route('admin.contact-submissions.destroy', $sub) }}"
-                                        onsubmit="return confirm('{{ __(\'app.delete_submission_confirm\') }}')">
+                                        onsubmit="return confirm(@js(__('app.delete_submission_confirm')))">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="inline-flex items-center gap-1.5 rounded-xl bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100">
