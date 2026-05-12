@@ -1,4 +1,4 @@
-<div>
+<div class="w-full">
     {{-- Toolbar --}}
     <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
@@ -231,21 +231,14 @@
         </div>
 
         {{-- Pagination --}}
-        @if($supplierProducts->hasPages())
-            <div class="border-t border-slate-100 bg-slate-50/50 px-5 py-3.5">
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <p class="text-xs text-slate-400">
-                        {{ __('app.showing_range', ['from' => $supplierProducts->firstItem(), 'to' => $supplierProducts->lastItem(), 'total' => $supplierProducts->total()]) }}
-                    </p>
-                    {{ $supplierProducts->links() }}
-                </div>
-            </div>
-        @else
-            <div class="border-t border-slate-100 px-5 py-3.5">
+        <div class="border-t border-slate-100 bg-slate-50/50 px-5 py-3.5">
+            @if($supplierProducts->hasPages())
+                {{ $supplierProducts->links() }}
+            @else
                 <p class="text-xs text-slate-400">
                     {{ __('app.showing_range', ['from' => 1, 'to' => $supplierProducts->count(), 'total' => $supplierProducts->count()]) }}
                 </p>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 </div>
