@@ -142,46 +142,61 @@
                 @endif
             </a>
 
-            {{-- Catalog section label --}}
-
-            {{-- Brands --}}
-            <a href="{{ route('admin.brands.index') }}" wire:navigate
-               class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
-                      {{ request()->routeIs('admin.brands*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                </svg>
-                <span>{{ __('app.brands') }}</span>
-            </a>
-
-            {{-- Categories --}}
-            <a href="{{ route('admin.categories.index') }}" wire:navigate
-               class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
-                      {{ request()->routeIs('admin.categories*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                </svg>
-                <span>{{ __('app.categories') }}</span>
-            </a>
-
-            {{-- Products --}}
-            <a href="{{ route('admin.products.index') }}" wire:navigate
-               class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
-                      {{ request()->routeIs('admin.products*')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                </svg>
-                <span>{{ __('app.products') }}</span>
-            </a>
+            {{-- Catalog collapsible group --}}
+            @php $catalogActive = request()->routeIs('admin.brands*') || request()->routeIs('admin.categories*') || request()->routeIs('admin.products*'); @endphp
+            <div x-data="{ open: {{ $catalogActive ? 'true' : 'false' }} }">
+                <button @click="open = !open"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                           {{ $catalogActive ? 'text-emerald-700 bg-emerald-50' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    <span class="flex-1 text-start">{{ __('app.catalog') }}</span>
+                    <svg class="w-4 h-4 shrink-0 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="open"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 -translate-y-1"
+                     class="mt-0.5 ms-4 border-s border-slate-100 ps-3 space-y-0.5">
+                    {{-- Brands --}}
+                    <a href="{{ route('admin.brands.index') }}" wire:navigate
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150
+                              {{ request()->routeIs('admin.brands*') ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                        </svg>
+                        <span>{{ __('app.brands') }}</span>
+                    </a>
+                    {{-- Categories --}}
+                    <a href="{{ route('admin.categories.index') }}" wire:navigate
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150
+                              {{ request()->routeIs('admin.categories*') ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                        </svg>
+                        <span>{{ __('app.categories') }}</span>
+                    </a>
+                    {{-- Products --}}
+                    <a href="{{ route('admin.products.index') }}" wire:navigate
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150
+                              {{ request()->routeIs('admin.products*') ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        <span>{{ __('app.products') }}</span>
+                    </a>
+                </div>
+            </div>
 
             {{-- Users --}}
             <a href="{{ route('admin.users.index') }}" wire:navigate
@@ -207,7 +222,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
-                <span>Admins</span>
+                <span>{{ __('app.admins_management') }}</span>
             </a>
             @endif
 
