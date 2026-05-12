@@ -274,7 +274,7 @@
 
                         <div>
                             <label class="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                                Password {{ $editingId ? '<span class="normal-case font-normal text-slate-400">(optional)</span>' : '<span class="text-red-500">*</span>' }}
+                                Password @if($editingId) <span class="normal-case font-normal text-slate-400">(optional)</span> @else <span class="text-red-500">*</span> @endif
                             </label>
                             <div class="relative">
                                 <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
