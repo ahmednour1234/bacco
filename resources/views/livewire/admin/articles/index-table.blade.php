@@ -18,12 +18,12 @@
             </span>
             <input type="search"
                    wire:model.live.debounce.300ms="search"
-                   placeholder="Search articles…"
+                   placeholder="{{ __('app.search_articles') }}"
                    class="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-11 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
         </div>
 
         <div class="flex items-center gap-3 self-end sm:self-auto">
-            <label class="text-sm font-medium text-slate-500">Per page</label>
+            <label class="text-sm font-medium text-slate-500">{{ __('app.per_page_label') }}</label>
             <select wire:model.live="perPage"
                     class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
                 @foreach ([5, 10, 25, 50] as $opt)
@@ -38,19 +38,19 @@
             <svg class="mb-3 h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v10a2 2 0 01-2 2zM12 11v6M9 14h6"/>
             </svg>
-            <p class="text-sm font-medium">No articles found.</p>
+            <p class="text-sm font-medium">{{ __('app.no_articles_found') }}</p>
         </div>
     @else
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 bg-slate-50">
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">Image</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">Name (EN / AR)</th>
-                        <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">Title</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">Created</th>
-                        <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.image') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name_en_ar') }}</th>
+                        <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.title') }}</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.created') }}</th>
+                        <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -88,12 +88,12 @@
                                 @if ($article->active)
                                     <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                        Published
+                                        {{ __('app.published') }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
                                         <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-                                        Draft
+                                        {{ __('app.draft') }}
                                     </span>
                                 @endif
                             </td>
@@ -108,13 +108,13 @@
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('admin.articles.edit', $article) }}" wire:navigate
                                        class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200">
-                                        Edit
+                                        {{ __('app.edit') }}
                                     </a>
                                     <button type="button"
-                                            onclick="if(!confirm('Delete article: {{ addslashes($article->name_en) }}? This cannot be undone.')) return;"
+                                            onclick="if(!confirm('{{ __(\'app.delete_article_confirm\') }}')) return;"
                                             wire:click="delete('{{ $article->uuid }}')"
                                             class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100">
-                                        Delete
+                                        {{ __('app.delete') }}
                                     </button>
                                 </div>
                             </td>

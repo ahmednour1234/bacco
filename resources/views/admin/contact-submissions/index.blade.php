@@ -1,6 +1,6 @@
 ﻿@extends('layouts.admin-app')
 
-@section('title', 'Contact Submissions')
+@section('title', __('app.contact_submissions'))
 
 @section('content')
 <div class="space-y-6">
@@ -8,22 +8,22 @@
     {{-- Header --}}
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-xl font-bold text-slate-900">Contact Submissions</h1>
-            <p class="mt-0.5 text-sm text-slate-500">Incoming enquiries from the contact form.</p>
+            <h1 class="text-xl font-bold text-slate-900">{{ __('app.contact_submissions') }}</h1>
+            <p class="mt-0.5 text-sm text-slate-500">{{ __('app.contact_submissions_sub') }}</p>
         </div>
         {{-- Stat chips --}}
         <div class="flex flex-wrap gap-2">
             <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
-                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>All&nbsp;<span class="text-slate-900">{{ $counts['all'] }}</span>
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>{{ __('app.all') }}&nbsp;<span class="text-slate-900">{{ $counts['all'] }}</span>
             </span>
             <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 shadow-sm">
-                <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>New&nbsp;<span>{{ $counts['new'] }}</span>
+                <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>{{ __('app.status_new') }}&nbsp;<span>{{ $counts['new'] }}</span>
             </span>
             <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
-                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Read&nbsp;<span>{{ $counts['read'] }}</span>
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>{{ __('app.status_read') }}&nbsp;<span>{{ $counts['read'] }}</span>
             </span>
             <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm">
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Replied&nbsp;<span>{{ $counts['replied'] }}</span>
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.status_replied') }}&nbsp;<span>{{ $counts['replied'] }}</span>
             </span>
         </div>
     </div>
@@ -46,23 +46,23 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
                     </svg>
                     <input type="text" name="q" value="{{ request('q') }}"
-                        placeholder="Search name, email, companyâ€¦"
+                        placeholder="{{ __('app.search_name_email_company') }}"
                         class="flex-1 border-0 bg-transparent p-0 text-sm text-slate-800 placeholder-slate-400 outline-none focus:ring-0">
                 </div>
             </div>
             <select name="status"
                 class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
-                <option value="">All statuses</option>
-                <option value="new"     {{ request('status') === 'new'     ? 'selected' : '' }}>New</option>
-                <option value="read"    {{ request('status') === 'read'    ? 'selected' : '' }}>Read</option>
-                <option value="replied" {{ request('status') === 'replied' ? 'selected' : '' }}>Replied</option>
+                <option value="">{{ __('app.all_statuses') }}</option>
+                <option value="new"     {{ request('status') === 'new'     ? 'selected' : '' }}>{{ __('app.status_new') }}</option>
+                <option value="read"    {{ request('status') === 'read'    ? 'selected' : '' }}>{{ __('app.status_read') }}</option>
+                <option value="replied" {{ request('status') === 'replied' ? 'selected' : '' }}>{{ __('app.status_replied') }}</option>
             </select>
             <button type="submit"
                 class="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                 </svg>
-                Filter
+                {{ __('app.filter') }}
             </button>
             @if(request()->hasAny(['q','status']))
                 <a href="{{ route('admin.contact-submissions.index') }}"
@@ -70,7 +70,7 @@
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    Clear
+                    {{ __('app.clear') }}
                 </a>
             @endif
         </div>
@@ -83,13 +83,13 @@
                 <thead>
                     <tr class="bg-slate-50">
                         <th class="w-12 px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">#</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Name</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Email</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Company</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Type</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Date</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.email') }}</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.company') }}</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.type') }}</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.date') }}</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -129,7 +129,7 @@
                                         {{ $sub->company }}
                                     </span>
                                 @else
-                                    <span class="text-slate-300">â€”</span>
+                                    <span class="text-slate-300">&mdash;</span>
                                 @endif
                             </td>
 
@@ -149,7 +149,7 @@
                                         {{ ucfirst($sub->inquiry_type) }}
                                     </span>
                                 @else
-                                    <span class="text-slate-300">â€”</span>
+                                    <span class="text-slate-300">&mdash;</span>
                                 @endif
                             </td>
 
@@ -157,15 +157,15 @@
                             <td class="px-5 py-4">
                                 @if($sub->status === 'new')
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></span>New
+                                        <span class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></span>{{ __('app.status_new') }}
                                     </span>
                                 @elseif($sub->status === 'replied')
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Replied
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.status_replied') }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Read
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>{{ __('app.status_read') }}
                                     </span>
                                 @endif
                             </td>
@@ -187,17 +187,17 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                         </svg>
-                                        View
+                                        {{ __('app.view') }}
                                     </a>
                                     <form method="POST" action="{{ route('admin.contact-submissions.destroy', $sub) }}"
-                                        onsubmit="return confirm('Delete this submission?')">
+                                        onsubmit="return confirm('{{ __(\'app.delete_submission_confirm\') }}')">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="inline-flex items-center gap-1.5 rounded-xl bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
-                                            Delete
+                                            {{ __('app.delete') }}
                                         </button>
                                     </form>
                                 </div>
@@ -209,7 +209,7 @@
                                 <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                 </svg>
-                                <p class="mt-2 text-sm font-medium text-slate-500">No submissions found.</p>
+                                <p class="mt-2 text-sm font-medium text-slate-500">{{ __('app.no_submissions_found') }}</p>
                             </td>
                         </tr>
                     @endforelse

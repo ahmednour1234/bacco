@@ -32,7 +32,7 @@
         </div>
 
         {{-- Form --}}
-        <form method="POST" action="{{ route('admin.admins.update', $admin) }}" class="px-6 py-6 space-y-4" dir="rtl">
+        <form method="POST" action="{{ route('admin.admins.update', $admin) }}" class="px-6 pt-6 pb-8 space-y-4" dir="rtl">
             @csrf
             @method('PUT')
 
