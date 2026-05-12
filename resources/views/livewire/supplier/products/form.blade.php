@@ -1,8 +1,37 @@
 <div class="space-y-6">
 
-    {{-- ══════════════════════════════════════════════════
-         MANUAL ENTRY
-    ══════════════════════════════════════════════════ --}}
+    {{-- Tab bar --}}
+    <div class="mb-6 flex items-center gap-1 border-b border-slate-200">
+        <button
+            wire:click="$set('activeTab', 'manual')"
+            class="flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors
+                   {{ $activeTab === 'manual'
+                        ? 'border-b-2 border-emerald-500 text-emerald-600'
+                        : 'text-slate-500 hover:text-slate-700' }}">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            {{ __('app.manual_entry') }}
+        </button>
+        @if(!$isEditing)
+        <button
+            wire:click="$set('activeTab', 'ai')"
+            class="flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors
+                   {{ $activeTab === 'ai'
+                        ? 'border-b-2 border-emerald-500 text-emerald-600'
+                        : 'text-slate-500 hover:text-slate-700' }}">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+            {{ __('app.ai_assisted_import') }}
+        </button>
+        @endif
+    </div>
+
+    {{-- Manual Entry Tab --}}
+    @if ($activeTab === 'manual')
 
     <form wire:submit="save" class="space-y-6">
 
@@ -305,86 +334,14 @@
 
     </form>
 
+    @endif
+
+    {{-- AI-Assisted Import Tab --}}
+    @if ($activeTab === 'ai')
     <div class="space-y-6">
 
         {{-- Two-column layout: config + upload --}}
-        <div class="grid grid-cols-2 gap-2 max-w-4xl">
-
-            {{-- LEFT: Pricing Context --}}
-            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden divide-y divide-slate-100">
-
-                <div class="flex items-center gap-2 px-4 py-3">
-                    <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    <h3 class="text-sm font-semibold text-slate-800">{{ __('app.pricing_context') }}</h3>
-                </div>
-
-                <div class="px-4 py-3">
-                    <p class="mb-2 text-xs font-medium text-slate-600">{{ __('app.what_document_represent') }}</p>
-                    <div class="space-y-2.5">
-                        @foreach ([
-                            'vendor' => __('app.vendor_quotation'),
-                            'client' => __('app.selling_price_client'),
-                        ] as $val => $label)
-                            <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 transition
-                                          {{ $aiPriceContext === $val
-                                               ? 'border-emerald-500 bg-emerald-50'
-                                               : 'border-slate-200 hover:border-emerald-200' }}">
-                                <input type="radio" wire:model.live="aiPriceContext" value="{{ $val }}"
-                                       class="text-emerald-600 focus:ring-emerald-500">
-                                <span class="text-xs text-slate-700">{{ $label }}</span>
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="px-4 py-3">
-                    <p class="mb-2 text-xs font-medium text-slate-600">{{ __('app.price_include_engineering') }}</p>
-                    <div class="flex gap-1.5">
-                        @foreach (['yes' => __('app.yes'), 'no' => __('app.no'), 'not_sure' => __('app.not_sure')] as $val => $label)
-                            <button type="button" wire:click="$set('aiIncludesEng', '{{ $val }}')"
-                                    class="flex-1 rounded-lg border px-2 py-2 text-xs font-medium transition
-                                           {{ $aiIncludesEng === $val
-                                                ? 'border-emerald-500 bg-white text-slate-800'
-                                                : 'border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:text-slate-700' }}">
-                                {{ $label }}
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="px-4 py-3">
-                    <p class="mb-2 text-xs font-medium text-slate-600">{{ __('app.price_include_installation') }}</p>
-                    <div class="flex gap-1.5">
-                        @foreach (['yes' => __('app.yes'), 'no' => __('app.no'), 'not_sure' => __('app.not_sure')] as $val => $label)
-                            <button type="button" wire:click="$set('aiIncludesInst', '{{ $val }}')"
-                                    class="flex-1 rounded-lg border px-2 py-2 text-xs font-medium transition
-                                           {{ $aiIncludesInst === $val
-                                                ? 'border-emerald-500 bg-white text-slate-800'
-                                                : 'border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:text-slate-700' }}">
-                                {{ $label }}
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="px-4 py-3">
-                    <label class="mb-1.5 block text-xs font-medium text-slate-600">{{ __('app.document_currency') }}</label>
-                    <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                        <span class="text-base leading-none">🇸🇦</span>
-                        <span class="text-xs font-semibold text-slate-800">SAR</span>
-                        <span class="text-xs text-slate-500">— {{ __('app.saudi_riyal') }}</span>
-                    </div>
-                    <input type="hidden" wire:model="aiCurrency" value="SAR">
-                </div>
-
-            </div>
-
-            {{-- RIGHT: Upload zone + Paste section stacked --}}
-            <div class="flex flex-col gap-4">
+        <div class="grid grid-cols-1 gap-2 max-w-4xl">
 
                 <label class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed
                               border-emerald-300 bg-white px-6 py-10 text-center transition
