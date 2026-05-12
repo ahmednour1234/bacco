@@ -11,7 +11,7 @@
                         </svg>
                     </span>
                     <input wire:model.live.debounce.300ms="search" type="text"
-                        placeholder="Search by name, email..."
+                        placeholder="{{ __('app.search_name_email') }}"
                         class="h-8 w-full border-0 bg-transparent p-0 text-sm text-slate-900 placeholder-slate-400 outline-none focus:ring-0">
                     @if($search !== '')
                         <button type="button" wire:click="$set('search', '')"
@@ -27,9 +27,9 @@
             {{-- Status filter --}}
             <select wire:model.live="status"
                 class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="">{{ __('app.all_status') }}</option>
+                <option value="active">{{ __('app.status_active') }}</option>
+                <option value="inactive">{{ __('app.inactive') }}</option>
             </select>
         </div>
 
@@ -40,7 +40,7 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                إضافة مشرف / موظف
+                {{ __('app.add_admin_employee') }}
             </a>
         @endif
     </div>
@@ -51,12 +51,12 @@
             <table class="w-full table-fixed divide-y divide-slate-100">
                 <thead>
                     <tr class="bg-slate-50">
-                        <th class="w-[25%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">Name</th>
-                        <th class="w-[28%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">Email</th>
-                        <th class="w-[15%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">Phone</th>
-                        <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">Role</th>
-                        <th class="w-[10%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
-                        <th class="w-[10%] px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+                        <th class="w-[25%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="w-[28%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.email') }}</th>
+                        <th class="w-[15%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.phone') }}</th>
+                        <th class="w-[12%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.role') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                        <th class="w-[10%] px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -73,7 +73,7 @@
                                     <div>
                                         <p class="text-sm font-semibold text-slate-900 truncate">{{ $admin->name }}</p>
                                         @if((int) $admin->id === (int) auth()->id())
-                                            <span class="text-xs text-slate-400">(you)</span>
+                                            <span class="text-xs text-slate-400">{{ __('app.you_label') }}</span>
                                         @endif
                                     </div>
                                 </div>
@@ -88,9 +88,9 @@
                             {{-- Role --}}
                             <td class="px-5 py-4">
                                 @if($admin->user_type->value === 'admin')
-                                    <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-700">Admin</span>
+                                    <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-700">{{ __('app.admin') }}</span>
                                 @else
-                                    <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">Employee</span>
+                                    <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">{{ __('app.employee') }}</span>
                                 @endif
                             </td>
 
@@ -98,11 +98,11 @@
                             <td class="px-5 py-4">
                                 @if($admin->active)
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Active
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.status_active') }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-600">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Inactive
+                                        <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>{{ __('app.inactive') }}
                                     </span>
                                 @endif
                             </td>
@@ -125,12 +125,12 @@
                                             @if($admin->active)
                                                 <button wire:click="toggleActive({{ $admin->id }})"
                                                     class="inline-flex items-center rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100">
-                                                    Deactivate
+                                                    {{ __('app.deactivate') }}
                                                 </button>
                                             @else
                                                 <button wire:click="toggleActive({{ $admin->id }})"
                                                     class="inline-flex items-center rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
-                                                    Activate
+                                                    {{ __('app.activate') }}
                                                 </button>
                                             @endif
                                         @else
@@ -148,7 +148,7 @@
                                 <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                                 </svg>
-                                <p class="mt-2 text-sm font-medium text-slate-500">No admins found</p>
+                                <p class="mt-2 text-sm font-medium text-slate-500">{{ __('app.no_admins_found') }}</p>
                             </td>
                         </tr>
                     @endforelse

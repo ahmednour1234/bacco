@@ -1,14 +1,14 @@
 @extends('layouts.admin-app')
 
-@section('title', 'إضافة مشرف – Qimta Admin')
-@section('page-title', 'إدارة المشرفين')
+@section('title', __('app.add_new_member') . ' – Qimta Admin')
+@section('page-title', __('app.admins_management'))
 
 @section('breadcrumb')
-    <span class="text-xs text-slate-400">الإدارة</span>
+    <span class="text-xs text-slate-400">{{ __('app.management_nav') }}</span>
     <span class="text-xs text-slate-300">/</span>
-    <a href="{{ route('admin.admins.index') }}" class="text-xs text-slate-400 hover:text-slate-600">المشرفون</a>
+    <a href="{{ route('admin.admins.index') }}" class="text-xs text-slate-400 hover:text-slate-600">{{ __('app.admins_nav') }}</a>
     <span class="text-xs text-slate-300">/</span>
-    <span class="text-xs font-medium text-slate-600">إضافة جديد</span>
+    <span class="text-xs font-medium text-slate-600">{{ __('app.add_new') }}</span>
 @endsection
 
 @section('content')
@@ -26,8 +26,8 @@
                 </svg>
             </div>
             <div>
-                <p class="text-sm font-bold text-white">إضافة عضو جديد</p>
-                <p class="text-xs" style="color:rgba(209,250,229,0.8);">إنشاء حساب مشرف أو موظف</p>
+                <p class="text-sm font-bold text-white">{{ __('app.add_new_member') }}</p>
+                <p class="text-xs" style="color:rgba(209,250,229,0.8);">{{ __('app.create_admin_sub') }}</p>
             </div>
         </div>
 
@@ -38,14 +38,14 @@
             {{-- Name + Phone --}}
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="mb-1 block text-xs font-semibold text-slate-500">الاسم الكامل <span class="text-red-500">*</span></label>
+                    <label class="mb-1 block text-xs font-semibold text-slate-500">{{ __('app.full_name') }} <span class="text-red-500">*</span></label>
                     <input name="name" type="text" value="{{ old('name') }}" placeholder="محمد أحمد"
                         class="w-full rounded-xl border px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition
                             {{ $errors->has('name') ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50' }}">
                     @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="mb-1 block text-xs font-semibold text-slate-500">رقم الجوال</label>
+                    <label class="mb-1 block text-xs font-semibold text-slate-500">{{ __('app.phone') }}</label>
                     <input name="phone" type="text" value="{{ old('phone') }}" placeholder="+966 5x xxx xxxx"
                         class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition">
                 </div>
@@ -53,7 +53,7 @@
 
             {{-- Email --}}
             <div>
-                <label class="mb-1 block text-xs font-semibold text-slate-500">البريد الإلكتروني <span class="text-red-500">*</span></label>
+                <label class="mb-1 block text-xs font-semibold text-slate-500">{{ __('app.email_address') }} <span class="text-red-500">*</span></label>
                 <input name="email" type="email" value="{{ old('email') }}" placeholder="name@qimta.com" dir="ltr"
                     class="w-full rounded-xl border px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition
                         {{ $errors->has('email') ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50' }}">
@@ -63,18 +63,18 @@
             {{-- Role + Password --}}
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="mb-1 block text-xs font-semibold text-slate-500">الصلاحية <span class="text-red-500">*</span></label>
+                    <label class="mb-1 block text-xs font-semibold text-slate-500">{{ __('app.role') }} <span class="text-red-500">*</span></label>
                     <select name="user_type"
                         class="w-full rounded-xl border px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition
                             {{ $errors->has('user_type') ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50' }}">
-                        <option value="employee" {{ old('user_type') === 'employee' ? 'selected' : '' }}>موظف</option>
-                        <option value="admin"    {{ old('user_type') === 'admin'    ? 'selected' : '' }}>مشرف</option>
+                        <option value="employee" {{ old('user_type') === 'employee' ? 'selected' : '' }}>{{ __('app.employee') }}</option>
+                        <option value="admin"    {{ old('user_type') === 'admin'    ? 'selected' : '' }}>{{ __('app.admin') }}</option>
                     </select>
                     @error('user_type') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="mb-1 block text-xs font-semibold text-slate-500">كلمة المرور <span class="text-red-500">*</span></label>
-                    <input name="password" type="password" placeholder="8 أحرف على الأقل" dir="ltr"
+                    <label class="mb-1 block text-xs font-semibold text-slate-500">{{ __('app.password') }} <span class="text-red-500">*</span></label>
+                    <input name="password" type="password" placeholder="{{ __('app.password_min_chars') }}" dir="ltr"
                         class="w-full rounded-xl border px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition
                             {{ $errors->has('password') ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50' }}">
                     @error('password') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -83,8 +83,8 @@
 
             {{-- Role hint --}}
             <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-xs text-slate-500 leading-relaxed">
-                <span class="font-semibold text-slate-700">مشرف</span> — صلاحيات كاملة تشمل إدارة الفريق. &nbsp;
-                <span class="font-semibold text-slate-700">موظف</span> — جميع الميزات بدون إدارة المشرفين.
+                <span class="font-semibold text-slate-700">{{ __('app.admin') }}</span> — {{ __('app.role_admin_desc') }} &nbsp;
+                <span class="font-semibold text-slate-700">{{ __('app.employee') }}</span> — {{ __('app.role_employee_desc') }}
             </div>
 
             {{-- Actions --}}
@@ -95,14 +95,14 @@
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
-                    إنشاء الحساب
+                    {{ __('app.create_account') }}
                 </button>
                 <a href="{{ route('admin.admins.index') }}"
                     class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
-                    رجوع
+                    {{ __('app.back') }}
                 </a>
             </div>
         </form>

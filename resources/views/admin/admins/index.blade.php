@@ -1,12 +1,12 @@
 @extends('layouts.admin-app')
 
-@section('title', 'Admins – Qimta Admin')
-@section('page-title', 'Admin Management')
+@section('title', __('app.admins_nav') . ' – Qimta Admin')
+@section('page-title', __('app.admins_management'))
 
 @section('breadcrumb')
-    <span class="text-xs text-slate-400">Management</span>
+    <span class="text-xs text-slate-400">{{ __('app.management_nav') }}</span>
     <span class="text-xs text-slate-300">/</span>
-    <span class="text-xs font-medium text-slate-600">Admins</span>
+    <span class="text-xs font-medium text-slate-600">{{ __('app.admins_nav') }}</span>
 @endsection
 
 @section('content')
