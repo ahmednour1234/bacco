@@ -265,6 +265,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Admins management (admin-only)
         Route::get('/admins', [AdminAdminUserController::class, 'index'])->name('admins.index');
+        Route::get('/admins/create', [AdminAdminUserController::class, 'create'])->name('admins.create');
+        Route::post('/admins', [AdminAdminUserController::class, 'store'])->name('admins.store');
+        Route::get('/admins/{admin}/edit', [AdminAdminUserController::class, 'edit'])->name('admins.edit');
+        Route::put('/admins/{admin}', [AdminAdminUserController::class, 'update'])->name('admins.update');
 
         // Articles
         Route::resource('articles', AdminArticleController::class)->except(['show', 'store', 'update']);

@@ -35,13 +35,13 @@
 
         {{-- Add button (admin only) --}}
         @if(auth()->user()->user_type->value === 'admin')
-            <button wire:click="openCreate"
+            <a href="{{ route('admin.admins.create') }}"
                 class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                Add Admin / Employee
-            </button>
+                إضافة مشرف / موظف
+            </a>
         @endif
     </div>
 
@@ -112,13 +112,13 @@
                                 @if(auth()->user()->user_type->value === 'admin')
                                     <div class="flex items-center justify-center gap-2">
                                         {{-- Edit --}}
-                                        <button wire:click="openEdit({{ $admin->id }})"
+                                        <a href="{{ route('admin.admins.edit', $admin) }}"
                                             class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-emerald-50 hover:text-emerald-700">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                             </svg>
-                                        </button>
+                                        </a>
 
                                         {{-- Toggle active (can't deactivate yourself) --}}
                                         @if((int) $admin->id !== (int) auth()->id())
