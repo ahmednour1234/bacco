@@ -117,7 +117,7 @@
         .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 96px; gap: 16px; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
         .nav-logo { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; transition: opacity .2s; }
         .nav-logo:hover { opacity: .85; }
-        .nav-logo img, .nav-logo svg { height: 80px; width: auto; display: block; }
+        .nav-logo img, .nav-logo svg { height: 80px !important; width: auto !important; display: block; }
         .nav-links { display: flex; align-items: center; gap: 4px; }
         .nav-links a { position: relative; font-size: 14px; font-weight: 500; color: #444; padding: 6px 12px; border-radius: 6px; transition: color .2s, background .2s; white-space: nowrap; text-decoration: none; }
         .nav-links a::after { content: ''; position: absolute; bottom: 2px; left: 12px; right: 12px; height: 2px; border-radius: 2px; background: var(--green); transform: scaleX(0); transform-origin: center; transition: transform .25s ease; }
@@ -223,7 +223,7 @@
     <nav class="nav">
         <div class="container nav-inner">
             <a href="/" class="nav-logo" aria-label="Qimta — Home">
-                <x-logo class="h-14 w-auto" />
+                <x-logo style="height:80px;width:auto;" />
             </a>
             <div class="nav-links">
                 <a href="{{ route($__rp . 'catalog.index') }}" class="{{ (Route::is('catalog.*') || Route::is('ar.catalog.*')) ? 'active' : '' }}">{{ __('welcome.nav.catalog') }}</a>
@@ -296,7 +296,7 @@
         <div class="container">
             <div class="footer-top">
                 <div>
-                    <p class="footer-logo"><x-logo class="h-12 w-auto" /></p>
+                    <p class="footer-logo"><x-logo style="height:48px;width:auto;" /></p>
                     <p class="footer-tagline">{{ __('welcome.footer.tagline') }}</p>
                     <div class="footer-socials">
                         <a href="https://www.youtube.com/@Qimtatech" target="_blank" rel="noopener" class="social-btn" title="YouTube" aria-label="Qimta on YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.4a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white"/></svg></a>
