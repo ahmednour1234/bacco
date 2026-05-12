@@ -37,191 +37,201 @@
         </div>
     @endif
 
-    {{-- Filters --}}
-    <form method="GET">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div class="relative flex-1">
-                <div class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm transition focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100">
-                    <svg class="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
-                    </svg>
+    {{-- Table Card --}}
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+        {{-- Filters inside card header --}}
+        <form method="GET">
+            <div class="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center">
+                {{-- Search --}}
+                <div class="relative flex-1">
+                    <span class="pointer-events-none absolute inset-y-0 end-4 flex items-center text-slate-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </span>
                     <input type="text" name="q" value="{{ request('q') }}"
                         placeholder="{{ __('app.search_name_email_company') }}"
-                        class="flex-1 border-0 bg-transparent p-0 text-sm text-slate-800 placeholder-slate-400 outline-none focus:ring-0">
+                        class="h-11 w-full rounded-2xl border border-slate-200 bg-white pe-11 ps-4 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
                 </div>
-            </div>
-            <select name="status"
-                class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
-                <option value="">{{ __('app.all_statuses') }}</option>
-                <option value="new"     {{ request('status') === 'new'     ? 'selected' : '' }}>{{ __('app.status_new') }}</option>
-                <option value="read"    {{ request('status') === 'read'    ? 'selected' : '' }}>{{ __('app.status_read') }}</option>
-                <option value="replied" {{ request('status') === 'replied' ? 'selected' : '' }}>{{ __('app.status_replied') }}</option>
-            </select>
-            <button type="submit"
-                class="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
-                </svg>
-                {{ __('app.filter') }}
-            </button>
-            @if(request()->hasAny(['q','status']))
-                <a href="{{ route('admin.contact-submissions.index') }}"
-                    class="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-500 shadow-sm transition hover:bg-slate-50">
+
+                {{-- Status select --}}
+                <select name="status"
+                    class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
+                    <option value="">{{ __('app.all_statuses') }}</option>
+                    <option value="new"     {{ request('status') === 'new'     ? 'selected' : '' }}>{{ __('app.status_new') }}</option>
+                    <option value="read"    {{ request('status') === 'read'    ? 'selected' : '' }}>{{ __('app.status_read') }}</option>
+                    <option value="replied" {{ request('status') === 'replied' ? 'selected' : '' }}>{{ __('app.status_replied') }}</option>
+                </select>
+
+                {{-- Filter button --}}
+                <button type="submit"
+                    class="inline-flex h-11 items-center gap-2 rounded-2xl bg-emerald-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                     </svg>
-                    {{ __('app.clear') }}
-                </a>
-            @endif
-        </div>
-    </form>
+                    {{ __('app.filter') }}
+                </button>
 
-    {{-- Table --}}
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100 text-sm">
-                <thead>
-                    <tr class="bg-slate-50">
-                        <th class="w-12 px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">#</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.email') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.company') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.type') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
-                        <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.date') }}</th>
-                        <th class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    @forelse ($submissions as $sub)
-                        <tr class="group transition hover:bg-slate-50/60 {{ $sub->status === 'new' ? 'bg-blue-50/30' : '' }}">
+                {{-- Clear button --}}
+                @if(request()->hasAny(['q','status']))
+                    <a href="{{ route('admin.contact-submissions.index') }}"
+                        class="inline-flex h-11 items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-500 shadow-sm transition hover:bg-slate-50">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        {{ __('app.clear') }}
+                    </a>
+                @endif
+            </div>
+        </form>
 
-                            {{-- # --}}
-                            <td class="px-5 py-4 text-xs font-medium text-slate-400">{{ $sub->id }}</td>
+        {{-- Table --}}
+        @if ($submissions->isEmpty())
+            <div class="flex flex-col items-center justify-center py-16 text-slate-400">
+                <svg class="mb-3 h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <p class="text-sm font-medium">{{ __('app.no_submissions_found') }}</p>
+            </div>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50">
+                            <th class="w-10 px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">#</th>
+                            <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                            <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.email') }}</th>
+                            <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.company') }}</th>
+                            <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.type') }}</th>
+                            <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.status') }}</th>
+                            <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.date') }}</th>
+                            <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach ($submissions as $sub)
+                            <tr class="transition hover:bg-slate-50/60 {{ $sub->status === 'new' ? 'bg-blue-50/30' : '' }}">
 
-                            {{-- Name --}}
-                            <td class="px-5 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl
-                                        {{ $sub->status === 'new' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500' }}
-                                        text-xs font-bold">
-                                        {{ strtoupper(substr($sub->name, 0, 1)) }}
+                                {{-- # --}}
+                                <td class="px-5 py-4 text-xs font-medium text-slate-400">{{ $sub->id }}</td>
+
+                                {{-- Name --}}
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold
+                                            {{ $sub->status === 'new' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500' }}">
+                                            {{ strtoupper(substr($sub->name, 0, 1)) }}
+                                        </div>
+                                        <span class="font-semibold text-slate-900">{{ $sub->name }}</span>
                                     </div>
-                                    <span class="font-semibold text-slate-900">{{ $sub->name }}</span>
-                                </div>
-                            </td>
+                                </td>
 
-                            {{-- Email --}}
-                            <td class="px-5 py-4">
-                                <a href="mailto:{{ $sub->email }}"
-                                    class="text-slate-600 transition hover:text-emerald-600 hover:underline">
-                                    {{ $sub->email }}
-                                </a>
-                            </td>
-
-                            {{-- Company --}}
-                            <td class="px-5 py-4">
-                                @if($sub->company)
-                                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                        </svg>
-                                        {{ $sub->company }}
-                                    </span>
-                                @else
-                                    <span class="text-slate-300">&mdash;</span>
-                                @endif
-                            </td>
-
-                            {{-- Type --}}
-                            <td class="px-5 py-4">
-                                @if($sub->inquiry_type)
-                                    @php
-                                        $typeColors = [
-                                            'boq'        => 'bg-indigo-50 text-indigo-700',
-                                            'brand'      => 'bg-purple-50 text-purple-700',
-                                            'enterprise' => 'bg-amber-50 text-amber-700',
-                                            'general'    => 'bg-slate-100 text-slate-600',
-                                        ];
-                                        $tc = $typeColors[$sub->inquiry_type] ?? 'bg-slate-100 text-slate-600';
-                                    @endphp
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $tc }}">
-                                        {{ ucfirst($sub->inquiry_type) }}
-                                    </span>
-                                @else
-                                    <span class="text-slate-300">&mdash;</span>
-                                @endif
-                            </td>
-
-                            {{-- Status --}}
-                            <td class="px-5 py-4">
-                                @if($sub->status === 'new')
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></span>{{ __('app.status_new') }}
-                                    </span>
-                                @elseif($sub->status === 'replied')
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.status_replied') }}
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>{{ __('app.status_read') }}
-                                    </span>
-                                @endif
-                            </td>
-
-                            {{-- Date --}}
-                            <td class="px-5 py-4">
-                                <div class="flex flex-col">
-                                    <span class="text-xs font-medium text-slate-700">{{ $sub->created_at->format('d M Y') }}</span>
-                                    <span class="text-xs text-slate-400">{{ $sub->created_at->format('H:i') }}</span>
-                                </div>
-                            </td>
-
-                            {{-- Actions --}}
-                            <td class="px-5 py-4">
-                                <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('admin.contact-submissions.show', $sub) }}"
-                                        class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700">
-                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                        {{ __('app.view') }}
+                                {{-- Email --}}
+                                <td class="px-5 py-4">
+                                    <a href="mailto:{{ $sub->email }}"
+                                        class="text-slate-600 transition hover:text-emerald-600 hover:underline">
+                                        {{ $sub->email }}
                                     </a>
-                                    <form method="POST" action="{{ route('admin.contact-submissions.destroy', $sub) }}"
-                                        onsubmit="return confirm(@js(__('app.delete_submission_confirm')))">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                            class="inline-flex items-center gap-1.5 rounded-xl bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100">
-                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                            {{ __('app.delete') }}
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="px-5 py-16 text-center">
-                                <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                </svg>
-                                <p class="mt-2 text-sm font-medium text-slate-500">{{ __('app.no_submissions_found') }}</p>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+                                </td>
 
-    {{-- Pagination --}}
-    @if ($submissions->hasPages())
-        <div>{{ $submissions->links() }}</div>
-    @endif
+                                {{-- Company --}}
+                                <td class="px-5 py-4">
+                                    @if($sub->company)
+                                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                            </svg>
+                                            {{ $sub->company }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-300">&mdash;</span>
+                                    @endif
+                                </td>
+
+                                {{-- Type --}}
+                                <td class="px-5 py-4">
+                                    @if($sub->inquiry_type)
+                                        @php
+                                            $typeColors = [
+                                                'boq'        => 'bg-indigo-50 text-indigo-700',
+                                                'brand'      => 'bg-purple-50 text-purple-700',
+                                                'enterprise' => 'bg-amber-50 text-amber-700',
+                                                'general'    => 'bg-slate-100 text-slate-600',
+                                            ];
+                                            $tc = $typeColors[$sub->inquiry_type] ?? 'bg-slate-100 text-slate-600';
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $tc }}">
+                                            {{ ucfirst($sub->inquiry_type) }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-300">&mdash;</span>
+                                    @endif
+                                </td>
+
+                                {{-- Status --}}
+                                <td class="px-5 py-4">
+                                    @if($sub->status === 'new')
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></span>{{ __('app.status_new') }}
+                                        </span>
+                                    @elseif($sub->status === 'replied')
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ __('app.status_replied') }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>{{ __('app.status_read') }}
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Date --}}
+                                <td class="px-5 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-medium text-slate-700">{{ $sub->created_at->format('d M Y') }}</span>
+                                        <span class="text-xs text-slate-400">{{ $sub->created_at->format('H:i') }}</span>
+                                    </div>
+                                </td>
+
+                                {{-- Actions --}}
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ route('admin.contact-submissions.show', $sub) }}"
+                                            class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700">
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            {{ __('app.view') }}
+                                        </a>
+                                        <form method="POST" action="{{ route('admin.contact-submissions.destroy', $sub) }}"
+                                            onsubmit="return confirm(@js(__('app.delete_submission_confirm')))">
+                                            @csrf @method('DELETE')
+                                            <button type="submit"
+                                                class="inline-flex items-center gap-1.5 rounded-xl bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100">
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                                {{ __('app.delete') }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Pagination --}}
+            @if ($submissions->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4">
+                    {{ $submissions->links() }}
+                </div>
+            @endif
+        @endif
+    </div>
 
 </div>
 @endsection
