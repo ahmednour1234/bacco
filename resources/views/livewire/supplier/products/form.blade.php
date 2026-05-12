@@ -176,8 +176,7 @@
                     @error('installation_price') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
-            </div>
-
+    @endif
             {{-- Estimated Final Price banner --}}
             <div class="mt-5 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
                 <div class="flex items-center gap-3">
