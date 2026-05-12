@@ -26,10 +26,50 @@
                 <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $pStatusBadge }}">
                     {{ $project->status->label() }}
                 </span>
+                @if(!$editMode)
+                    <button wire:click="startEdit"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        {{ __('app.edit') }}
+                    </button>
+                @endif
             </div>
         </div>
 
-        @if($project->description)
+        {{-- Edit Form --}}
+        @if($editMode)
+            <form wire:submit.prevent="saveEdit" class="border-b border-slate-100 px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('app.project_name') }}</label>
+                    <input wire:model="editName" type="text"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 @error('editName') border-red-400 @enderror"
+                        placeholder="{{ __('app.project_name') }}">
+                    @error('editName') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('app.description') }}</label>
+                    <textarea wire:model="editDescription" rows="3"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                        placeholder="{{ __('app.optional') }}"></textarea>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        {{ __('app.save') }}
+                    </button>
+                    <button type="button" wire:click="cancelEdit"
+                        class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+                        {{ __('app.cancel') }}
+                    </button>
+                </div>
+            </form>
+        @elseif($project->description)
             <div class="px-6 py-4 text-sm text-slate-600">
                 {{ $project->description }}
             </div>

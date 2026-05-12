@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\AdminUserController as AdminAdminUserController;
 use App\Http\Controllers\Admin\Catalog\CatalogImportController;
 use App\Http\Controllers\Admin\Catalog\CatalogProductController as CatalogProductListController;
 use App\Http\Controllers\Enduser\BoqController as EnduserBoqController;
@@ -261,6 +262,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Users
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+
+        // Admins management (admin-only)
+        Route::get('/admins', [AdminAdminUserController::class, 'index'])->name('admins.index');
 
         // Articles
         Route::resource('articles', AdminArticleController::class)->except(['show', 'store', 'update']);
