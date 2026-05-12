@@ -141,25 +141,6 @@
 
         <div class="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-sm font-semibold text-slate-800">{{ __('app.boq_full') }}</h2>
-
-            {{-- Edit toolbar — only while editable --}}
-            @if(in_array($quotation->status->value, ['tender', 'draft'], true))
-            <div class="flex flex-wrap items-center gap-2">
-                {{-- Remove All Products --}}
-                <button
-                    type="button"
-                    wire:click="removeAllProducts"
-                    wire:loading.attr="disabled"
-                    wire:confirm="{{ __('app.remove_all_selections') }}"
-                    class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 disabled:opacity-60 transition"
-                >
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    {{ __('app.remove_all_products') }}
-                </button>
-            </div>
-            @endif
         </div>
 
         <div class="p-6">
@@ -172,7 +153,6 @@
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="border-b border-slate-100 bg-slate-50">
-                                <th class="px-3 py-3 w-10"></th>{{-- checkbox --}}
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">{{ __('app.description') }}</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.unit') }}</th>
@@ -207,40 +187,10 @@
                                 @endphp
 
                                 {{-- Main row --}}
-                                <tr class="transition-colors hover:bg-slate-50/60 @if($statusVal === 'rejected') opacity-50 @endif @if($isSelected) bg-emerald-50/40 @endif">
-                                    {{-- Selection indicator / checkbox --}}
-                                    <td class="px-3 py-3 text-center">
-                                        @if($canEdit)
-                                            <input
-                                                type="checkbox"
-                                                @checked($isSelected)
-                                                wire:click="toggleSelected({{ $item['id'] }})"
-                                                class="h-4 w-4 rounded border-slate-300 text-emerald-600 cursor-pointer focus:ring-emerald-500"
-                                            />
-                                        @elseif($isSelected)
-                                            <span title="{{ __('app.selected') }}" class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
-                                                <svg class="h-3.5 w-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                            </span>
-                                        @else
-                                            <span title="{{ __('app.not_selected') }}" class="inline-block h-6 w-6 rounded-full border-2 border-slate-200 bg-white"></span>
-                                        @endif
-                                    </td>
+                                <tr class="transition-colors hover:bg-slate-50/60 @if($statusVal === 'rejected') opacity-50 @endif">
                                     <td class="px-4 py-3 font-medium text-slate-800">{{ $item['description'] ?: '—' }}</td>
                                     <td class="px-4 py-3 text-slate-600">
-                                        @if($canEdit)
-                                            <input
-                                                type="number"
-                                                min="0.001"
-                                                step="any"
-                                                value="{{ $item['quantity'] }}"
-                                                @change="$wire.updateQuantity({{ $item['id'] }}, $event.target.value)"
-                                                class="w-20 rounded border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                                            />
-                                        @else
-                                            {{ number_format((float)($item['quantity'] ?? 0)) }}
-                                        @endif
+                                        {{ number_format((float)($item['quantity'] ?? 0)) }}
                                     </td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['unit'] ?: '—' }}</td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['category'] ?: '—' }}</td>
@@ -298,13 +248,13 @@
     {{-- ───── Financial Summary + Submit for Approval ─────────────────────────── --}}
     @php
         $taxRate     = 0.15;
-        $selectedItems = collect($items)->filter(fn($i) => ($i['selected'] ?? false));
-        $subtotal    = $selectedItems
+        $allItems    = collect($items);
+        $subtotal    = $allItems
             ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
             ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
         $tax         = $subtotal * $taxRate;
         $total       = $subtotal + $tax;
-        $selectedCount = $selectedItems->count();
+        $itemCount   = $allItems->count();
     @endphp
 
     <div class="mt-6 flex justify-end">
@@ -315,7 +265,7 @@
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-sm font-semibold text-slate-700">{{ __('app.financial_summary') }}</h3>
                     <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-                        {{ $selectedCount }} {{ __('app.items_selected') }}
+                        {{ $itemCount }} {{ __('app.items_selected') }}
                     </span>
                 </div>
 
@@ -338,16 +288,12 @@
             {{-- Submit for Approval --}}
             @if(in_array($quotation->status->value, ['tender', 'draft'], true))
                 {{-- Cannot submit hint --}}
-                @if($selectedCount === 0 || $subtotal <= 0)
+                @if($subtotal <= 0)
                 <div class="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-700">
                     <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                     </svg>
-                    @if($selectedCount === 0)
-                        {{ __('app.select_item_submit') }}
-                    @else
-                        {{ __('app.no_price_submit') }}
-                    @endif
+                    {{ __('app.no_price_submit') }}
                 </div>
                 @endif
 
@@ -357,7 +303,7 @@
                     @click="confirmOpen = true"
                     wire:loading.attr="disabled"
                     wire:target="submitForApproval"
-                    @disabled($selectedCount === 0 || $subtotal <= 0)
+                    @disabled($subtotal <= 0)
                     class="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                     <svg wire:loading wire:target="submitForApproval" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -423,7 +369,7 @@
                                     </span>
                                     <div>
                                         <p class="text-xs font-semibold text-slate-700">{{ __('app.total') }}</p>
-                                        <p class="text-[11px] text-slate-500">{{ $selectedCount }} {{ __('app.items') }}</p>
+                                        <p class="text-[11px] text-slate-500">{{ $itemCount }} {{ __('app.items') }}</p>
                                     </div>
                                 </div>
                                 <span class="font-mono text-xl font-bold text-slate-900">{{ number_format($total, 2) }} <span class="text-sm font-semibold text-slate-600">{{ __('app.sar') }}</span></span>

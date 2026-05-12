@@ -142,40 +142,7 @@ class ShowQuotation extends Component
         $this->dispatch('toast', message: 'Product selected. Price updated.', type: 'success');
     }
 
-    public function toggleSelected(int $itemId): void
-    {
-        foreach ($this->items as $index => $item) {
-            if ((int) $item['id'] === $itemId) {
-                $newState = ! ($item['selected'] ?? false);
-                $this->items[$index]['selected'] = $newState;
-                QuotationItem::where('id', $itemId)->update(['is_selected' => $newState]);
-                break;
-            }
-        }
-    }
 
-    public function updateQuantity(int $itemId, string $newQty): void
-    {
-        if (! $this->canEdit()) {
-            return;
-        }
-
-        $qty = filter_var($newQty, FILTER_VALIDATE_FLOAT);
-
-        if ($qty === false || $qty <= 0) {
-            $this->dispatch('toast', message: 'Quantity must be a positive number.', type: 'error');
-            return;
-        }
-
-        QuotationItem::where('id', $itemId)->update(['quantity' => $qty]);
-
-        foreach ($this->items as $index => $item) {
-            if ((int) $item['id'] === $itemId) {
-                $this->items[$index]['quantity'] = $qty;
-                break;
-            }
-        }
-    }
 
     // -------------------------------------------------------------------------
     // Edit actions (only while not yet Submitted)
@@ -281,12 +248,7 @@ class ShowQuotation extends Component
         }
 
         try {
-            $selectedItems = array_values(array_filter($this->items, fn($i) => $i['selected'] ?? false));
-
-            if (empty($selectedItems)) {
-                $this->dispatch('toast', message: 'Please select at least one item before submitting.', type: 'error');
-                return;
-            }
+            $selectedItems = array_values($this->items);
 
             $subtotal = collect($selectedItems)
                 ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
@@ -351,7 +313,7 @@ class ShowQuotation extends Component
                 'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
                 'price_source'         => $item->price_source,
                 'price_status'         => $item->price_status ?? 'pending',
-                'selected'             => (bool) $item->is_selected,
+                'selected'             => true,
                 'product_name'         => $item->product?->name ?? null,
             ])
             ->toArray();
