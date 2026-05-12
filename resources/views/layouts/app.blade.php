@@ -117,7 +117,7 @@
         .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 16px; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
         .nav-logo { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; transition: opacity .2s; }
         .nav-logo:hover { opacity: .85; }
-        .nav-logo img, .nav-logo svg { height: 44px; width: auto; display: block; }
+        .nav-logo img, .nav-logo svg { height: 60px; width: auto; display: block; }
         .nav-links { display: flex; align-items: center; gap: 4px; }
         .nav-links a { position: relative; font-size: 14px; font-weight: 500; color: #444; padding: 6px 12px; border-radius: 6px; transition: color .2s, background .2s; white-space: nowrap; text-decoration: none; }
         .nav-links a::after { content: ''; position: absolute; bottom: 2px; left: 12px; right: 12px; height: 2px; border-radius: 2px; background: var(--green); transform: scaleX(0); transform-origin: center; transition: transform .25s ease; }
@@ -205,7 +205,7 @@
             .nav-actions .lang-btn,
             .nav-divider { display: none; }
             .hamburger { display: flex; }
-            .nav-logo img, .nav-logo svg { height: 38px; }
+            .nav-logo img, .nav-logo svg { height: 48px; }
             .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
             .footer-logo img, .footer-logo svg { height: 34px; }
         }
