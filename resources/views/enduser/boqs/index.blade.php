@@ -343,25 +343,41 @@
     {{-- Loading skeleton --}}
     <div x-show="loading" class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
         <template x-for="i in 6" :key="i">
-            <div class="animate-pulse rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div class="h-4 w-2/3 rounded bg-slate-100 mb-3"></div>
-                <div class="h-6 w-1/2 rounded bg-slate-100 mb-2"></div>
-                <div class="h-3 w-1/3 rounded bg-slate-100"></div>
+            <div class="animate-pulse rounded-2xl bg-white shadow-sm" style="border: 1px solid #e2e8f0;">
+                <div class="h-1 rounded-t-2xl bg-slate-200"></div>
+                <div class="p-5">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="h-3 w-20 rounded-full bg-slate-100"></div>
+                        <div class="h-6 w-16 rounded-full bg-slate-100"></div>
+                    </div>
+                    <div class="h-5 w-3/4 rounded bg-slate-100 mb-2"></div>
+                    <div class="h-3 w-1/3 rounded bg-slate-100 mb-4"></div>
+                    <div class="h-1.5 w-full rounded-full bg-slate-100 mb-4"></div>
+                    <div class="flex justify-between border-t border-slate-100 pt-3">
+                        <div class="h-7 w-16 rounded-lg bg-slate-100"></div>
+                        <div class="h-7 w-20 rounded-full bg-slate-100"></div>
+                    </div>
+                </div>
             </div>
         </template>
     </div>
 
     {{-- Empty state --}}
     <div x-show="!loading && boqs.length === 0"
-        class="rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
-        <svg class="mx-auto mb-4 h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-        </svg>
-        <p class="text-sm font-medium text-slate-400">{{ __('app.no_boqs_found') }}</p>
-        <p class="mt-1 text-xs text-slate-300">{{ __('app.create_boq_get_started') }}</p>
+        class="rounded-2xl bg-white py-20 text-center shadow-sm"
+        style="border: 1px dashed #cbd5e1;">
+        <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-sm"
+             style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0;">
+            <svg class="h-8 w-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+            </svg>
+        </div>
+        <p class="text-base font-bold text-slate-500">{{ __('app.no_boqs_found') }}</p>
+        <p class="mt-1 text-sm text-slate-400">{{ __('app.create_boq_get_started') }}</p>
         <a href="{{ route('enduser.boqs.create') }}"
-            class="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 transition">
+            class="mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:opacity-90 transition"
+            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -372,11 +388,24 @@
     {{-- BOQ Grid --}}
     <div x-show="!loading && boqs.length > 0" class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         <template x-for="boq in boqs" :key="boq.id">
-            <div class="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md hover:border-slate-300">
+            <div class="group flex flex-col rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                 style="border: 1px solid #e2e8f0;">
+
+                {{-- Color accent strip based on status --}}
+                <div class="h-1 rounded-t-2xl transition-all"
+                    :class="{
+                        'bg-gradient-to-r from-amber-400 to-yellow-300': boq.status === 'draft',
+                        'bg-gradient-to-r from-blue-500 to-blue-400':    boq.status === 'submitted',
+                        'bg-gradient-to-r from-emerald-500 to-teal-400': boq.status === 'completed',
+                        'bg-gradient-to-r from-red-400 to-rose-300':     boq.status === 'cancelled',
+                        'bg-gradient-to-r from-slate-300 to-slate-200':  !boq.status,
+                    }"></div>
 
                 {{-- Card Header --}}
-                <div class="flex items-center justify-between px-4 pt-4 pb-1">
-                    <span class="max-w-[55%] truncate font-mono text-[11px] font-medium text-slate-400" x-text="'#' + boq.boq_no"></span>
+                <div class="flex items-center justify-between px-4 pt-3 pb-1">
+                    <span class="max-w-[55%] truncate font-mono text-[10px] font-semibold px-2 py-0.5 rounded-md"
+                          style="background:#f1f5f9; color:#94a3b8;"
+                          x-text="'#' + boq.boq_no"></span>
                     <div class="flex items-center gap-1.5">
                         {{-- Status badge --}}
                         <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold"
