@@ -89,7 +89,7 @@
     </div>
 
     {{-- Page Header --}}
-    <div class="mb-7 flex items-start justify-between gap-4">
+    <div class="mb-7 flex items-center justify-between gap-4">
         <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 items-center justify-center rounded-2xl shadow-md flex-shrink-0"
                  style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
@@ -103,6 +103,16 @@
                 <p class="mt-0.5 text-sm text-slate-500">{{ __('app.manage_boqs_desc') }}</p>
             </div>
         </div>
+        <a href="{{ route('enduser.boqs.create') }}"
+            class="inline-flex items-center gap-2.5 px-6 py-3 text-sm font-bold text-white transition-all duration-200 hover:opacity-90 hover:-translate-y-0.5 flex-shrink-0"
+            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 999px; box-shadow: 0 6px 20px rgba(16,185,129,0.40); letter-spacing:0.01em;">
+            <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full" style="background:rgba(255,255,255,0.25);">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
+            </span>
+            {{ __('app.new_boq') }}
+        </a>
     </div>
 
     {{-- Stat Cards --}}
@@ -192,18 +202,6 @@
 
     {{-- Action Bar --}}
     <div class="mb-5 flex flex-wrap items-center gap-3" @click="closeAll()">
-
-        {{-- New BOQ button --}}
-        <a href="{{ route('enduser.boqs.create') }}"
-            class="inline-flex items-center gap-2.5 px-6 py-3 text-sm font-bold text-white transition-all duration-200 hover:opacity-90 hover:-translate-y-0.5"
-            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 999px; box-shadow: 0 6px 20px rgba(16,185,129,0.40); letter-spacing:0.01em;">
-            <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full" style="background:rgba(255,255,255,0.25);">
-                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                </svg>
-            </span>
-            {{ __('app.new_boq') }}
-        </a>
 
         {{-- Search --}}
         <div class="relative min-w-[220px] flex-1">
