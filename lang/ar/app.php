@@ -54,6 +54,13 @@ return [
     'active_projects'      => 'المشاريع النشطة',
     'completed_projects'   => 'المشاريع المكتملة',
 
+    // ── Dashboard Banner ────────────────────────────────────────────────────
+    'banner_title'      => 'أنشئ جدول الكميات مجاناً!',
+    'banner_subtitle'   => 'وفّر وقتك وأنشئ جداول كميات احترافية في دقائق.',
+    'banner_tagline'    => 'سريع • سهل • دقيق',
+    'banner_free_badge' => 'مجاناً 100%',
+    'banner_cta'        => 'أنشئ جدول كميات الآن',
+
     // ── Dashboard Sections ───────────────────────────────────────────────────
     'track_quotations'        => 'تتبع عروض الأسعار',
     'latest_quotation_req'    => 'أحدث طلبات عروض الأسعار',

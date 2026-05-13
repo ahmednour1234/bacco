@@ -54,6 +54,13 @@ return [
     'active_projects'      => 'Active Projects',
     'completed_projects'   => 'Completed Projects',
 
+    // ── Dashboard Banner ────────────────────────────────────────────────────
+    'banner_title'      => 'Create BOQ for FREE!',
+    'banner_subtitle'   => 'Save time and create professional BOQs in minutes.',
+    'banner_tagline'    => 'Fast • Easy • Accurate',
+    'banner_free_badge' => '100% Free',
+    'banner_cta'        => 'Create BOQ Now',
+
     // ── Dashboard Sections ───────────────────────────────────────────────────
     'track_quotations'        => 'Track Quotations',
     'latest_quotation_req'    => 'Latest quotation requests',

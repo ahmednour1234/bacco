@@ -13,6 +13,100 @@
 
 @section('content')
 
+{{-- BOQ Promo Banner --}}
+<div x-data="{ show: !localStorage.getItem('boq_banner_dismissed') }"
+     x-show="show"
+     x-cloak
+     class="relative mb-6 rounded-2xl overflow-hidden"
+     style="background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 40%, #c4b5fd 70%, #a78bfa 100%);">
+
+    {{-- Decorative sparkles --}}
+    <span class="absolute top-4 left-8 text-pink-400 text-xl select-none pointer-events-none" style="font-size:18px;">✦</span>
+    <span class="absolute top-12 left-24 text-teal-400 text-xs select-none pointer-events-none">✦</span>
+    <span class="absolute bottom-6 left-16 text-violet-300 select-none pointer-events-none">◆</span>
+    <span class="absolute top-6 left-48 text-pink-300 text-xs select-none pointer-events-none">+</span>
+    <span class="absolute bottom-10 left-40 text-teal-300 select-none pointer-events-none" style="font-size:10px;">✦</span>
+    <span class="absolute top-3 right-80 text-pink-400 text-xs select-none pointer-events-none">+</span>
+    <span class="absolute bottom-4 right-72 text-teal-400 select-none pointer-events-none" style="font-size:10px;">◆</span>
+    <span class="absolute top-8 right-96 text-violet-300 select-none pointer-events-none" style="font-size:10px;">✦</span>
+
+    {{-- Close button --}}
+    <button @click="show = false; localStorage.setItem('boq_banner_dismissed', '1')"
+            class="absolute top-4 end-4 w-7 h-7 rounded-full bg-white/30 hover:bg-white/50 flex items-center justify-center transition-colors z-10">
+        <svg class="w-3.5 h-3.5 text-violet-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+
+    <div class="flex items-center justify-between gap-6 px-8 py-7 pe-52 sm:pe-64 md:pe-72">
+        {{-- Text --}}
+        <div class="flex-1 min-w-0">
+            <h2 class="text-2xl sm:text-3xl font-black text-violet-900 leading-tight mb-1.5">
+                {{ __('app.banner_title') }}
+            </h2>
+            <p class="text-sm text-violet-700 font-medium mb-1">{{ __('app.banner_subtitle') }}</p>
+            <p class="text-xs text-violet-500 font-semibold tracking-wide">{{ __('app.banner_tagline') }}</p>
+        </div>
+
+        {{-- CTA --}}
+        <div class="flex flex-col items-end gap-3 flex-shrink-0">
+            <span class="inline-flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                {{ __('app.banner_free_badge') }}
+            </span>
+            <a href="{{ route('enduser.boqs.create') }}"
+               class="inline-flex items-center gap-2 bg-violet-900 hover:bg-violet-800 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-violet-400/30 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                {{ __('app.banner_cta') }}
+            </a>
+        </div>
+    </div>
+
+    {{-- BOQ Illustration (absolute right) --}}
+    <div class="absolute bottom-0 end-8 h-full flex items-end pointer-events-none select-none" style="width:220px;">
+        <svg viewBox="0 0 220 180" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+            {{-- Calculator body --}}
+            <rect x="30" y="40" width="80" height="120" rx="10" fill="#7c3aed" opacity="0.9"/>
+            <rect x="38" y="50" width="64" height="28" rx="5" fill="#a78bfa"/>
+            <rect x="42" y="55" width="56" height="18" rx="3" fill="#ede9fe"/>
+            {{-- Calc buttons --}}
+            <rect x="40" y="86" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            <rect x="58" y="86" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            <rect x="76" y="86" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            <rect x="94" y="86" width="14" height="10" rx="2" fill="#8b5cf6"/>
+            <rect x="40" y="100" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            <rect x="58" y="100" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            <rect x="76" y="100" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            <rect x="94" y="100" width="14" height="24" rx="2" fill="#8b5cf6"/>
+            <rect x="40" y="114" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            <rect x="58" y="114" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            <rect x="76" y="114" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            <rect x="40" y="128" width="32" height="10" rx="2" fill="#7c3aed"/>
+            <rect x="76" y="128" width="14" height="10" rx="2" fill="#c4b5fd"/>
+            {{-- Clipboard --}}
+            <rect x="80" y="20" width="100" height="130" rx="10" fill="white" opacity="0.95"/>
+            <rect x="115" y="14" width="30" height="16" rx="4" fill="#7c3aed"/>
+            <rect x="120" y="10" width="20" height="10" rx="3" fill="#5b21b6"/>
+            <rect x="92" y="40" width="76" height="6" rx="3" fill="#e2e8f0"/>
+            <rect x="92" y="52" width="76" height="6" rx="3" fill="#e2e8f0"/>
+            <rect x="92" y="64" width="60" height="6" rx="3" fill="#e2e8f0"/>
+            <rect x="92" y="76" width="76" height="6" rx="3" fill="#e2e8f0"/>
+            <rect x="92" y="88" width="50" height="6" rx="3" fill="#e2e8f0"/>
+            <rect x="92" y="100" width="76" height="6" rx="3" fill="#e2e8f0"/>
+            <rect x="92" y="112" width="40" height="6" rx="3" fill="#e2e8f0"/>
+            {{-- FREE badge on clipboard --}}
+            <rect x="118" y="126" width="44" height="20" rx="6" fill="#22c55e"/>
+            <text x="140" y="140" text-anchor="middle" font-size="9" font-weight="800" fill="white" font-family="sans-serif">FREE</text>
+            {{-- Sparkles around --}}
+            <text x="14" y="30" font-size="16" fill="#f472b6">✦</text>
+            <text x="185" y="28" font-size="12" fill="#2dd4bf">✦</text>
+            <text x="190" y="155" font-size="10" fill="#a78bfa">◆</text>
+        </svg>
+    </div>
+</div>
+
 {{-- Stat Cards --}}
 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-7">
 
