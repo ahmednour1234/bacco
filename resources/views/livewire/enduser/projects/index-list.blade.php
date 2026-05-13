@@ -119,7 +119,7 @@
                         <polyline points="0,10 12,18 24,14 36,24 48,20 64,30" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-red-400">{{ __('app.cancelled') }}</p>
+                <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-red-400">{{ __('app.status_cancelled') }}</p>
             </div>
 
         </div>
