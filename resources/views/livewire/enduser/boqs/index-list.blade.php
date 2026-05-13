@@ -223,14 +223,14 @@
             <input
                 type="text"
                 x-ref="searchInput"
-                :value="$wire.search"
-                @input.debounce.400ms="$wire.set('search', $event.target.value)"
+                wire:model.live.debounce.400ms="search"
                 placeholder="{{ __('app.search_boqs') }}"
                 class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
             >
             <button
                 x-show="$wire.search !== ''"
-                @click="$wire.set('search', ''); $refs.searchInput.value = ''"
+                wire:click="$set('search', '')"
+                @click="$refs.searchInput.value = ''"
                 type="button"
                 class="absolute inset-y-0 right-3 flex items-center text-slate-300 hover:text-slate-500"
             >
@@ -262,12 +262,12 @@
                 @click.outside="typeOpen = false"
                 class="absolute left-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
             >
-                <button type="button" @click="$wire.set('type', ''); typeOpen = false"
+                <button type="button" wire:click="$set('type', '')" @click="typeOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                     All Types
                 </button>
                 @foreach($types as $typeItem)
-                    <button type="button" @click="$wire.set('type', '{{ $typeItem->value }}'); typeOpen = false"
+                    <button type="button" wire:click="$set('type', '{{ $typeItem->value }}')" @click="typeOpen = false"
                         class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === $typeItem->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                         {{ $typeItem->label() }}
                     </button>
@@ -297,12 +297,12 @@
                 @click.outside="statusOpen = false"
                 class="absolute left-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
             >
-                <button type="button" @click="$wire.set('status', ''); statusOpen = false"
+                <button type="button" wire:click="$set('status', '')" @click="statusOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                     {{ __('app.all_statuses') }}
                 </button>
                 @foreach($statuses as $statusItem)
-                    <button type="button" @click="$wire.set('status', '{{ $statusItem->value }}'); statusOpen = false"
+                    <button type="button" wire:click="$set('status', '{{ $statusItem->value }}')" @click="statusOpen = false"
                         class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === $statusItem->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                         {{ $statusItem->label() }}
                     </button>
@@ -332,11 +332,11 @@
                 @click.outside="sortOpen = false"
                 class="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
             >
-                <button type="button" @click="$wire.set('sort', 'newest'); sortOpen = false"
+                <button type="button" wire:click="$set('sort', 'newest')" @click="sortOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $sort === 'newest' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                     Newest first
                 </button>
-                <button type="button" @click="$wire.set('sort', 'oldest'); sortOpen = false"
+                <button type="button" wire:click="$set('sort', 'oldest')" @click="sortOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $sort === 'oldest' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                     Oldest first
                 </button>
