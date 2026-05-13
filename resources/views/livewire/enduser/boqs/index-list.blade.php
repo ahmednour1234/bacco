@@ -470,7 +470,7 @@
                                     </button>
                                     @if($isDraft)
                                         <button type="button"
-                                            @click="$wire.convertToQuotation('{{ $boq->uuid }}'); activeMenu = null"
+                                            wire:click="convertToQuotation('{{ $boq->uuid }}')" @click="activeMenu = null"
                                             class="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
                                             <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -556,7 +556,7 @@
                             @if($itemCount > 0)
                                 <button
                                     type="button"
-                                    @click.stop="$wire.convertToQuotation('{{ $boq->uuid }}')"
+                                    wire:click="convertToQuotation('{{ $boq->uuid }}')"
                                     title="{{ __('app.convert_to_quotation') }}"
                                     class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-50"
                                 >
