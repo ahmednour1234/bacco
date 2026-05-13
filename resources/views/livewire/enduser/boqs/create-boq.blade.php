@@ -1,5 +1,5 @@
 <div
-    wire:poll.4000ms="checkAiStatus"
+    {{ $processing ? 'wire:poll.4000ms="checkAiStatus"' : '' }}
     x-data="{
         dragOver: false,
         toast: null,

@@ -342,6 +342,15 @@
             Alpine.store('bgJob', { active: false, done: null }); // null | 'success' | 'failed' | 'no_items'
         });
 
+        /* Clear done-popup whenever navigating to the create page */
+        document.addEventListener('livewire:navigated', () => {
+            if (window.location.pathname.includes('/boqs/create')) {
+                if (window.Alpine && Alpine.store('bgJob')) {
+                    Alpine.store('bgJob').done = null;
+                }
+            }
+        });
+
         /* Poll /boqs/draft-status every 4s while the pill is visible */
         let _bgPollTimer = null;
         function _bgPollStart() {
@@ -424,7 +433,7 @@
         x-data="{ isAr: document.documentElement.dir === 'rtl' }"
         x-show="$store.bgJob.done !== null"
         x-cloak
-        x-on:boq-upload-done.window="if (!window.location.pathname.includes('/boqs/create')) $store.bgJob.done = 'success'"
+        x-on:boq-upload-done.window="if (!window.location.pathname.includes('/boqs/create') && !window.location.pathname.includes('/boqs/create/')) $store.bgJob.done = 'success'; $store.bgJob.active = false;"
         x-on:boq-resume-done.window="$store.bgJob.active = false; $store.bgJob.done = null"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0"
