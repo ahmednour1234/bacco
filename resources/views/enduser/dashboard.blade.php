@@ -13,8 +13,11 @@
 
 @section('content')
 
-{{-- Stat Cards --}}
-<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-7">
+{{-- Stats + BOQ Promo --}}
+<div class="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-7">
+
+{{-- Left: Stat Cards --}}
+<div class="xl:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-4 content-start">
 
     {{-- Total Quotations --}}
     <a href="{{ route('enduser.quotations.index') }}"
@@ -130,7 +133,7 @@
 
     {{-- Completed Projects --}}
     <a href="{{ route('enduser.projects.index') }}"
-       class="relative bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col justify-between overflow-hidden group col-span-2 sm:col-span-1">
+       class="relative bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col justify-between overflow-hidden group">
         <div class="absolute inset-0 bg-gradient-to-br from-teal-50/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl"></div>
         <div class="flex items-start justify-between">
             <div class="w-11 h-11 bg-teal-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -157,61 +160,87 @@
 
 </div>
 
-{{-- BOQ Promo Card --}}
+{{-- Right: BOQ Promo Card --}}
 <a href="{{ route('enduser.boqs.create') }}"
-   class="group relative flex items-center justify-between mb-7 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
-   style="background: linear-gradient(120deg, #1e1b4b 0%, #3730a3 40%, #4f46e5 70%, #7c3aed 100%); min-height: 110px;">
+   class="group relative xl:col-span-1 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col p-6">
 
-    {{-- dot-grid overlay --}}
-    <svg class="absolute inset-0 w-full h-full pointer-events-none" style="opacity:0.08;" xmlns="http://www.w3.org/2000/svg">
-        <defs><pattern id="bdots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.5" fill="white"/></pattern></defs>
-        <rect width="100%" height="100%" fill="url(#bdots)"/>
-    </svg>
-    {{-- left glow --}}
-    <div class="absolute left-0 top-0 bottom-0 w-64 pointer-events-none"
-         style="background: radial-gradient(ellipse at left center, rgba(139,92,246,0.4) 0%, transparent 70%);"></div>
-    {{-- shimmer bottom --}}
-    <div class="absolute bottom-0 left-0 right-0 h-px"
-         style="background: linear-gradient(90deg, transparent, rgba(167,139,250,0.7), rgba(52,211,153,0.7), transparent);"></div>
+    {{-- Radial blue blob (bottom-right) --}}
+    <div class="absolute pointer-events-none"
+         style="width:260px;height:260px;bottom:-80px;right:-60px;
+                background:radial-gradient(circle,rgba(99,102,241,0.13) 0%,rgba(147,197,253,0.10) 40%,transparent 70%);
+                border-radius:50%;"></div>
 
-    {{-- Text block --}}
-    <div class="relative flex-1 px-7 py-5 z-10">
-        <div class="flex items-center gap-2 mb-2">
-            <span class="inline-flex items-center gap-1 bg-emerald-400 text-emerald-950 text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wide">
-                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                100% FREE
-            </span>
-        </div>
-        <h3 class="text-xl sm:text-2xl font-black text-white leading-snug mb-1">{{ __('app.banner_title') }}</h3>
-        <p class="text-indigo-200 text-sm font-medium">{{ __('app.banner_subtitle') }}</p>
+    {{-- Badge --}}
+    <div class="inline-flex items-center gap-1.5 self-start bg-slate-100 text-slate-500 text-xs font-semibold px-2.5 py-1 rounded-full mb-4">
+        <svg class="w-3 h-3 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+        </svg>
+        New
     </div>
 
-    {{-- CTA (desktop) --}}
-    <div class="hidden sm:flex relative z-10 flex-shrink-0 px-6">
-        <span class="inline-flex items-center gap-2 bg-white text-indigo-900 group-hover:bg-emerald-400 group-hover:text-emerald-950 font-black text-sm px-6 py-3 rounded-xl shadow-xl transition-all duration-200">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-            {{ __('app.banner_cta') }}
-            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-        </span>
+    {{-- Headline --}}
+    <h3 class="text-2xl font-black text-slate-900 leading-snug mb-2">Create BOQ<br>for Free</h3>
+
+    {{-- Subtitle --}}
+    <p class="text-slate-400 text-sm leading-relaxed mb-5">
+        Generate accurate BOQs in minutes and streamline your construction estimation process.
+    </p>
+
+    {{-- CTA Button --}}
+    <span class="inline-flex items-center gap-2 self-start bg-indigo-600 group-hover:bg-indigo-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-md transition-colors duration-200">
+        {{ __('app.banner_cta') }}
+        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+        </svg>
+    </span>
+
+    {{-- BOQ Illustration --}}
+    <div class="relative mt-auto pt-4 flex items-end justify-end">
+        <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:220px;height:auto;">
+            {{-- Clipboard shadow / back --}}
+            <rect x="62" y="18" width="104" height="100" rx="8" fill="#e0e7ff" opacity="0.6"/>
+            {{-- Clipboard body --}}
+            <rect x="56" y="12" width="104" height="100" rx="8" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+            {{-- Clip --}}
+            <rect x="96" y="6" width="24" height="14" rx="4" fill="#c7d2fe"/>
+            <rect x="100" y="4" width="16" height="10" rx="3" fill="#a5b4fc"/>
+            {{-- BOQ label --}}
+            <text x="108" y="36" text-anchor="middle" font-size="11" font-weight="800" fill="#312e81" font-family="Arial,sans-serif">BOQ</text>
+            {{-- Lines --}}
+            <rect x="68" y="45" width="80" height="5" rx="2.5" fill="#e2e8f0"/>
+            <rect x="68" y="55" width="80" height="5" rx="2.5" fill="#e2e8f0"/>
+            <rect x="68" y="65" width="60" height="5" rx="2.5" fill="#e2e8f0"/>
+            <rect x="68" y="75" width="80" height="5" rx="2.5" fill="#e2e8f0"/>
+            <rect x="68" y="85" width="44" height="5" rx="2.5" fill="#e2e8f0"/>
+            {{-- Calculator --}}
+            <rect x="24" y="52" width="62" height="70" rx="8" fill="#cbd5e1"/>
+            <rect x="28" y="56" width="54" height="62" rx="6" fill="#f1f5f9"/>
+            {{-- Calc screen --}}
+            <rect x="33" y="61" width="44" height="14" rx="3" fill="#bfdbfe"/>
+            {{-- Calc buttons row 1 --}}
+            <rect x="33" y="80" width="9" height="7" rx="2" fill="#94a3b8"/>
+            <rect x="45" y="80" width="9" height="7" rx="2" fill="#94a3b8"/>
+            <rect x="57" y="80" width="9" height="7" rx="2" fill="#94a3b8"/>
+            <rect x="69" y="80" width="8" height="7" rx="2" fill="#6366f1"/>
+            {{-- Calc buttons row 2 --}}
+            <rect x="33" y="91" width="9" height="7" rx="2" fill="#94a3b8"/>
+            <rect x="45" y="91" width="9" height="7" rx="2" fill="#94a3b8"/>
+            <rect x="57" y="91" width="9" height="7" rx="2" fill="#94a3b8"/>
+            <rect x="69" y="91" width="8" height="7" rx="2" fill="#6366f1"/>
+            {{-- Calc buttons row 3 --}}
+            <rect x="33" y="102" width="9" height="7" rx="2" fill="#94a3b8"/>
+            <rect x="45" y="102" width="9" height="7" rx="2" fill="#94a3b8"/>
+            <rect x="57" y="102" width="9" height="7" rx="2" fill="#94a3b8"/>
+            <rect x="69" y="102" width="8" height="15" rx="2" fill="#6366f1"/>
+            {{-- Checkmark badge --}}
+            <circle cx="154" cy="108" r="16" fill="#3b82f6"/>
+            <polyline points="146,108 152,114 163,100" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
     </div>
 
-    {{-- 3D BOQ image --}}
-    <div class="relative z-10 flex-shrink-0 self-end flex items-end justify-center"
-         style="width: 160px; height: 110px; overflow: hidden;">
-        <img src="{{ asset('images/boq-free.png') }}"
-             alt="BOQ"
-             style="width: 150px; height: auto; margin-bottom: -4px;
-                    filter: drop-shadow(0 8px 24px rgba(99,102,241,0.7));
-                    animation: boqBob 3s ease-in-out infinite;">
-    </div>
-
-    <style>
-        @keyframes boqBob {
-            0%,100% { transform: translateY(0) rotate(-1deg); }
-            50%      { transform: translateY(-8px) rotate(1deg); }
-        }
-    </style>
 </a>
+
+</div>{{-- /outer grid --}}
 
 {{-- Track Quotations + Accepted Quotations --}}
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
