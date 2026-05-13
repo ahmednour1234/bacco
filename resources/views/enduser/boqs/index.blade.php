@@ -133,7 +133,6 @@
                 <div class="min-w-0">
                     <p class="font-black leading-none text-slate-900 text-2xl sm:text-[2.6rem]" x-text="stats.total ?? '—'"></p>
                     <p class="mt-1 text-[10px] font-bold uppercase tracking-wider sm:tracking-widest" style="color:#059669;">{{ __('app.total_boqs') }}</p>
-                    <p class="mt-0.5 text-[11px] font-medium text-slate-400 hidden sm:block">All time BOQs</p>
                 </div>
             </div>
         </div>
@@ -153,7 +152,6 @@
                 <div class="min-w-0">
                     <p class="font-black leading-none text-slate-900 text-2xl sm:text-[2.6rem]" x-text="stats.draft ?? '—'"></p>
                     <p class="mt-1 text-[10px] font-bold uppercase tracking-wider sm:tracking-widest" style="color:#059669;">{{ __('app.status_draft') }}</p>
-                    <p class="mt-0.5 text-[11px] font-medium text-slate-400 hidden sm:block">Awaiting review</p>
                 </div>
             </div>
         </div>
@@ -173,7 +171,6 @@
                 <div class="min-w-0">
                     <p class="font-black leading-none text-slate-900 text-2xl sm:text-[2.6rem]" x-text="stats.submitted ?? '—'"></p>
                     <p class="mt-1 text-[10px] font-bold uppercase tracking-wider sm:tracking-widest" style="color:#059669;">{{ __('app.status_submitted') }}</p>
-                    <p class="mt-0.5 text-[11px] font-medium text-slate-400 hidden sm:block">Under review</p>
                 </div>
             </div>
         </div>
@@ -193,7 +190,6 @@
                 <div class="min-w-0">
                     <p class="font-black leading-none text-slate-900 text-2xl sm:text-[2.6rem]" x-text="stats.completed ?? '—'"></p>
                     <p class="mt-1 text-[10px] font-bold uppercase tracking-wider sm:tracking-widest" style="color:#059669;">{{ __('app.status_completed') }}</p>
-                    <p class="mt-0.5 text-[11px] font-medium text-slate-400 hidden sm:block">Successfully completed</p>
                 </div>
             </div>
         </div>
