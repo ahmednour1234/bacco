@@ -49,6 +49,8 @@ class IndexList extends Component
             'total'     => (clone $allProjects)->count(),
             'active'    => (clone $allProjects)->where('status', 'active')->count(),
             'completed' => (clone $allProjects)->where('status', 'completed')->count(),
+            'pending'   => (clone $allProjects)->where('status', 'pending')->count(),
+            'cancelled' => (clone $allProjects)->where('status', 'cancelled')->count(),
         ];
 
         $query = Project::query()
