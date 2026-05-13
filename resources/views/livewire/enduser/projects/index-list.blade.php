@@ -185,14 +185,14 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                            <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 w-8"></th>
-                            <th class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.project') }}</th>
-                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden sm:table-cell">{{ __('app.boq_count') }}</th>
-                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden md:table-cell">{{ __('app.quotation_count') }}</th>
-                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden md:table-cell">{{ __('app.order_count') }}</th>
-                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden lg:table-cell">{{ __('app.created') }}</th>
-                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.status') }}</th>
-                            <th class="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.actions') }}</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 w-8"></th>
+                            <th class="px-3 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.project') }}</th>
+                            <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden sm:table-cell">{{ __('app.boq_count') }}</th>
+                            <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden md:table-cell">{{ __('app.quotation_count') }}</th>
+                            <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden md:table-cell">{{ __('app.order_count') }}</th>
+                            <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden lg:table-cell">{{ __('app.created') }}</th>
+                            <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.status') }}</th>
+                            <th class="px-5 py-4 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -209,7 +209,7 @@
                             <tr class="transition hover:bg-slate-50">
 
                                 {{-- Icon --}}
-                                <td class="pl-5 pr-2 py-3.5">
+                                <td class="pl-5 pr-2 py-5">
                                     <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
                                          style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 4px 10px rgba(99,102,241,0.25);">
                                         <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,13 +220,13 @@
                                 </td>
 
                                 {{-- Name + code --}}
-                                <td class="px-3 py-3.5 max-w-[220px]">
+                                <td class="px-3 py-5 max-w-[220px]">
                                     <p class="truncate font-bold text-slate-900">{{ $project->name }}</p>
                                     <p class="font-mono text-[11px] text-slate-400">{{ $project->project_no }}</p>
                                 </td>
 
                                 {{-- BOQs --}}
-                                <td class="px-3 py-3.5 text-center hidden sm:table-cell">
+                                <td class="px-3 py-5 text-center hidden sm:table-cell">
                                     <span class="inline-flex items-center gap-1 text-slate-500">
                                         <svg class="h-3.5 w-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
                                         {{ $project->boqs_count }}
@@ -234,7 +234,7 @@
                                 </td>
 
                                 {{-- Quotations --}}
-                                <td class="px-3 py-3.5 text-center hidden md:table-cell">
+                                <td class="px-3 py-5 text-center hidden md:table-cell">
                                     <span class="inline-flex items-center gap-1 text-slate-500">
                                         <svg class="h-3.5 w-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                         {{ $project->quotation_requests_count }}
@@ -242,7 +242,7 @@
                                 </td>
 
                                 {{-- Orders --}}
-                                <td class="px-3 py-3.5 text-center hidden md:table-cell">
+                                <td class="px-3 py-5 text-center hidden md:table-cell">
                                     <span class="inline-flex items-center gap-1 text-slate-500">
                                         <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                         {{ $project->orders_count }}
@@ -250,7 +250,7 @@
                                 </td>
 
                                 {{-- Created --}}
-                                <td class="px-3 py-3.5 text-center text-[12px] text-slate-400 hidden lg:table-cell whitespace-nowrap">
+                                <td class="px-3 py-5 text-center text-[12px] text-slate-400 hidden lg:table-cell whitespace-nowrap">
                                     <span class="inline-flex items-center gap-1">
                                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         {{ $project->created_at->diffForHumans() }}
@@ -258,7 +258,7 @@
                                 </td>
 
                                 {{-- Status --}}
-                                <td class="px-3 py-3.5 text-center">
+                                <td class="px-3 py-5 text-center">
                                     <span class="inline-flex rounded-full px-3 py-1 text-[11px] font-bold"
                                           style="background: {{ $statusColor['bg'] }}; color: {{ $statusColor['text'] }}; border: 1px solid {{ $statusColor['border'] }};">
                                         {{ $project->status->label() }}
@@ -266,7 +266,7 @@
                                 </td>
 
                                 {{-- Actions --}}
-                                <td class="pl-3 pr-5 py-3.5 text-right">
+                                <td class="pl-3 pr-5 py-5 text-right">
                                     <div class="inline-flex items-center gap-1.5">
                                         <a href="{{ route('enduser.boqs.create.project', $project->uuid) }}"
                                             class="flex h-9 w-9 items-center justify-center rounded-xl text-white transition hover:opacity-90"
