@@ -70,6 +70,7 @@ return [
     'accepted_quotations'     => 'العروض المقبولة',
     'ready_for_order'         => 'جاهزة للطلب',
     'order'                   => 'طلب',
+    'view_all_quotations'      => 'عرض جميع عروض الأسعار',
     'view_all_accepted'       => 'عرض جميع المقبولة',
     'no_accepted_quotations'  => 'لا توجد عروض مقبولة حتى الآن.',
     'recent_orders'           => 'أحدث الطلبات',

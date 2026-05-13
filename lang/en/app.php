@@ -70,6 +70,7 @@ return [
     'accepted_quotations'     => 'Accepted Quotations',
     'ready_for_order'         => 'Ready for order',
     'order'                   => 'Order',
+    'view_all_quotations'      => 'View all quotations',
     'view_all_accepted'       => 'View all accepted',
     'no_accepted_quotations'  => 'No accepted quotations yet.',
     'recent_orders'           => 'Recent Orders',
