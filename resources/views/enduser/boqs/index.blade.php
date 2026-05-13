@@ -110,61 +110,61 @@
 
         {{-- Total --}}
         <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
-             style="border: 1px solid #e2e8f0; min-height: 200px;">
-            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #6366f1, #818cf8);"></div>
+             style="border: 1px solid #d1fae5; min-height: 200px;">
+            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #10b981, #34d399);"></div>
             <div class="flex flex-col items-center justify-center h-full px-6 pt-10 pb-8 text-center">
                 <div class="flex items-center justify-center rounded-2xl shadow-lg mb-5"
-                     style="background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); width:58px; height:58px;">
+                     style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); width:58px; height:58px;">
                     <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                 </div>
                 <p class="font-black leading-none text-slate-900" style="font-size: 3.5rem;" x-text="stats.total ?? '—'"></p>
-                <p class="mt-2 text-[11px] font-bold uppercase tracking-widest" style="color:#6366f1;">{{ __('app.total_boqs') }}</p>
+                <p class="mt-2 text-[11px] font-bold uppercase tracking-widest" style="color:#059669;">{{ __('app.total_boqs') }}</p>
                 <p class="mt-1 text-xs font-medium text-slate-400">All time BOQs</p>
             </div>
         </div>
 
         {{-- Draft --}}
         <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
-             style="border: 1px solid #e2e8f0; min-height: 200px;">
-            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+             style="border: 1px solid #d1fae5; min-height: 200px;">
+            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #10b981, #34d399);"></div>
             <div class="flex flex-col items-center justify-center h-full px-6 pt-10 pb-8 text-center">
                 <div class="flex items-center justify-center rounded-2xl shadow-lg mb-5"
-                     style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); width:58px; height:58px;">
+                     style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); width:58px; height:58px;">
                     <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                 </div>
                 <p class="font-black leading-none text-slate-900" style="font-size: 3.5rem;" x-text="stats.draft ?? '—'"></p>
-                <p class="mt-2 text-[11px] font-bold uppercase tracking-widest" style="color:#d97706;">{{ __('app.status_draft') }}</p>
+                <p class="mt-2 text-[11px] font-bold uppercase tracking-widest" style="color:#059669;">{{ __('app.status_draft') }}</p>
                 <p class="mt-1 text-xs font-medium text-slate-400">Awaiting review</p>
             </div>
         </div>
 
         {{-- Submitted --}}
         <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
-             style="border: 1px solid #e2e8f0; min-height: 200px;">
-            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div>
+             style="border: 1px solid #d1fae5; min-height: 200px;">
+            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #10b981, #34d399);"></div>
             <div class="flex flex-col items-center justify-center h-full px-6 pt-10 pb-8 text-center">
                 <div class="flex items-center justify-center rounded-2xl shadow-lg mb-5"
-                     style="background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); width:58px; height:58px;">
+                     style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); width:58px; height:58px;">
                     <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                             d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
                 </div>
                 <p class="font-black leading-none text-slate-900" style="font-size: 3.5rem;" x-text="stats.submitted ?? '—'"></p>
-                <p class="mt-2 text-[11px] font-bold uppercase tracking-widest" style="color:#2563eb;">{{ __('app.status_submitted') }}</p>
+                <p class="mt-2 text-[11px] font-bold uppercase tracking-widest" style="color:#059669;">{{ __('app.status_submitted') }}</p>
                 <p class="mt-1 text-xs font-medium text-slate-400">Under review</p>
             </div>
         </div>
 
         {{-- Completed --}}
         <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
-             style="border: 1px solid #e2e8f0; min-height: 200px;">
+             style="border: 1px solid #d1fae5; min-height: 200px;">
             <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #10b981, #34d399);"></div>
             <div class="flex flex-col items-center justify-center h-full px-6 pt-10 pb-8 text-center">
                 <div class="flex items-center justify-center rounded-2xl shadow-lg mb-5"
@@ -186,9 +186,9 @@
     <div class="mb-5 flex flex-wrap items-center gap-3" @click="closeAll()">
 
         {{-- New BOQ split button --}}
-        <div class="relative flex rounded-2xl" style="box-shadow: 0 8px 24px rgba(16,185,129,0.35);" @click.stop>
+        <div class="relative flex" style="border-radius: 999px; box-shadow: 0 8px 24px rgba(16,185,129,0.35); overflow: hidden;" @click.stop>
             <a href="{{ route('enduser.boqs.create') }}"
-                class="inline-flex items-center gap-2.5 rounded-l-2xl px-6 py-3 text-sm font-bold text-white transition-all duration-200 hover:opacity-90"
+                class="inline-flex items-center gap-2.5 px-6 py-3 text-sm font-bold text-white transition-all duration-200 hover:opacity-90"
                 style="background: linear-gradient(135deg, #10b981 0%, #059669 60%, #047857 100%); letter-spacing:0.01em;">
                 <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full" style="background:rgba(255,255,255,0.22);">
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,8 +198,12 @@
                 {{ __('app.new_boq') }}
             </a>
             <button type="button" @click="newBoqOpen = !newBoqOpen"
-                class="inline-flex items-center rounded-r-2xl px-3 py-3 text-white transition-all duration-200 hover:opacity-90"
+                class="inline-flex items-center px-3 py-3 text-white transition-all duration-200 hover:opacity-90"
                 style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-left: 1px solid rgba(255,255,255,0.25);">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
