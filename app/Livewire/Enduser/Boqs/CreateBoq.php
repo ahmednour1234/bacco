@@ -89,16 +89,24 @@ class CreateBoq extends Component
 
             if ($latestDraft) {
                 $this->loadFromBoq($latestDraft);
-                // If items already exist → AI finished, hide the pill
+                $aiStatus = Cache::get('boq_ai_status_' . Auth::id());
+
                 if (count($this->items) > 0) {
+                    // Items already saved → AI finished successfully
                     $this->dispatch('boq-upload-done');
-                } else {
-                    // Job may still be running — restore processing state so wire:poll resumes
-                    $aiStatus = Cache::get('boq_ai_status_' . Auth::id());
-                    if ($aiStatus === 'running') {
-                        $this->processing = true;
-                    }
+                } elseif ($aiStatus === 'running') {
+                    // Job still in progress — start polling
+                    $this->processing = true;
+                } elseif ($aiStatus === 'done') {
+                    // Done but no items saved (edge case) — still clear the pill
+                    $this->dispatch('boq-upload-done');
+                } elseif (in_array($aiStatus, ['failed', 'no_items'], true)) {
+                    $msg = (string) Cache::get('boq_ai_message_' . Auth::id(), 'AI extraction finished. Please add items manually.');
+                    $this->dispatch('boq-upload-done');
+                    $this->dispatch('toast', message: $msg, type: $aiStatus === 'no_items' ? 'warning' : 'error');
+                    Cache::forget('boq_ai_status_' . Auth::id());
                 }
+                // No cache status at all → just show the draft as-is
                 $this->dispatch('boq-resume-done');
                 return;
             }
@@ -113,6 +121,38 @@ class CreateBoq extends Component
             $this->projectName        = (string) $project->name;
             $this->projectDescription = (string) ($project->description ?? '');
             $this->isEditMode         = true;
+            return;
+        }
+
+        // ── Auto-resume: if there's an active AI job in cache, restore state ─
+        // (handles the case where the user navigates back to /boqs/create
+        //  without ?resume=1, e.g. via the pill or direct link)
+        $aiStatus = Cache::get('boq_ai_status_' . Auth::id());
+        if ($aiStatus) {
+            $latestDraft = Boq::where('client_id', Auth::id())
+                ->where('status', BoqStatusEnum::Draft)
+                ->with(['project', 'items.unit'])
+                ->latest()
+                ->first();
+
+            if ($latestDraft) {
+                $this->loadFromBoq($latestDraft);
+                if ($aiStatus === 'running') {
+                    // Job still in progress — start polling
+                    $this->processing = true;
+                } elseif ($aiStatus === 'done') {
+                    // Job already finished — fire done event to clear the pill
+                    $this->dispatch('boq-upload-done');
+                } elseif (in_array($aiStatus, ['failed', 'no_items'], true)) {
+                    // Job finished with a problem — clear pill and notify user
+                    $msg = (string) Cache::get('boq_ai_message_' . Auth::id(), 'AI extraction finished. Please review or add items manually.');
+                    $this->dispatch('boq-upload-done');
+                    $this->dispatch('toast', message: $msg, type: $aiStatus === 'no_items' ? 'warning' : 'error');
+                    // Clear stale cache so this block doesn't re-fire on next visit
+                    Cache::forget('boq_ai_status_' . Auth::id());
+                }
+                $this->dispatch('boq-resume-done');
+            }
         }
     }
 
