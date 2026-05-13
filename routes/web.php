@@ -200,11 +200,15 @@ Route::prefix('enduser')->name('enduser.')->group(function () {
         Route::get('/projects/{uuid}', [EnduserProjectController::class, 'show'])->name('projects.show');
 
         // BOQs
-        Route::get('/boqs',                     [EnduserBoqController::class, 'index'])->name('boqs.index');
-        Route::get('/boqs/create',              [EnduserBoqController::class, 'create'])->name('boqs.create');
-        Route::get('/boqs/create/{projectUuid}', [EnduserBoqController::class, 'create'])->name('boqs.create.project');
-        Route::get('/boqs/draft-status',        [EnduserBoqController::class, 'draftStatus'])->name('boqs.draft-status');
-        Route::get('/boqs/{uuid}',              [EnduserBoqController::class, 'show'])->name('boqs.show');
+        Route::get('/boqs',                      [EnduserBoqController::class, 'index'])->name('boqs.index');
+        Route::get('/boqs/data',                 [EnduserBoqController::class, 'data'])->name('boqs.data');
+        Route::get('/boqs/create',               [EnduserBoqController::class, 'create'])->name('boqs.create');
+        Route::get('/boqs/create/{projectUuid}',  [EnduserBoqController::class, 'create'])->name('boqs.create.project');
+        Route::get('/boqs/draft-status',         [EnduserBoqController::class, 'draftStatus'])->name('boqs.draft-status');
+        Route::post('/boqs/{uuid}/convert',      [EnduserBoqController::class, 'convert'])->name('boqs.convert');
+        Route::post('/boqs/{id}/duplicate',      [EnduserBoqController::class, 'duplicate'])->name('boqs.duplicate');
+        Route::delete('/boqs/{id}',              [EnduserBoqController::class, 'destroy'])->name('boqs.destroy');
+        Route::get('/boqs/{uuid}',               [EnduserBoqController::class, 'show'])->name('boqs.show');
 
         // Orders
         Route::get('/orders',        [EnduserOrderController::class, 'index'])->name('orders.index');

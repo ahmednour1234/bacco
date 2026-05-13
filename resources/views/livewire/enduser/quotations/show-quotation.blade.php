@@ -1,4 +1,5 @@
 <div
+    wire:init="fetchPricesOnInit"
     x-data="{
         toast: null,
         confirmOpen: false,
