@@ -11,8 +11,8 @@ use App\Models\Boq;
 use App\Models\BoqItem;
 use App\Models\Project;
 use App\Models\Unit;
+use App\Jobs\ParseBoqJob;
 use App\Models\UploadedDocument;
-use App\Services\QuotationAiService;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -158,20 +158,17 @@ class CreateBoq extends Component
             'projectDescription' => 'nullable|string|max:5000',
         ]);
 
-        // Resolve fallback file path if no new file was selected
-        $fallbackPath = null;
+        // ── Resolve fallback storage path if no new file was selected ────────
+        $fallbackStoragePath = null;
         if (! $this->boqFile) {
             if ($this->boqId !== null) {
-                $doc = UploadedDocument::where('boq_id', $this->boqId)
-                    ->latest()
-                    ->first();
-
+                $doc = UploadedDocument::where('boq_id', $this->boqId)->latest()->first();
                 if ($doc && Storage::disk('local')->exists($doc->file_path)) {
-                    $fallbackPath = Storage::disk('local')->path($doc->file_path);
+                    $fallbackStoragePath = $doc->file_path;
                 }
             }
 
-            if (! $fallbackPath) {
+            if (! $fallbackStoragePath) {
                 $this->addError('boqFile', 'Please select a file to upload.');
                 return;
             }
@@ -185,26 +182,16 @@ class CreateBoq extends Component
             }
         }
 
-        $this->processing = true;
-        Cache::put('boq_ai_status_' . Auth::id(), 'running', now()->addHours(2));
-
-        // The AI extraction can take well over 30 s — lift the per-request limit.
-        set_time_limit(300);
-
         try {
-            // These are committed to DB right away so the record survives even
-            // if the browser navigates away during the long AI step below.
             $project = $this->persistProject();
             $boq     = $this->persistBoq($project);
 
-            // ── Step 2: Store the uploaded file ─────────────────────────────
-            $storedAbsPath = null;
+            // ── Store the uploaded file ──────────────────────────────────────
             if ($this->boqFile) {
-                $extension     = strtolower($this->boqFile->getClientOriginalExtension());
-                $fileName      = $this->boqFile->getClientOriginalName();
-                $storedPath    = $this->boqFile->storeAs('boq-uploads', Str::uuid() . '.' . $extension, 'local');
-                $fileSize      = Storage::disk('local')->size($storedPath);
-                $storedAbsPath = Storage::disk('local')->path($storedPath);
+                $extension  = strtolower($this->boqFile->getClientOriginalExtension());
+                $fileName   = $this->boqFile->getClientOriginalName();
+                $storedPath = $this->boqFile->storeAs('boq-uploads', Str::uuid() . '.' . $extension, 'local');
+                $fileSize   = Storage::disk('local')->size($storedPath);
 
                 if ($fileSize > 50 * 1024 * 1024) {
                     Storage::disk('local')->delete($storedPath);
@@ -224,62 +211,59 @@ class CreateBoq extends Component
 
                 $this->boqFileName = $fileName;
             } else {
-                $storedAbsPath = $fallbackPath;
+                $storedPath = $fallbackStoragePath;
             }
 
-            // ── Step 3: AI extraction ────────────────────────────────────────
-            $ai     = app(QuotationAiService::class);
-            $result = $ai->parseBoq($storedAbsPath, [
+            $this->boqFile    = null;
+            $this->processing = true;
+
+            Cache::put('boq_ai_status_' . Auth::id(), 'running', now()->addHours(2));
+
+            // ── Dispatch background job — returns immediately ─────────────────
+            ParseBoqJob::dispatch($boq->id, Auth::id(), $storedPath, [
                 'boq_id'       => $boq->id,
                 'project_name' => $this->projectName,
             ]);
 
-            if (! $result['success']) {
-                Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
-                $message = ($result['service_unavailable'] ?? false)
-                    ? __('app.ai_service_unavailable')
-                    : ($result['error'] ?? 'AI extraction failed.');
-                $this->dispatch('toast', message: $message, type: 'error');
-            } elseif (empty($result['items'])) {
-                Cache::put('boq_ai_status_' . Auth::id(), 'no_items', now()->addMinutes(30));
-                $this->dispatch('toast', message: 'The AI service could not extract any items from the uploaded file. Please add items manually.', type: 'warning');
-            } else {
-                BoqItem::where('boq_id', $boq->id)->delete();
-                $this->items = [];
-
-                foreach ($result['items'] as $aiItem) {
-                    $this->items[] = array_merge([
-                        'id'                   => null,
-                        'description'          => '',
-                        'quantity'             => 1,
-                        'unit'                 => '',
-                        'category'             => '',
-                        'brand'                => '',
-                        'status'               => 'pending',
-                        'engineering_required' => false,
-                        'confidence'           => null,
-                        'ai_extracted'         => true,
-                        'is_selected'          => false,
-                    ], $aiItem);
-                }
-
-                $this->persistItems($boq);
-                Cache::put('boq_ai_status_' . Auth::id(), 'done', now()->addMinutes(30));
-                $this->dispatch('toast', message: count($result['items']) . ' items extracted successfully from the BOQ file.', type: 'success');
-                $this->dispatch('boq-upload-done');
-            }
-
-            $this->boqFile = null;
+            $this->dispatch('boq-ai-started');
+            $this->dispatch('toast', message: __('app.ai_extraction_started'), type: 'success');
 
         } catch (\Throwable $e) {
-            Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
+            $this->processing = false;
             Log::error('CreateBoq::uploadBoq failed.', [
                 'message' => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
             ]);
             $this->dispatch('toast', message: 'Upload failed. Please try again.', type: 'error');
-        } finally {
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // AI status polling (called by wire:poll every 4 s while $processing)
+    // -------------------------------------------------------------------------
+
+    public function checkAiStatus(): void
+    {
+        if (! $this->processing || $this->boqId === null) {
+            return;
+        }
+
+        $status = Cache::get('boq_ai_status_' . Auth::id());
+
+        if ($status === 'done') {
+            $boq = Boq::where('id', $this->boqId)->with(['items.unit'])->first();
+            if ($boq) {
+                $this->loadFromBoq($boq);
+            }
             $this->processing = false;
+            $this->dispatch('boq-upload-done');
+            $this->dispatch('toast', message: count($this->items) . ' items extracted successfully from the BOQ file.', type: 'success');
+        } elseif ($status === 'no_items') {
+            $this->processing = false;
+            $this->dispatch('toast', message: 'The AI service could not extract any items from the uploaded file. Please add items manually.', type: 'warning');
+        } elseif ($status === 'failed') {
+            $this->processing = false;
+            $this->dispatch('toast', message: 'AI extraction failed. Please try uploading the file again.', type: 'error');
         }
     }
 
