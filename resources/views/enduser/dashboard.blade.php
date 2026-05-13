@@ -18,92 +18,95 @@
      x-show="show"
      x-cloak
      class="relative mb-6 rounded-2xl overflow-hidden"
-     style="background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 40%, #c4b5fd 70%, #a78bfa 100%);">
+     style="background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 45%, #c4b5fd 75%, #a78bfa 100%); min-height: 160px;">
 
-    {{-- Decorative sparkles --}}
-    <span class="absolute top-4 left-8 text-pink-400 text-xl select-none pointer-events-none" style="font-size:18px;">✦</span>
-    <span class="absolute top-12 left-24 text-teal-400 text-xs select-none pointer-events-none">✦</span>
-    <span class="absolute bottom-6 left-16 text-violet-300 select-none pointer-events-none">◆</span>
-    <span class="absolute top-6 left-48 text-pink-300 text-xs select-none pointer-events-none">+</span>
-    <span class="absolute bottom-10 left-40 text-teal-300 select-none pointer-events-none" style="font-size:10px;">✦</span>
-    <span class="absolute top-3 right-80 text-pink-400 text-xs select-none pointer-events-none">+</span>
-    <span class="absolute bottom-4 right-72 text-teal-400 select-none pointer-events-none" style="font-size:10px;">◆</span>
-    <span class="absolute top-8 right-96 text-violet-300 select-none pointer-events-none" style="font-size:10px;">✦</span>
+    {{-- Decorative sparkles (positioned safely in the left text zone) --}}
+    <span class="absolute top-5 left-64 text-pink-400 select-none pointer-events-none" style="font-size:16px; z-index:1;">&#10022;</span>
+    <span class="absolute bottom-8 left-48 text-teal-400 select-none pointer-events-none" style="font-size:10px; z-index:1;">&#10022;</span>
+    <span class="absolute top-10 left-80 text-pink-300 select-none pointer-events-none" style="font-size:10px; z-index:1;">+</span>
+    <span class="absolute bottom-5 left-72 text-violet-300 select-none pointer-events-none" style="font-size:10px; z-index:1;">&#9670;</span>
 
     {{-- Close button --}}
     <button @click="show = false; localStorage.setItem('boq_banner_dismissed', '1')"
-            class="absolute top-4 end-4 w-7 h-7 rounded-full bg-white/30 hover:bg-white/50 flex items-center justify-center transition-colors z-10">
+            class="absolute top-4 end-4 w-7 h-7 rounded-full bg-white/30 hover:bg-white/50 flex items-center justify-center transition-colors"
+            style="z-index:20;">
         <svg class="w-3.5 h-3.5 text-violet-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
         </svg>
     </button>
 
-    <div class="flex items-center justify-between gap-6 px-8 py-7 pe-52 sm:pe-64 md:pe-72">
-        {{-- Text --}}
-        <div class="flex-1 min-w-0">
-            <h2 class="text-2xl sm:text-3xl font-black text-violet-900 leading-tight mb-1.5">
+    {{-- Inner flex row: [text] [cta] [illustration] --}}
+    <div class="flex items-center h-full" style="min-height:160px;">
+
+        {{-- Text block --}}
+        <div class="flex-1 px-8 py-7 min-w-0" style="z-index:2; position:relative;">
+            <h2 class="text-2xl sm:text-3xl font-black text-violet-900 leading-tight mb-2">
                 {{ __('app.banner_title') }}
             </h2>
             <p class="text-sm text-violet-700 font-medium mb-1">{{ __('app.banner_subtitle') }}</p>
             <p class="text-xs text-violet-500 font-semibold tracking-wide">{{ __('app.banner_tagline') }}</p>
         </div>
 
-        {{-- CTA --}}
-        <div class="flex flex-col items-end gap-3 flex-shrink-0">
-            <span class="inline-flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        {{-- CTA block --}}
+        <div class="flex flex-col items-center gap-3 px-6 py-7 flex-shrink-0" style="z-index:2; position:relative;">
+            <span class="inline-flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm whitespace-nowrap">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
                 {{ __('app.banner_free_badge') }}
             </span>
             <a href="{{ route('enduser.boqs.create') }}"
-               class="inline-flex items-center gap-2 bg-violet-900 hover:bg-violet-800 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-violet-400/30 transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="inline-flex items-center gap-2 bg-violet-900 hover:bg-violet-800 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-lg transition-all whitespace-nowrap">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 {{ __('app.banner_cta') }}
             </a>
         </div>
-    </div>
 
-    {{-- BOQ Illustration (absolute right) --}}
-    <div class="absolute bottom-0 end-8 h-full flex items-end pointer-events-none select-none" style="width:220px;">
-        <svg viewBox="0 0 220 180" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
-            {{-- Calculator body --}}
-            <rect x="30" y="40" width="80" height="120" rx="10" fill="#7c3aed" opacity="0.9"/>
-            <rect x="38" y="50" width="64" height="28" rx="5" fill="#a78bfa"/>
-            <rect x="42" y="55" width="56" height="18" rx="3" fill="#ede9fe"/>
-            {{-- Calc buttons --}}
-            <rect x="40" y="86" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            <rect x="58" y="86" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            <rect x="76" y="86" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            <rect x="94" y="86" width="14" height="10" rx="2" fill="#8b5cf6"/>
-            <rect x="40" y="100" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            <rect x="58" y="100" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            <rect x="76" y="100" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            <rect x="94" y="100" width="14" height="24" rx="2" fill="#8b5cf6"/>
-            <rect x="40" y="114" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            <rect x="58" y="114" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            <rect x="76" y="114" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            <rect x="40" y="128" width="32" height="10" rx="2" fill="#7c3aed"/>
-            <rect x="76" y="128" width="14" height="10" rx="2" fill="#c4b5fd"/>
-            {{-- Clipboard --}}
-            <rect x="80" y="20" width="100" height="130" rx="10" fill="white" opacity="0.95"/>
-            <rect x="115" y="14" width="30" height="16" rx="4" fill="#7c3aed"/>
-            <rect x="120" y="10" width="20" height="10" rx="3" fill="#5b21b6"/>
-            <rect x="92" y="40" width="76" height="6" rx="3" fill="#e2e8f0"/>
-            <rect x="92" y="52" width="76" height="6" rx="3" fill="#e2e8f0"/>
-            <rect x="92" y="64" width="60" height="6" rx="3" fill="#e2e8f0"/>
-            <rect x="92" y="76" width="76" height="6" rx="3" fill="#e2e8f0"/>
-            <rect x="92" y="88" width="50" height="6" rx="3" fill="#e2e8f0"/>
-            <rect x="92" y="100" width="76" height="6" rx="3" fill="#e2e8f0"/>
-            <rect x="92" y="112" width="40" height="6" rx="3" fill="#e2e8f0"/>
-            {{-- FREE badge on clipboard --}}
-            <rect x="118" y="126" width="44" height="20" rx="6" fill="#22c55e"/>
-            <text x="140" y="140" text-anchor="middle" font-size="9" font-weight="800" fill="white" font-family="sans-serif">FREE</text>
-            {{-- Sparkles around --}}
-            <text x="14" y="30" font-size="16" fill="#f472b6">✦</text>
-            <text x="185" y="28" font-size="12" fill="#2dd4bf">✦</text>
-            <text x="190" y="155" font-size="10" fill="#a78bfa">◆</text>
-        </svg>
+        {{-- Illustration --}}
+        <div class="hidden lg:block flex-shrink-0 self-end" style="width:220px; z-index:2; position:relative;">
+            <svg viewBox="0 0 220 165" xmlns="http://www.w3.org/2000/svg" style="display:block; width:220px; height:165px;">
+                {{-- sparkles in SVG --}}
+                <text x="8"   y="22"  font-size="15" fill="#f472b6">&#10022;</text>
+                <text x="196" y="26"  font-size="11" fill="#2dd4bf">&#10022;</text>
+                <text x="200" y="150" font-size="9"  fill="#a78bfa">&#9670;</text>
+                {{-- Calculator body (back) --}}
+                <rect x="18" y="38" width="80" height="118" rx="10" fill="#7c3aed" opacity="0.88"/>
+                <rect x="26" y="48" width="64" height="26" rx="5" fill="#a78bfa"/>
+                <rect x="30" y="53" width="56" height="16" rx="3" fill="#ede9fe"/>
+                {{-- Calc buttons --}}
+                <rect x="28" y="82"  width="14" height="10" rx="2" fill="#c4b5fd"/>
+                <rect x="46" y="82"  width="14" height="10" rx="2" fill="#c4b5fd"/>
+                <rect x="64" y="82"  width="14" height="10" rx="2" fill="#c4b5fd"/>
+                <rect x="82" y="82"  width="14" height="10" rx="2" fill="#8b5cf6"/>
+                <rect x="28" y="96"  width="14" height="10" rx="2" fill="#c4b5fd"/>
+                <rect x="46" y="96"  width="14" height="10" rx="2" fill="#c4b5fd"/>
+                <rect x="64" y="96"  width="14" height="10" rx="2" fill="#c4b5fd"/>
+                <rect x="82" y="96"  width="14" height="24" rx="2" fill="#8b5cf6"/>
+                <rect x="28" y="110" width="14" height="10" rx="2" fill="#c4b5fd"/>
+                <rect x="46" y="110" width="14" height="10" rx="2" fill="#c4b5fd"/>
+                <rect x="64" y="110" width="14" height="10" rx="2" fill="#c4b5fd"/>
+                <rect x="28" y="124" width="32" height="10" rx="2" fill="#6d28d9"/>
+                <rect x="64" y="124" width="14" height="10" rx="2" fill="#c4b5fd"/>
+                {{-- Clipboard (front, overlapping calculator) --}}
+                <rect x="72" y="12" width="110" height="140" rx="10" fill="white" opacity="0.97"/>
+                <rect x="109" y="6"  width="36" height="16" rx="5" fill="#7c3aed"/>
+                <rect x="115" y="2"  width="24" height="12" rx="4" fill="#5b21b6"/>
+                {{-- Lines on clipboard --}}
+                <rect x="84" y="36" width="86" height="6" rx="3" fill="#e2e8f0"/>
+                <rect x="84" y="48" width="86" height="6" rx="3" fill="#e2e8f0"/>
+                <rect x="84" y="60" width="68" height="6" rx="3" fill="#e2e8f0"/>
+                <rect x="84" y="72" width="86" height="6" rx="3" fill="#e2e8f0"/>
+                <rect x="84" y="84" width="54" height="6" rx="3" fill="#e2e8f0"/>
+                <rect x="84" y="96" width="86" height="6" rx="3" fill="#e2e8f0"/>
+                <rect x="84" y="108" width="44" height="6" rx="3" fill="#e2e8f0"/>
+                {{-- FREE badge --}}
+                <rect x="112" y="124" width="50" height="22" rx="7" fill="#22c55e"/>
+                <text x="137" y="139" text-anchor="middle" font-size="9" font-weight="900" fill="white" font-family="Arial,sans-serif">FREE</text>
+            </svg>
+        </div>
+
     </div>
 </div>
 
