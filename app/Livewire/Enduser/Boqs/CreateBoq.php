@@ -248,7 +248,8 @@ class CreateBoq extends Component
             return;
         }
 
-        $status = Cache::get('boq_ai_status_' . Auth::id());
+        $status  = Cache::get('boq_ai_status_' . Auth::id());
+        $message = (string) Cache::get('boq_ai_message_' . Auth::id(), '');
 
         if ($status === 'done') {
             $boq = Boq::where('id', $this->boqId)->with(['items.unit'])->first();
@@ -257,13 +258,13 @@ class CreateBoq extends Component
             }
             $this->processing = false;
             $this->dispatch('boq-upload-done');
-            $this->dispatch('toast', message: count($this->items) . ' items extracted successfully from the BOQ file.', type: 'success');
+            $this->dispatch('toast', message: $message ?: (count($this->items) . ' items extracted from your file.'), type: 'success');
         } elseif ($status === 'no_items') {
             $this->processing = false;
-            $this->dispatch('toast', message: 'The AI service could not extract any items from the uploaded file. Please add items manually.', type: 'warning');
+            $this->dispatch('toast', message: $message ?: 'No items found in the file. Please add items manually.', type: 'warning');
         } elseif ($status === 'failed') {
             $this->processing = false;
-            $this->dispatch('toast', message: 'AI extraction failed. Please try uploading the file again.', type: 'error');
+            $this->dispatch('toast', message: $message ?: 'Extraction failed. Please try uploading the file again.', type: 'error');
         }
     }
 

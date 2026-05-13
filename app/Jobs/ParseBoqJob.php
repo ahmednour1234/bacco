@@ -33,13 +33,15 @@ class ParseBoqJob implements ShouldQueue
 
     public function handle(QuotationAiService $ai): void
     {
-        $cacheKey = 'boq_ai_status_' . $this->userId;
+        $cacheKey    = 'boq_ai_status_' . $this->userId;
+        $msgCacheKey = 'boq_ai_message_' . $this->userId;
 
         try {
             $absPath = Storage::disk('local')->path($this->filePath);
 
             if (! file_exists($absPath)) {
                 Log::error('ParseBoqJob: File not found.', ['path' => $absPath]);
+                Cache::put($msgCacheKey, 'File not found on server. Please try uploading again.', now()->addMinutes(30));
                 Cache::put($cacheKey, 'failed', now()->addMinutes(30));
                 return;
             }
@@ -48,20 +50,24 @@ class ParseBoqJob implements ShouldQueue
 
             $boq = Boq::find($this->boqId);
             if (! $boq) {
+                Cache::put($msgCacheKey, 'BOQ record not found.', now()->addMinutes(30));
                 Cache::put($cacheKey, 'failed', now()->addMinutes(30));
                 return;
             }
 
             if (! $result['success']) {
+                $errorMsg = $result['error'] ?? 'Extraction failed.';
+                Cache::put($msgCacheKey, $errorMsg, now()->addMinutes(30));
                 Cache::put($cacheKey, 'failed', now()->addMinutes(30));
-                Log::warning('ParseBoqJob: AI extraction failed.', [
+                Log::warning('ParseBoqJob: Extraction failed.', [
                     'boq_id' => $this->boqId,
-                    'error'  => $result['error'],
+                    'error'  => $errorMsg,
                 ]);
                 return;
             }
 
             if (empty($result['items'])) {
+                Cache::put($msgCacheKey, 'No items could be found in the file. Please check the file or add items manually.', now()->addMinutes(30));
                 Cache::put($cacheKey, 'no_items', now()->addMinutes(30));
                 return;
             }
@@ -69,6 +75,7 @@ class ParseBoqJob implements ShouldQueue
             // Wipe previous items and persist the freshly extracted ones.
             BoqItem::where('boq_id', $this->boqId)->delete();
 
+            $count = 0;
             foreach ($result['items'] as $aiItem) {
                 $item = array_merge([
                     'description'          => '',
@@ -100,11 +107,14 @@ class ParseBoqJob implements ShouldQueue
                     'ai_extracted'         => true,
                     'is_selected'          => false,
                 ]);
+                $count++;
             }
 
+            Cache::put($msgCacheKey, "Successfully extracted {$count} items from your file.", now()->addMinutes(30));
             Cache::put($cacheKey, 'done', now()->addMinutes(30));
 
         } catch (\Throwable $e) {
+            Cache::put($msgCacheKey, $e->getMessage(), now()->addMinutes(30));
             Cache::put($cacheKey, 'failed', now()->addMinutes(30));
             Log::error('ParseBoqJob: Unexpected error.', [
                 'boq_id'  => $this->boqId,
