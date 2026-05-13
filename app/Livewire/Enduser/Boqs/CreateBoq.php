@@ -11,9 +11,9 @@ use App\Models\Boq;
 use App\Models\BoqItem;
 use App\Models\Project;
 use App\Models\Unit;
-use App\Jobs\ParseBoqJob;
 use App\Models\UploadedDocument;
 use App\Services\NotificationService;
+use App\Services\QuotationAiService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -277,27 +277,78 @@ class CreateBoq extends Component
                 $storedPath = $fallbackStoragePath;
             }
 
-            $this->boqFile    = null;
-            $this->processing = true;
+            $this->boqFile = null;
 
-            Cache::put('boq_ai_status_' . Auth::id(), 'running', now()->addHours(2));
-            Cache::put('boq_ai_started_at_' . Auth::id(), now()->timestamp, now()->addHours(2));
-
-            // ── Dispatch background job — returns immediately ─────────────────
-            ParseBoqJob::dispatch($boq->id, Auth::id(), $storedPath, [
+            // ── Call AI service synchronously (no queue worker needed) ────────
+            $absPath = Storage::disk('local')->path($storedPath);
+            $ai      = app(QuotationAiService::class);
+            $result  = $ai->parseBoq($absPath, [
                 'boq_id'       => $boq->id,
                 'project_name' => $this->projectName,
             ]);
 
-            $this->dispatch('boq-ai-started');
-            $this->dispatch('toast', message: __('app.ai_extraction_started'), type: 'success');
+            if (! $result['success']) {
+                $this->dispatch('boq-upload-done');
+                $this->dispatch('toast', message: $result['error'] ?? 'Extraction failed. Please try again.', type: 'error');
+                return;
+            }
+
+            if (empty($result['items'])) {
+                $this->dispatch('boq-upload-done');
+                $this->dispatch('toast', message: 'No items found in the file. Please add items manually.', type: 'warning');
+                return;
+            }
+
+            // ── Persist extracted items ───────────────────────────────────────
+            BoqItem::where('boq_id', $boq->id)->delete();
+            foreach ($result['items'] as $aiItem) {
+                $item = array_merge([
+                    'description'          => '',
+                    'quantity'             => 1,
+                    'unit_id'              => null,
+                    'category'             => '',
+                    'brand'                => '',
+                    'status'               => 'pending',
+                    'engineering_required' => false,
+                    'confidence'           => null,
+                    'unit_price'           => null,
+                    'raw_data'             => null,
+                    'ai_extracted'         => true,
+                    'is_selected'          => false,
+                ], $aiItem);
+
+                BoqItem::create([
+                    'boq_id'               => $boq->id,
+                    'description'          => (string) ($item['description'] ?? ''),
+                    'quantity'             => is_numeric($item['quantity']) ? (float) $item['quantity'] : 1,
+                    'unit_id'              => $item['unit_id'] ?? null,
+                    'category'             => (string) ($item['category'] ?? ''),
+                    'brand'                => (string) ($item['brand'] ?? ''),
+                    'status'               => $item['status'] ?? 'pending',
+                    'engineering_required' => (bool) ($item['engineering_required'] ?? false),
+                    'confidence'           => is_numeric($item['confidence'] ?? null) ? (float) $item['confidence'] : null,
+                    'unit_price'           => is_numeric($item['unit_price'] ?? null) ? (float) $item['unit_price'] : null,
+                    'raw_data'             => $item['raw_data'] ?? null,
+                    'ai_extracted'         => true,
+                    'is_selected'          => false,
+                ]);
+            }
+
+            // ── Reload items into component state ─────────────────────────────
+            $boq = Boq::where('id', $boq->id)->with(['items.unit'])->first();
+            if ($boq) {
+                $this->loadFromBoq($boq);
+            }
+
+            $this->dispatch('boq-upload-done');
+            $this->dispatch('toast', message: count($this->items) . ' items extracted from your file.', type: 'success');
 
         } catch (\Throwable $e) {
-            $this->processing = false;
             Log::error('CreateBoq::uploadBoq failed.', [
                 'message' => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
             ]);
+            $this->dispatch('boq-upload-done');
             $this->dispatch('toast', message: 'Upload failed. Please try again.', type: 'error');
         }
     }
