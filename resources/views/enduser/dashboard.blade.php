@@ -13,212 +13,127 @@
 
 @section('content')
 
-{{-- Promo Banner Slider --}}
-<div x-data="{
-        slide: 0,
-        total: 3,
-        timer: null,
-        start() { this.timer = setInterval(() => { this.slide = (this.slide + 1) % this.total }, 4500) },
-        go(n) { this.slide = n; clearInterval(this.timer); this.start() }
-     }"
-     x-init="start()"
-     class="relative mb-6 rounded-2xl overflow-hidden select-none"
-     style="height:170px;">
+{{-- ═══════════════════════════════════════════════════════
+     BOQ PROMO HERO CARD
+═══════════════════════════════════════════════════════ --}}
+<div class="relative mb-8 rounded-3xl overflow-hidden shadow-2xl"
+     style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4338ca 65%, #6d28d9 100%);">
 
-    {{-- ── Slide 1 – Create BOQ (violet) ───────────────────────────────── --}}
-    <div x-show="slide === 0"
-         x-transition:enter="transition ease-out duration-500"
-         x-transition:enter-start="opacity-0 translate-x-8"
-         x-transition:enter-end="opacity-100 translate-x-0"
-         x-transition:leave="transition ease-in duration-300"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="absolute inset-0 flex items-center"
-         style="background:linear-gradient(120deg,#ede9fe 0%,#c4b5fd 55%,#8b5cf6 100%);">
-        {{-- sparkle dots --}}
-        <span class="absolute" style="top:18px;left:52%;font-size:14px;color:#f472b6;pointer-events:none;">&#10022;</span>
-        <span class="absolute" style="bottom:20px;left:48%;font-size:9px;color:#2dd4bf;pointer-events:none;">&#10022;</span>
-        <span class="absolute" style="top:30px;left:55%;font-size:9px;color:#f9a8d4;pointer-events:none;">+</span>
-        <span class="absolute" style="bottom:14px;left:56%;font-size:9px;color:#c4b5fd;pointer-events:none;">&#9670;</span>
-        {{-- text --}}
-        <div class="flex-1 px-8 py-6">
-            <p class="text-xs font-bold text-violet-600 uppercase tracking-widest mb-1">{{ __('app.banner_free_badge') }}</p>
-            <h2 class="text-2xl sm:text-3xl font-black text-violet-950 leading-tight mb-2">{{ __('app.banner_title') }}</h2>
-            <p class="text-sm text-violet-700 font-medium mb-1">{{ __('app.banner_subtitle') }}</p>
-            <p class="text-xs text-violet-500 font-semibold">{{ __('app.banner_tagline') }}</p>
-        </div>
-        {{-- CTA --}}
-        <div class="flex-shrink-0 px-6">
+    {{-- Animated background orbs --}}
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute" style="width:420px;height:420px;top:-120px;left:-80px;background:radial-gradient(circle,rgba(139,92,246,0.35) 0%,transparent 70%);border-radius:50%;"></div>
+        <div class="absolute" style="width:300px;height:300px;bottom:-60px;left:30%;background:radial-gradient(circle,rgba(99,102,241,0.3) 0%,transparent 70%);border-radius:50%;"></div>
+        <div class="absolute" style="width:250px;height:250px;top:-40px;right:200px;background:radial-gradient(circle,rgba(167,139,250,0.25) 0%,transparent 70%);border-radius:50%;"></div>
+        {{-- subtle dot-grid pattern --}}
+        <svg class="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="1.5" fill="white"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dots)"/>
+        </svg>
+    </div>
+
+    {{-- Main content row --}}
+    <div class="relative flex flex-col md:flex-row items-center justify-between px-8 py-8 md:py-6 gap-6 md:gap-0"
+         style="min-height: 200px;">
+
+        {{-- ── Left: text + CTA ── --}}
+        <div class="flex-1 text-center md:text-start z-10">
+
+            {{-- Badge --}}
+            <div class="inline-flex items-center gap-2 mb-3">
+                <span class="inline-flex items-center gap-1.5 bg-emerald-400 text-emerald-950 text-xs font-black px-3 py-1 rounded-full shadow-md uppercase tracking-wide">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    100% FREE
+                </span>
+                <span class="inline-flex items-center gap-1 bg-white/10 text-white/80 text-xs font-semibold px-2.5 py-1 rounded-full border border-white/20">
+                    &#10022; New Feature
+                </span>
+            </div>
+
+            {{-- Headline --}}
+            <h2 class="text-3xl sm:text-4xl font-black text-white leading-tight mb-2 drop-shadow-md">
+                {{ __('app.banner_title') }}
+            </h2>
+
+            {{-- Subtitle --}}
+            <p class="text-indigo-200 text-sm sm:text-base font-medium mb-1 max-w-sm mx-auto md:mx-0">
+                {{ __('app.banner_subtitle') }}
+            </p>
+
+            {{-- Tagline pills --}}
+            <div class="flex items-center justify-center md:justify-start flex-wrap gap-2 mb-5 mt-2">
+                @foreach(['Fast', 'Easy', 'Accurate'] as $tag)
+                <span class="inline-flex items-center gap-1 text-xs text-white/70 bg-white/10 border border-white/20 rounded-full px-2.5 py-0.5 backdrop-blur-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+                    {{ $tag }}
+                </span>
+                @endforeach
+            </div>
+
+            {{-- CTA Button --}}
             <a href="{{ route('enduser.boqs.create') }}"
-               class="inline-flex items-center gap-2 bg-violet-900 hover:bg-violet-800 text-white text-sm font-bold px-7 py-3.5 rounded-xl shadow-lg transition-all whitespace-nowrap">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+               class="group/btn inline-flex items-center gap-2.5 bg-white text-indigo-900 hover:bg-emerald-400 hover:text-emerald-950 font-black text-sm px-8 py-3.5 rounded-2xl shadow-xl hover:shadow-emerald-500/40 transition-all duration-200 hover:-translate-y-0.5">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
                 {{ __('app.banner_cta') }}
+                <svg class="w-4 h-4 flex-shrink-0 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
             </a>
+
         </div>
-        {{-- illustration --}}
-        <div class="hidden lg:flex flex-shrink-0 self-end items-end" style="width:210px;height:170px;overflow:hidden;">
-            <svg viewBox="0 0 210 170" style="width:210px;height:170px;" xmlns="http://www.w3.org/2000/svg">
-                <text x="10" y="24" font-size="14" fill="#f472b6">&#10022;</text>
-                <text x="188" y="28" font-size="10" fill="#2dd4bf">&#10022;</text>
-                <text x="193" y="155" font-size="8" fill="#a78bfa">&#9670;</text>
-                <rect x="16" y="40" width="76" height="116" rx="10" fill="#7c3aed" opacity="0.9"/>
-                <rect x="24" y="50" width="60" height="24" rx="5" fill="#a78bfa"/>
-                <rect x="28" y="55" width="52" height="14" rx="3" fill="#ede9fe"/>
-                <rect x="26" y="82" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="42" y="82" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="58" y="82" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="74" y="82" width="12" height="9" rx="2" fill="#8b5cf6"/>
-                <rect x="26" y="95" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="42" y="95" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="58" y="95" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="74" y="95" width="12" height="22" rx="2" fill="#8b5cf6"/>
-                <rect x="26" y="108" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="42" y="108" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="58" y="108" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="26" y="121" width="28" height="9" rx="2" fill="#6d28d9"/>
-                <rect x="58" y="121" width="12" height="9" rx="2" fill="#c4b5fd"/>
-                <rect x="68" y="14" width="108" height="142" rx="10" fill="white" opacity="0.97"/>
-                <rect x="104" y="6" width="36" height="16" rx="5" fill="#7c3aed"/>
-                <rect x="110" y="2" width="24" height="12" rx="4" fill="#5b21b6"/>
-                <rect x="80" y="38" width="84" height="5" rx="2" fill="#e2e8f0"/>
-                <rect x="80" y="50" width="84" height="5" rx="2" fill="#e2e8f0"/>
-                <rect x="80" y="62" width="64" height="5" rx="2" fill="#e2e8f0"/>
-                <rect x="80" y="74" width="84" height="5" rx="2" fill="#e2e8f0"/>
-                <rect x="80" y="86" width="50" height="5" rx="2" fill="#e2e8f0"/>
-                <rect x="80" y="98" width="84" height="5" rx="2" fill="#e2e8f0"/>
-                <rect x="80" y="110" width="40" height="5" rx="2" fill="#e2e8f0"/>
-                <rect x="108" y="126" width="48" height="20" rx="6" fill="#22c55e"/>
-                <text x="132" y="140" text-anchor="middle" font-size="8" font-weight="900" fill="white" font-family="Arial,sans-serif">FREE</text>
-            </svg>
+
+        {{-- ── Center/Right: 3D BOQ Image ── --}}
+        <div class="flex-shrink-0 flex items-center justify-center z-10"
+             style="width:220px; height:180px; position:relative;">
+            {{-- glow halo behind image --}}
+            <div class="absolute inset-0 rounded-full"
+                 style="background:radial-gradient(circle,rgba(167,139,250,0.5) 0%,transparent 70%);filter:blur(20px);"></div>
+            <img src="{{ asset('images/boq-free.png') }}"
+                 alt="BOQ Free"
+                 class="relative drop-shadow-2xl"
+                 style="width:200px; height:auto; filter:drop-shadow(0 20px 40px rgba(99,102,241,0.6)); animation: boqFloat 3s ease-in-out infinite;">
         </div>
+
+        {{-- ── Right: Stats strip (desktop only) ── --}}
+        <div class="hidden xl:flex flex-col gap-3 z-10 flex-shrink-0 ps-6">
+            @foreach([
+                ['icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z','label'=>'Smart Pricing','val'=>'AI-Powered'],
+                ['icon'=>'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z','label'=>'Setup Time','val'=>'2 Minutes'],
+                ['icon'=>'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z','label'=>'Accuracy','val'=>'99%+'],
+            ] as $s)
+            <div class="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-4 py-2.5 backdrop-blur-sm">
+                <div class="w-8 h-8 bg-indigo-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $s['icon'] }}"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-white font-bold text-sm leading-tight">{{ $s['val'] }}</p>
+                    <p class="text-indigo-300 text-xs">{{ $s['label'] }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
     </div>
 
-    {{-- ── Slide 2 – Get Quotation Fast (emerald) ──────────────────────── --}}
-    <div x-show="slide === 1"
-         x-transition:enter="transition ease-out duration-500"
-         x-transition:enter-start="opacity-0 translate-x-8"
-         x-transition:enter-end="opacity-100 translate-x-0"
-         x-transition:leave="transition ease-in duration-300"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="absolute inset-0 flex items-center"
-         style="background:linear-gradient(120deg,#d1fae5 0%,#6ee7b7 50%,#059669 100%);">
-        <span class="absolute" style="top:16px;left:52%;font-size:14px;color:#fbbf24;pointer-events:none;">&#10022;</span>
-        <span class="absolute" style="bottom:22px;left:49%;font-size:9px;color:#fff;pointer-events:none;">&#10022;</span>
-        <span class="absolute" style="top:32px;left:56%;font-size:9px;color:#a7f3d0;pointer-events:none;">+</span>
-        <span class="absolute" style="bottom:14px;left:55%;font-size:9px;color:#6ee7b7;pointer-events:none;">&#9670;</span>
-        {{-- text --}}
-        <div class="flex-1 px-8 py-6">
-            <p class="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-1">{{ __('app.banner2_badge') }}</p>
-            <h2 class="text-2xl sm:text-3xl font-black text-emerald-950 leading-tight mb-2">{{ __('app.banner2_title') }}</h2>
-            <p class="text-sm text-emerald-800 font-medium mb-1">{{ __('app.banner2_subtitle') }}</p>
-            <p class="text-xs text-emerald-700 font-semibold">{{ __('app.banner2_tagline') }}</p>
-        </div>
-        {{-- CTA --}}
-        <div class="flex-shrink-0 px-6">
-            <a href="{{ route('enduser.quotations.create') }}"
-               class="inline-flex items-center gap-2 bg-emerald-900 hover:bg-emerald-800 text-white text-sm font-bold px-7 py-3.5 rounded-xl shadow-lg transition-all whitespace-nowrap">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                {{ __('app.banner2_cta') }}
-            </a>
-        </div>
-        {{-- illustration --}}
-        <div class="hidden lg:flex flex-shrink-0 self-end items-end" style="width:210px;height:170px;overflow:hidden;">
-            <svg viewBox="0 0 210 170" style="width:210px;height:170px;" xmlns="http://www.w3.org/2000/svg">
-                <text x="10" y="24" font-size="14" fill="#fbbf24">&#10022;</text>
-                <text x="188" y="28" font-size="10" fill="#fff">&#10022;</text>
-                {{-- document stack --}}
-                <rect x="30" y="60" width="90" height="110" rx="8" fill="#059669" opacity="0.3"/>
-                <rect x="40" y="45" width="90" height="110" rx="8" fill="#065f46" opacity="0.5"/>
-                <rect x="50" y="30" width="90" height="130" rx="8" fill="white" opacity="0.96"/>
-                <rect x="80" y="24" width="30" height="12" rx="4" fill="#059669"/>
-                <rect x="62" y="52" width="66" height="5" rx="2" fill="#d1fae5"/>
-                <rect x="62" y="64" width="66" height="5" rx="2" fill="#d1fae5"/>
-                <rect x="62" y="76" width="50" height="5" rx="2" fill="#d1fae5"/>
-                <rect x="62" y="88" width="66" height="5" rx="2" fill="#d1fae5"/>
-                <rect x="62" y="100" width="40" height="5" rx="2" fill="#d1fae5"/>
-                {{-- checkmark --}}
-                <circle cx="115" cy="125" r="22" fill="#059669"/>
-                <polyline points="105,125 113,133 127,116" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                {{-- clock --}}
-                <circle cx="62" cy="130" r="18" fill="#fbbf24"/>
-                <circle cx="62" cy="130" r="14" fill="white"/>
-                <line x1="62" y1="119" x2="62" y2="130" stroke="#374151" stroke-width="2" stroke-linecap="round"/>
-                <line x1="62" y1="130" x2="70" y2="136" stroke="#374151" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-        </div>
-    </div>
-
-    {{-- ── Slide 3 – Track Your Orders (blue) ──────────────────────────── --}}
-    <div x-show="slide === 2"
-         x-transition:enter="transition ease-out duration-500"
-         x-transition:enter-start="opacity-0 translate-x-8"
-         x-transition:enter-end="opacity-100 translate-x-0"
-         x-transition:leave="transition ease-in duration-300"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="absolute inset-0 flex items-center"
-         style="background:linear-gradient(120deg,#dbeafe 0%,#93c5fd 50%,#2563eb 100%);">
-        <span class="absolute" style="top:16px;left:52%;font-size:14px;color:#f472b6;pointer-events:none;">&#10022;</span>
-        <span class="absolute" style="bottom:22px;left:49%;font-size:9px;color:#fbbf24;pointer-events:none;">&#10022;</span>
-        <span class="absolute" style="top:32px;left:56%;font-size:9px;color:#bfdbfe;pointer-events:none;">+</span>
-        <span class="absolute" style="bottom:14px;left:55%;font-size:9px;color:#93c5fd;pointer-events:none;">&#9670;</span>
-        {{-- text --}}
-        <div class="flex-1 px-8 py-6">
-            <p class="text-xs font-bold text-blue-700 uppercase tracking-widest mb-1">{{ __('app.banner3_badge') }}</p>
-            <h2 class="text-2xl sm:text-3xl font-black text-blue-950 leading-tight mb-2">{{ __('app.banner3_title') }}</h2>
-            <p class="text-sm text-blue-800 font-medium mb-1">{{ __('app.banner3_subtitle') }}</p>
-            <p class="text-xs text-blue-700 font-semibold">{{ __('app.banner3_tagline') }}</p>
-        </div>
-        {{-- CTA --}}
-        <div class="flex-shrink-0 px-6">
-            <a href="{{ route('enduser.orders.index') }}"
-               class="inline-flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white text-sm font-bold px-7 py-3.5 rounded-xl shadow-lg transition-all whitespace-nowrap">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                {{ __('app.banner3_cta') }}
-            </a>
-        </div>
-        {{-- illustration --}}
-        <div class="hidden lg:flex flex-shrink-0 self-end items-end" style="width:210px;height:170px;overflow:hidden;">
-            <svg viewBox="0 0 210 170" style="width:210px;height:170px;" xmlns="http://www.w3.org/2000/svg">
-                <text x="10" y="24" font-size="14" fill="#f472b6">&#10022;</text>
-                <text x="188" y="28" font-size="10" fill="#fbbf24">&#10022;</text>
-                {{-- phone/app mockup --}}
-                <rect x="60" y="18" width="80" height="142" rx="14" fill="#1e3a8a" opacity="0.9"/>
-                <rect x="66" y="28" width="68" height="122" rx="8" fill="#dbeafe"/>
-                <circle cx="100" cy="22" r="4" fill="#3b82f6" opacity="0.6"/>
-                {{-- app rows --}}
-                <rect x="72" y="38" width="56" height="10" rx="3" fill="#2563eb"/>
-                <rect x="72" y="54" width="40" height="6" rx="2" fill="#93c5fd"/>
-                <rect x="72" y="64" width="56" height="6" rx="2" fill="#bfdbfe"/>
-                <rect x="72" y="78" width="40" height="6" rx="2" fill="#93c5fd"/>
-                <rect x="72" y="88" width="56" height="6" rx="2" fill="#bfdbfe"/>
-                <rect x="72" y="102" width="40" height="6" rx="2" fill="#93c5fd"/>
-                <rect x="72" y="112" width="56" height="6" rx="2" fill="#bfdbfe"/>
-                {{-- status dot --}}
-                <circle cx="84" cy="57" r="3" fill="#22c55e"/>
-                <circle cx="84" cy="81" r="3" fill="#f59e0b"/>
-                <circle cx="84" cy="105" r="3" fill="#3b82f6"/>
-                {{-- box icon floating --}}
-                <rect x="140" y="60" width="50" height="50" rx="10" fill="#2563eb" opacity="0.85"/>
-                <path d="M155 82 L165 76 L175 82 L175 94 L165 100 L155 94 Z" stroke="white" stroke-width="2" fill="none" stroke-linejoin="round"/>
-                <line x1="165" y1="76" x2="165" y2="100" stroke="white" stroke-width="1.5"/>
-                <line x1="155" y1="82" x2="175" y2="82" stroke="white" stroke-width="1.5"/>
-            </svg>
-        </div>
-    </div>
-
-    {{-- Dot indicators --}}
-    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2" style="z-index:10;">
-        <template x-for="i in total" :key="i">
-            <button @click="go(i-1)"
-                    class="transition-all duration-300 rounded-full"
-                    :class="slide === i-1 ? 'w-6 h-2.5 bg-white shadow' : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'">
-            </button>
-        </template>
-    </div>
-
+    {{-- Bottom shimmer bar --}}
+    <div class="absolute bottom-0 left-0 right-0 h-0.5"
+         style="background: linear-gradient(90deg, transparent, rgba(167,139,250,0.8), rgba(52,211,153,0.8), transparent);"></div>
 </div>
+
+{{-- Float animation --}}
+<style>
+@keyframes boqFloat {
+    0%,100% { transform: translateY(0px) rotate(-2deg); }
+    50%      { transform: translateY(-10px) rotate(2deg); }
+}
+</style>
 
 {{-- Stat Cards --}}
 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-7">
