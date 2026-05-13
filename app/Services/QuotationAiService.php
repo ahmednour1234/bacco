@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -98,11 +99,11 @@ class QuotationAiService
     }
 
     /**
-     * Send a BOQ file to the external AI endpoint and return extracted items.
-     * Falls back to Gemini if the primary API fails.
+     * Send a BOQ file to Gemini for item extraction.
+     * Results are cached by file hash so the same file is never re-analysed.
      *
      * @param  \Illuminate\Http\UploadedFile|string  $file  Uploaded file or stored path
-     * @param  array<string, mixed>  $context  Extra context (quotation_id, project_name, project_status)
+     * @param  array<string, mixed>  $context  Extra context (boq_id, project_name, project_status)
      * @return array{success: bool, items: array<int, array<string, mixed>>, error: string|null}
      */
     public function parseBoq(UploadedFile|string $file, array $context = []): array
@@ -117,35 +118,33 @@ class QuotationAiService
             return $mock;
         }
 
-        $result = $this->callPrimaryApi($file, $context);
-
-        if ($result['success']) {
-            return $result;
+        // ── Resolve absolute path for hashing ───────────────────────────────
+        if ($file instanceof UploadedFile) {
+            $absPath = (string) $file->getRealPath();
+        } else {
+            $absPath = file_exists($file) ? $file : storage_path('app/' . $file);
         }
 
-        // ── Gemini fallback ──────────────────────────────────────────────────
-        $geminiKey = (string) config('services.gemini.key', '');
-        if (empty($geminiKey)) {
-            return $result; // No fallback configured — return the original failure.
+        // ── Cache look-up: same file content → return stored result ─────────
+        $fileHash = is_file($absPath) ? hash_file('sha256', $absPath) : null;
+        if ($fileHash !== null) {
+            $cacheKey = 'boq_analysis_' . $fileHash;
+            $cached   = Cache::get($cacheKey);
+            if ($cached !== null) {
+                Log::info('QuotationAiService: Returning cached Gemini analysis.', ['hash' => $fileHash]);
+                return $cached;
+            }
         }
 
-        Log::info('QuotationAiService: Primary API failed — falling back to Gemini.', [
-            'primary_error' => $result['error'],
-        ]);
+        // ── Go directly to Gemini ────────────────────────────────────────────
+        $result = $this->parseBoqWithGemini($file, $context);
 
-        $geminiResult = $this->parseBoqWithGemini($file, $context);
-
-        if ($geminiResult['success']) {
-            return $geminiResult;
+        // ── Cache successful result for 30 days ──────────────────────────────
+        if ($result['success'] && $fileHash !== null) {
+            Cache::put('boq_analysis_' . $fileHash, $result, now()->addDays(30));
         }
 
-        // Both failed — return the most specific error message.
-        Log::error('QuotationAiService: Both primary API and Gemini fallback failed.', [
-            'primary_error' => $result['error'],
-            'gemini_error'  => $geminiResult['error'],
-        ]);
-
-        return $this->failure($geminiResult['error'] ?? $result['error']);
+        return $result;
     }
 
     /**
