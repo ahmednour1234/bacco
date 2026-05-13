@@ -90,9 +90,14 @@ class CreateBoq extends Component
             if ($latestDraft) {
                 $this->loadFromBoq($latestDraft);
                 // If items already exist → AI finished, hide the pill
-                // If no items → AI still running or was cancelled, just show resume popup
                 if (count($this->items) > 0) {
                     $this->dispatch('boq-upload-done');
+                } else {
+                    // Job may still be running — restore processing state so wire:poll resumes
+                    $aiStatus = Cache::get('boq_ai_status_' . Auth::id());
+                    if ($aiStatus === 'running') {
+                        $this->processing = true;
+                    }
                 }
                 $this->dispatch('boq-resume-done');
                 return;
@@ -218,6 +223,7 @@ class CreateBoq extends Component
             $this->processing = true;
 
             Cache::put('boq_ai_status_' . Auth::id(), 'running', now()->addHours(2));
+            Cache::put('boq_ai_started_at_' . Auth::id(), now()->timestamp, now()->addHours(2));
 
             // ── Dispatch background job — returns immediately ─────────────────
             ParseBoqJob::dispatch($boq->id, Auth::id(), $storedPath, [
@@ -246,6 +252,16 @@ class CreateBoq extends Component
     {
         if (! $this->processing || $this->boqId === null) {
             return;
+        }
+
+        // ── Auto-fail if the job has been running for more than 5 minutes ────
+        $startedAt = Cache::get('boq_ai_started_at_' . Auth::id());
+        if ($startedAt && (now()->timestamp - $startedAt) > 300) {
+            Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
+            Cache::put('boq_ai_message_' . Auth::id(),
+                'Processing timed out after 5 minutes. The file may be too large, or the background worker may not be running. Please try again.',
+                now()->addMinutes(30)
+            );
         }
 
         $status  = Cache::get('boq_ai_status_' . Auth::id());

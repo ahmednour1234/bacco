@@ -397,20 +397,6 @@
                 {{-- Manual item management --}}
                 <div>
 
-                    {{-- AI processing banner --}}
-                    @if($processing)
-                    <div class="mb-4 flex items-center gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-                        <svg class="h-5 w-5 shrink-0 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                        </svg>
-                        <div>
-                            <p class="text-sm font-semibold text-emerald-800">{{ __('app.ai_extracting_background') }}</p>
-                            <p class="mt-0.5 text-xs text-emerald-600">{{ __('app.ai_extracting_background_hint') }}</p>
-                        </div>
-                    </div>
-                    @endif
-
                     <div class="mb-3 flex items-center justify-between">
                         <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
                             {{ __('app.boq_items') }}
