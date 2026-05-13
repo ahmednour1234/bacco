@@ -109,89 +109,89 @@
     <div class="mb-7 grid grid-cols-2 gap-4 xl:grid-cols-4">
 
         {{-- Total --}}
-        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-             style="border: 1px solid #e2e8f0;">
-            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style="background: linear-gradient(90deg, #6366f1, #818cf8);"></div>
-            <div class="px-7 pt-7 pb-6">
+        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+             style="border: 1px solid #e2e8f0; min-height: 175px;">
+            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #6366f1, #818cf8);"></div>
+            <div class="flex flex-col justify-between h-full px-8 pt-8 pb-7">
                 <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-widest mb-3" style="color:#6366f1;">{{ __('app.total_boqs') }}</p>
-                        <p class="text-5xl font-black text-slate-900 leading-none" x-text="stats.total ?? '—'"></p>
-                        <p class="mt-2 text-xs font-medium text-slate-400">All time BOQs</p>
-                    </div>
-                    <div class="flex h-13 w-13 flex-shrink-0 items-center justify-center rounded-2xl shadow-md"
-                         style="background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); width:52px; height:52px;">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <p class="text-[11px] font-bold uppercase tracking-widest" style="color:#6366f1;">{{ __('app.total_boqs') }}</p>
+                    <div class="flex flex-shrink-0 items-center justify-center rounded-2xl shadow-lg"
+                         style="background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); width:58px; height:58px;">
+                        <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                     </div>
                 </div>
+                <div class="mt-4">
+                    <p class="text-5xl font-black text-slate-900 leading-none" x-text="stats.total ?? '—'"></p>
+                    <p class="mt-2.5 text-xs font-semibold text-slate-400">All time BOQs</p>
+                </div>
             </div>
         </div>
 
         {{-- Draft --}}
-        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-             style="border: 1px solid #e2e8f0;">
-            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style="background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
-            <div class="px-7 pt-7 pb-6">
+        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+             style="border: 1px solid #e2e8f0; min-height: 175px;">
+            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+            <div class="flex flex-col justify-between h-full px-8 pt-8 pb-7">
                 <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-widest mb-3" style="color:#d97706;">{{ __('app.status_draft') }}</p>
-                        <p class="text-5xl font-black text-slate-900 leading-none" x-text="stats.draft ?? '—'"></p>
-                        <p class="mt-2 text-xs font-medium text-slate-400">Awaiting review</p>
-                    </div>
-                    <div class="flex flex-shrink-0 items-center justify-center rounded-2xl shadow-md"
-                         style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); width:52px; height:52px;">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <p class="text-[11px] font-bold uppercase tracking-widest" style="color:#d97706;">{{ __('app.status_draft') }}</p>
+                    <div class="flex flex-shrink-0 items-center justify-center rounded-2xl shadow-lg"
+                         style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); width:58px; height:58px;">
+                        <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
                     </div>
                 </div>
+                <div class="mt-4">
+                    <p class="text-5xl font-black text-slate-900 leading-none" x-text="stats.draft ?? '—'"></p>
+                    <p class="mt-2.5 text-xs font-semibold text-slate-400">Awaiting review</p>
+                </div>
             </div>
         </div>
 
         {{-- Submitted --}}
-        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-             style="border: 1px solid #e2e8f0;">
-            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style="background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div>
-            <div class="px-7 pt-7 pb-6">
+        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+             style="border: 1px solid #e2e8f0; min-height: 175px;">
+            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div>
+            <div class="flex flex-col justify-between h-full px-8 pt-8 pb-7">
                 <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-widest mb-3" style="color:#2563eb;">{{ __('app.status_submitted') }}</p>
-                        <p class="text-5xl font-black text-slate-900 leading-none" x-text="stats.submitted ?? '—'"></p>
-                        <p class="mt-2 text-xs font-medium text-slate-400">Under review</p>
-                    </div>
-                    <div class="flex flex-shrink-0 items-center justify-center rounded-2xl shadow-md"
-                         style="background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); width:52px; height:52px;">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <p class="text-[11px] font-bold uppercase tracking-widest" style="color:#2563eb;">{{ __('app.status_submitted') }}</p>
+                    <div class="flex flex-shrink-0 items-center justify-center rounded-2xl shadow-lg"
+                         style="background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); width:58px; height:58px;">
+                        <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                 d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                         </svg>
                     </div>
                 </div>
+                <div class="mt-4">
+                    <p class="text-5xl font-black text-slate-900 leading-none" x-text="stats.submitted ?? '—'"></p>
+                    <p class="mt-2.5 text-xs font-semibold text-slate-400">Under review</p>
+                </div>
             </div>
         </div>
 
         {{-- Completed --}}
-        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-             style="border: 1px solid #e2e8f0;">
-            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style="background: linear-gradient(90deg, #10b981, #34d399);"></div>
-            <div class="px-7 pt-7 pb-6">
+        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+             style="border: 1px solid #e2e8f0; min-height: 175px;">
+            <div class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style="background: linear-gradient(90deg, #10b981, #34d399);"></div>
+            <div class="flex flex-col justify-between h-full px-8 pt-8 pb-7">
                 <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-widest mb-3" style="color:#059669;">{{ __('app.status_completed') }}</p>
-                        <p class="text-5xl font-black text-slate-900 leading-none" x-text="stats.completed ?? '—'"></p>
-                        <p class="mt-2 text-xs font-medium text-slate-400">Successfully completed</p>
-                    </div>
-                    <div class="flex flex-shrink-0 items-center justify-center rounded-2xl shadow-md"
-                         style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); width:52px; height:52px;">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <p class="text-[11px] font-bold uppercase tracking-widest" style="color:#059669;">{{ __('app.status_completed') }}</p>
+                    <div class="flex flex-shrink-0 items-center justify-center rounded-2xl shadow-lg"
+                         style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); width:58px; height:58px;">
+                        <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
+                </div>
+                <div class="mt-4">
+                    <p class="text-5xl font-black text-slate-900 leading-none" x-text="stats.completed ?? '—'"></p>
+                    <p class="mt-2.5 text-xs font-semibold text-slate-400">Successfully completed</p>
                 </div>
             </div>
         </div>
