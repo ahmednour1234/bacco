@@ -193,40 +193,17 @@
     {{-- Action Bar --}}
     <div class="mb-5 flex flex-wrap items-center gap-3" @click="closeAll()">
 
-        {{-- New BOQ split button --}}
-        <div class="relative flex" style="border-radius: 999px; box-shadow: 0 8px 24px rgba(16,185,129,0.35); overflow: hidden;" @click.stop>
-            <a href="{{ route('enduser.boqs.create') }}"
-                class="inline-flex items-center gap-2.5 px-6 py-3 text-sm font-bold text-white transition-all duration-200 hover:opacity-90"
-                style="background: linear-gradient(135deg, #10b981 0%, #059669 60%, #047857 100%); letter-spacing:0.01em;">
-                <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full" style="background:rgba(255,255,255,0.22);">
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                    </svg>
-                </span>
-                {{ __('app.new_boq') }}
-            </a>
-            <button type="button" @click="newBoqOpen = !newBoqOpen"
-                class="inline-flex items-center px-3 py-3 text-white transition-all duration-200 hover:opacity-90"
-                style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-left: 1px solid rgba(255,255,255,0.25);">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        {{-- New BOQ button --}}
+        <a href="{{ route('enduser.boqs.create') }}"
+            class="inline-flex items-center gap-2.5 px-6 py-3 text-sm font-bold text-white transition-all duration-200 hover:opacity-90 hover:-translate-y-0.5"
+            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 999px; box-shadow: 0 6px 20px rgba(16,185,129,0.40); letter-spacing:0.01em;">
+            <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full" style="background:rgba(255,255,255,0.25);">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                 </svg>
-            </button>
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-            </button>
-            <div x-show="newBoqOpen" x-cloak @click.stop
-                class="absolute left-0 top-full z-20 mt-1.5 w-52 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
-                <a href="{{ route('enduser.boqs.create') }}"
-                    class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
-                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    New Blank BOQ
-                </a>
-            </div>
-        </div>
+            </span>
+            {{ __('app.new_boq') }}
+        </a>
 
         {{-- Search --}}
         <div class="relative min-w-[220px] flex-1">
