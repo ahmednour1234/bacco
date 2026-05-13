@@ -262,12 +262,12 @@
                 @click.outside="typeOpen = false"
                 class="absolute left-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
             >
-                <button type="button" wire:click="$set('type', '')" @click="typeOpen = false"
+                <button type="button" @click="$wire.set('type', ''); typeOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                     All Types
                 </button>
                 @foreach($types as $typeItem)
-                    <button type="button" wire:click="$set('type', '{{ $typeItem->value }}')" @click="typeOpen = false"
+                    <button type="button" @click="$wire.set('type', '{{ $typeItem->value }}'); typeOpen = false"
                         class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === $typeItem->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                         {{ $typeItem->label() }}
                     </button>
@@ -297,12 +297,12 @@
                 @click.outside="statusOpen = false"
                 class="absolute left-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
             >
-                <button type="button" wire:click="$set('status', '')" @click="statusOpen = false"
+                <button type="button" @click="$wire.set('status', ''); statusOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                     {{ __('app.all_statuses') }}
                 </button>
                 @foreach($statuses as $statusItem)
-                    <button type="button" wire:click="$set('status', '{{ $statusItem->value }}')" @click="statusOpen = false"
+                    <button type="button" @click="$wire.set('status', '{{ $statusItem->value }}'); statusOpen = false"
                         class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === $statusItem->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                         {{ $statusItem->label() }}
                     </button>
@@ -332,11 +332,11 @@
                 @click.outside="sortOpen = false"
                 class="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
             >
-                <button type="button" wire:click="$set('sort', 'newest')" @click="sortOpen = false"
+                <button type="button" @click="$wire.set('sort', 'newest'); sortOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $sort === 'newest' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                     Newest first
                 </button>
-                <button type="button" wire:click="$set('sort', 'oldest')" @click="sortOpen = false"
+                <button type="button" @click="$wire.set('sort', 'oldest'); sortOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $sort === 'oldest' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
                     Oldest first
                 </button>
@@ -460,8 +460,7 @@
                                         </a>
                                     @endif
                                     <button type="button"
-                                        wire:click="duplicateBoq({{ $boq->id }})"
-                                        @click="activeMenu = null"
+                                        @click="$wire.duplicateBoq({{ $boq->id }}); activeMenu = null"
                                         class="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
                                         <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -471,8 +470,7 @@
                                     </button>
                                     @if($isDraft)
                                         <button type="button"
-                                            wire:click="convertToQuotation('{{ $boq->uuid }}')"
-                                            @click="activeMenu = null"
+                                            @click="$wire.convertToQuotation('{{ $boq->uuid }}'); activeMenu = null"
                                             class="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
                                             <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -557,9 +555,7 @@
                         @if($isDraft)
                             <button
                                 type="button"
-                                wire:click="convertToQuotation('{{ $boq->uuid }}')"
-                                wire:loading.attr="disabled"
-                                wire:target="convertToQuotation('{{ $boq->uuid }}')"
+                                @click.stop="$wire.convertToQuotation('{{ $boq->uuid }}')"
                                 title="{{ __('app.convert_to_quotation') }}"
                                 class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 disabled:opacity-60"
                             >
