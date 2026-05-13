@@ -335,10 +335,17 @@ class CreateBoq extends Component
             $this->dispatch('toast', message: $message ?: (count($this->items) . ' items extracted from your file.'), type: 'success');
         } elseif ($status === 'no_items') {
             $this->processing = false;
+            $this->dispatch('boq-upload-done');
             $this->dispatch('toast', message: $message ?: 'No items found in the file. Please add items manually.', type: 'warning');
         } elseif ($status === 'failed') {
             $this->processing = false;
+            $this->dispatch('boq-upload-done');
             $this->dispatch('toast', message: $message ?: 'Extraction failed. Please try uploading the file again.', type: 'error');
+        } elseif ($status === null) {
+            // Cache expired or was cleared while processing — treat as failure.
+            $this->processing = false;
+            $this->dispatch('boq-upload-done');
+            $this->dispatch('toast', message: 'AI extraction status expired. Please try extracting again.', type: 'error');
         }
     }
 

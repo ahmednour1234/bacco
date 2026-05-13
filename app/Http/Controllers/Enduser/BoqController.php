@@ -44,11 +44,22 @@ class BoqController extends Controller
             ->latest()
             ->first();
 
-        $aiStatus = Cache::get('boq_ai_status_' . Auth::id(), 'unknown');
+        $aiStatus  = Cache::get('boq_ai_status_' . Auth::id());
+        $startedAt = Cache::get('boq_ai_started_at_' . Auth::id());
+
+        // If status is null (cache expired) or still 'running' after 5 minutes,
+        // treat as failed so the pill stops polling.
+        if ($aiStatus === null || ($aiStatus === 'running' && $startedAt && (now()->timestamp - $startedAt) > 300)) {
+            $aiStatus = 'failed';
+            Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
+            if ($startedAt) {
+                Cache::put('boq_ai_message_' . Auth::id(), 'Processing timed out. The background worker may not be running. Please try extracting again.', now()->addMinutes(30));
+            }
+        }
 
         return response()->json([
             'items_count' => $boq?->items_count ?? 0,
-            'ai_status'   => $aiStatus,
+            'ai_status'   => $aiStatus ?? 'failed',
             'boq_uuid'    => $boq?->uuid,
         ]);
     }
