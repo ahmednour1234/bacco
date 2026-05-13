@@ -52,6 +52,11 @@ class IndexList extends Component
         $this->resetPage();
     }
 
+    // Explicit wrappers so wire:click can call them in Livewire 4
+    public function paginateTo(int $page): void   { $this->gotoPage($page); }
+    public function paginateNext(): void           { $this->nextPage(); }
+    public function paginatePrev(): void           { $this->previousPage(); }
+
     public function convertToQuotation(string $uuid): void
     {
         $boq = Boq::with(['project', 'items'])
