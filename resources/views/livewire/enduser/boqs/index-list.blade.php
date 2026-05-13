@@ -557,7 +557,6 @@
                                 <button
                                     type="button"
                                     wire:click="convertToQuotation('{{ $boq->uuid }}')"
-                                    @click.stop
                                     title="{{ __('app.convert_to_quotation') }}"
                                     class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-50"
                                 >

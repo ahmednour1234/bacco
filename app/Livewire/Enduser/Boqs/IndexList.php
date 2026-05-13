@@ -105,7 +105,7 @@ class IndexList extends Component
                 return $quotation;
             });
 
-            $this->redirect(route('enduser.quotations.show', $quotation->uuid));
+            $this->redirect(route('enduser.quotations.show', $quotation->uuid), navigate: true);
 
         } catch (\Throwable $e) {
             Log::error('IndexList::convertToQuotation failed.', ['message' => $e->getMessage()]);
