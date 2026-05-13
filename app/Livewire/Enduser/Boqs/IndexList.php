@@ -3,6 +3,7 @@
 namespace App\Livewire\Enduser\Boqs;
 
 use App\Enums\BoqStatusEnum;
+use App\Enums\BoqTypeEnum;
 use App\Enums\QuotationRequestStatusEnum;
 use App\Enums\QuotationSourceTypeEnum;
 use App\Models\Boq;
@@ -22,6 +23,10 @@ class IndexList extends Component
     public string $search = '';
 
     public string $status = '';
+
+    public string $type = '';
+
+    public string $sort = 'newest';
 
     public string $created_from = '';
 
@@ -123,6 +128,35 @@ class IndexList extends Component
         $this->dispatch('toast', message: 'BOQ deleted successfully.', type: 'success');
     }
 
+    public function duplicateBoq(int $id): void
+    {
+        $original = Boq::with('items')
+            ->where('id', $id)
+            ->where('client_id', Auth::id())
+            ->firstOrFail();
+
+        DB::transaction(function () use ($original) {
+            $prefix = 'BOQ-' . now()->format('Ymd') . '-';
+            do {
+                $boqNo = $prefix . strtoupper(Str::random(4));
+            } while (Boq::where('boq_no', $boqNo)->exists());
+
+            $newBoq         = $original->replicate(['boq_no', 'uuid', 'status']);
+            $newBoq->boq_no = $boqNo;
+            $newBoq->uuid   = (string) Str::uuid();
+            $newBoq->status = BoqStatusEnum::Draft;
+            $newBoq->save();
+
+            foreach ($original->items as $item) {
+                $newItem         = $item->replicate(['boq_id']);
+                $newItem->boq_id = $newBoq->id;
+                $newItem->save();
+            }
+        });
+
+        $this->dispatch('toast', message: 'BOQ duplicated successfully.', type: 'success');
+    }
+
     private function generateQuotationNo(): string
     {
         $prefix = 'QR-' . now()->format('Ymd') . '-';
@@ -137,6 +171,8 @@ class IndexList extends Component
     {
         $this->search = '';
         $this->status = '';
+        $this->type = '';
+        $this->sort = 'newest';
         $this->created_from = '';
         $this->created_to = '';
         $this->perPage = 10;
@@ -157,8 +193,13 @@ class IndexList extends Component
 
         $query = Boq::query()
             ->with(['project', 'items'])
-            ->where('client_id', $clientId)
-            ->latest();
+            ->where('client_id', $clientId);
+
+        if ($this->sort === 'oldest') {
+            $query->oldest();
+        } else {
+            $query->latest();
+        }
 
         if ($this->search !== '') {
             $search = $this->search;
@@ -173,6 +214,10 @@ class IndexList extends Component
             $query->where('status', $this->status);
         }
 
+        if ($this->type !== '') {
+            $query->where('type', $this->type);
+        }
+
         if ($this->created_from !== '') {
             $query->whereDate('created_at', '>=', $this->created_from);
         }
@@ -185,11 +230,13 @@ class IndexList extends Component
 
         $hasActiveFilters = $this->search !== ''
             || $this->status !== ''
+            || $this->type !== ''
             || $this->created_from !== ''
             || $this->created_to !== '';
 
         $statuses = BoqStatusEnum::cases();
+        $types    = BoqTypeEnum::cases();
 
-        return view('livewire.enduser.boqs.index-list', compact('boqs', 'statuses', 'stats', 'hasActiveFilters'));
+        return view('livewire.enduser.boqs.index-list', compact('boqs', 'statuses', 'types', 'stats', 'hasActiveFilters'));
     }
 }

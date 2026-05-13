@@ -1,27 +1,35 @@
-<div
+﻿<div
     x-data="{
         statusOpen: false,
-        dateOpen: false,
+        typeOpen: false,
+        sortOpen: false,
+        newBoqOpen: false,
         toast: null,
         deleteModal: { open: false, id: null, no: '' },
+        activeMenu: null,
         showToast(message, type = 'success') {
             this.toast = { message, type };
             setTimeout(() => this.toast = null, 4000);
         },
         openDelete(id, no) {
             this.deleteModal = { open: true, id, no };
+            this.activeMenu = null;
         },
         confirmDelete() {
             if (this.deleteModal.id) {
                 $wire.deleteBoq(this.deleteModal.id);
             }
             this.deleteModal = { open: false, id: null, no: '' };
+        },
+        toggleMenu(id) {
+            this.activeMenu = this.activeMenu === id ? null : id;
         }
     }"
     x-on:toast.window="showToast($event.detail.message, $event.detail.type)"
+    @click="activeMenu = null; statusOpen = false; typeOpen = false; sortOpen = false; newBoqOpen = false"
 >
 
-    {{-- ───── Toast ────────────────────────────────────────────────────────────── --}}
+    {{-- Toast --}}
     <div
         x-show="toast !== null"
         x-cloak
@@ -46,7 +54,7 @@
         </button>
     </div>
 
-    {{-- ───── Delete Confirmation Modal ─────────────────────────────────────────── --}}
+    {{-- Delete Confirmation Modal --}}
     <div
         x-show="deleteModal.open"
         x-cloak
@@ -63,21 +71,27 @@
         <div
             x-show="deleteModal.open"
             x-transition:enter="transition ease-out duration-250"
-            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
-            class="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5"
+            class="relative w-full max-w-xs rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5 text-center"
+            @click.stop
         >
-            <div class="h-1.5 w-full rounded-t-2xl bg-gradient-to-r from-red-400 to-rose-500"></div>
-            <div class="px-6 pb-6 pt-5">
-                <h3 class="text-center text-base font-bold text-slate-900">{{ __('app.delete_boq') }}</h3>
-                <p class="mt-1.5 text-center text-sm text-slate-500">
+            <div class="px-6 pt-8 pb-6">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100">
+                    <svg class="h-7 w-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-slate-900">{{ __('app.delete_boq') }}</h3>
+                <p class="mt-1.5 text-sm text-slate-500">
                     {{ __('app.sure_permanently_delete') }}
-                    <span class="font-semibold text-slate-800" x-text="'#' + deleteModal.no"></span>?
-                    <br>{{ __('app.cannot_be_undone') }}
+                    <span class="font-semibold text-slate-800" x-text="deleteModal.no"></span>
                 </p>
+                <p class="text-xs text-slate-400 mt-1">{{ __('app.cannot_be_undone') }}</p>
                 <div class="mt-6 flex items-center gap-3">
                     <button type="button" @click="deleteModal.open = false"
                         class="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
@@ -92,86 +106,114 @@
         </div>
     </div>
 
-    {{-- ───── Page Header ───────────────────────────────────────────────────────── --}}
-    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900">{{ __('app.bills_of_quantities') }}</h1>
-            <p class="mt-1 text-sm text-slate-500">{{ __('app.manage_boqs_desc') }}</p>
-        </div>
-        <a
-            href="{{ route('enduser.boqs.create') }}"
-            class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
-        >
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            {{ __('app.new_boq') }}
-        </a>
+    {{-- Page Header --}}
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-900">{{ __('app.bills_of_quantities') }}</h1>
+        <p class="mt-1 text-sm text-slate-500">{{ __('app.manage_boqs_desc') }}</p>
     </div>
 
-    {{-- ───── Stat Cards ────────────────────────────────────────────────────────── --}}
-    <div class="mb-7 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    {{-- Stat Cards --}}
+    <div class="mb-7 grid grid-cols-2 gap-4 xl:grid-cols-4">
 
-        <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-            <div>
+        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+            <div class="flex items-center justify-between">
                 <p class="text-xs font-medium text-slate-400">{{ __('app.total_boqs') }}</p>
-                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
+                    <svg class="h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </div>
             </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
-                <svg class="h-6 w-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                </svg>
-            </div>
+            <p class="mt-3 text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">All time BOQs</p>
         </div>
 
-        <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-            <div>
+        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+            <div class="flex items-center justify-between">
                 <p class="text-xs font-medium text-slate-400">{{ __('app.status_draft') }}</p>
-                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['draft'] }}</p>
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50">
+                    <svg class="h-5 w-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                </div>
             </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
-                <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-            </div>
+            <p class="mt-3 text-3xl font-extrabold text-slate-900">{{ $stats['draft'] }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">Awaiting review</p>
         </div>
 
-        <div class="flex items-center justify-between rounded-2xl border border-emerald-100 bg-white px-6 py-5 shadow-sm">
-            <div>
+        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+            <div class="flex items-center justify-between">
                 <p class="text-xs font-medium text-slate-400">{{ __('app.status_submitted') }}</p>
-                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['submitted'] }}</p>
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+                    <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                </div>
             </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
-                <svg class="h-6 w-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
+            <p class="mt-3 text-3xl font-extrabold text-slate-900">{{ $stats['submitted'] }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">Under review</p>
         </div>
 
-        <div class="flex items-center justify-between rounded-2xl border border-blue-100 bg-white px-6 py-5 shadow-sm">
-            <div>
+        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+            <div class="flex items-center justify-between">
                 <p class="text-xs font-medium text-slate-400">{{ __('app.status_completed') }}</p>
-                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['completed'] }}</p>
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
+                    <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
             </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
-                <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M5 13l4 4L19 7"/>
-                </svg>
-            </div>
+            <p class="mt-3 text-3xl font-extrabold text-slate-900">{{ $stats['completed'] }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">Successfully completed</p>
         </div>
 
     </div>
 
-    {{-- ───── Section Header + Search ─────────────────────────────────────────── --}}
-    <div class="mb-4 flex flex-wrap items-center gap-3">
-        <h2 class="flex-1 text-base font-bold text-slate-900">{{ __('app.recent_boqs') }}</h2>
+    {{-- Action Bar --}}
+    <div class="mb-5 flex flex-wrap items-center gap-3">
+
+        {{-- New BOQ split button --}}
+        <div class="relative flex" @click.stop>
+            <a
+                href="{{ route('enduser.boqs.create') }}"
+                class="inline-flex items-center gap-2 rounded-l-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
+            >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                {{ __('app.new_boq') }}
+            </a>
+            <button
+                type="button"
+                @click="newBoqOpen = !newBoqOpen"
+                class="inline-flex items-center rounded-r-xl border-l border-emerald-400 bg-emerald-500 px-2.5 py-2.5 text-white shadow-sm transition hover:bg-emerald-600"
+            >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div
+                x-show="newBoqOpen"
+                x-cloak
+                @click.outside="newBoqOpen = false"
+                class="absolute left-0 top-full z-20 mt-1.5 w-52 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
+            >
+                <a href="{{ route('enduser.boqs.create') }}"
+                    class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    New Blank BOQ
+                </a>
+            </div>
+        </div>
 
         {{-- Search --}}
-        <div class="relative min-w-[220px]">
+        <div class="relative min-w-[220px] flex-1">
             <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -182,31 +224,66 @@
                 type="search"
                 wire:model.live.debounce.300ms="search"
                 placeholder="{{ __('app.search_boqs') }}"
-                class="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
             >
         </div>
 
-        {{-- Status filter --}}
-        <div class="relative">
+        {{-- Type filter --}}
+        <div class="relative" @click.stop>
             <button
                 type="button"
-                @click="statusOpen = !statusOpen"
-                class="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+                @click="typeOpen = !typeOpen; statusOpen = false; sortOpen = false"
+                class="inline-flex items-center gap-2 rounded-xl border bg-white px-3.5 py-2.5 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+                :class="typeOpen || @js($type !== '') ? 'border-emerald-400 text-emerald-700' : 'border-slate-200 text-slate-600'"
+            >
+                @if($type !== '')
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                @endif
+                Type
+                <svg class="h-3.5 w-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div
+                x-show="typeOpen"
+                x-cloak
+                @click.outside="typeOpen = false"
+                class="absolute left-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
+            >
+                <button type="button" wire:click="$set('type', '')" @click="typeOpen = false"
+                    class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                    All Types
+                </button>
+                @foreach($types as $typeItem)
+                    <button type="button" wire:click="$set('type', '{{ $typeItem->value }}')" @click="typeOpen = false"
+                        class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === $typeItem->value ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                        {{ $typeItem->label() }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Status filter --}}
+        <div class="relative" @click.stop>
+            <button
+                type="button"
+                @click="statusOpen = !statusOpen; typeOpen = false; sortOpen = false"
+                class="inline-flex items-center gap-2 rounded-xl border bg-white px-3.5 py-2.5 text-sm font-medium shadow-sm transition hover:bg-slate-50"
                 :class="statusOpen || @js($status !== '') ? 'border-emerald-400 text-emerald-700' : 'border-slate-200 text-slate-600'"
             >
                 @if($status !== '')
                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                 @endif
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                {{ __('app.status') }}
+                <svg class="h-3.5 w-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
             <div
                 x-show="statusOpen"
                 x-cloak
                 @click.outside="statusOpen = false"
-                class="absolute right-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
+                class="absolute left-0 top-full z-20 mt-1.5 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
             >
                 <button type="button" wire:click="$set('status', '')" @click="statusOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $status === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
@@ -221,53 +298,49 @@
             </div>
         </div>
 
-        {{-- Date filter --}}
-        <div class="relative">
+        {{-- Sort --}}
+        <div class="relative" @click.stop>
             <button
                 type="button"
-                @click="dateOpen = !dateOpen"
-                class="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-medium shadow-sm transition hover:bg-slate-50"
-                :class="dateOpen || @js($created_from !== '' || $created_to !== '') ? 'border-emerald-400 text-emerald-700' : 'border-slate-200 text-slate-600'"
+                @click="sortOpen = !sortOpen; statusOpen = false; typeOpen = false"
+                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50"
             >
-                @if($created_from !== '' || $created_to !== '')
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                @endif
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/>
+                </svg>
+                {{ $sort === 'oldest' ? 'Oldest first' : 'Newest first' }}
+                <svg class="h-3.5 w-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
             <div
-                x-show="dateOpen"
+                x-show="sortOpen"
                 x-cloak
-                @click.outside="dateOpen = false"
-                class="absolute right-0 top-full z-20 mt-1.5 w-56 rounded-xl border border-slate-200 bg-white p-4 shadow-lg"
+                @click.outside="sortOpen = false"
+                class="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
             >
-                <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.date_range') }}</p>
-                <div class="flex flex-col gap-2">
-                    <div>
-                        <label class="mb-1 block text-xs text-slate-500">{{ __('app.from') }}</label>
-                        <input type="date" wire:model.live="created_from"
-                            class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 outline-none focus:border-emerald-400">
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-xs text-slate-500">{{ __('app.to') }}</label>
-                        <input type="date" wire:model.live="created_to"
-                            class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 outline-none focus:border-emerald-400">
-                    </div>
-                </div>
+                <button type="button" wire:click="$set('sort', 'newest')" @click="sortOpen = false"
+                    class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $sort === 'newest' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                    Newest first
+                </button>
+                <button type="button" wire:click="$set('sort', 'oldest')" @click="sortOpen = false"
+                    class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $sort === 'oldest' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
+                    Oldest first
+                </button>
             </div>
         </div>
 
         @if($hasActiveFilters)
             <button type="button" wire:click="clearFilters"
-                class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100">
+                class="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-600 transition hover:bg-red-100">
                 {{ __('app.clear') }}
             </button>
         @endif
+
     </div>
 
-    {{-- ───── BOQ Table ────────────────────────────────────────────────────────── --}}
+    {{-- BOQ Card Grid --}}
     @if($boqs->isEmpty())
         <div class="rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
             <svg class="mx-auto mb-4 h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,133 +349,238 @@
             </svg>
             <p class="text-sm font-medium text-slate-400">{{ __('app.no_boqs_found') }}</p>
             <p class="mt-1 text-xs text-slate-300">{{ __('app.create_boq_get_started') }}</p>
+            <a href="{{ route('enduser.boqs.create') }}"
+                class="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 transition">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                {{ __('app.new_boq') }}
+            </a>
         </div>
     @else
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50">
-                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.id') }}</th>
-                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.project') }}</th>
-                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.status') }}</th>
-                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.type') }}</th>
-                            <th class="px-5 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.items') }}</th>
-                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.created') }}</th>
-                            <th class="px-5 py-3 text-end text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.actions') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        @foreach($boqs as $boq)
-                            @php
-                                $sv = $boq->status->value ?? '';
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            @foreach($boqs as $boq)
+                @php
+                    $sv        = $boq->status->value ?? 'draft';
+                    $isDraft   = $sv === 'draft';
+                    $itemCount = $boq->items->count();
+                    $progress  = match($sv) {
+                        'completed' => 100,
+                        'submitted' => 50,
+                        default     => 0,
+                    };
 
-                                $badgeClass = match($sv) {
-                                    'draft'     => 'bg-slate-100 text-slate-500',
-                                    'submitted' => 'bg-blue-50 text-blue-600',
-                                    'completed' => 'bg-emerald-50 text-emerald-700',
-                                    'cancelled' => 'bg-red-50 text-red-600',
-                                    default     => 'bg-slate-100 text-slate-500',
-                                };
+                    $statusBadgeClass = match($sv) {
+                        'draft'     => 'bg-slate-100 text-slate-600',
+                        'submitted' => 'bg-blue-50 text-blue-600 border border-blue-100',
+                        'completed' => 'bg-emerald-50 text-emerald-700 border border-emerald-100',
+                        'cancelled' => 'bg-red-50 text-red-600 border border-red-100',
+                        default     => 'bg-slate-100 text-slate-600',
+                    };
 
-                                $typeColors = [
-                                    'tender'  => 'bg-blue-100 text-blue-700',
-                                    'awarded' => 'bg-emerald-100 text-emerald-700',
-                                ];
-                                $typeColor = $typeColors[$boq->type->value ?? ''] ?? 'bg-slate-100 text-slate-700';
+                    $typeColor = match($boq->type->value ?? '') {
+                        'tender'  => 'bg-blue-100 text-blue-700',
+                        'awarded' => 'bg-emerald-100 text-emerald-700',
+                        default   => 'bg-slate-100 text-slate-700',
+                    };
 
-                                $itemCount = $boq->items->count();
-                            @endphp
-                            <tr class="group hover:bg-slate-50/60 transition-colors">
+                    $progressColor = match($sv) {
+                        'completed' => 'bg-emerald-400',
+                        'submitted' => 'bg-blue-400',
+                        default     => 'bg-slate-300',
+                    };
+                @endphp
 
-                                {{-- ID --}}
-                                <td class="px-5 py-3.5">
-                                    <span class="font-mono text-xs text-slate-400">#{{ $boq->boq_no }}</span>
-                                </td>
+                <div class="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md hover:border-slate-300">
 
-                                {{-- Project --}}
-                                <td class="px-5 py-3.5">
-                                    <span class="font-semibold text-slate-800">{{ $boq->project?->name ?? '—' }}</span>
-                                </td>
-
-                                {{-- Status --}}
-                                <td class="px-5 py-3.5">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold {{ $badgeClass }}">
-                                        {{ $boq->status->label() }}
-                                    </span>
-                                </td>
-
-                                {{-- Type --}}
-                                <td class="px-5 py-3.5">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold {{ $typeColor }}">
-                                        {{ $boq->type?->label() ?? '—' }}
-                                    </span>
-                                </td>
-
-                                {{-- Items count --}}
-                                <td class="px-5 py-3.5 text-center">
-                                    <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-slate-100 text-xs font-bold text-slate-600">
-                                        {{ $itemCount }}
-                                    </span>
-                                </td>
-
-                                {{-- Created --}}
-                                <td class="px-5 py-3.5 text-xs text-slate-400">
-                                    {{ $boq->created_at?->format('M d, Y') }}
-                                </td>
-
-                                {{-- Actions --}}
-                                <td class="px-5 py-3.5">
-                                    <div class="flex items-center justify-end gap-2">
-                                        @if($sv === 'draft')
-                                            <button
-                                                type="button"
-                                                wire:click="convertToQuotation('{{ $boq->uuid }}')"
-                                                wire:loading.attr="disabled"
-                                                wire:target="convertToQuotation('{{ $boq->uuid }}')"
-                                                title="{{ __('app.convert_to_quotation') }}"
-                                                class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-60"
-                                            >
-                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/>
-                                                </svg>
-                                                {{ __('app.convert_to_quotation') }}
-                                            </button>
-                                        @endif
-
-                                        <a
-                                            href="{{ route('enduser.boqs.show', $boq->uuid) }}"
-                                            class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
-                                        >
-                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    {{-- Card Header --}}
+                    <div class="flex items-center justify-between px-4 pt-4 pb-1">
+                        <span class="max-w-[55%] truncate font-mono text-[11px] font-medium text-slate-400">#{{ $boq->boq_no }}</span>
+                        <div class="flex items-center gap-1.5" @click.stop>
+                            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold {{ $statusBadgeClass }}">
+                                @if($sv === 'completed')
+                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                @elseif($sv === 'submitted')
+                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                    </svg>
+                                @endif
+                                {{ $boq->status->label() }}
+                            </span>
+                            {{-- 3-dot menu --}}
+                            <div class="relative">
+                                <button
+                                    type="button"
+                                    @click.stop="toggleMenu({{ $boq->id }})"
+                                    class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                                >
+                                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                                    </svg>
+                                </button>
+                                <div
+                                    x-show="activeMenu === {{ $boq->id }}"
+                                    x-cloak
+                                    x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="opacity-0 scale-95"
+                                    x-transition:enter-end="opacity-100 scale-100"
+                                    @click.stop
+                                    class="absolute right-0 top-full z-30 mt-1 w-52 rounded-xl border border-slate-200 bg-white py-1.5 shadow-xl"
+                                >
+                                    <a href="{{ route('enduser.boqs.show', $boq->uuid) }}"
+                                        class="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                        {{ __('app.view') }}
+                                    </a>
+                                    @if($isDraft)
+                                        <a href="{{ route('enduser.boqs.create') . '?draft=' . $boq->uuid }}"
+                                            class="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                            <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                             </svg>
-                                            {{ __('app.view') }}
+                                            {{ __('app.edit') }}
                                         </a>
+                                    @endif
+                                    <button type="button"
+                                        wire:click="duplicateBoq({{ $boq->id }})"
+                                        @click="activeMenu = null"
+                                        class="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                        Duplicate
+                                    </button>
+                                    @if($isDraft)
+                                        <button type="button"
+                                            wire:click="convertToQuotation('{{ $boq->uuid }}')"
+                                            @click="activeMenu = null"
+                                            class="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                            <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/>
+                                            </svg>
+                                            {{ __('app.convert_to_quotation') }}
+                                        </button>
+                                        <div class="my-1 border-t border-slate-100"></div>
+                                        <button type="button"
+                                            @click.stop="openDelete({{ $boq->id }}, '{{ $boq->boq_no }}')"
+                                            class="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                            {{ __('app.delete') }}
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                        @if($sv === 'draft')
-                                            <button
-                                                type="button"
-                                                @click="openDelete({{ $boq->id }}, '{{ $boq->boq_no }}')"
-                                                title="{{ __('app.delete') }}"
-                                                class="rounded-lg border border-red-200 bg-red-50 p-1.5 text-red-500 transition hover:bg-red-100"
-                                            >
-                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                </svg>
-                                            </button>
-                                        @endif
-                                    </div>
-                                </td>
+                    {{-- Card Body --}}
+                    <div class="flex-1 px-4 pt-2 pb-3">
+                        <h3 class="truncate text-base font-bold text-slate-900">{{ $boq->project?->name ?? '—' }}</h3>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $typeColor }}">
+                                {{ $boq->type?->label() ?? '—' }}
+                            </span>
+                        </div>
+                        <div class="mt-3 flex items-center gap-4 text-xs text-slate-500">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                {{ $itemCount }} {{ __('app.items') }}
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                {{ $boq->created_at?->format('M d, Y') }}
+                            </span>
+                        </div>
+                    </div>
 
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                    {{-- Progress Bar --}}
+                    <div class="px-4 pb-3">
+                        <div class="h-1.5 w-full rounded-full bg-slate-100">
+                            <div class="h-1.5 rounded-full {{ $progressColor }} transition-all duration-500"
+                                style="width: {{ $progress }}%"></div>
+                        </div>
+                        <p class="mt-1 text-right text-[11px] text-slate-400">{{ $progress }}%</p>
+                    </div>
+
+                    {{-- Card Footer Icons --}}
+                    <div class="flex items-center justify-between border-t border-slate-100 px-4 py-2.5">
+                        <div class="flex items-center gap-0.5">
+                            <a href="{{ route('enduser.boqs.show', $boq->uuid) }}"
+                                title="{{ __('app.view') }}"
+                                class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </a>
+                            @if($isDraft)
+                                <a href="{{ route('enduser.boqs.create') . '?draft=' . $boq->uuid }}"
+                                    title="{{ __('app.edit') }}"
+                                    class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </a>
+                            @endif
+                            <button type="button"
+                                wire:click="duplicateBoq({{ $boq->id }})"
+                                title="Duplicate"
+                                class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                            @if($isDraft)
+                                <button type="button"
+                                    @click.stop="openDelete({{ $boq->id }}, '{{ $boq->boq_no }}')"
+                                    title="{{ __('app.delete') }}"
+                                    class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-500">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            @endif
+                        </div>
+
+                        @if($isDraft)
+                            <button
+                                type="button"
+                                wire:click="convertToQuotation('{{ $boq->uuid }}')"
+                                wire:loading.attr="disabled"
+                                wire:target="convertToQuotation('{{ $boq->uuid }}')"
+                                title="{{ __('app.convert_to_quotation') }}"
+                                class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-60"
+                            >
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/>
+                                </svg>
+                                Convert
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
         </div>
 
         {{-- Pagination --}}
