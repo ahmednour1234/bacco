@@ -337,62 +337,58 @@
     @stack('scripts')
 
     {{-- ── Persistent background-job pill (survives wire:navigate) ── --}}
+    {{-- @assets guarantees this block runs only ONCE per browser session, never re-run by wire:navigate --}}
+    @assets
     <script>
-        /* Guard: only run once — Livewire re-executes scripts on wire:navigate */
-        if (!window._bgPollBootstrapped) {
-            window._bgPollBootstrapped = true;
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('bgJob', { active: false, done: null });
+        });
 
-            document.addEventListener('alpine:init', () => {
-                Alpine.store('bgJob', { active: false, done: null }); // null | 'success' | 'failed' | 'no_items'
-            });
-
-            /* Clear done-popup whenever navigating to the create page */
-            document.addEventListener('livewire:navigated', () => {
-                if (window.location.pathname.includes('/boqs/create')) {
-                    if (window.Alpine && Alpine.store('bgJob')) {
-                        Alpine.store('bgJob').done = null;
-                    }
+        document.addEventListener('livewire:navigated', () => {
+            if (window.location.pathname.includes('/boqs/create')) {
+                if (window.Alpine && Alpine.store('bgJob')) {
+                    Alpine.store('bgJob').done = null;
                 }
-            });
+            }
+        });
 
-            /* Poll /boqs/draft-status every 4s while the pill is visible */
-            window._bgPollTimer = null;
-            window._bgPollStart = function() {
-                if (window._bgPollTimer) return;
-                window._bgPollTimer = setInterval(async () => {
-                    if (!window.Alpine || !Alpine.store('bgJob').active) {
+        window._bgPollTimer = null;
+        window._bgPollStart = function() {
+            if (window._bgPollTimer) return;
+            window._bgPollTimer = setInterval(async () => {
+                if (!window.Alpine || !Alpine.store('bgJob').active) {
+                    window._bgPollStop();
+                    return;
+                }
+                try {
+                    const res  = await fetch('{{ route('enduser.boqs.draft-status') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const data = await res.json();
+                    const onCreatePage = window.location.pathname.includes('/boqs/create');
+
+                    if (data.ai_status === 'done' || data.items_count > 0) {
                         window._bgPollStop();
-                        return;
+                        Alpine.store('bgJob').active = false;
+                        if (!onCreatePage) Alpine.store('bgJob').done = 'success';
+                    } else if (data.ai_status === 'failed' || data.ai_status === 'no_items') {
+                        window._bgPollStop();
+                        Alpine.store('bgJob').active = false;
+                        if (!onCreatePage) Alpine.store('bgJob').done = data.ai_status;
                     }
-                    try {
-                        const res  = await fetch('{{ route('enduser.boqs.draft-status') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                        const data = await res.json();
-                        const onCreatePage = window.location.pathname.includes('/boqs/create');
+                } catch (e) { /* ignore */ }
+            }, 4000);
+        };
+        window._bgPollStop = function() {
+            clearInterval(window._bgPollTimer);
+            window._bgPollTimer = null;
+        };
 
-                        if (data.ai_status === 'done' || data.items_count > 0) {
-                            window._bgPollStop();
-                            Alpine.store('bgJob').active = false;
-                            if (!onCreatePage) Alpine.store('bgJob').done = 'success';
-                        } else if (data.ai_status === 'failed' || data.ai_status === 'no_items') {
-                            window._bgPollStop();
-                            Alpine.store('bgJob').active = false;
-                            if (!onCreatePage) Alpine.store('bgJob').done = data.ai_status;
-                        }
-                    } catch (e) { /* ignore network errors */ }
-                }, 4000);
-            };
-            window._bgPollStop = function() {
-                clearInterval(window._bgPollTimer);
-                window._bgPollTimer = null;
-            };
-
-            document.addEventListener('alpine:initialized', () => {
-                Alpine.effect(() => {
-                    Alpine.store('bgJob').active ? window._bgPollStart() : window._bgPollStop();
-                });
+        document.addEventListener('alpine:initialized', () => {
+            Alpine.effect(() => {
+                Alpine.store('bgJob').active ? window._bgPollStart() : window._bgPollStop();
             });
-        }
+        });
     </script>
+    @endassets
 
     <div
         x-data="{ isAr: document.documentElement.dir === 'rtl' }"
