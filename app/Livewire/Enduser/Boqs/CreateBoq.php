@@ -94,9 +94,15 @@ class CreateBoq extends Component
                 if (count($this->items) > 0) {
                     // Items already saved → AI finished successfully
                     $this->dispatch('boq-upload-done');
-                } elseif ($aiStatus === 'running') {
-                    // Job still in progress — start polling
+                } elseif ($aiStatus === 'running' && ! $this->isJobTimedOut()) {
+                    // Job still genuinely in progress — start polling
                     $this->processing = true;
+                } elseif ($aiStatus === 'running' && $this->isJobTimedOut()) {
+                    // Stale 'running' flag — job timed out (worker not running?)
+                    Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
+                    Cache::put('boq_ai_message_' . Auth::id(), 'Processing timed out. The background worker may not be running. Please try extracting again.', now()->addMinutes(30));
+                    $this->dispatch('boq-upload-done');
+                    $this->dispatch('toast', message: 'Previous extraction timed out. Please try again.', type: 'error');
                 } elseif ($aiStatus === 'done') {
                     // Done but no items saved (edge case) — still clear the pill
                     $this->dispatch('boq-upload-done');
@@ -137,9 +143,14 @@ class CreateBoq extends Component
 
             if ($latestDraft) {
                 $this->loadFromBoq($latestDraft);
-                if ($aiStatus === 'running') {
-                    // Job still in progress — start polling
+                if ($aiStatus === 'running' && ! $this->isJobTimedOut()) {
+                    // Job still genuinely in progress — start polling
                     $this->processing = true;
+                } elseif ($aiStatus === 'running' && $this->isJobTimedOut()) {
+                    // Stale 'running' flag — timed out
+                    Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
+                    $this->dispatch('boq-upload-done');
+                    $this->dispatch('toast', message: 'Previous extraction timed out. Please try again.', type: 'error');
                 } elseif ($aiStatus === 'done') {
                     // Job already finished — fire done event to clear the pill
                     $this->dispatch('boq-upload-done');
@@ -154,6 +165,13 @@ class CreateBoq extends Component
                 $this->dispatch('boq-resume-done');
             }
         }
+    }
+
+    /** Returns true if the AI job started > 5 minutes ago (i.e. it timed out). */
+    private function isJobTimedOut(): bool
+    {
+        $startedAt = Cache::get('boq_ai_started_at_' . Auth::id());
+        return $startedAt !== null && (now()->timestamp - $startedAt) > 300;
     }
 
     private function loadFromBoq(Boq $boq): void
