@@ -14,11 +14,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 class IndexList extends Component
 {
-    use WithPagination;
 
     public string $search = '';
 
@@ -34,14 +32,16 @@ class IndexList extends Component
 
     public int $perPage = 10;
 
+    public int $page = 1;
+
     protected array $allowedPerPage = [5, 10, 25, 50];
 
-    public function updatingSearch(): void    { $this->resetPage(); }
-    public function updatingStatus(): void    { $this->resetPage(); }
-    public function updatingType(): void      { $this->resetPage(); }
-    public function updatingSort(): void      { $this->resetPage(); }
-    public function updatingCreatedFrom(): void { $this->resetPage(); }
-    public function updatingCreatedTo(): void   { $this->resetPage(); }
+    public function updatingSearch(): void      { $this->page = 1; }
+    public function updatingStatus(): void      { $this->page = 1; }
+    public function updatingType(): void        { $this->page = 1; }
+    public function updatingSort(): void        { $this->page = 1; }
+    public function updatingCreatedFrom(): void { $this->page = 1; }
+    public function updatingCreatedTo(): void   { $this->page = 1; }
 
     public function updatedPerPage(): void
     {
@@ -49,13 +49,8 @@ class IndexList extends Component
             $this->perPage = 10;
         }
 
-        $this->resetPage();
+        $this->page = 1;
     }
-
-    // Explicit wrappers so wire:click can call them in Livewire 4
-    public function paginateTo(int $page): void   { $this->gotoPage($page); }
-    public function paginateNext(): void           { $this->nextPage(); }
-    public function paginatePrev(): void           { $this->previousPage(); }
 
     public function convertToQuotation(string $uuid): void
     {
@@ -181,7 +176,7 @@ class IndexList extends Component
         $this->created_from = '';
         $this->created_to = '';
         $this->perPage = 10;
-        $this->resetPage();
+        $this->page = 1;
     }
 
     public function render()
@@ -231,7 +226,8 @@ class IndexList extends Component
             $query->whereDate('created_at', '<=', $this->created_to);
         }
 
-        $boqs = $query->paginate($this->perPage);
+        $page = max(1, (int) $this->page);
+        $boqs = $query->paginate($this->perPage, ['*'], 'page', $page);
 
         $hasActiveFilters = $this->search !== ''
             || $this->status !== ''

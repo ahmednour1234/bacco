@@ -3,7 +3,6 @@
 namespace App\Livewire\Enduser\Quotations;
 
 use App\Enums\QuotationRequestStatusEnum;
-use App\Jobs\FetchQuotationPricesJob;
 use App\Models\Product;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
@@ -11,6 +10,7 @@ use App\Enums\NotificationTypeEnum;
 use App\Enums\UserTypeEnum;
 use App\Services\Enduser\OrderService;
 use App\Services\NotificationService;
+use App\Services\PricingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -48,11 +48,6 @@ class ShowQuotation extends Component
         $needsPricing = collect($this->items)->contains(fn($i) => empty($i['unit_price']));
 
         if ($needsPricing) {
-            FetchQuotationPricesJob::dispatch(
-                $this->quotation->id,
-                Auth::id(),
-                $this->uuid,
-            );
             $this->pricingQueued = true;
         }
     }
@@ -62,9 +57,17 @@ class ShowQuotation extends Component
     // -------------------------------------------------------------------------
 
     /**
-     * Dismiss the in-progress pricing banner (client-side only action).
-     * The job continues running in the background.
+     * Called via wire:init after first render — runs pricing synchronously.
      */
+    public function fetchPricesOnInit(): void
+    {
+        if (! $this->pricingQueued || ! $this->quotation) {
+            return;
+        }
+
+        $this->runPricingSync();
+    }
+
     public function dismissPricingBanner(): void
     {
         $this->pricingQueued = false;
@@ -219,13 +222,56 @@ class ShowQuotation extends Component
             $this->items[$index]['price_source'] = null;
         }
 
-        FetchQuotationPricesJob::dispatch(
-            $this->quotation->id,
-            Auth::id(),
-            $this->uuid,
-        );
         $this->pricingQueued = true;
-        $this->dispatch('toast', message: 'جاري إعادة جلب الأسعار في الخلفية. سنُعلمك عند الانتهاء.', type: 'info');
+        $this->runPricingSync();
+    }
+
+    private function runPricingSync(): void
+    {
+        try {
+            $dbItems = QuotationItem::where('quotation_request_id', $this->quotation->id)
+                ->get()
+                ->map(fn(QuotationItem $item) => [
+                    'id'           => $item->id,
+                    'description'  => (string) $item->description,
+                    'quantity'     => (float) $item->quantity,
+                    'category'     => (string) ($item->category ?? ''),
+                    'brand'        => (string) ($item->brand ?? ''),
+                    'unit_price'   => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
+                    'price_source' => $item->price_source,
+                ])
+                ->toArray();
+
+            $priced    = app(PricingService::class)->fetchPrices($dbItems);
+            $gotPrices = 0;
+
+            foreach ($priced as $row) {
+                if (! empty($row['id']) && isset($row['unit_price']) && $row['unit_price'] > 0) {
+                    QuotationItem::where('id', $row['id'])->update([
+                        'unit_price'   => $row['unit_price'],
+                        'price_source' => $row['price_source'] ?? null,
+                        'price_status' => 'pending',
+                    ]);
+                    $gotPrices++;
+                }
+            }
+
+            $this->loadItems();
+            $this->pricingQueued = false;
+
+            $total   = count($priced);
+            $missing = $total - $gotPrices;
+            $message = $missing > 0
+                ? "تم تسعير {$gotPrices} عنصر. {$missing} عنصر لم يُسعَّر تلقائياً."
+                : "تم تسعير جميع {$gotPrices} عنصر بنجاح.";
+
+            $this->dispatch('toast', message: $message, type: 'success');
+
+        } catch (\Throwable $e) {
+            Log::error('ShowQuotation::runPricingSync failed.', ['message' => $e->getMessage()]);
+            $this->pricingQueued = false;
+            $this->dispatch('toast', message: 'فشل جلب الأسعار. يرجى المحاولة مرة أخرى.', type: 'error');
+        }
     }
 
     private function canEdit(): bool
