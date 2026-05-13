@@ -337,23 +337,40 @@
 
     {{-- Empty state --}}
     <div x-show="!loading && boqs.length === 0"
-        class="rounded-2xl bg-white py-20 text-center shadow-sm"
-        style="border: 1px dashed #cbd5e1;">
-        <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-sm"
-             style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0;">
-            <svg class="h-8 w-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        class="relative overflow-hidden rounded-3xl bg-white text-center"
+        style="border: 1px solid #d1fae5; box-shadow: 0 4px 32px rgba(16,185,129,0.07); padding: 72px 40px 64px;">
+
+        {{-- Decorative background blobs --}}
+        <div class="pointer-events-none absolute -top-10 -left-10 h-48 w-48 rounded-full opacity-40"
+             style="background: radial-gradient(circle, #d1fae5 0%, transparent 70%);"></div>
+        <div class="pointer-events-none absolute -bottom-10 -right-10 h-56 w-56 rounded-full opacity-30"
+             style="background: radial-gradient(circle, #a7f3d0 0%, transparent 70%);"></div>
+
+        {{-- Icon tile --}}
+        <div class="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl shadow-xl"
+             style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 12px 32px rgba(16,185,129,0.35);">
+            <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
             </svg>
+            {{-- Floating sparkle --}}
+            <span class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full text-white text-xs font-black shadow-md"
+                  style="background: linear-gradient(135deg, #34d399, #10b981);">+</span>
         </div>
-        <p class="text-base font-bold text-slate-500">{{ __('app.no_boqs_found') }}</p>
-        <p class="mt-1 text-sm text-slate-400">{{ __('app.create_boq_get_started') }}</p>
+
+        {{-- Text --}}
+        <h3 class="text-xl font-black text-slate-800 tracking-tight">{{ __('app.no_boqs_found') }}</h3>
+        <p class="mt-2 text-sm font-medium text-slate-400 max-w-xs mx-auto">{{ __('app.create_boq_get_started') }}</p>
+
+        {{-- CTA button --}}
         <a href="{{ route('enduser.boqs.create') }}"
-            class="mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:opacity-90 transition"
-            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
+            class="mt-8 inline-flex items-center gap-2.5 px-8 py-3.5 text-sm font-bold text-white transition-all duration-200 hover:opacity-90 hover:-translate-y-0.5"
+            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 999px; box-shadow: 0 8px 24px rgba(16,185,129,0.40); letter-spacing:0.01em;">
+            <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full" style="background:rgba(255,255,255,0.25);">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
+            </span>
             {{ __('app.new_boq') }}
         </a>
     </div>
