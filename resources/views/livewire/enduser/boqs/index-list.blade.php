@@ -39,7 +39,7 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl px-5 py-3.5 shadow-lg text-sm font-medium"
+        class="fixed bottom-6 right-6 z-[100000] flex items-center gap-3 rounded-2xl px-5 py-3.5 shadow-lg text-sm font-medium"
         :class="{
             'bg-emerald-50 text-emerald-700 border border-emerald-200': toast?.type === 'success',
             'bg-red-50 text-red-700 border border-red-200':             toast?.type === 'error',
@@ -553,18 +553,31 @@
                         </div>
 
                         @if($isDraft)
-                            <button
-                                type="button"
-                                @click.stop="$wire.convertToQuotation('{{ $boq->uuid }}')"
-                                title="{{ __('app.convert_to_quotation') }}"
-                                class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 disabled:opacity-60"
-                            >
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/>
-                                </svg>
-                                Convert
-                            </button>
+                            @if($itemCount > 0)
+                                <button
+                                    type="button"
+                                    @click.stop="$wire.convertToQuotation('{{ $boq->uuid }}')"
+                                    title="{{ __('app.convert_to_quotation') }}"
+                                    class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-50"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/>
+                                    </svg>
+                                    Convert
+                                </button>
+                            @else
+                                <span
+                                    title="Add items to this BOQ before converting"
+                                    class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs font-semibold text-slate-400"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/>
+                                    </svg>
+                                    No items
+                                </span>
+                            @endif
                         @endif
                     </div>
                 </div>
