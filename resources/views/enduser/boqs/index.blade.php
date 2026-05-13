@@ -89,68 +89,111 @@
     </div>
 
     {{-- Page Header --}}
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-900">{{ __('app.bills_of_quantities') }}</h1>
-        <p class="mt-1 text-sm text-slate-500">{{ __('app.manage_boqs_desc') }}</p>
+    <div class="mb-7 flex items-start justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl shadow-md flex-shrink-0"
+                 style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">{{ __('app.bills_of_quantities') }}</h1>
+                <p class="mt-0.5 text-sm text-slate-500">{{ __('app.manage_boqs_desc') }}</p>
+            </div>
+        </div>
     </div>
 
     {{-- Stat Cards --}}
     <div class="mb-7 grid grid-cols-2 gap-4 xl:grid-cols-4">
 
-        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-            <div class="flex items-center justify-between">
-                <p class="text-xs font-medium text-slate-400">{{ __('app.total_boqs') }}</p>
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-                    <svg class="h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
+        {{-- Total --}}
+        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+             style="border: 1px solid #e2e8f0;">
+            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style="background: linear-gradient(90deg, #6366f1, #818cf8);"></div>
+            <div class="px-5 pt-5 pb-4">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide" style="color:#6366f1;">{{ __('app.total_boqs') }}</p>
+                        <p class="mt-2 text-4xl font-black text-slate-900" x-text="stats.total ?? '—'"></p>
+                        <p class="mt-1 text-xs text-slate-400">All time BOQs</p>
+                    </div>
+                    <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl shadow-sm"
+                         style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);">
+                        <svg class="h-5 w-5" style="color:#6366f1;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
-            <p class="mt-3 text-3xl font-extrabold text-slate-900" x-text="stats.total ?? '—'"></p>
-            <p class="mt-0.5 text-xs text-slate-400">All time BOQs</p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-            <div class="flex items-center justify-between">
-                <p class="text-xs font-medium text-slate-400">{{ __('app.status_draft') }}</p>
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50">
-                    <svg class="h-5 w-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
+        {{-- Draft --}}
+        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+             style="border: 1px solid #e2e8f0;">
+            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style="background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+            <div class="px-5 pt-5 pb-4">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide" style="color:#d97706;">{{ __('app.status_draft') }}</p>
+                        <p class="mt-2 text-4xl font-black text-slate-900" x-text="stats.draft ?? '—'"></p>
+                        <p class="mt-1 text-xs text-slate-400">Awaiting review</p>
+                    </div>
+                    <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl shadow-sm"
+                         style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);">
+                        <svg class="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
-            <p class="mt-3 text-3xl font-extrabold text-slate-900" x-text="stats.draft ?? '—'"></p>
-            <p class="mt-0.5 text-xs text-slate-400">Awaiting review</p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-            <div class="flex items-center justify-between">
-                <p class="text-xs font-medium text-slate-400">{{ __('app.status_submitted') }}</p>
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-                    <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                    </svg>
+        {{-- Submitted --}}
+        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+             style="border: 1px solid #e2e8f0;">
+            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style="background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div>
+            <div class="px-5 pt-5 pb-4">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide" style="color:#2563eb;">{{ __('app.status_submitted') }}</p>
+                        <p class="mt-2 text-4xl font-black text-slate-900" x-text="stats.submitted ?? '—'"></p>
+                        <p class="mt-1 text-xs text-slate-400">Under review</p>
+                    </div>
+                    <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl shadow-sm"
+                         style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
+                        <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
-            <p class="mt-3 text-3xl font-extrabold text-slate-900" x-text="stats.submitted ?? '—'"></p>
-            <p class="mt-0.5 text-xs text-slate-400">Under review</p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-            <div class="flex items-center justify-between">
-                <p class="text-xs font-medium text-slate-400">{{ __('app.status_completed') }}</p>
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
-                    <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
+        {{-- Completed --}}
+        <div class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+             style="border: 1px solid #e2e8f0;">
+            <div class="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style="background: linear-gradient(90deg, #10b981, #34d399);"></div>
+            <div class="px-5 pt-5 pb-4">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide" style="color:#059669;">{{ __('app.status_completed') }}</p>
+                        <p class="mt-2 text-4xl font-black text-slate-900" x-text="stats.completed ?? '—'"></p>
+                        <p class="mt-1 text-xs text-slate-400">Successfully completed</p>
+                    </div>
+                    <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl shadow-sm"
+                         style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);">
+                        <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
-            <p class="mt-3 text-3xl font-extrabold text-slate-900" x-text="stats.completed ?? '—'"></p>
-            <p class="mt-0.5 text-xs text-slate-400">Successfully completed</p>
         </div>
 
     </div>
@@ -161,14 +204,16 @@
         {{-- New BOQ split button --}}
         <div class="relative flex" @click.stop>
             <a href="{{ route('enduser.boqs.create') }}"
-                class="inline-flex items-center gap-2 rounded-l-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
+                class="inline-flex items-center gap-2 rounded-l-xl px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg hover:opacity-90"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 {{ __('app.new_boq') }}
             </a>
             <button type="button" @click="newBoqOpen = !newBoqOpen"
-                class="inline-flex items-center rounded-r-xl border-l border-emerald-400 bg-emerald-500 px-2.5 py-2.5 text-white shadow-sm transition hover:bg-emerald-600">
+                class="inline-flex items-center rounded-r-xl px-2.5 py-2.5 text-white shadow-md transition hover:opacity-90"
+                style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-left: 1px solid rgba(255,255,255,0.2);">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
