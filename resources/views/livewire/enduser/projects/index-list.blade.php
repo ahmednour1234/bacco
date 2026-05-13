@@ -19,7 +19,7 @@
     <div class="space-y-5">
 
         {{-- Stat Cards --}}
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
 
             {{-- Total --}}
             <div class="relative overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md hover:-translate-y-0.5"
@@ -125,7 +125,7 @@
         </div>
 
         {{-- Filters --}}
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-3">
             <div class="relative min-w-0 flex-1">
                 <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
