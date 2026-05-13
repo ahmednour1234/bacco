@@ -267,7 +267,7 @@
         @endif
     </div>
 
-    {{-- ───── BOQ Cards ────────────────────────────────────────────────────────── --}}
+    {{-- ───── BOQ Table ────────────────────────────────────────────────────────── --}}
     @if($boqs->isEmpty())
         <div class="rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
             <svg class="mx-auto mb-4 h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -278,135 +278,131 @@
             <p class="mt-1 text-xs text-slate-300">{{ __('app.create_boq_get_started') }}</p>
         </div>
     @else
-        <div class="space-y-6">
-            @foreach($boqs as $boq)
-                @php
-                    $sv = $boq->status->value ?? '';
-
-                    $badgeClass = match($sv) {
-                        'draft'     => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
-                        'submitted' => 'bg-blue-50 text-blue-600 ring-1 ring-blue-200',
-                        'completed' => 'bg-green-50 text-green-700 ring-1 ring-green-200',
-                        'cancelled' => 'bg-red-50 text-red-600 ring-1 ring-red-200',
-                        default     => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
-                    };
-
-                    $leftBorder = match($sv) {
-                        'draft'     => 'border-l-slate-300',
-                        'submitted' => 'border-l-blue-400',
-                        'completed' => 'border-l-green-500',
-                        'cancelled' => 'border-l-red-400',
-                        default     => 'border-l-slate-300',
-                    };
-
-                    $statusMsg = match($sv) {
-                        'draft'     => __('app.draft_saved_boq'),
-                        'submitted' => __('app.boq_submitted_select'),
-                        'completed' => __('app.boq_completed_quotation'),
-                        'cancelled' => __('app.boq_cancelled'),
-                        default     => __('app.status_update_pending'),
-                    };
-
-                    $msgIconClass = match($sv) {
-                        'cancelled' => 'text-red-400',
-                        'draft'     => 'text-slate-400',
-                        default     => 'text-emerald-500',
-                    };
-
-                    $itemCount = $boq->items->count();
-                @endphp
-
-                <div class="group flex flex-col gap-4 rounded-2xl border border-slate-200 border-l-4 {{ $leftBorder }} bg-white px-6 py-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
-
-                    {{-- Left: info --}}
-                    <div class="flex-1 min-w-0">
-
-                        {{-- Badge + ID --}}
-                        <div class="mb-2 flex flex-wrap items-center gap-2">
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide {{ $badgeClass }}">
-                                {{ $boq->status->label() }}
-                            </span>
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50">
+                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.id') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.project') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.status') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.type') }}</th>
+                            <th class="px-5 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.items') }}</th>
+                            <th class="px-5 py-3 text-start text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.created') }}</th>
+                            <th class="px-5 py-3 text-end text-xs font-bold uppercase tracking-wide text-slate-400">{{ __('app.actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @foreach($boqs as $boq)
                             @php
+                                $sv = $boq->status->value ?? '';
+
+                                $badgeClass = match($sv) {
+                                    'draft'     => 'bg-slate-100 text-slate-500',
+                                    'submitted' => 'bg-blue-50 text-blue-600',
+                                    'completed' => 'bg-emerald-50 text-emerald-700',
+                                    'cancelled' => 'bg-red-50 text-red-600',
+                                    default     => 'bg-slate-100 text-slate-500',
+                                };
+
                                 $typeColors = [
                                     'tender'  => 'bg-blue-100 text-blue-700',
                                     'awarded' => 'bg-emerald-100 text-emerald-700',
                                 ];
                                 $typeColor = $typeColors[$boq->type->value ?? ''] ?? 'bg-slate-100 text-slate-700';
+
+                                $itemCount = $boq->items->count();
                             @endphp
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold {{ $typeColor }}">
-                                {{ $boq->type?->label() ?? '—' }}
-                            </span>
-                            <span class="text-xs text-slate-400 font-mono">ID: #{{ $boq->boq_no }}</span>
-                        </div>
+                            <tr class="group hover:bg-slate-50/60 transition-colors">
 
-                        {{-- Project name --}}
-                        <h3 class="text-base font-bold text-slate-900 truncate">
-                            {{ $boq->project?->name ?? __('app.no_project') }}
-                        </h3>
+                                {{-- ID --}}
+                                <td class="px-5 py-3.5">
+                                    <span class="font-mono text-xs text-slate-400">#{{ $boq->boq_no }}</span>
+                                </td>
 
-                        {{-- Meta line --}}
-                        <p class="mt-0.5 text-xs text-slate-400">
-                            {{ $itemCount }} {{ $itemCount === 1 ? __('app.item') : __('app.items') }}
-                            &middot;
-                            {{ __('app.created_colon') }} {{ $boq->created_at?->format('M d, Y') }}
-                        </p>
+                                {{-- Project --}}
+                                <td class="px-5 py-3.5">
+                                    <span class="font-semibold text-slate-800">{{ $boq->project?->name ?? '—' }}</span>
+                                </td>
 
-                        {{-- Status message --}}
-                        <p class="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
-                            @if($sv === 'cancelled')
-                                <svg class="h-4 w-4 shrink-0 {{ $msgIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            @else
-                                <svg class="h-4 w-4 shrink-0 {{ $msgIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            @endif
-                            {{ $statusMsg }}
-                        </p>
-                    </div>
+                                {{-- Status --}}
+                                <td class="px-5 py-3.5">
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold {{ $badgeClass }}">
+                                        {{ $boq->status->label() }}
+                                    </span>
+                                </td>
 
-                    {{-- Right: actions --}}
-                    <div class="flex shrink-0 flex-wrap items-center gap-2">
+                                {{-- Type --}}
+                                <td class="px-5 py-3.5">
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold {{ $typeColor }}">
+                                        {{ $boq->type?->label() ?? '—' }}
+                                    </span>
+                                </td>
 
-                        @if($sv === 'draft')
-                            <button
-                                type="button"
-                                @click="openDelete({{ $boq->id }}, '{{ $boq->boq_no }}')"
-                                title="{{ __('app.delete') }}"
-                                class="rounded-lg p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
-                            >
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
+                                {{-- Items count --}}
+                                <td class="px-5 py-3.5 text-center">
+                                    <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                                        {{ $itemCount }}
+                                    </span>
+                                </td>
 
-                            <button
-                                type="button"
-                                wire:click="convertToQuotation('{{ $boq->uuid }}')"
-                                wire:loading.attr="disabled"
-                                wire:target="convertToQuotation('{{ $boq->uuid }}')"
-                                class="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:opacity-60"
-                            >
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/>
-                                </svg>
-                                {{ __('app.convert_to_quotation') }}
-                            </button>
-                        @endif
+                                {{-- Created --}}
+                                <td class="px-5 py-3.5 text-xs text-slate-400">
+                                    {{ $boq->created_at?->format('M d, Y') }}
+                                </td>
 
-                        <a
-                            href="{{ route('enduser.boqs.show', $boq->uuid) }}"
-                            class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
-                        >
-                            {{ __('app.view_details') }}
-                        </a>
-                    </div>
+                                {{-- Actions --}}
+                                <td class="px-5 py-3.5">
+                                    <div class="flex items-center justify-end gap-2">
+                                        @if($sv === 'draft')
+                                            <button
+                                                type="button"
+                                                wire:click="convertToQuotation('{{ $boq->uuid }}')"
+                                                wire:loading.attr="disabled"
+                                                wire:target="convertToQuotation('{{ $boq->uuid }}')"
+                                                title="{{ __('app.convert_to_quotation') }}"
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-60"
+                                            >
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"/>
+                                                </svg>
+                                                {{ __('app.convert_to_quotation') }}
+                                            </button>
+                                        @endif
 
-                </div>
-            @endforeach
+                                        <a
+                                            href="{{ route('enduser.boqs.show', $boq->uuid) }}"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            {{ __('app.view') }}
+                                        </a>
+
+                                        @if($sv === 'draft')
+                                            <button
+                                                type="button"
+                                                @click="openDelete({{ $boq->id }}, '{{ $boq->boq_no }}')"
+                                                title="{{ __('app.delete') }}"
+                                                class="rounded-lg border border-red-200 bg-red-50 p-1.5 text-red-500 transition hover:bg-red-100"
+                                            >
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
+
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         {{-- Pagination --}}
