@@ -337,42 +337,36 @@
 
     {{-- Empty state --}}
     <div x-show="!loading && boqs.length === 0"
-        class="relative overflow-hidden rounded-3xl bg-white text-center"
-        style="border: 1px solid #d1fae5; box-shadow: 0 4px 32px rgba(16,185,129,0.07); padding: 72px 40px 64px;">
+        class="rounded-3xl bg-white"
+        style="border: 1px solid #d1fae5; box-shadow: 0 4px 32px rgba(16,185,129,0.07);">
+        <div class="flex flex-col items-center py-20 px-10">
 
-        {{-- Decorative background blobs --}}
-        <div class="pointer-events-none absolute -top-10 -left-10 h-48 w-48 rounded-full opacity-40"
-             style="background: radial-gradient(circle, #d1fae5 0%, transparent 70%);"></div>
-        <div class="pointer-events-none absolute -bottom-10 -right-10 h-56 w-56 rounded-full opacity-30"
-             style="background: radial-gradient(circle, #a7f3d0 0%, transparent 70%);"></div>
-
-        {{-- Icon tile --}}
-        <div class="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl shadow-xl"
-             style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 12px 32px rgba(16,185,129,0.35);">
-            <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-            </svg>
-            {{-- Floating sparkle --}}
-            <span class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full text-white text-xs font-black shadow-md"
-                  style="background: linear-gradient(135deg, #34d399, #10b981);">+</span>
-        </div>
-
-        {{-- Text --}}
-        <h3 class="text-xl font-black text-slate-800 tracking-tight">{{ __('app.no_boqs_found') }}</h3>
-        <p class="mt-2 text-sm font-medium text-slate-400 max-w-xs mx-auto">{{ __('app.create_boq_get_started') }}</p>
-
-        {{-- CTA button --}}
-        <a href="{{ route('enduser.boqs.create') }}"
-            class="mt-8 inline-flex items-center gap-2.5 px-8 py-3.5 text-sm font-bold text-white transition-all duration-200 hover:opacity-90 hover:-translate-y-0.5"
-            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 999px; box-shadow: 0 8px 24px rgba(16,185,129,0.40); letter-spacing:0.01em;">
-            <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full" style="background:rgba(255,255,255,0.25);">
-                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            {{-- Icon tile --}}
+            <div class="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-3xl"
+                 style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 12px 32px rgba(16,185,129,0.35);">
+                <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                 </svg>
-            </span>
-            {{ __('app.new_boq') }}
-        </a>
+            </div>
+
+            {{-- Text --}}
+            <h3 class="mt-6 text-xl font-black text-slate-800">{{ __('app.no_boqs_found') }}</h3>
+            <p class="mt-2 text-sm font-medium text-slate-400">{{ __('app.create_boq_get_started') }}</p>
+
+            {{-- CTA button --}}
+            <a href="{{ route('enduser.boqs.create') }}"
+                class="mt-8 inline-flex items-center gap-2.5 px-8 py-3.5 text-sm font-bold text-white transition-all duration-200 hover:opacity-90 hover:-translate-y-0.5"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 999px; box-shadow: 0 8px 24px rgba(16,185,129,0.40); letter-spacing:0.01em;">
+                <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full" style="background:rgba(255,255,255,0.25);">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </span>
+                {{ __('app.new_boq') }}
+            </a>
+
+        </div>
     </div>
 
     {{-- BOQ Grid --}}
