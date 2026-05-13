@@ -182,77 +182,113 @@
             </div>
         @else
             <div class="overflow-hidden rounded-2xl bg-white shadow-sm" style="border: 1px solid #e2e8f0;">
-                @foreach($projects as $project)
-                    @php
-                        $statusColor = match($project->status->value ?? 'pending') {
-                            'active'    => ['bg' => 'rgba(16,185,129,0.10)',  'text' => '#065f46', 'border' => 'rgba(16,185,129,0.25)'],
-                            'completed' => ['bg' => 'rgba(59,130,246,0.10)',  'text' => '#1e40af', 'border' => 'rgba(59,130,246,0.25)'],
-                            'on_hold'   => ['bg' => 'rgba(245,158,11,0.10)',  'text' => '#92400e', 'border' => 'rgba(245,158,11,0.25)'],
-                            'cancelled' => ['bg' => 'rgba(239,68,68,0.10)',   'text' => '#991b1b', 'border' => 'rgba(239,68,68,0.25)'],
-                            default     => ['bg' => 'rgba(99,102,241,0.10)',  'text' => '#3730a3', 'border' => 'rgba(99,102,241,0.25)'],
-                        };
-                    @endphp
-                    <div class="flex items-center gap-4 border-b border-slate-100 px-5 py-4 transition hover:bg-slate-50 last:border-b-0">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                            <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 w-8"></th>
+                            <th class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.project') }}</th>
+                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden sm:table-cell">{{ __('app.boq_count') }}</th>
+                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden md:table-cell">{{ __('app.quotation_count') }}</th>
+                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden md:table-cell">{{ __('app.order_count') }}</th>
+                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden lg:table-cell">{{ __('app.created') }}</th>
+                            <th class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.status') }}</th>
+                            <th class="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($projects as $project)
+                            @php
+                                $statusColor = match($project->status->value ?? 'pending') {
+                                    'active'    => ['bg' => 'rgba(16,185,129,0.10)',  'text' => '#065f46', 'border' => 'rgba(16,185,129,0.25)'],
+                                    'completed' => ['bg' => 'rgba(59,130,246,0.10)',  'text' => '#1e40af', 'border' => 'rgba(59,130,246,0.25)'],
+                                    'on_hold'   => ['bg' => 'rgba(245,158,11,0.10)',  'text' => '#92400e', 'border' => 'rgba(245,158,11,0.25)'],
+                                    'cancelled' => ['bg' => 'rgba(239,68,68,0.10)',   'text' => '#991b1b', 'border' => 'rgba(239,68,68,0.25)'],
+                                    default     => ['bg' => 'rgba(99,102,241,0.10)',  'text' => '#3730a3', 'border' => 'rgba(99,102,241,0.25)'],
+                                };
+                            @endphp
+                            <tr class="transition hover:bg-slate-50">
 
-                        {{-- Icon --}}
-                        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-                             style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 4px 10px rgba(99,102,241,0.25);">
-                            <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
-                        </div>
+                                {{-- Icon --}}
+                                <td class="pl-5 pr-2 py-3.5">
+                                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
+                                         style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 4px 10px rgba(99,102,241,0.25);">
+                                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                        </svg>
+                                    </div>
+                                </td>
 
-                        {{-- Info --}}
-                        <div class="min-w-0 flex-1">
-                            <h3 class="truncate text-sm font-bold text-slate-900">{{ $project->name }}</h3>
-                            <p class="text-[11px] font-mono text-slate-400">{{ $project->project_no }}</p>
-                            <div class="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
-                                <span class="inline-flex items-center gap-1">
-                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
-                                    {{ $project->boqs_count }} {{ __('app.boq_count') }}
-                                </span>
-                                <span class="inline-flex items-center gap-1">
-                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    {{ $project->quotation_requests_count }} {{ __('app.quotation_count') }}
-                                </span>
-                                <span class="inline-flex items-center gap-1">
-                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                                    {{ $project->orders_count }} {{ __('app.order_count') }}
-                                </span>
-                                <span class="inline-flex items-center gap-1">
-                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    {{ $project->created_at->diffForHumans() }}
-                                </span>
-                            </div>
-                        </div>
+                                {{-- Name + code --}}
+                                <td class="px-3 py-3.5 max-w-[220px]">
+                                    <p class="truncate font-bold text-slate-900">{{ $project->name }}</p>
+                                    <p class="font-mono text-[11px] text-slate-400">{{ $project->project_no }}</p>
+                                </td>
 
-                        {{-- Status badge --}}
-                        <span class="hidden flex-shrink-0 rounded-full px-3 py-1 text-[11px] font-bold sm:inline-flex"
-                              style="background: {{ $statusColor['bg'] }}; color: {{ $statusColor['text'] }}; border: 1px solid {{ $statusColor['border'] }};">
-                            {{ $project->status->label() }}
-                        </span>
+                                {{-- BOQs --}}
+                                <td class="px-3 py-3.5 text-center hidden sm:table-cell">
+                                    <span class="inline-flex items-center gap-1 text-slate-500">
+                                        <svg class="h-3.5 w-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
+                                        {{ $project->boqs_count }}
+                                    </span>
+                                </td>
 
-                        {{-- Actions --}}
-                        <div class="flex flex-shrink-0 items-center gap-1.5">
-                            <a href="{{ route('enduser.boqs.create.project', $project->uuid) }}"
-                                class="flex h-9 w-9 items-center justify-center rounded-xl text-white transition hover:opacity-90"
-                                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 3px 10px rgba(16,185,129,0.30);"
-                                title="{{ __('app.new_boq') }}">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                                </svg>
-                            </a>
-                            <a href="{{ route('enduser.projects.show', $project->uuid) }}"
-                                class="inline-flex h-9 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:border-slate-300">
-                                {{ __('app.view') }}
-                                <svg class="h-3.5 w-3.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                @endforeach
+                                {{-- Quotations --}}
+                                <td class="px-3 py-3.5 text-center hidden md:table-cell">
+                                    <span class="inline-flex items-center gap-1 text-slate-500">
+                                        <svg class="h-3.5 w-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        {{ $project->quotation_requests_count }}
+                                    </span>
+                                </td>
+
+                                {{-- Orders --}}
+                                <td class="px-3 py-3.5 text-center hidden md:table-cell">
+                                    <span class="inline-flex items-center gap-1 text-slate-500">
+                                        <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                        {{ $project->orders_count }}
+                                    </span>
+                                </td>
+
+                                {{-- Created --}}
+                                <td class="px-3 py-3.5 text-center text-[12px] text-slate-400 hidden lg:table-cell whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        {{ $project->created_at->diffForHumans() }}
+                                    </span>
+                                </td>
+
+                                {{-- Status --}}
+                                <td class="px-3 py-3.5 text-center">
+                                    <span class="inline-flex rounded-full px-3 py-1 text-[11px] font-bold"
+                                          style="background: {{ $statusColor['bg'] }}; color: {{ $statusColor['text'] }}; border: 1px solid {{ $statusColor['border'] }};">
+                                        {{ $project->status->label() }}
+                                    </span>
+                                </td>
+
+                                {{-- Actions --}}
+                                <td class="pl-3 pr-5 py-3.5 text-right">
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <a href="{{ route('enduser.boqs.create.project', $project->uuid) }}"
+                                            class="flex h-9 w-9 items-center justify-center rounded-xl text-white transition hover:opacity-90"
+                                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 3px 10px rgba(16,185,129,0.30);"
+                                            title="{{ __('app.new_boq') }}">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                        </a>
+                                        <a href="{{ route('enduser.projects.show', $project->uuid) }}"
+                                            class="inline-flex h-9 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:border-slate-300">
+                                            {{ __('app.view') }}
+                                            <svg class="h-3.5 w-3.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
 
             <div class="mt-2">
