@@ -13,128 +13,6 @@
 
 @section('content')
 
-{{-- ═══════════════════════════════════════════════════════
-     BOQ PROMO HERO CARD
-═══════════════════════════════════════════════════════ --}}
-<div class="relative mb-8 rounded-3xl overflow-hidden shadow-2xl"
-     style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4338ca 65%, #6d28d9 100%);">
-
-    {{-- Animated background orbs --}}
-    <div class="absolute inset-0 pointer-events-none overflow-hidden">
-        <div class="absolute" style="width:420px;height:420px;top:-120px;left:-80px;background:radial-gradient(circle,rgba(139,92,246,0.35) 0%,transparent 70%);border-radius:50%;"></div>
-        <div class="absolute" style="width:300px;height:300px;bottom:-60px;left:30%;background:radial-gradient(circle,rgba(99,102,241,0.3) 0%,transparent 70%);border-radius:50%;"></div>
-        <div class="absolute" style="width:250px;height:250px;top:-40px;right:200px;background:radial-gradient(circle,rgba(167,139,250,0.25) 0%,transparent 70%);border-radius:50%;"></div>
-        {{-- subtle dot-grid pattern --}}
-        <svg class="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-                    <circle cx="2" cy="2" r="1.5" fill="white"/>
-                </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dots)"/>
-        </svg>
-    </div>
-
-    {{-- Main content row --}}
-    <div class="relative flex flex-col md:flex-row items-center justify-between px-8 py-8 md:py-6 gap-6 md:gap-0"
-         style="min-height: 200px;">
-
-        {{-- ── Left: text + CTA ── --}}
-        <div class="flex-1 text-center md:text-start z-10">
-
-            {{-- Badge --}}
-            <div class="inline-flex items-center gap-2 mb-3">
-                <span class="inline-flex items-center gap-1.5 bg-emerald-400 text-emerald-950 text-xs font-black px-3 py-1 rounded-full shadow-md uppercase tracking-wide">
-                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    100% FREE
-                </span>
-                <span class="inline-flex items-center gap-1 bg-white/10 text-white/80 text-xs font-semibold px-2.5 py-1 rounded-full border border-white/20">
-                    &#10022; New Feature
-                </span>
-            </div>
-
-            {{-- Headline --}}
-            <h2 class="text-3xl sm:text-4xl font-black text-white leading-tight mb-2 drop-shadow-md">
-                {{ __('app.banner_title') }}
-            </h2>
-
-            {{-- Subtitle --}}
-            <p class="text-indigo-200 text-sm sm:text-base font-medium mb-1 max-w-sm mx-auto md:mx-0">
-                {{ __('app.banner_subtitle') }}
-            </p>
-
-            {{-- Tagline pills --}}
-            <div class="flex items-center justify-center md:justify-start flex-wrap gap-2 mb-5 mt-2">
-                @foreach(['Fast', 'Easy', 'Accurate'] as $tag)
-                <span class="inline-flex items-center gap-1 text-xs text-white/70 bg-white/10 border border-white/20 rounded-full px-2.5 py-0.5 backdrop-blur-sm">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
-                    {{ $tag }}
-                </span>
-                @endforeach
-            </div>
-
-            {{-- CTA Button --}}
-            <a href="{{ route('enduser.boqs.create') }}"
-               class="group/btn inline-flex items-center gap-2.5 bg-white text-indigo-900 hover:bg-emerald-400 hover:text-emerald-950 font-black text-sm px-8 py-3.5 rounded-2xl shadow-xl hover:shadow-emerald-500/40 transition-all duration-200 hover:-translate-y-0.5">
-                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                </svg>
-                {{ __('app.banner_cta') }}
-                <svg class="w-4 h-4 flex-shrink-0 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                </svg>
-            </a>
-
-        </div>
-
-        {{-- ── Center/Right: 3D BOQ Image ── --}}
-        <div class="flex-shrink-0 flex items-center justify-center z-10"
-             style="width:220px; height:180px; position:relative;">
-            {{-- glow halo behind image --}}
-            <div class="absolute inset-0 rounded-full"
-                 style="background:radial-gradient(circle,rgba(167,139,250,0.5) 0%,transparent 70%);filter:blur(20px);"></div>
-            <img src="{{ asset('images/boq-free.png') }}"
-                 alt="BOQ Free"
-                 class="relative drop-shadow-2xl"
-                 style="width:200px; height:auto; filter:drop-shadow(0 20px 40px rgba(99,102,241,0.6)); animation: boqFloat 3s ease-in-out infinite;">
-        </div>
-
-        {{-- ── Right: Stats strip (desktop only) ── --}}
-        <div class="hidden xl:flex flex-col gap-3 z-10 flex-shrink-0 ps-6">
-            @foreach([
-                ['icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z','label'=>'Smart Pricing','val'=>'AI-Powered'],
-                ['icon'=>'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z','label'=>'Setup Time','val'=>'2 Minutes'],
-                ['icon'=>'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z','label'=>'Accuracy','val'=>'99%+'],
-            ] as $s)
-            <div class="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-4 py-2.5 backdrop-blur-sm">
-                <div class="w-8 h-8 bg-indigo-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $s['icon'] }}"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-white font-bold text-sm leading-tight">{{ $s['val'] }}</p>
-                    <p class="text-indigo-300 text-xs">{{ $s['label'] }}</p>
-                </div>
-            </div>
-            @endforeach
-        </div>
-
-    </div>
-
-    {{-- Bottom shimmer bar --}}
-    <div class="absolute bottom-0 left-0 right-0 h-0.5"
-         style="background: linear-gradient(90deg, transparent, rgba(167,139,250,0.8), rgba(52,211,153,0.8), transparent);"></div>
-</div>
-
-{{-- Float animation --}}
-<style>
-@keyframes boqFloat {
-    0%,100% { transform: translateY(0px) rotate(-2deg); }
-    50%      { transform: translateY(-10px) rotate(2deg); }
-}
-</style>
-
 {{-- Stat Cards --}}
 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-7">
 
@@ -278,6 +156,62 @@
     </a>
 
 </div>
+
+{{-- BOQ Promo Card --}}
+<a href="{{ route('enduser.boqs.create') }}"
+   class="group relative flex items-center justify-between mb-7 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+   style="background: linear-gradient(120deg, #1e1b4b 0%, #3730a3 40%, #4f46e5 70%, #7c3aed 100%); min-height: 110px;">
+
+    {{-- dot-grid overlay --}}
+    <svg class="absolute inset-0 w-full h-full pointer-events-none" style="opacity:0.08;" xmlns="http://www.w3.org/2000/svg">
+        <defs><pattern id="bdots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.5" fill="white"/></pattern></defs>
+        <rect width="100%" height="100%" fill="url(#bdots)"/>
+    </svg>
+    {{-- left glow --}}
+    <div class="absolute left-0 top-0 bottom-0 w-64 pointer-events-none"
+         style="background: radial-gradient(ellipse at left center, rgba(139,92,246,0.4) 0%, transparent 70%);"></div>
+    {{-- shimmer bottom --}}
+    <div class="absolute bottom-0 left-0 right-0 h-px"
+         style="background: linear-gradient(90deg, transparent, rgba(167,139,250,0.7), rgba(52,211,153,0.7), transparent);"></div>
+
+    {{-- Text block --}}
+    <div class="relative flex-1 px-7 py-5 z-10">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="inline-flex items-center gap-1 bg-emerald-400 text-emerald-950 text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                100% FREE
+            </span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-black text-white leading-snug mb-1">{{ __('app.banner_title') }}</h3>
+        <p class="text-indigo-200 text-sm font-medium">{{ __('app.banner_subtitle') }}</p>
+    </div>
+
+    {{-- CTA (desktop) --}}
+    <div class="hidden sm:flex relative z-10 flex-shrink-0 px-6">
+        <span class="inline-flex items-center gap-2 bg-white text-indigo-900 group-hover:bg-emerald-400 group-hover:text-emerald-950 font-black text-sm px-6 py-3 rounded-xl shadow-xl transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            {{ __('app.banner_cta') }}
+            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </span>
+    </div>
+
+    {{-- 3D BOQ image --}}
+    <div class="relative z-10 flex-shrink-0 self-end flex items-end justify-center"
+         style="width: 160px; height: 110px; overflow: hidden;">
+        <img src="{{ asset('images/boq-free.png') }}"
+             alt="BOQ"
+             style="width: 150px; height: auto; margin-bottom: -4px;
+                    filter: drop-shadow(0 8px 24px rgba(99,102,241,0.7));
+                    animation: boqBob 3s ease-in-out infinite;">
+    </div>
+
+    <style>
+        @keyframes boqBob {
+            0%,100% { transform: translateY(0) rotate(-1deg); }
+            50%      { transform: translateY(-8px) rotate(1deg); }
+        }
+    </style>
+</a>
 
 {{-- Track Quotations + Accepted Quotations --}}
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
