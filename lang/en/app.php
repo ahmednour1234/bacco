@@ -59,8 +59,16 @@ return [
     'banner_subtitle'   => 'Save time and create professional BOQs in minutes.',
     'banner_tagline'    => 'Fast • Easy • Accurate',
     'banner_free_badge' => '100% Free',
-    'banner_cta'        => 'Create BOQ Now',
-
+    'banner_cta'        => 'Create BOQ Now',    'banner2_badge'     => 'Instant Pricing',
+    'banner2_title'     => 'Get Your Quotation Fast!',
+    'banner2_subtitle'  => 'Submit your BOQ and receive accurate pricing in seconds.',
+    'banner2_tagline'   => 'AI-Powered &bull; Verified Prices &bull; No Delay',
+    'banner2_cta'       => 'Request Quotation',
+    'banner3_badge'     => 'Order Tracking',
+    'banner3_title'     => 'Track Your Orders in Real Time',
+    'banner3_subtitle'  => 'Monitor every order from submission to delivery.',
+    'banner3_tagline'   => 'Live Updates &bull; Full Visibility &bull; On Time',
+    'banner3_cta'       => 'View My Orders',
     // ── Dashboard Sections ───────────────────────────────────────────────────
     'track_quotations'        => 'Track Quotations',
     'latest_quotation_req'    => 'Latest quotation requests',
