@@ -36,12 +36,12 @@ class IndexList extends Component
 
     protected array $allowedPerPage = [5, 10, 25, 50];
 
-    public function updating($name): void
-    {
-        if ($name !== 'page') {
-            $this->resetPage();
-        }
-    }
+    public function updatingSearch(): void    { $this->resetPage(); }
+    public function updatingStatus(): void    { $this->resetPage(); }
+    public function updatingType(): void      { $this->resetPage(); }
+    public function updatingSort(): void      { $this->resetPage(); }
+    public function updatingCreatedFrom(): void { $this->resetPage(); }
+    public function updatingCreatedTo(): void   { $this->resetPage(); }
 
     public function updatedPerPage(): void
     {
