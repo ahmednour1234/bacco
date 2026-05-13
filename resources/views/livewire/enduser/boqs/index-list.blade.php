@@ -221,11 +221,23 @@
                 </svg>
             </span>
             <input
-                type="search"
-                wire:model.live.debounce.300ms="search"
+                type="text"
+                x-ref="searchInput"
+                :value="$wire.search"
+                @input.debounce.400ms="$wire.set('search', $event.target.value)"
                 placeholder="{{ __('app.search_boqs') }}"
-                class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-700 placeholder-slate-400 shadow-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
             >
+            <button
+                x-show="$wire.search !== ''"
+                @click="$wire.set('search', ''); $refs.searchInput.value = ''"
+                type="button"
+                class="absolute inset-y-0 right-3 flex items-center text-slate-300 hover:text-slate-500"
+            >
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
 
         {{-- Type filter --}}
