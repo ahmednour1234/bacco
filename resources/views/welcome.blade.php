@@ -242,16 +242,16 @@
     .section-title { font-family: 'Cairo', sans-serif; font-size: 22px; font-weight: 800; color: var(--dark); text-align: left; margin-bottom: 40px; }
     [dir="rtl"] .section-title { text-align: right; }
     .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
-    .how-card { background: var(--white); border-radius: 16px; padding: 32px 24px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+    .how-card { background: var(--white); border-radius: 16px; padding: 32px 24px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; overflow: hidden; min-height: 260px; }
     .how-card.active { background: var(--green); color: var(--white); border-color: transparent; }
     .how-card.active::after { content: '\26A1'; position: absolute; bottom: -10px; right: -4px; font-size: 120px; opacity: 0.12; line-height: 1; color: #f0a800; pointer-events: none; }
     [dir="rtl"] .how-card.active::after { right: auto; left: -4px; }
-    .how-num { font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #bbb; margin-bottom: 16px; }
-    .how-card.active .how-num { color: rgba(255,255,255,.6); }
+    .how-num { font-family: 'Cairo', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #bbb; margin-bottom: 16px; }
+    .how-card.active .how-num { color: rgba(255,255,255,.75); }
     .how-title { font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 800; margin-bottom: 10px; color: var(--dark); }
     .how-card.active .how-title { color: var(--white); }
-    .how-desc { font-size: 14px; color: var(--gray-text); line-height: 1.65; }
-    .how-card.active .how-desc { color: rgba(255,255,255,.85); }
+    .how-desc { font-size: 13px; color: var(--gray-text); line-height: 1.65; }
+    .how-card.active .how-desc { color: rgba(255,255,255,.95); }
     .how-icon { font-size: 28px; margin-bottom: 20px; display: block; }
 
     /* ── PILLARS ── */
