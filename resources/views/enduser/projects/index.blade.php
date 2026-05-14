@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-<div class="mx-auto max-w-7xl space-y-5 px-1">
+<div class="mx-auto max-w-7xl space-y-8">
 
     {{-- Stat Cards --}}
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
@@ -20,23 +20,22 @@
         {{-- Total --}}
         <div class="relative overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
              style="border: 1px solid #e5e7eb;">
-            <div class="flex items-center justify-between px-4 pt-4 pb-3">
+            <div class="flex items-center justify-between px-5 pt-7 pb-5">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-                         style="background:#ecfdf5; border:1px solid #d1fae5;">
+                    <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl" style="background:#ecfdf5; border:1px solid #d1fae5;">
                         <svg class="h-5 w-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                 d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
                         </svg>
                     </div>
-                    <p class="text-2xl font-black leading-none text-slate-900">{{ $stats['total'] }}</p>
+                    <p class="text-3xl font-black leading-none text-slate-900">{{ $stats['total'] }}</p>
                 </div>
                 <svg class="h-10 w-16 flex-shrink-0 opacity-60" viewBox="0 0 64 40" fill="none">
                     <polyline points="0,30 12,22 24,25 36,15 48,18 64,9"
                               stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
-            <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <p class="pb-5 pl-5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 {{ __('app.total_projects') }}
             </p>
         </div>
@@ -44,23 +43,22 @@
         {{-- Active --}}
         <div class="relative overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
              style="border: 1px solid #e5e7eb;">
-            <div class="flex items-center justify-between px-4 pt-4 pb-3">
+            <div class="flex items-center justify-between px-5 pt-7 pb-5">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-                         style="background:#ecfdf5; border:1px solid #d1fae5;">
+                    <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl" style="background:#ecfdf5; border:1px solid #d1fae5;">
                         <svg class="h-5 w-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                   d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
                     </div>
-                    <p class="text-2xl font-black leading-none text-slate-900">{{ $stats['active'] }}</p>
+                    <p class="text-3xl font-black leading-none text-slate-900">{{ $stats['active'] }}</p>
                 </div>
                 <svg class="h-10 w-16 flex-shrink-0 opacity-60" viewBox="0 0 64 40" fill="none">
                     <polyline points="0,32 10,28 22,20 32,24 44,13 64,8"
                               stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
-            <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <p class="pb-5 pl-5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 {{ __('app.active') }}
             </p>
         </div>
@@ -68,23 +66,22 @@
         {{-- Completed --}}
         <div class="relative overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
              style="border: 1px solid #e5e7eb;">
-            <div class="flex items-center justify-between px-4 pt-4 pb-3">
+            <div class="flex items-center justify-between px-5 pt-7 pb-5">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-                         style="background:#ecfdf5; border:1px solid #d1fae5;">
+                    <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl" style="background:#ecfdf5; border:1px solid #d1fae5;">
                         <svg class="h-5 w-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <p class="text-2xl font-black leading-none text-slate-900">{{ $stats['completed'] }}</p>
+                    <p class="text-3xl font-black leading-none text-slate-900">{{ $stats['completed'] }}</p>
                 </div>
                 <svg class="h-10 w-16 flex-shrink-0 opacity-60" viewBox="0 0 64 40" fill="none">
                     <polyline points="0,23 14,26 26,19 38,22 50,15 64,18"
                               stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
-            <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <p class="pb-5 pl-5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 {{ __('app.completed') }}
             </p>
         </div>
@@ -92,23 +89,22 @@
         {{-- Pending --}}
         <div class="relative overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
              style="border: 1px solid #e5e7eb;">
-            <div class="flex items-center justify-between px-4 pt-4 pb-3">
+            <div class="flex items-center justify-between px-5 pt-7 pb-5">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-                         style="background:#ecfdf5; border:1px solid #d1fae5;">
+                    <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl" style="background:#ecfdf5; border:1px solid #d1fae5;">
                         <svg class="h-5 w-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <p class="text-2xl font-black leading-none text-slate-900">{{ $stats['pending'] }}</p>
+                    <p class="text-3xl font-black leading-none text-slate-900">{{ $stats['pending'] }}</p>
                 </div>
                 <svg class="h-10 w-16 flex-shrink-0 opacity-60" viewBox="0 0 64 40" fill="none">
                     <polyline points="0,16 10,22 20,18 30,26 44,21 56,24 64,18"
                               stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
-            <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <p class="pb-5 pl-5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 {{ __('app.pending') }}
             </p>
         </div>
@@ -116,7 +112,7 @@
         {{-- Cancelled --}}
         <div class="relative overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
              style="border: 1px solid #e5e7eb;">
-            <div class="flex items-center justify-between px-4 pt-4 pb-3">
+            <div class="flex items-center justify-between px-5 pt-7 pb-5">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
                          style="background:#f8fafc; border:1px solid #e5e7eb;">
@@ -125,14 +121,14 @@
                                   d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </div>
-                    <p class="text-2xl font-black leading-none text-slate-900">{{ $stats['cancelled'] }}</p>
+                    <p class="text-3xl font-black leading-none text-slate-900">{{ $stats['cancelled'] }}</p>
                 </div>
                 <svg class="h-10 w-16 flex-shrink-0 opacity-50" viewBox="0 0 64 40" fill="none">
                     <polyline points="0,12 12,18 24,17 36,24 48,22 64,30"
                               stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
-            <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <p class="pb-5 pl-5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 {{ __('app.status_cancelled') }}
             </p>
         </div>
@@ -294,8 +290,7 @@
 
                             {{-- Icon --}}
                             <td class="pl-5 pr-2 py-5">
-                                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-                                     style="background:#ecfdf5; border:1px solid #d1fae5;">
+                                <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl" style="background:#ecfdf5; border:1px solid #d1fae5;">
                                     <svg class="h-5 w-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                             d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
