@@ -232,10 +232,10 @@
     .section-intro { font-size: 15px; color: #333; max-width: 520px; margin-bottom: 48px; }
     .section-intro strong { display: block; font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--dark); }
     .problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-    .problem-card { border: 1px solid var(--border); border-radius: 12px; padding: 28px 24px; }
-    .problem-icon { font-size: 22px; color: #888; margin-bottom: 14px; }
-    .problem-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
-    .problem-desc { font-size: 14px; color: var(--gray-text); line-height: 1.65; }
+    .problem-card { border: 1px solid var(--border); border-radius: 12px; padding: 36px 28px; }
+    .problem-icon { font-size: 22px; color: #888; margin-bottom: 16px; }
+    .problem-title { font-size: 17px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+    .problem-desc { font-size: 13px; color: var(--gray-text); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
     /* ── HOW IT WORKS ── */
     .how { padding: 80px 0; background: var(--white); }
