@@ -6,8 +6,12 @@ Disallow: /enduser/
 Disallow: /admin/
 Disallow: /supplier/
 Disallow: /dashboard
+Disallow: /privacy-policy
+Disallow: /terms
+Disallow: /cookie-policy
 
 Sitemap: https://qimta.com/sitemap.xml
 Sitemap: https://qimta.com/sitemap-en.xml
 Sitemap: https://qimta.com/sitemap-ar.xml
 Sitemap: https://qimta.com/sitemap-news.xml
+Sitemap: https://qimta.com/sitemap-catalog.xml

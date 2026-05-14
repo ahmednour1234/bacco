@@ -11,9 +11,10 @@ class SitemapController extends Controller
     public function index()
     {
         $sitemaps = [
-            ['loc' => 'https://qimta.com/sitemap-en.xml',   'lastmod' => now()->toAtomString()],
-            ['loc' => 'https://qimta.com/sitemap-ar.xml',   'lastmod' => now()->toAtomString()],
-            ['loc' => 'https://qimta.com/sitemap-news.xml', 'lastmod' => now()->toAtomString()],
+            ['loc' => 'https://qimta.com/sitemap-en.xml',      'lastmod' => now()->toAtomString()],
+            ['loc' => 'https://qimta.com/sitemap-ar.xml',      'lastmod' => now()->toAtomString()],
+            ['loc' => 'https://qimta.com/sitemap-news.xml',    'lastmod' => now()->toAtomString()],
+            ['loc' => 'https://qimta.com/sitemap-catalog.xml', 'lastmod' => now()->toAtomString()],
         ];
         return response()->view('sitemap.index', compact('sitemaps'))
             ->header('Content-Type', 'application/xml; charset=utf-8');
@@ -42,6 +43,22 @@ class SitemapController extends Controller
                 ->get(['slug', 'title_en', 'title_ar', 'created_at']);
         } catch (\Exception $e) {}
         return response()->view('sitemap.news', compact('articles'))
+            ->header('Content-Type', 'application/xml; charset=utf-8');
+    }
+
+    public function catalog()
+    {
+        $urls = [];
+        try {
+            $categories = DB::connection('catalog')->table('catalog_categories')
+                ->whereNotNull('slug')->where('slug', '!=', '')->orderBy('name')->get(['slug', 'updated_at']);
+            foreach ($categories as $row) {
+                $lastmod = isset($row->updated_at) ? \Carbon\Carbon::parse($row->updated_at)->toAtomString() : now()->toAtomString();
+                $urls[] = ['loc' => 'https://qimta.com/catalog/category/' . $row->slug,      'priority' => '0.8', 'changefreq' => 'weekly', 'lastmod' => $lastmod];
+                $urls[] = ['loc' => 'https://qimta.com/ar/catalog/category/' . $row->slug,   'priority' => '0.8', 'changefreq' => 'weekly', 'lastmod' => $lastmod];
+            }
+        } catch (\Exception $e) {}
+        return response()->view('sitemap.lang', compact('urls'))
             ->header('Content-Type', 'application/xml; charset=utf-8');
     }
 
