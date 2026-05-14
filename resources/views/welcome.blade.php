@@ -309,20 +309,24 @@
     /* ── ENGINE ── */
     .engine { padding: 80px 0; background: var(--white); }
     .engine-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
-    .engine-card { background: var(--dark); border-radius: 16px; padding: 36px; color: var(--white); }
-    .engine-title { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+    .engine-card { background: var(--dark); border-radius: 16px; padding: 40px; color: var(--white); }
+    .engine-title { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
     [dir="rtl"] .engine-title { letter-spacing: 0; }
-    .engine-name { font-size: 22px; font-weight: 800; color: var(--white); margin-bottom: 14px; }
-    .engine-desc { font-size: 14px; color: #aaa; line-height: 1.65; margin-bottom: 28px; }
-    .engine-feat { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
-    .engine-feat-icon { width: 36px; height: 36px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); flex-shrink: 0; }
-    .engine-feat-title { font-size: 14px; font-weight: 700; color: var(--white); }
-    .engine-feat-sub { font-size: 13px; color: #888; }
+    .engine-name { font-size: 28px; font-weight: 900; color: var(--white); margin-bottom: 12px; }
+    .engine-desc { font-size: 14px; color: #aaa; line-height: 1.7; margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .engine-feat { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+    .engine-feat:last-child { margin-bottom: 0; }
+    .engine-feat-text { flex: 1; }
+    .engine-feat-icon { width: 52px; height: 52px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .engine-feat-icon svg { width: 22px; height: 22px; stroke: var(--white); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .engine-feat-title { font-size: 18px; font-weight: 800; color: var(--white); margin-bottom: 4px; }
+    .engine-feat-sub { font-size: 13px; color: #888; line-height: 1.5; }
     .engine-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .metric-card { border: 1px solid var(--border); border-radius: 12px; padding: 28px 24px; text-align: center; }
-    .metric-val { font-size: 38px; font-weight: 900; color: var(--green); letter-spacing: -1px; margin-bottom: 6px; }
-    [dir="rtl"] .metric-val { letter-spacing: 0; }
-    .metric-label { font-size: 14px; color: var(--dark); font-weight: 700; margin-top: 4px; }
+    .metric-card { border: 1px solid var(--border); border-radius: 14px; padding: 32px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .metric-icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(0,106,59,.09); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+    .metric-icon svg { width: 26px; height: 26px; stroke: var(--green); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .metric-val { font-size: 17px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
+    .metric-label { font-size: 13px; color: var(--gray-text); font-weight: 500; line-height: 1.5; }
 
     /* ── DIVISIONS ── */
     .divs { padding: 60px 0; background: var(--cream); }
@@ -782,36 +786,52 @@ $_homeSchema = json_encode([
                 <p class="engine-name">{{ __('welcome.engine.name') }}</p>
                 <p class="engine-desc">{{ __('welcome.engine.desc') }}</p>
                 <div class="engine-feat">
-                    <div class="engine-feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg></div>
-                    <div>
+                    <div class="engine-feat-text">
                         <p class="engine-feat-title">{{ __('welcome.engine.feat1_title') }}</p>
                         <p class="engine-feat-sub">{{ __('welcome.engine.feat1_sub') }}</p>
                     </div>
+                    <div class="engine-feat-icon">
+                        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+                    </div>
                 </div>
                 <div class="engine-feat">
-                    <div class="engine-feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div>
-                    <div>
+                    <div class="engine-feat-text">
                         <p class="engine-feat-title">{{ __('welcome.engine.feat2_title') }}</p>
                         <p class="engine-feat-sub">{{ __('welcome.engine.feat2_sub') }}</p>
+                    </div>
+                    <div class="engine-feat-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
                 </div>
             </div>
             <div class="engine-metrics">
                 <div class="metric-card">
-                    <div class="metric-val">418k</div>
-                    <p class="metric-label">{{ __('welcome.engine.products') }}</p>
+                    <div class="metric-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                    </div>
+                    <p class="metric-val">{{ __('welcome.engine.m1_title') }}</p>
+                    <p class="metric-label">{{ __('welcome.engine.m1_desc') }}</p>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-val">99%</div>
-                    <p class="metric-label">{{ __('welcome.engine.match_rate') }}</p>
+                    <div class="metric-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </div>
+                    <p class="metric-val">{{ __('welcome.engine.m2_title') }}</p>
+                    <p class="metric-label">{{ __('welcome.engine.m2_desc') }}</p>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-val">24/7</div>
-                    <p class="metric-label">{{ __('welcome.engine.uptime') }}</p>
+                    <div class="metric-icon">
+                        <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
+                    <p class="metric-val">{{ __('welcome.engine.m3_title') }}</p>
+                    <p class="metric-label">{{ __('welcome.engine.m3_desc') }}</p>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-val">&lt; 1s</div>
-                    <p class="metric-label">{{ __('welcome.engine.latency') }}</p>
+                    <div class="metric-icon">
+                        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    </div>
+                    <p class="metric-val">{{ __('welcome.engine.m4_title') }}</p>
+                    <p class="metric-label">{{ __('welcome.engine.m4_desc') }}</p>
                 </div>
             </div>
         </div>
