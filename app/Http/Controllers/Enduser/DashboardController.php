@@ -64,6 +64,15 @@ class DashboardController extends Controller
             ->get();
 
         // ── Active Projects (latest 5) ───────────────────────────────────────
+        $allProjectsQuery = Project::where('client_id', $clientId);
+        $projectStats = [
+            'total'     => (clone $allProjectsQuery)->count(),
+            'active'    => (clone $allProjectsQuery)->where('status', 'active')->count(),
+            'completed' => (clone $allProjectsQuery)->where('status', 'completed')->count(),
+            'pending'   => (clone $allProjectsQuery)->where('status', 'pending')->count(),
+            'cancelled' => (clone $allProjectsQuery)->where('status', 'cancelled')->count(),
+        ];
+
         $activeProjects = Project::where('client_id', $clientId)
             ->withCount(['boqs', 'quotationRequests', 'orders'])
             ->latest()
@@ -81,6 +90,7 @@ class DashboardController extends Controller
             'recentQuotations',
             'acceptedQuotations',
             'activeProjects',
+            'projectStats',
             'recentOrders',
         ));
     }
