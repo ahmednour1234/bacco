@@ -202,13 +202,27 @@ class QuotationAiService
                     continue;
                 }
 
-                $grid = $sheet->rangeToArray(
-                    "A1:{$highestColumn}{$highestRow}",
-                    null,
-                    false, // calculateFormulas — disabled to avoid structured reference errors
-                    true,  // formatData
-                    false  // numeric keys
-                );
+                $grid = [];
+                foreach ($sheet->getRowIterator(1, $highestRow) as $rowObj) {
+                    $rowData      = [];
+                    $cellIterator = $rowObj->getCellIterator('A', $highestColumn);
+                    $cellIterator->setIterateOnlyExistingCells(false);
+                    foreach ($cellIterator as $cell) {
+                        try {
+                            $value = $cell->getCalculatedValue();
+                        } catch (\Throwable) {
+                            // Structured table references (Table13[[#This Row],...]) can't be
+                            // resolved by PhpSpreadsheet — use the value Excel last saved instead.
+                            $value = $cell->getOldCalculatedValue() ?? $cell->getValue();
+                        }
+                        // If still a raw formula string, blank it out
+                        if (is_string($value) && str_starts_with(ltrim($value), '=')) {
+                            $value = '';
+                        }
+                        $rowData[] = $value;
+                    }
+                    $grid[] = $rowData;
+                }
 
                 // ── Find the header row (first row with meaningful column names) ──
                 $headerRowIndex = null;
