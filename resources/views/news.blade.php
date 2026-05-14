@@ -19,6 +19,9 @@
     ? 'أحدث أخبار قطاع البناء والمشتريات في الخليج: أسعار المواد، اتجاهات السوق، وتحليلات من فريق كيمتا.'
     : 'Construction industry news, material pricing trends, and procurement insights for Saudi Arabia and GCC markets — by the Qimta team.')
 
+@section('og_image', 'https://qimta.com/images/og-news.jpg')
+@section('og_type', 'website')
+
 @section('content')
 <div style="background:#f8f9fa; min-height:100vh;" dir="{{ $dir }}">
 

@@ -5,7 +5,8 @@
 @section('description', app()->getLocale() === 'ar'
     ? 'تصفح كتالوج كيمتا: 418 ألف منتج بناء، تسعير فوري لجداول الكميات، مواصفات تقنية معتمدة. استكشف مواد البناء في السعودية والخليج.'
     : 'Browse Qimta’s construction materials catalog: 418K products, instant BOQ pricing, verified technical specs across Saudi Arabia and GCC markets.')
-
+@section('og_image', 'https://qimta.com/images/og-catalog.jpg')
+@section('og_type', 'website')
 @section('styles')
 <style>
     /* ── BREADCRUMB ── */

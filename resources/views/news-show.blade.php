@@ -14,6 +14,7 @@
 @endphp
 
 @section('title', $title)
+@section('description', $desc ?: ($isAr ? 'اقرأ المقال كاملاً على منصة كيمتا لأخبار البناء والمشتريات في الخليج.' : 'Read the full article on Qimta — construction and procurement news for Saudi Arabia and GCC.'))
 @section('og_type', 'article')
 @if($article->image)
 @section('og_image', Storage::url($article->image))
