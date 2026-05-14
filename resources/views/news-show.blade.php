@@ -16,6 +16,10 @@
 @section('title', $title)
 @section('description', $desc ?: ($isAr ? 'اقرأ المقال كاملاً على منصة كيمتا لأخبار البناء والمشتريات في الخليج.' : 'Read the full article on Qimta — construction and procurement news for Saudi Arabia and GCC.'))
 @section('og_type', 'article')
+{{-- Suppress AR hreflang when article has no Arabic content (AR requests redirect to EN) --}}
+@if(empty($article->title_ar))
+@section('no_ar_hreflang', '1')
+@endif
 @if($article->image)
 @section('og_image', Storage::url($article->image))
 @endif

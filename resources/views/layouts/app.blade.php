@@ -41,8 +41,10 @@
     <link rel="canonical"  href="{{ $__canonical }}">
     <link rel="alternate"  hreflang="x-default" href="{{ $__enUrl }}">
     <link rel="alternate"  hreflang="en"         href="{{ $__enUrl }}">
+    @unless(View::hasSection('no_ar_hreflang'))
     <link rel="alternate"  hreflang="ar"         href="{{ $__arUrl }}">
     <link rel="alternate"  hreflang="ar-SA"      href="{{ $__arUrl }}">
+    @endunless
     {{-- Open Graph / Twitter Card (after @php block so $__canonical is defined) --}}
     <meta property="og:type"        content="@yield('og_type', 'website')">
     <meta property="og:site_name"   content="Qimta Technology Company">

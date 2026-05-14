@@ -100,8 +100,23 @@ $_breadcrumb = json_encode([
         ['@type'=>'ListItem','position'=>3,'name'=>$division,'item'=>'https://www.qimta.com' . request()->getPathInfo()],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+$_itemListSchema = json_encode([
+    '@context'        => 'https://schema.org',
+    '@type'           => 'ItemList',
+    'name'            => $division,
+    'description'     => 'Construction products in the ' . $division . ' category — priced via Qimta RAG engine.',
+    'url'             => 'https://www.qimta.com' . request()->getPathInfo(),
+    'numberOfItems'   => $stats['products'] ?? 0,
+    'itemListElement' => $items->map(fn($item, $i) => [
+        '@type'    => 'ListItem',
+        'position' => $items->firstItem() + $i,
+        'name'     => $item->item_description,
+    ])->values()->toArray(),
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 <script type="application/ld+json">{!! $_breadcrumb !!}</script>
+<script type="application/ld+json">{!! $_itemListSchema !!}</script>
 <div class="container">
 
     {{-- Breadcrumb --}}

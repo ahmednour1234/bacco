@@ -134,8 +134,40 @@
 @endsection
 
 @section('content')
-
-{{-- GEO Fact Block --}}
+@php
+$_aboutSchema = json_encode([
+    '@context' => 'https://schema.org',
+    '@graph'   => [
+        [
+            '@type'       => 'LocalBusiness',
+            '@id'         => 'https://www.qimta.com/#localbusiness',
+            'name'        => 'Qimta Technology Company',
+            'url'         => 'https://www.qimta.com',
+            'logo'        => 'https://www.qimta.com/images/logo.svg',
+            'description' => 'B2B construction pricing platform indexing 418K verified products across Saudi Arabia and GCC. RAG engine retrieves BOQ pricing in under 60 seconds.',
+            'foundingDate'=> '2024',
+            'address'     => [
+                '@type'           => 'PostalAddress',
+                'addressLocality' => 'Riyadh',
+                'addressCountry'  => 'SA',
+            ],
+            'areaServed'  => ['SA','AE','QA','KW','BH','OM'],
+            'sameAs'      => [
+                'https://www.linkedin.com/company/qimta',
+                'https://twitter.com/QimtaSm',
+            ],
+        ],
+        [
+            '@type'    => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>'https://www.qimta.com/'],
+                ['@type'=>'ListItem','position'=>2,'name'=>'About Qimta','item'=>'https://www.qimta.com/about'],
+            ],
+        ],
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+<script type="application/ld+json">{!! $_aboutSchema !!}</script>
 <div class="container">
 <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 @if(app()->getLocale() === 'ar')

@@ -37,10 +37,19 @@ class NewsController extends Controller
         // Support old UUID-based URLs with a permanent redirect to slug URL
         if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $slugOrUuid)) {
             $article = Article::where('uuid', $slugOrUuid)->where('active', true)->firstOrFail();
-            return redirect()->route('news.show', $article->slug, 301);
+            // Redirect to locale-aware slug URL so /ar/news/{uuid} → /ar/news/{slug}
+            $routeName = $isAr ? 'ar.news.show' : 'news.show';
+            return redirect()->route($routeName, $article->slug, 301);
         }
 
         $article = Article::where('slug', $slugOrUuid)->where('active', true)->firstOrFail();
+
+        // If Arabic locale but article has no Arabic title, redirect to English canonical
+        // so Google doesn't index a duplicate/empty AR page with no separate content
+        if ($isAr && empty($article->title_ar)) {
+            return redirect()->route('news.show', $article->slug, 301);
+        }
+
         $related = Article::where('active', true)
             ->where('name_en', $article->name_en)
             ->where('id', '!=', $article->id)
