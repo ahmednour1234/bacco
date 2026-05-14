@@ -346,19 +346,19 @@
     .news-desc { font-size: 13px; color: var(--gray-text); line-height: 1.6; }
 
     /* ── BRAND CTA ── */
-    .brand { padding: 72px 0; background: var(--dark); }
+    .brand { padding: 80px 0; background: var(--dark); }
     .brand-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; max-width: 1100px; margin: 0 auto; padding: 0 32px; }
-    .brand-left h3 { font-family: 'Cairo', sans-serif; font-size: 32px; font-weight: 800; color: var(--white); margin-bottom: 14px; line-height: 1.2; }
-    .brand-left p { font-size: 14px; color: #aaa; margin-bottom: 28px; max-width: 400px; line-height: 1.65; }
-    .listing-row { display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,.15); border-radius: 10px; padding: 16px 20px; margin-bottom: 10px; font-size: 14px; color: var(--white); font-weight: 500; }
+    .brand-left h3 { font-family: 'Cairo', sans-serif; font-size: 38px; font-weight: 900; color: var(--white); margin-bottom: 16px; line-height: 1.15; }
+    .brand-left p { font-size: 13px; color: #999; margin-bottom: 32px; max-width: 400px; line-height: 1.7; }
+    .listing-row { display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; font-size: 14px; font-weight: 600; color: var(--white); }
     .listing-badge { font-size: 13px; font-weight: 700; color: #aaa; }
     .listing-badge.free { color: var(--green); }
     .listing-badge.sales { color: var(--white); font-weight: 700; }
-    .listing-row.active { border-color: var(--green); }
-    .brand-right { background: #1e1e1e; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 36px; }
-    .brand-right h4 { font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 20px; }
-    .brand-benefit { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #ccc; }
-    .brand-benefit::before { content: ""; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--green); border-radius: 50%; color: var(--white); font-size: 12px; font-weight: 700; flex-shrink: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; }
+    .listing-row.active { border-color: var(--green); background: rgba(0,106,59,.08); }
+    .brand-right { background: #1a1a1a; border: 1px solid rgba(255,255,255,.07); border-radius: 20px; padding: 44px; }
+    .brand-right h4 { font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 800; color: var(--white); margin-bottom: 24px; }
+    .brand-benefit { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 13px; color: #bbb; line-height: 1.6; }
+    .brand-benefit::before { content: ""; display: flex; align-items: center; justify-content: center; min-width: 20px; width: 20px; height: 20px; background: var(--green); border-radius: 50%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; }
 
     /* ── CTA BANNER ── */
     .cta-banner { padding: 80px 0; background: var(--white); text-align: center; }
@@ -889,6 +889,7 @@ $_homeSchema = json_encode([
                 <div class="brand-benefit">{{ __('welcome.brand.benefit2') }}</div>
                 <div class="brand-benefit">{{ __('welcome.brand.benefit3') }}</div>
                 <div class="brand-benefit">{{ __('welcome.brand.benefit4') }}</div>
+                <div class="brand-benefit">{{ __('welcome.brand.benefit5') }}</div>
             </div>
         </div>
     </section>
