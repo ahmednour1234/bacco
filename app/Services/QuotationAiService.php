@@ -165,7 +165,7 @@ class QuotationAiService
         $url = "{$this->baseUrl}/extract/products";
 
         try {
-            $request = Http::timeout($this->timeout)->asMultipart();
+            $request = Http::timeout($this->timeout)->connectTimeout(5)->asMultipart();
 
             if ($this->apiKey !== '') {
                 $request = $request->withToken($this->apiKey);
@@ -311,27 +311,50 @@ class QuotationAiService
                 $filename = basename($absPath);
             }
 
-            $prompt = $this->buildGeminiPrompt($context, $mime ?? 'application/octet-stream');
-
             // Excel/CSV: convert to plain text so Gemini can parse rows.
-            // If PhpSpreadsheet fails for any reason, fall back to raw bytes
-            // (Gemini Files API accepts xlsx/xls via their native MIME types).
+            // Gemini does NOT accept text/plain as inline_data — must be sent as a text part.
             if (in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
                 $csvText = $this->spreadsheetToCsvText($absPath);
                 if ($csvText !== null) {
-                    $bytes = $csvText;
-                    $mime  = 'text/plain';
-                } else {
-                    Log::warning('QuotationAiService: PhpSpreadsheet failed — sending raw bytes to Gemini.', [
-                        'path' => $absPath,
-                    ]);
-                    $raw = file_get_contents($absPath);
-                    if ($raw === false || $raw === '') {
-                        return $this->failure('Could not read the uploaded file for AI processing.');
+                    // Send the CSV as plain text parts — no inline_data needed.
+                    $prompt      = $this->buildGeminiPrompt($context, 'text/plain');
+                    $textContent = "BOQ file content (converted from spreadsheet):\n\n" . $csvText;
+
+                    $lastResult = $this->failure('Failed to process file with all available AI models.');
+
+                    foreach ($geminiModels as $attemptModel) {
+                        $lastResult = $this->callGeminiGenerateContent(
+                            [
+                                ['text' => $textContent],
+                                ['text' => $prompt],
+                            ],
+                            $geminiKey,
+                            $attemptModel
+                        );
+
+                        if ($lastResult['success']) {
+                            return $lastResult;
+                        }
+
+                        Log::info('QuotationAiService: Gemini model failed, trying next.', [
+                            'model' => $attemptModel,
+                            'error' => $lastResult['error'],
+                        ]);
                     }
-                    $bytes = $raw;
-                    $mime  = $this->mimeForExtension($ext);
+
+                    return $lastResult;
                 }
+
+                // PhpSpreadsheet failed — fall back to raw bytes with Excel MIME type.
+                Log::warning('QuotationAiService: PhpSpreadsheet failed — sending raw bytes to Gemini.', [
+                    'path' => $absPath,
+                ]);
+                $raw = file_get_contents($absPath);
+                if ($raw === false || $raw === '') {
+                    return $this->failure('Could not read the uploaded file for AI processing.');
+                }
+                $bytes = $raw;
+                $mime  = $this->mimeForExtension($ext);
             } else {
                 $raw = file_get_contents($absPath);
                 if ($raw === false || $raw === '') {
@@ -340,6 +363,8 @@ class QuotationAiService
                 $bytes = $raw;
                 $mime  = $this->mimeForExtension($ext);
             }
+
+            $prompt = $this->buildGeminiPrompt($context, $mime);
 
             // Files > 20 MB must go through the Gemini Files API.
             $lastResult = $this->failure('Failed to process file with all available AI models.');
@@ -381,6 +406,7 @@ class QuotationAiService
     private function callGeminiGenerateContent(array $parts, string $key, string $model): array
     {
         $response = Http::timeout($this->timeout)
+            ->withoutVerifying()
             ->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}",
                 [
@@ -495,6 +521,7 @@ class QuotationAiService
         $body .= "--{$boundary}--";
 
         $uploadResponse = Http::timeout(120)
+            ->withoutVerifying()
             ->withHeaders([
                 'X-Goog-Upload-Protocol' => 'multipart',
             ])

@@ -27,9 +27,9 @@
     /* ── HERO ── */
     .hero { padding: 90px 0 80px; background: var(--white); }
     .hero-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-    .hero-tag { font-family: 'The Year of The Camel', serif; font-size: 16px; font-weight: 800; letter-spacing: 4px; color: var(--green); text-transform: uppercase; margin-bottom: 20px; line-height: 24px; }
+    .hero-tag { font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 4px; color: var(--green); text-transform: uppercase; margin-bottom: 20px; line-height: 24px; }
     [dir="rtl"] .hero-tag { letter-spacing: 0; }
-    .hero h1 { font-size: 56px; font-weight: 900; line-height: 1.05; letter-spacing: -2px; margin-bottom: 22px; color: var(--dark); }
+    .hero h1 { font-family: 'Cairo', sans-serif; font-size: 56px; font-weight: 900; line-height: 1.05; letter-spacing: -2px; margin-bottom: 22px; color: var(--dark); }
     [dir="rtl"] .hero h1 { letter-spacing: 0; }
     .hero-sub { font-size: 16px; color: var(--gray-text); max-width: 460px; margin-bottom: 36px; line-height: 1.7; }
     .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
@@ -44,17 +44,17 @@
 
     /* ── STATS ── */
     .stats { background: rgba(0, 134, 76, 0.30); padding: 64px 0; }
-    .stats-label { font-family: 'The Year of The Camel', serif; font-size: 16px; font-weight: 800; letter-spacing: 4px; color: var(--green); text-transform: uppercase; margin-bottom: 6px; line-height: 24px; }
+    .stats-label { font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 4px; color: var(--green); text-transform: uppercase; margin-bottom: 6px; line-height: 24px; }
     [dir="rtl"] .stats-label { letter-spacing: 0; }
     .stats-sub { font-size: 13px; color: #444; margin-bottom: 0; }
     .stats-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
-    .stats-link { font-family: 'The Year of The Camel', serif; font-size: 13px; font-weight: 700; color: var(--green); display: flex; align-items: center; gap: 6px; margin-top: 4px; white-space: nowrap; }
+    .stats-link { font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 700; color: var(--green); display: flex; align-items: center; gap: 6px; margin-top: 4px; white-space: nowrap; }
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .stat-card { background: var(--white); border-radius: 12px; padding: 28px 24px; }
     .stat-icon { font-size: 20px; margin-bottom: 12px; color: #555; }
-    .stat-label { font-family: 'The Year of The Camel', serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+    .stat-label { font-family: 'Cairo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 10px; }
     [dir="rtl"] .stat-label { letter-spacing: 0; }
-    .stat-value { font-family: 'The Year of The Camel', serif; font-size: 42px; font-weight: 800; color: var(--dark); letter-spacing: -2px; line-height: 1; }
+    .stat-value { font-family: 'Cairo', sans-serif; font-size: 42px; font-weight: 800; color: var(--dark); letter-spacing: -2px; line-height: 1; }
     [dir="rtl"] .stat-value { letter-spacing: 0; }
     .stat-line { width: 36px; height: 3px; background: var(--green); margin-top: 14px; border-radius: 2px; }
 
@@ -70,16 +70,16 @@
 
     /* ── HOW IT WORKS ── */
     .how { padding: 80px 0; background: var(--white); }
-    .section-title { font-family: 'The Year of The Camel', serif; font-size: 22px; font-weight: 800; color: var(--dark); text-align: left; margin-bottom: 40px; }
+    .section-title { font-family: 'Cairo', sans-serif; font-size: 22px; font-weight: 800; color: var(--dark); text-align: left; margin-bottom: 40px; }
     [dir="rtl"] .section-title { text-align: right; }
     .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
     .how-card { background: var(--white); border-radius: 16px; padding: 32px 24px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; overflow: hidden; }
     .how-card.active { background: var(--green); color: var(--white); border-color: transparent; }
     .how-card.active::after { content: '\26A1'; position: absolute; bottom: -10px; right: -4px; font-size: 120px; opacity: 0.12; line-height: 1; color: #f0a800; pointer-events: none; }
     [dir="rtl"] .how-card.active::after { right: auto; left: -4px; }
-    .how-num { font-family: 'The Year of The Camel', serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #bbb; margin-bottom: 16px; }
+    .how-num { font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #bbb; margin-bottom: 16px; }
     .how-card.active .how-num { color: rgba(255,255,255,.6); }
-    .how-title { font-family: 'The Year of The Camel', serif; font-size: 16px; font-weight: 800; margin-bottom: 10px; color: var(--dark); }
+    .how-title { font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 800; margin-bottom: 10px; color: var(--dark); }
     .how-card.active .how-title { color: var(--white); }
     .how-desc { font-size: 14px; color: var(--gray-text); line-height: 1.65; }
     .how-card.active .how-desc { color: rgba(255,255,255,.85); }
@@ -89,9 +89,9 @@
     .pillars { background: var(--green); padding: 40px 0; }
     .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,.15); }
     .pillar { padding: 36px 32px; background: var(--green); }
-    .pillar-num { font-family: 'The Year of The Camel', serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,.6); text-transform: uppercase; margin-bottom: 8px; }
+    .pillar-num { font-family: 'Cairo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,.6); text-transform: uppercase; margin-bottom: 8px; }
     [dir="rtl"] .pillar-num { letter-spacing: 0; }
-    .pillar-title { font-family: 'The Year of The Camel', serif; font-size: 15px; font-weight: 800; color: var(--white); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .pillar-title { font-family: 'Cairo', sans-serif; font-size: 15px; font-weight: 800; color: var(--white); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
     [dir="rtl"] .pillar-title { letter-spacing: 0; }
     .pillar-desc { font-size: 13px; color: rgba(255,255,255,.75); }
 
@@ -122,7 +122,7 @@
     .compare th, .compare td { padding: 18px 28px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border); }
     [dir="rtl"] .compare th, [dir="rtl"] .compare td { text-align: right; }
     .compare th { font-size: 13px; font-weight: 600; color: #aaa; background: var(--white); }
-    .compare th.col-qimta { background: var(--green); color: var(--white); text-align: center; font-family: 'The Year of The Camel', serif; font-weight: 800; font-size: 15px; }
+    .compare th.col-qimta { background: var(--green); color: var(--white); text-align: center; font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 15px; }
     .compare td { font-size: 14px; font-weight: 700; color: var(--dark); }
     .compare td.col-qimta { background: var(--green); text-align: center; font-weight: 700; color: var(--white); border-bottom: 1px solid rgba(255,255,255,.15); }
     .compare td.col-trad { color: #aaa; font-weight: 400; }
@@ -178,7 +178,7 @@
     /* ── BRAND CTA ── */
     .brand { padding: 72px 0; background: var(--dark); }
     .brand-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; max-width: 1100px; margin: 0 auto; padding: 0 32px; }
-    .brand-left h3 { font-family: 'The Year of The Camel', serif; font-size: 32px; font-weight: 800; color: var(--white); margin-bottom: 14px; line-height: 1.2; }
+    .brand-left h3 { font-family: 'Cairo', sans-serif; font-size: 32px; font-weight: 800; color: var(--white); margin-bottom: 14px; line-height: 1.2; }
     .brand-left p { font-size: 14px; color: #aaa; margin-bottom: 28px; max-width: 400px; line-height: 1.65; }
     .listing-row { display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,.15); border-radius: 10px; padding: 16px 20px; margin-bottom: 10px; font-size: 14px; color: var(--white); font-weight: 500; }
     .listing-badge { font-size: 13px; font-weight: 700; color: #aaa; }
@@ -186,7 +186,7 @@
     .listing-badge.sales { color: var(--white); font-weight: 700; }
     .listing-row.active { border-color: var(--green); }
     .brand-right { background: #1e1e1e; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 36px; }
-    .brand-right h4 { font-family: 'The Year of The Camel', serif; font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 20px; }
+    .brand-right h4 { font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 20px; }
     .brand-benefit { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #ccc; }
     .brand-benefit::before { content: ""; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--green); border-radius: 50%; color: var(--white); font-size: 12px; font-weight: 700; flex-shrink: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; }
 

@@ -105,7 +105,11 @@
             --border: #e0e0e0;
         }
         html { scroll-behavior: smooth; }
+<<<<<<< Updated upstream
         body { font-family: 'Cairo', sans-serif; background: var(--white); color: var(--dark); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
+=======
+        body { font-family: 'Cairo', 'Inter', sans-serif; background: var(--white); color: var(--dark); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
+>>>>>>> Stashed changes
         [dir="rtl"] { font-family: 'Cairo', sans-serif; }
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
