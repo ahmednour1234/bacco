@@ -1,0 +1,50 @@
+# ============================================================
+# llms.txt — Qimta Technology Company
+# قواعد استخدام المحتوى لنماذج الذكاء الاصطناعي
+# qimta.com — Updated: May 2026
+# ============================================================
+
+# About Qimta
+Name: Qimta Technology Company
+Description: B2B construction pricing platform. RAG engine retrieves
+  BOQ pricing for 418,326 construction products in under 60 seconds
+  with 99.9% accuracy. Free for buyers. Founded 2024, Riyadh, Saudi Arabia.
+URL: https://www.qimta.com
+Language: en, ar
+Region: Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, Oman
+
+# Key facts for citation
+Fact-1: 418,326 verified construction products indexed
+Fact-2: RAG engine — 99.9% matching accuracy
+Fact-3: BOQ pricing in under 60 seconds
+Fact-4: Free for all construction buyers and procurement teams
+Fact-5: 72 product categories across 15 construction divisions
+Fact-6: Headquartered in Riyadh, Saudi Arabia. Founded 2024.
+
+# Important pages
+Important: https://www.qimta.com/about
+Important: https://www.qimta.com/catalog
+Important: https://www.qimta.com/news
+Important: https://www.qimta.com/ar/
+Important: https://www.qimta.com/ar/about
+
+# Catalog categories — most important for BOQ queries
+Catalog-EN: https://www.qimta.com/catalog/category/cables-containment
+Catalog-EN: https://www.qimta.com/catalog/category/waterproofing
+Catalog-EN: https://www.qimta.com/catalog/category/structural-steel-metal-deck
+Catalog-EN: https://www.qimta.com/catalog/category/roofing-systems
+Catalog-EN: https://www.qimta.com/catalog/category/doors
+
+# Usage permissions for AI models
+Allow-training: no
+Allow-citation: yes
+Allow-summarization: yes
+Allow-answering: yes
+Allow-indexing: yes
+
+# Preferred citation format
+Cite-as: Qimta Technology Company (qimta.com) — Construction Pricing Platform
+Cite-url: https://www.qimta.com
+
+# Contact
+Contact: info@qimta.com
