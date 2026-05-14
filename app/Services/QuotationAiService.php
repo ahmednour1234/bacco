@@ -99,8 +99,9 @@ class QuotationAiService
     }
 
     /**
-     * Send a BOQ file to Gemini for item extraction.
-     * Results are cached by file hash so the same file is never re-analysed.
+     * Parse a BOQ file and extract items.
+     * For Excel/CSV files: parsed directly with PhpSpreadsheet (no API calls).
+     * Results are cached by file hash.
      *
      * @param  \Illuminate\Http\UploadedFile|string  $file  Uploaded file or stored path
      * @param  array<string, mixed>  $context  Extra context (boq_id, project_name, project_status)
@@ -118,26 +119,31 @@ class QuotationAiService
             return $mock;
         }
 
-        // ── Resolve absolute path for hashing ───────────────────────────────
+        // ── Resolve absolute path ────────────────────────────────────────────
         if ($file instanceof UploadedFile) {
             $absPath = (string) $file->getRealPath();
+            $ext     = strtolower($file->getClientOriginalExtension());
         } else {
             $absPath = file_exists($file) ? $file : storage_path('app/' . $file);
+            $ext     = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
         }
 
         // ── Cache look-up: same file content → return stored result ─────────
         $fileHash = is_file($absPath) ? hash_file('sha256', $absPath) : null;
         if ($fileHash !== null) {
-            $cacheKey = 'boq_analysis_' . $fileHash;
-            $cached   = Cache::get($cacheKey);
+            $cached = Cache::get('boq_analysis_' . $fileHash);
             if ($cached !== null) {
-                Log::info('QuotationAiService: Returning cached Gemini analysis.', ['hash' => $fileHash]);
+                Log::info('QuotationAiService: Returning cached analysis.', ['hash' => $fileHash]);
                 return $cached;
             }
         }
 
-        // ── Go directly to Gemini ────────────────────────────────────────────
-        $result = $this->parseBoqWithGemini($file, $context);
+        // ── Direct Excel/CSV parsing — no external API needed ────────────────
+        if (in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
+            $result = $this->parseSpreadsheetDirect($absPath);
+        } else {
+            return $this->failure('Only Excel (.xlsx, .xls) and CSV files are supported for direct parsing. Please upload an Excel or CSV file.');
+        }
 
         // ── Cache successful result for 30 days ──────────────────────────────
         if ($result['success'] && $fileHash !== null) {
@@ -145,6 +151,266 @@ class QuotationAiService
         }
 
         return $result;
+    }
+
+    /**
+     * Parse an Excel or CSV file directly using PhpSpreadsheet.
+     * Auto-detects header rows and maps columns to BOQ item fields.
+     *
+     * @return array{success: bool, items: array<int, array<string, mixed>>, error: string|null}
+     */
+    private function parseSpreadsheetDirect(string $absPath): array
+    {
+        $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
+
+        try {
+            if ($ext === 'csv') {
+                $reader = IOFactory::createReader('Csv');
+                $reader->setReadDataOnly(true);
+                $spreadsheet = $reader->load($absPath);
+                $sheets = [$spreadsheet->getActiveSheet()];
+            } else {
+                $readerTypes = $ext === 'xls' ? ['Xls', 'Xlsx'] : ['Xlsx', 'Xls'];
+                $spreadsheet = null;
+                foreach ($readerTypes as $type) {
+                    try {
+                        $reader = IOFactory::createReader($type);
+                        $reader->setReadDataOnly(true);
+                        if ($reader->canRead($absPath)) {
+                            $spreadsheet = $reader->load($absPath);
+                            break;
+                        }
+                    } catch (\Throwable) {
+                        continue;
+                    }
+                }
+
+                if ($spreadsheet === null) {
+                    return $this->failure('Could not read the Excel file. Please make sure it is a valid .xlsx or .xls file.');
+                }
+
+                $sheets = $spreadsheet->getAllSheets();
+            }
+
+            $allItems = [];
+
+            foreach ($sheets as $sheet) {
+                $highestRow    = $sheet->getHighestDataRow();
+                $highestColumn = $sheet->getHighestDataColumn();
+
+                if ($highestRow < 2) {
+                    continue;
+                }
+
+                $grid = $sheet->rangeToArray(
+                    "A1:{$highestColumn}{$highestRow}",
+                    null,
+                    true,  // calculateFormulas
+                    true,  // formatData
+                    false  // numeric keys
+                );
+
+                // ── Find the header row (first row with meaningful column names) ──
+                $headerRowIndex = null;
+                $headerMap      = [];
+
+                // Keywords mapped to our field names
+                $fieldKeywords = [
+                    'description' => ['description', 'item description', 'item name', 'name', 'material', 'scope', 'work', 'activity', 'details', 'وصف', 'البند', 'البنود', 'الوصف'],
+                    'quantity'    => ['quantity', 'qty', 'amount', 'no.', 'nos', 'count', 'الكمية', 'كمية'],
+                    'unit'        => ['unit', 'uom', 'u/m', 'الوحدة', 'وحدة'],
+                    'unit_price'  => ['unit price', 'unit cost', 'rate', 'price', 'cost', 'سعر الوحدة', 'السعر'],
+                    'total_price' => ['total', 'total price', 'amount', 'line total', 'الإجمالي', 'المجموع', 'إجمالي'],
+                    'brand'       => ['brand', 'make', 'manufacturer', 'العلامة', 'الماركة'],
+                    'category'    => ['category', 'section', 'division', 'type', 'القسم', 'النوع'],
+                    'item_code'   => ['item code', 'code', 'ref', 'no', '#', 'كود', 'الكود', 'رقم'],
+                ];
+
+                for ($r = 0; $r < min(15, count($grid)); $r++) {
+                    $row       = $grid[$r];
+                    $matchCount = 0;
+                    $tempMap   = [];
+
+                    foreach ($row as $colIdx => $cellValue) {
+                        $cell = strtolower(trim((string) $cellValue));
+                        if ($cell === '') {
+                            continue;
+                        }
+
+                        foreach ($fieldKeywords as $field => $keywords) {
+                            foreach ($keywords as $kw) {
+                                if (str_contains($cell, $kw)) {
+                                    if (! isset($tempMap[$field])) {
+                                        $tempMap[$field] = $colIdx;
+                                        $matchCount++;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if ($matchCount >= 2) {
+                        $headerRowIndex = $r;
+                        $headerMap      = $tempMap;
+                        break;
+                    }
+                }
+
+                // ── If no header found, try to guess from data shape ─────────
+                if ($headerRowIndex === null) {
+                    // Use row 0 as header anyway if it has text cells
+                    $headerRowIndex = 0;
+                    foreach ($grid[0] as $colIdx => $cellValue) {
+                        $cell = strtolower(trim((string) $cellValue));
+                        if ($cell === '') {
+                            continue;
+                        }
+                        // Map positionally: first long-text col = description, first numeric col = quantity
+                        foreach ($fieldKeywords as $field => $keywords) {
+                            foreach ($keywords as $kw) {
+                                if (str_contains($cell, $kw)) {
+                                    if (! isset($headerMap[$field])) {
+                                        $headerMap[$field] = $colIdx;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Last resort: find the first column with long text in row 1
+                    if (! isset($headerMap['description'])) {
+                        foreach ($grid[1] ?? [] as $colIdx => $cellValue) {
+                            if (strlen(trim((string) $cellValue)) > 10) {
+                                $headerMap['description'] = $colIdx;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // ── Extract items from rows after header ─────────────────────
+                $dataStartRow = $headerRowIndex + 1;
+
+                for ($r = $dataStartRow; $r < count($grid); $r++) {
+                    $row = $grid[$r];
+
+                    // Get description
+                    $description = '';
+                    if (isset($headerMap['description'])) {
+                        $description = trim((string) ($row[$headerMap['description']] ?? ''));
+                    } else {
+                        // Find the longest non-numeric cell value as description
+                        foreach ($row as $v) {
+                            $v = trim((string) $v);
+                            if (strlen($v) > strlen($description) && ! is_numeric($v)) {
+                                $description = $v;
+                            }
+                        }
+                    }
+
+                    // Skip blank rows and section headers (no quantity)
+                    if ($description === '') {
+                        continue;
+                    }
+
+                    // Skip rows that look like headers or section titles (no numeric data)
+                    $hasNumeric = false;
+                    foreach ($row as $v) {
+                        if (is_numeric($v) && $v > 0) {
+                            $hasNumeric = true;
+                            break;
+                        }
+                    }
+                    if (! $hasNumeric && strlen($description) < 80) {
+                        // Likely a section header — skip
+                        continue;
+                    }
+
+                    $quantity   = null;
+                    $unit       = '';
+                    $unitPrice  = null;
+                    $totalPrice = null;
+                    $brand      = '';
+                    $category   = '';
+
+                    if (isset($headerMap['quantity'])) {
+                        $v = $row[$headerMap['quantity']] ?? null;
+                        if (is_numeric($v) && $v > 0) {
+                            $quantity = (float) $v;
+                        }
+                    }
+
+                    if (isset($headerMap['unit'])) {
+                        $unit = trim((string) ($row[$headerMap['unit']] ?? ''));
+                    }
+
+                    if (isset($headerMap['unit_price'])) {
+                        $v = $row[$headerMap['unit_price']] ?? null;
+                        if (is_numeric($v) && $v > 0) {
+                            $unitPrice = (float) $v;
+                        }
+                    }
+
+                    if (isset($headerMap['total_price'])) {
+                        $v = $row[$headerMap['total_price']] ?? null;
+                        if (is_numeric($v) && $v > 0) {
+                            $totalPrice = (float) $v;
+                        }
+                    }
+
+                    if (isset($headerMap['brand'])) {
+                        $brand = trim((string) ($row[$headerMap['brand']] ?? ''));
+                    }
+
+                    if (isset($headerMap['category'])) {
+                        $category = trim((string) ($row[$headerMap['category']] ?? ''));
+                    }
+
+                    // Derive missing price
+                    if ($unitPrice === null && $totalPrice !== null && $quantity !== null && $quantity > 0) {
+                        $unitPrice = $totalPrice / $quantity;
+                    }
+                    if ($totalPrice === null && $unitPrice !== null && $quantity !== null) {
+                        $totalPrice = $unitPrice * $quantity;
+                    }
+
+                    $allItems[] = [
+                        'description'          => $description,
+                        'quantity'             => $quantity ?? 1,
+                        'unit'                 => $unit,
+                        'category'             => $category,
+                        'brand'                => $brand,
+                        'status'               => 'pending',
+                        'engineering_required' => false,
+                        'unit_price'           => $unitPrice,
+                        'confidence'           => 0.9,
+                        'raw_data'             => null,
+                        'ai_extracted'         => true,
+                    ];
+                }
+            }
+
+            if (empty($allItems)) {
+                return $this->failure('No items could be extracted from the file. Please make sure the file has rows with item descriptions and quantities.');
+            }
+
+            Log::info('QuotationAiService: Direct spreadsheet parse succeeded.', ['items' => count($allItems)]);
+
+            return [
+                'success' => true,
+                'items'   => $allItems,
+                'error'   => null,
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error('QuotationAiService: parseSpreadsheetDirect failed.', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return $this->failure('Failed to read the Excel file: ' . $e->getMessage());
+        }
     }
 
     /**
