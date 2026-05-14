@@ -205,7 +205,7 @@ class QuotationAiService
                 $grid = $sheet->rangeToArray(
                     "A1:{$highestColumn}{$highestRow}",
                     null,
-                    true,  // calculateFormulas
+                    false, // calculateFormulas — disabled to avoid structured reference errors
                     true,  // formatData
                     false  // numeric keys
                 );
