@@ -25,22 +25,191 @@
 @section('styles')
 <style>
     /* ── HERO ── */
-    .hero { padding: 90px 0 80px; background: var(--white); }
-    .hero-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-    .hero-tag { font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 4px; color: var(--green); text-transform: uppercase; margin-bottom: 20px; line-height: 24px; }
-    [dir="rtl"] .hero-tag { letter-spacing: 0; }
-    .hero h1 { font-family: 'Cairo', sans-serif; font-size: 56px; font-weight: 900; line-height: 1.05; letter-spacing: -2px; margin-bottom: 22px; color: var(--dark); }
-    [dir="rtl"] .hero h1 { letter-spacing: 0; }
-    .hero-sub { font-size: 16px; color: var(--gray-text); max-width: 460px; margin-bottom: 36px; line-height: 1.7; }
-    .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
-    .hero-mockup { background: #d8e8e0; border-radius: 16px; padding: 28px; min-height: 340px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.12); }
-    .mock-header { background: var(--white); border-radius: 8px; padding: 12px 16px; font-size: 13px; font-weight: 600; color: #333; display: flex; align-items: center; justify-content: space-between; }
-    .mock-badge { background: var(--green-btn); color: var(--white); font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 700; }
-    .mock-row { background: var(--white); border-radius: 6px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #555; }
-    .mock-row span:last-child { font-weight: 700; color: var(--green); }
-    .mock-actions { display: flex; gap: 8px; }
-    .mock-btn { background: #f0a800; color: var(--white); padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; }
-    .mock-btn-alt { background: #e0e0e0; color: #555; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+    .hero {
+        padding: 105px 0 90px;
+        background: var(--white);
+        overflow: hidden;
+    }
+
+    .hero-inner {
+        display: grid;
+        grid-template-columns: 1.05fr .95fr;
+        gap: 70px;
+        align-items: center;
+    }
+
+    .hero-content {
+        max-width: 650px;
+    }
+
+    .hero-tag {
+        font-family: 'Cairo', sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 3px;
+        color: var(--green);
+        text-transform: uppercase;
+        margin-bottom: 22px;
+        line-height: 1.4;
+    }
+
+    [dir="rtl"] .hero-tag {
+        letter-spacing: 0;
+    }
+
+    .hero-tag::before {
+        content: "";
+        width: 34px;
+        height: 3px;
+        border-radius: 50px;
+        background: var(--green);
+        flex-shrink: 0;
+    }
+
+    .hero h1 {
+        font-family: 'Cairo', sans-serif;
+        font-size: clamp(44px, 5.4vw, 78px);
+        font-weight: 950;
+        line-height: .98;
+        letter-spacing: -3px;
+        margin-bottom: 18px;
+        color: var(--dark);
+    }
+
+    [dir="rtl"] .hero h1 {
+        letter-spacing: 0;
+        line-height: 1.12;
+    }
+
+    .hero-sub {
+        font-size: 15px;
+        color: var(--gray-text);
+        max-width: 500px;
+        margin-bottom: 30px;
+        line-height: 1.45;
+    }
+
+    .hero-btns {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .hero-btns .btn-lg {
+        min-height: 58px;
+        padding: 0 30px;
+        font-size: 16px;
+        font-weight: 900;
+        border-radius: 12px;
+    }
+
+    .hero-btns .btn-dark {
+        box-shadow: 0 16px 34px rgba(0, 0, 0, .18);
+        transform: translateY(0);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .hero-btns .btn-dark:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 42px rgba(0, 0, 0, .22);
+    }
+
+    .hero-mockup {
+        position: relative;
+        background: linear-gradient(145deg, #eef7f2 0%, #cfe5da 100%);
+        border-radius: 24px;
+        padding: 30px;
+        min-height: 390px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, .13);
+        border: 1px solid rgba(0, 106, 59, .12);
+    }
+
+    .hero-mockup::before {
+        content: "";
+        position: absolute;
+        inset: -18px;
+        border-radius: 32px;
+        background: rgba(0, 134, 76, .07);
+        z-index: -1;
+    }
+
+    .mock-header {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, .04);
+    }
+
+    .mock-badge {
+        background: var(--green-btn);
+        color: var(--white);
+        font-size: 10px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 800;
+    }
+
+    .mock-row {
+        background: rgba(255, 255, 255, .92);
+        border-radius: 10px;
+        padding: 13px 16px;
+        display: grid;
+        grid-template-columns: 1.5fr .8fr .8fr;
+        gap: 10px;
+        align-items: center;
+        font-size: 13px;
+        color: #555;
+        border: 1px solid rgba(0, 0, 0, .035);
+    }
+
+    .mock-row span:first-child {
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .mock-row span:last-child {
+        font-weight: 900;
+        color: var(--green);
+        text-align: end;
+    }
+
+    .mock-actions {
+        display: flex;
+        gap: 10px;
+        margin: 3px 0;
+    }
+
+    .mock-btn,
+    .mock-btn-alt {
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .mock-btn {
+        background: #f0a800;
+        color: var(--white);
+    }
+
+    .mock-btn-alt {
+        background: var(--white);
+        color: #555;
+        border: 1px solid rgba(0, 0, 0, .06);
+    }
 
     /* ── STATS ── */
     .stats { background: rgba(0, 134, 76, 0.30); padding: 64px 0; }
@@ -210,7 +379,11 @@
 
     /* ── RESPONSIVE (page-specific) ── */
     @media (max-width: 1024px) {
-        .hero h1 { font-size: 44px; }
+        .hero { padding: 80px 0 70px; }
+        .hero-inner { grid-template-columns: 1fr; gap: 42px; }
+        .hero-content { max-width: 100%; }
+        .hero h1 { font-size: 52px; }
+        .hero-sub { max-width: 620px; }
         .stats-grid { grid-template-columns: repeat(2, 1fr); }
         .divs-grid { grid-template-columns: repeat(3, 1fr); }
         .how-grid { grid-template-columns: repeat(2, 1fr); }
@@ -218,11 +391,11 @@
         .engine-metrics { grid-template-columns: repeat(4, 1fr); }
     }
     @media (max-width: 768px) {
-        .hero { padding: 56px 0 48px; }
-        .hero-inner { grid-template-columns: 1fr; gap: 32px; }
-        .hero h1 { font-size: 36px; letter-spacing: -1px; }
+        .hero { padding: 58px 0 50px; }
+        .hero-inner { grid-template-columns: 1fr; gap: 30px; }
+        .hero h1 { font-size: 40px; line-height: 1.08; }
         [dir="rtl"] .hero h1 { letter-spacing: 0; }
-        .hero-sub { max-width: 100%; }
+        .hero-sub { max-width: 100%; font-size: 14px; line-height: 1.45; margin-bottom: 26px; }
         .hero-mockup { display: none; }
         .problem-grid { grid-template-columns: 1fr; }
         .how-grid { grid-template-columns: 1fr; }
@@ -236,6 +409,7 @@
         .divs-grid { grid-template-columns: repeat(2, 1fr); }
         .hero-btns { flex-direction: column; }
         .hero-btns .btn { width: 100%; justify-content: center; }
+        .hero-btns .btn-lg { min-height: 56px; font-size: 15px; }
         .cta-banner h2 { font-size: 28px; }
         .brand-left h3 { font-size: 26px; }
         .section-title { font-size: 18px; }
@@ -247,6 +421,9 @@
         .engine-metrics { grid-template-columns: 1fr 1fr; }
         .stat-value { font-size: 34px; }
         .metric-val { font-size: 30px; }
+        .hero h1 { font-size: 34px; }
+        .hero-tag { font-size: 13px; margin-bottom: 16px; }
+        .hero-sub { font-size: 13.5px; }
         /* Comparison table: tighten cell padding on small screens */
         .compare th, .compare td { padding: 14px 12px; font-size: 13px; }
         .compare { padding: 48px 0; }
@@ -325,31 +502,46 @@ $_homeSchema = json_encode([
     <section class="hero">
         <div class="container">
             <div class="hero-inner">
-            <div>
-                <h2 class="hero-tag">{{ __('welcome.hero.tag') }}</h2>
-                <h1>{{ __('welcome.hero.h1') }}</h1>
-                <p class="hero-sub">{{ __('welcome.hero.sub', ['products' => number_format($catalogStats['products'])]) }}</p>
-                <div class="hero-btns">
-                    <a href="{{ route('enduser.login') }}" class="btn btn-dark btn-lg">{{ __('welcome.hero.btn_primary') }}</a>
-                    <a href="{{ route('enduser.register') }}" class="btn btn-outline btn-lg">{{ __('welcome.hero.btn_secondary') }}</a>
+                <div class="hero-content">
+                    <h2 class="hero-tag">{{ __('welcome.hero.tag') }}</h2>
+
+                    <h1>{{ __('welcome.hero.h1') }}</h1>
+
+                    <p class="hero-sub">
+                        {{ __('welcome.hero.sub', ['products' => number_format($catalogStats['products'])]) }}
+                    </p>
+
+                    <div class="hero-btns">
+                        <a href="{{ route('enduser.login') }}" class="btn btn-dark btn-lg">
+                            {{ __('welcome.hero.btn_primary') }}
+                        </a>
+
+                        <a href="{{ route('enduser.register') }}" class="btn btn-outline btn-lg">
+                            {{ __('welcome.hero.btn_secondary') }}
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="hero-mockup">
-                <div class="mock-header">
-                    Construction Pricing <span class="mock-badge">{{ __('welcome.hero.mock_live') }}</span>
+
+                <div class="hero-mockup">
+                    <div class="mock-header">
+                        <span>Construction Pricing</span>
+                        <span class="mock-badge">{{ __('welcome.hero.mock_live') }}</span>
+                    </div>
+
+                    <div class="mock-row"><span>Insulation</span><span>3,952</span><span>4,200</span></div>
+                    <div class="mock-row"><span>Steel Frame</span><span>1,230</span><span>1,860</span></div>
+                    <div class="mock-row"><span>Raised Access</span><span>3,900</span><span>1,035</span></div>
+
+                    <div class="mock-actions">
+                        <span class="mock-btn">{{ __('welcome.hero.mock_match') }}</span>
+                        <span class="mock-btn-alt">{{ __('welcome.hero.mock_export') }}</span>
+                    </div>
+
+                    <div class="mock-row"><span>Tables</span><span>11,000</span><span>+47,820</span></div>
+                    <div class="mock-row"><span>Outdoor Chairs</span><span>3,120</span><span>11,620</span></div>
+                    <div class="mock-row"><span>Glazing</span><span>3,950</span><span>3,800</span></div>
+                    <div class="mock-row"><span>Ground Branches</span><span>24,120</span><span>+</span></div>
                 </div>
-                <div class="mock-row"><span>Insulation</span><span>3,952</span><span>4,200</span></div>
-                <div class="mock-row"><span>Steel Frame</span><span>1,230</span><span>1,860</span></div>
-                <div class="mock-row"><span>Raised Access</span><span>3,900</span><span>1,035</span></div>
-                <div class="mock-actions">
-                    <span class="mock-btn">{{ __('welcome.hero.mock_match') }}</span>
-                    <span class="mock-btn-alt">{{ __('welcome.hero.mock_export') }}</span>
-                </div>
-                <div class="mock-row"><span>Tables</span><span>11,000</span><span>+47,820</span></div>
-                <div class="mock-row"><span>Outdoor Chairs</span><span>3,120</span><span>11,620</span></div>
-                <div class="mock-row"><span>Glazing</span><span>3,950</span><span>3,800</span></div>
-                <div class="mock-row"><span>Ground Branches</span><span>24,120</span><span>+</span></div>
-            </div>
             </div>
         </div>
     </section>
