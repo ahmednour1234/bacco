@@ -220,10 +220,10 @@
     .stats-link { font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 700; color: var(--green); display: flex; align-items: center; gap: 6px; margin-top: 4px; white-space: nowrap; }
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .stat-card { background: var(--white); border-radius: 12px; padding: 28px 24px; }
-    .stat-icon { font-size: 20px; margin-bottom: 12px; color: #555; }
-    .stat-label { font-family: 'Cairo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+    .stat-icon { font-size: 18px; margin-bottom: 10px; color: #444; }
+    .stat-label { font-family: 'Cairo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #555; margin-bottom: 8px; }
     [dir="rtl"] .stat-label { letter-spacing: 0; }
-    .stat-value { font-family: 'Cairo', sans-serif; font-size: 42px; font-weight: 800; color: var(--dark); letter-spacing: -2px; line-height: 1; }
+    .stat-value { font-family: 'Cairo', sans-serif; font-size: 54px; font-weight: 900; color: var(--dark); letter-spacing: -2px; line-height: 1; }
     [dir="rtl"] .stat-value { letter-spacing: 0; }
     .stat-line { width: 36px; height: 3px; background: var(--green); margin-top: 14px; border-radius: 2px; }
 
@@ -419,7 +419,7 @@
         .stats-grid { grid-template-columns: 1fr; }
         .divs-grid { grid-template-columns: repeat(2, 1fr); }
         .engine-metrics { grid-template-columns: 1fr 1fr; }
-        .stat-value { font-size: 34px; }
+        .stat-value { font-size: 42px; }
         .metric-val { font-size: 30px; }
         .hero h1 { font-size: 34px; }
         .hero-tag { font-size: 13px; margin-bottom: 16px; }
