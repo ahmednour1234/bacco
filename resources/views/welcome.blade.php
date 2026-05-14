@@ -229,17 +229,18 @@
 
     /* ── PROBLEM ── */
     .problem { padding: 80px 0; background: var(--white); }
-    .section-intro { font-size: 15px; color: #333; max-width: 520px; margin-bottom: 48px; }
-    .section-intro strong { display: block; font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--dark); }
+    .section-intro { font-size: 14px; color: var(--gray-text); max-width: 520px; margin-bottom: 48px; line-height: 1.65; }
+    .section-intro strong { display: block; font-size: 20px; font-weight: 700; margin-bottom: 6px; color: var(--dark); }
     .problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-    .problem-card { border: 1px solid var(--border); border-radius: 12px; padding: 36px 28px; }
-    .problem-icon { font-size: 22px; color: #888; margin-bottom: 16px; }
+    .problem-card { border: 1px solid var(--border); border-radius: 16px; padding: 36px 28px; }
+    .problem-icon { width: 52px; height: 52px; background: rgba(0,106,59,.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; color: var(--green); }
+    .problem-icon svg { width: 24px; height: 24px; stroke: var(--green); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .problem-title { font-size: 17px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
-    .problem-desc { font-size: 13px; color: var(--gray-text); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .problem-desc { font-size: 13px; color: var(--gray-text); line-height: 1.65; }
 
     /* ── HOW IT WORKS ── */
     .how { padding: 80px 0; background: var(--white); }
-    .section-title { font-family: 'Cairo', sans-serif; font-size: 22px; font-weight: 800; color: var(--dark); text-align: left; margin-bottom: 40px; }
+    .section-title { font-family: 'Cairo', sans-serif; font-size: 25px; font-weight: 800; color: var(--dark); text-align: left; margin-bottom: 40px; }
     [dir="rtl"] .section-title { text-align: right; }
     .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
     .how-card { background: var(--white); border-radius: 16px; padding: 32px 24px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; overflow: hidden; min-height: 260px; }
@@ -266,11 +267,11 @@
 
     /* ── ECOSYSTEM ── */
     .eco { padding: 80px 0; background: var(--white); }
-    .eco-label { font-size: 14px; font-weight: 600; color: #555; margin-bottom: 32px; }
+    .eco-label { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 32px; }
     .eco-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .eco-card { border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px; }
     .eco-title { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
-    .eco-desc { font-size: 14px; color: var(--gray-text); margin-bottom: 20px; line-height: 1.65; }
+    .eco-desc { font-size: 13px; color: var(--gray-text); margin-bottom: 20px; line-height: 1.65; }
     .eco-link { font-size: 13px; font-weight: 600; color: var(--green); display: inline-flex; align-items: center; gap: 6px; }
     .eco-link:hover { text-decoration: underline; }
     @media (max-width: 768px) {
@@ -343,7 +344,7 @@
     .news-tag.tech { color: var(--green); }
     .news-tag.case { color: #5555cc; }
     .news-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
-    .news-desc { font-size: 13px; color: var(--gray-text); line-height: 1.6; }
+    .news-desc { font-size: 13px; color: var(--gray-text); line-height: 1.65; }
 
     /* ── BRAND CTA ── */
     .brand { padding: 80px 0; background: var(--dark); }
@@ -362,14 +363,14 @@
 
     /* ── CTA BANNER ── */
     .cta-banner { padding: 80px 0; background: var(--white); text-align: center; }
-    .cta-banner h2 { font-size: 36px; font-weight: 900; color: var(--dark); margin-bottom: 12px; letter-spacing: -1px; }
+    .cta-banner h2 { font-size: 40px; font-weight: 900; color: var(--dark); margin-bottom: 12px; letter-spacing: -1px; }
     [dir="rtl"] .cta-banner h2 { letter-spacing: 0; }
-    .cta-banner p { font-size: 15px; color: var(--gray-text); margin-bottom: 30px; }
+    .cta-banner p { font-size: 14px; color: var(--gray-text); margin-bottom: 30px; line-height: 1.65; }
 
     /* ── FAQ ── */
     .faq { padding: 80px 0; background: var(--cream); }
     .faq-inner { max-width: 680px; margin: 0 auto; }
-    .faq-title { font-size: 22px; font-weight: 700; color: var(--dark); text-align: center; margin-bottom: 36px; }
+    .faq-title { font-size: 25px; font-weight: 700; color: var(--dark); text-align: center; margin-bottom: 36px; }
     .faq-item { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; background: var(--white); overflow: hidden; }
     .faq-q { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--dark); user-select: none; gap: 12px; }
     .faq-q svg { flex-shrink: 0; transition: transform .25s; color: #888; }
@@ -595,17 +596,23 @@ $_homeSchema = json_encode([
             </div>
             <div class="problem-grid">
                 <div class="problem-card">
-                    <div class="problem-icon">&#128269;</div>
+                    <div class="problem-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
                     <p class="problem-title">{{ __('welcome.problem.p1_title') }}</p>
                     <p class="problem-desc">{{ __('welcome.problem.p1_desc') }}</p>
                 </div>
                 <div class="problem-card">
-                    <div class="problem-icon">&#128336;</div>
+                    <div class="problem-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
                     <p class="problem-title">{{ __('welcome.problem.p2_title') }}</p>
                     <p class="problem-desc">{{ __('welcome.problem.p2_desc') }}</p>
                 </div>
                 <div class="problem-card">
-                    <div class="problem-icon">&#128203;</div>
+                    <div class="problem-icon">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    </div>
                     <p class="problem-title">{{ __('welcome.problem.p3_title') }}</p>
                     <p class="problem-desc">{{ __('welcome.problem.p3_desc') }}</p>
                 </div>
