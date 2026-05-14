@@ -272,22 +272,23 @@
 
     /* ── ECOSYSTEM ── */
     .eco { padding: 80px 0; background: var(--white); }
-    .eco-label { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 32px; }
-    .eco-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .eco-card { border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px; }
-    .eco-title { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
-    .eco-desc { font-size: 13px; color: var(--gray-text); margin-bottom: 20px; line-height: 1.65; }
-    .eco-link { font-size: 13px; font-weight: 600; color: var(--green); display: inline-flex; align-items: center; gap: 6px; }
+    .eco-header { margin-bottom: 48px; }
+    .eco-label { font-size: 28px; font-weight: 900; color: var(--dark); margin-bottom: 12px; }
+    .eco-sub { font-size: 15px; color: var(--gray-text); line-height: 1.65; }
+    .eco-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .eco-card { border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; display: flex; flex-direction: column; }
+    .eco-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(0,106,59,.09); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; flex-shrink: 0; }
+    .eco-icon svg { width: 28px; height: 28px; stroke: var(--green); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .eco-title { font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 12px; }
+    .eco-desc { font-size: 14px; color: var(--gray-text); margin-bottom: 24px; line-height: 1.7; flex: 1; }
+    .eco-link { font-size: 14px; font-weight: 700; color: var(--green); display: inline-flex; align-items: center; gap: 6px; margin-top: auto; }
     .eco-link:hover { text-decoration: underline; }
+    .eco-card-toggle { display: none; }
     @media (max-width: 768px) {
-        .eco-card { cursor: pointer; }
+        .eco-grid { grid-template-columns: 1fr; }
         .eco-card-toggle { display: flex; align-items: center; justify-content: space-between; }
         .eco-card-toggle svg { width: 18px; height: 18px; stroke: var(--green); fill: none; stroke-width: 2; transition: transform .25s; flex-shrink: 0; }
         .eco-card-toggle svg.open { transform: rotate(180deg); }
-    }
-    @media (min-width: 769px) {
-        .eco-card-body { display: block !important; }
-        .eco-card-toggle svg { display: none; }
     }
 
     /* ── COMPARISON TABLE ── */
@@ -701,37 +702,34 @@ $_homeSchema = json_encode([
     <!-- ECOSYSTEM -->
     <section class="eco">
         <div class="container">
-            <p class="eco-label">{{ __('welcome.eco.label') }}</p>
+            <div class="eco-header">
+                <p class="eco-label">{{ __('welcome.eco.label') }}</p>
+                <p class="eco-sub">{{ __('welcome.eco.sub') }}</p>
+            </div>
             <div class="eco-grid">
-                <div class="eco-card" x-data="{ open: true }">
-                    <div class="eco-card-toggle" @click="open = !open">
-                        <p class="eco-title" style="margin-bottom:0">{{ __('welcome.eco.contractors_title') }}</p>
-                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" :class="open ? 'open' : ''"><polyline points="6 9 12 15 18 9"/></svg>
+                <div class="eco-card">
+                    <div class="eco-icon">
+                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
-                    <div class="eco-card-body" x-show="open" x-collapse.duration.200ms style="margin-top:10px">
-                        <p class="eco-desc">{{ __('welcome.eco.contractors_desc') }}</p>
-                        <a href="{{ route('enduser.register') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
-                    </div>
+                    <p class="eco-title">{{ __('welcome.eco.contractors_title') }}</p>
+                    <p class="eco-desc">{{ __('welcome.eco.contractors_desc') }}</p>
+                    <a href="{{ route('enduser.register') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
                 </div>
-                <div class="eco-card" x-data="{ open: false }">
-                    <div class="eco-card-toggle" @click="open = !open">
-                        <p class="eco-title" style="margin-bottom:0">{{ __('welcome.eco.procurement_title') }}</p>
-                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" :class="open ? 'open' : ''"><polyline points="6 9 12 15 18 9"/></svg>
+                <div class="eco-card">
+                    <div class="eco-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                     </div>
-                    <div class="eco-card-body" x-show="open" x-collapse.duration.200ms style="margin-top:10px">
-                        <p class="eco-desc">{{ __('welcome.eco.procurement_desc') }}</p>
-                        <a href="{{ route('catalog.index') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
-                    </div>
+                    <p class="eco-title">{{ __('welcome.eco.procurement_title') }}</p>
+                    <p class="eco-desc">{{ __('welcome.eco.procurement_desc') }}</p>
+                    <a href="{{ route('catalog.index') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
                 </div>
-                <div class="eco-card" x-data="{ open: false }">
-                    <div class="eco-card-toggle" @click="open = !open">
-                        <p class="eco-title" style="margin-bottom:0">{{ __('welcome.eco.brands_title') }}</p>
-                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" :class="open ? 'open' : ''"><polyline points="6 9 12 15 18 9"/></svg>
+                <div class="eco-card">
+                    <div class="eco-icon">
+                        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                     </div>
-                    <div class="eco-card-body" x-show="open" x-collapse.duration.200ms style="margin-top:10px">
-                        <p class="eco-desc">{{ __('welcome.eco.brands_desc') }}</p>
-                        <a href="{{ route('for-brands') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
-                    </div>
+                    <p class="eco-title">{{ __('welcome.eco.brands_title') }}</p>
+                    <p class="eco-desc">{{ __('welcome.eco.brands_desc') }}</p>
+                    <a href="{{ route('for-brands') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
                 </div>
             </div>
         </div>
