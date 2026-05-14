@@ -221,6 +221,7 @@
         }
     </style>
     @yield('styles')
+    @stack('schema')
 </head>
 <body>
 

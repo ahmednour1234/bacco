@@ -24,7 +24,7 @@
 @section('og_image', Storage::url($article->image))
 @endif
 
-@section('content')
+@push('schema')
 @php
 $_breadcrumb = json_encode([
     '@context' => 'https://schema.org',
@@ -36,9 +36,7 @@ $_breadcrumb = json_encode([
         ['@type'=>'ListItem','position'=>4,'name'=>$title,'item'=>'https://www.qimta.com/news/'.$article->slug],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-@endphp
-<script type="application/ld+json">{!! $_breadcrumb !!}</script>
-@php
+
 $_articleSchema = json_encode([
     '@context'         => 'https://schema.org',
     '@type'            => 'NewsArticle',
@@ -54,7 +52,11 @@ $_articleSchema = json_encode([
     'mainEntityOfPage' => ['@type'=>'WebPage','@id'=>'https://www.qimta.com/news/'.$article->slug],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
+<script type="application/ld+json">{!! $_breadcrumb !!}</script>
 <script type="application/ld+json">{!! $_articleSchema !!}</script>
+@endpush
+
+@section('content')
 
     {{-- -- Breadcrumb ---------------------------------------------------- --}}
     <div class="ns-breadcrumb-bar">

@@ -445,19 +445,7 @@
 </style>
 @endsection
 
-@section('content')
-
-{{-- GEO Fact Block — machine-readable for LLMs/AI overviews --}}
-<div class="container">
-<p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0 0 0 0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
-@if(app()->getLocale() === 'ar')
-    شركة كيمتا للتكنولوجيا منصة تسعير إنشائية B2B تفهرس {{ number_format($catalogStats['products']) }} منتجاً معتمداً في السعودية ودول الخليج. يسترجع محرك RAG أسعار بنود جدول الكميات خلال أقل من 60 ثانية بدقة 99.9% بالمقارنة مع أكثر من مليار مواصفة تقنية للمصنّعين. التسعير مجاني لمشتري مواد البناء وفرق المشتريات.
-@else
-    Qimta Technology Company is a B2B construction pricing platform indexing {{ number_format($catalogStats['products']) }} verified products across Saudi Arabia and GCC. The RAG matching engine retrieves BOQ line-item prices in under 60 seconds with 99.9% accuracy by cross-referencing 1B+ manufacturer technical specifications. Pricing is free for construction buyers and procurement teams.
-@endif
-</p>
-</div>
-
+@push('schema')
 @php
 $_homeSchema = json_encode([
     '@context' => 'https://schema.org',
@@ -507,8 +495,36 @@ $_homeSchema = json_encode([
         ],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+$_faqSchema = json_encode([
+    '@context'   => 'https://schema.org',
+    '@type'      => 'FAQPage',
+    'mainEntity' => [
+        ['@type'=>'Question','name'=>__('welcome.faq.q1'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a1')]],
+        ['@type'=>'Question','name'=>__('welcome.faq.q2'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a2')]],
+        ['@type'=>'Question','name'=>__('welcome.faq.q3'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a3')]],
+        ['@type'=>'Question','name'=>__('welcome.faq.q4'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a4')]],
+        ['@type'=>'Question','name'=>__('welcome.faq.q5'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a5')]],
+        ['@type'=>'Question','name'=>__('welcome.faq.q6'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a6', ['products' => number_format($catalogStats['products'])])]],
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 <script type="application/ld+json">{!! $_homeSchema !!}</script>
+<script type="application/ld+json">{!! $_faqSchema !!}</script>
+@endpush
+
+@section('content')
+
+{{-- GEO Fact Block — machine-readable for LLMs/AI overviews --}}
+<div class="container">
+<p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0 0 0 0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+@if(app()->getLocale() === 'ar')
+    شركة كيمتا للتكنولوجيا منصة تسعير إنشائية B2B تفهرس {{ number_format($catalogStats['products']) }} منتجاً معتمداً في السعودية ودول الخليج. يسترجع محرك RAG أسعار بنود جدول الكميات خلال أقل من 60 ثانية بدقة 99.9% بالمقارنة مع أكثر من مليار مواصفة تقنية للمصنّعين. التسعير مجاني لمشتري مواد البناء وفرق المشتريات.
+@else
+    Qimta Technology Company is a B2B construction pricing platform indexing {{ number_format($catalogStats['products']) }} verified products across Saudi Arabia and GCC. The RAG matching engine retrieves BOQ line-item prices in under 60 seconds with 99.9% accuracy by cross-referencing 1B+ manufacturer technical specifications. Pricing is free for construction buyers and procurement teams.
+@endif
+</p>
+</div>
 
     <!-- HERO -->
     <section class="hero">
@@ -954,22 +970,6 @@ $_homeSchema = json_encode([
             <a href="{{ route('enduser.login') }}" class="btn btn-primary btn-lg">{{ __('welcome.cta.btn') }}</a>
         </div>
     </section>
-
-@php
-$_faqSchema = json_encode([
-    '@context'   => 'https://schema.org',
-    '@type'      => 'FAQPage',
-    'mainEntity' => [
-        ['@type'=>'Question','name'=>__('welcome.faq.q1'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a1')]],
-        ['@type'=>'Question','name'=>__('welcome.faq.q2'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a2')]],
-        ['@type'=>'Question','name'=>__('welcome.faq.q3'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a3')]],
-        ['@type'=>'Question','name'=>__('welcome.faq.q4'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a4')]],
-        ['@type'=>'Question','name'=>__('welcome.faq.q5'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a5')]],
-        ['@type'=>'Question','name'=>__('welcome.faq.q6'),'acceptedAnswer'=>['@type'=>'Answer','text'=>__('welcome.faq.a6', ['products' => number_format($catalogStats['products'])])]],
-    ],
-], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-@endphp
-<script type="application/ld+json">{!! $_faqSchema !!}</script>
 
     <!-- FAQ -->
     <section class="faq">
