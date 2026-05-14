@@ -240,8 +240,9 @@
 
     /* ── HOW IT WORKS ── */
     .how { padding: 80px 0; background: var(--white); }
-    .section-title { font-family: 'Cairo', sans-serif; font-size: 25px; font-weight: 800; color: var(--dark); text-align: left; margin-bottom: 40px; }
+    .section-title { font-family: 'Cairo', sans-serif; font-size: 25px; font-weight: 800; color: var(--dark); text-align: left; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
     [dir="rtl"] .section-title { text-align: right; }
+    .section-title::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
     .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
     .how-card { background: var(--white); border-radius: 16px; padding: 32px 24px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; overflow: hidden; min-height: 260px; }
     .how-card.active { background: var(--green); color: var(--white); border-color: transparent; }
@@ -253,12 +254,16 @@
     .how-card.active .how-title { color: var(--white); }
     .how-desc { font-size: 13px; color: var(--gray-text); line-height: 1.65; }
     .how-card.active .how-desc { color: rgba(255,255,255,.95); }
-    .how-icon { font-size: 28px; margin-bottom: 20px; display: block; }
+    .how-icon { width: 52px; height: 52px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; }
+    .how-icon svg { width: 32px; height: 32px; stroke: var(--dark); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .how-card.active .how-icon svg { stroke: #f0a800; }
 
     /* ── PILLARS ── */
     .pillars { background: var(--green); padding: 40px 0; }
     .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,.08); }
     .pillar { padding: 48px 40px; background: var(--green); }
+    .pillar-icon { width: 44px; height: 44px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; }
+    .pillar-icon svg { width: 28px; height: 28px; stroke: rgba(255,255,255,.8); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
     .pillar-num { font-family: 'Cairo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,.5); text-transform: uppercase; margin-bottom: 10px; }
     [dir="rtl"] .pillar-num { letter-spacing: 0; }
     .pillar-title { font-family: 'Cairo', sans-serif; font-size: 22px; font-weight: 900; color: var(--white); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
@@ -626,25 +631,33 @@ $_homeSchema = json_encode([
             <p class="section-title">{{ __('welcome.how.title') }}</p>
             <div class="how-grid">
                 <div class="how-card">
-                    <span class="how-icon">&#128196;</span>
+                    <div class="how-icon">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+                    </div>
                     <p class="how-num">01</p>
                     <p class="how-title">{{ __('welcome.how.s1_title') }}</p>
                     <p class="how-desc">{{ __('welcome.how.s1_desc') }}</p>
                 </div>
                 <div class="how-card active">
-                    <span class="how-icon" style="color:#f0a800;">&#9889;</span>
+                    <div class="how-icon">
+                        <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
                     <p class="how-num">02</p>
                     <p class="how-title">{{ __('welcome.how.s2_title') }}</p>
                     <p class="how-desc">{{ __('welcome.how.s2_desc') }}</p>
                 </div>
                 <div class="how-card">
-                    <span class="how-icon">&#128269;</span>
+                    <div class="how-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
                     <p class="how-num">03</p>
                     <p class="how-title">{{ __('welcome.how.s3_title') }}</p>
                     <p class="how-desc">{{ __('welcome.how.s3_desc') }}</p>
                 </div>
                 <div class="how-card">
-                    <span class="how-icon">&#128722;</span>
+                    <div class="how-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    </div>
                     <p class="how-num">04</p>
                     <p class="how-title">{{ __('welcome.how.s4_title') }}</p>
                     <p class="how-desc">{{ __('welcome.how.s4_desc') }}</p>
@@ -658,16 +671,25 @@ $_homeSchema = json_encode([
         <div class="container">
             <div class="pillars-grid">
                 <div class="pillar">
+                    <div class="pillar-icon">
+                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
                     <p class="pillar-num">{{ __('welcome.pillars.p1_num') }}</p>
                     <p class="pillar-title">{{ __('welcome.pillars.p1_title') }}</p>
                     <p class="pillar-desc">{{ __('welcome.pillars.p1_desc') }}</p>
                 </div>
                 <div class="pillar">
+                    <div class="pillar-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M16 6l2 2-2 2" stroke-width="1.2"/></svg>
+                    </div>
                     <p class="pillar-num">{{ __('welcome.pillars.p2_num') }}</p>
                     <p class="pillar-title">{{ __('welcome.pillars.p2_title') }}</p>
                     <p class="pillar-desc">{{ __('welcome.pillars.p2_desc') }}</p>
                 </div>
                 <div class="pillar">
+                    <div class="pillar-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    </div>
                     <p class="pillar-num">{{ __('welcome.pillars.p3_num') }}</p>
                     <p class="pillar-title">{{ __('welcome.pillars.p3_title') }}</p>
                     <p class="pillar-desc">{{ __('welcome.pillars.p3_desc') }}</p>
