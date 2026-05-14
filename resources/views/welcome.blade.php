@@ -256,13 +256,13 @@
 
     /* ── PILLARS ── */
     .pillars { background: var(--green); padding: 40px 0; }
-    .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,.15); }
-    .pillar { padding: 36px 32px; background: var(--green); }
-    .pillar-num { font-family: 'Cairo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,.6); text-transform: uppercase; margin-bottom: 8px; }
+    .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,.08); }
+    .pillar { padding: 48px 40px; background: var(--green); }
+    .pillar-num { font-family: 'Cairo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,.5); text-transform: uppercase; margin-bottom: 10px; }
     [dir="rtl"] .pillar-num { letter-spacing: 0; }
-    .pillar-title { font-family: 'Cairo', sans-serif; font-size: 15px; font-weight: 800; color: var(--white); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .pillar-title { font-family: 'Cairo', sans-serif; font-size: 22px; font-weight: 900; color: var(--white); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
     [dir="rtl"] .pillar-title { letter-spacing: 0; }
-    .pillar-desc { font-size: 13px; color: rgba(255,255,255,.75); }
+    .pillar-desc { font-size: 12px; color: rgba(255,255,255,.7); line-height: 1.6; }
 
     /* ── ECOSYSTEM ── */
     .eco { padding: 80px 0; background: var(--white); }
