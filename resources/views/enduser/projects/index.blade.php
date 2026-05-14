@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-<div class="mx-auto max-w-7xl space-y-5">
+<div class="mx-auto max-w-7xl space-y-5 px-1">
 
     {{-- Stat Cards --}}
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
@@ -226,7 +226,8 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr style="background:#f8fafc; border-bottom:1px solid #e5e7eb;">
-                        <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        <th class="w-14 pl-5 pr-2 py-4"></th>
+                        <th class="px-3 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
                             {{ __('app.project') }}
                         </th>
 
@@ -291,8 +292,19 @@
 
                         <tr class="transition hover:bg-slate-50">
 
+                            {{-- Icon --}}
+                            <td class="pl-5 pr-2 py-5">
+                                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
+                                     style="background:#ecfdf5; border:1px solid #d1fae5;">
+                                    <svg class="h-5 w-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                            d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+                                    </svg>
+                                </div>
+                            </td>
+
                             {{-- Name + code --}}
-                            <td class="px-6 py-5 max-w-[260px]">
+                            <td class="px-3 py-5 max-w-[260px]">
                                 <p class="truncate font-bold text-slate-900">
                                     {{ $project->name }}
                                 </p>
