@@ -90,6 +90,7 @@ return [
     'no_accepted_quotations'  => 'No accepted quotations yet.',
     'recent_orders'           => 'Recent Orders',
     'your_latest_orders'      => 'Your latest orders',
+    'your_latest_projects'    => 'Your latest projects',
     'order_no'                => 'Order No',
     'total'                   => 'Total',
     'no_orders_yet'           => 'No orders yet.',

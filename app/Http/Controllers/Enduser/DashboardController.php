@@ -65,7 +65,7 @@ class DashboardController extends Controller
 
         // ── Active Projects (latest 5) ───────────────────────────────────────
         $activeProjects = Project::where('client_id', $clientId)
-            ->where('status', ProjectStatusEnum::Active)
+            ->withCount(['boqs', 'quotationRequests', 'orders'])
             ->latest()
             ->limit(5)
             ->get();

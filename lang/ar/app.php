@@ -90,6 +90,7 @@ return [
     'no_accepted_quotations'  => 'لا توجد عروض مقبولة حتى الآن.',
     'recent_orders'           => 'أحدث الطلبات',
     'your_latest_orders'      => 'أحدث طلباتك',
+    'your_latest_projects'    => 'آخر مشاريعك',
     'order_no'                => 'رقم الطلب',
     'total'                   => 'الإجمالي',
     'no_orders_yet'           => 'لا توجد طلبات حتى الآن.',
