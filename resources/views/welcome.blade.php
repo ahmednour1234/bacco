@@ -759,7 +759,7 @@ $_homeSchema = json_encode([
                     </tr>
                     <tr>
                         <td>{{ __('welcome.compare.valid_label') }}</td>
-                        <td class="col-qimta"><span class="check">&#10003;</span></td>
+                        <td class="col-qimta">{{ __('welcome.compare.valid_qimta') }}</td>
                         <td class="col-trad">{{ __('welcome.compare.valid_trad') }}</td>
                     </tr>
                     <tr>
@@ -771,6 +771,11 @@ $_homeSchema = json_encode([
                         <td>{{ __('welcome.compare.data_label') }}</td>
                         <td class="col-qimta">{{ __('welcome.compare.data_qimta') }}</td>
                         <td class="col-trad">{{ __('welcome.compare.data_trad') }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ __('welcome.compare.buy_label') }}</td>
+                        <td class="col-qimta">{{ __('welcome.compare.buy_qimta') }}</td>
+                        <td class="col-trad">{{ __('welcome.compare.buy_trad') }}</td>
                     </tr>
                 </tbody>
             </table>
