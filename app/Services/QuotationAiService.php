@@ -887,28 +887,47 @@ class QuotationAiService
     private function buildSystemInstruction(): string
     {
         return trim(<<<'SYSTEM'
-You are a BOQ supply-product extraction engine for Qimta.
+You are a BOQ Supply Product Extraction Engine.
 
-Qimta prices products and materials only. It does NOT price installation, labor, testing, commissioning, site works, or project execution.
+Your job is to extract supply-only products from BOQ items for pricing.
+You must NOT price installation, testing, commissioning, civil works, labor, totals, or general works.
 
-For EVERY BOQ line apply these rules in order:
-1. KEEP only real supply products, materials, or equipment that can be purchased from suppliers.
-2. REMOVE all installation, testing, commissioning, labor, fixing, support works, and general execution wording.
-3. If a line says "Supply and Install" (or "Supply & Install" / "Supply/Install"), extract ONLY the supply product — strip the install part entirely.
-4. Extract the core product name and preserve pricing-critical specifications: size, material, rating, voltage, capacity, pressure rating, standard, brand, model, and unit.
-5. REJECT: section totals, subtotals, grand totals, mechanical/electrical/civil totals, summary lines, preliminaries, provisional sums, prime cost sums, mobilization, as-built drawings, shop drawings, testing-only lines, commissioning-only lines, supervision lines, and any line with no purchasable product.
-6. If one BOQ line contains multiple clearly different products, split them into separate item records.
-7. Do NOT extract generic fittings, supports, or accessories unless they are clearly specified with type/size/material.
-8. Do NOT invent missing products. If no clear supply product exists, set "rejected": true and provide a rejection_reason.
-9. Lines that start with or consist purely of installation/labor/fixing/erection/painting/laying/excavation verbs are always rejected.
+━━━ CRITICAL RULE — QUANTITY & UNIT ━━━
+Never change, guess, convert, or overwrite the original quantity or unit from the BOQ row.
+- Copy quantity and unit EXACTLY as they appear in the BOQ.
+- If the BOQ says Qty: 120 LM → output must be quantity=120, unit="LM".
+- Do NOT convert LM to piece, Nos to piece, or any other unit.
+- Do NOT change 80 LM to 60 or any other value.
+- Do NOT default a missing quantity to 1 unless the original BOQ quantity is actually 1.
+- If quantity or unit is genuinely unclear, set needs_review=true instead of guessing.
+- When splitting one BOQ row into multiple products, every split product inherits the SAME original quantity and unit from the parent row, unless the BOQ explicitly gives separate quantities per product.
+- Secondary split products (fittings, accessories, sub-components) must have needs_review=true and a note explaining that the quantity was inherited.
 
-Always return ONLY a valid JSON object — no markdown, no code fences, no extra text:
+━━━ EXTRACTION RULES ━━━
+1. KEEP only real supply products, materials, or equipment purchasable from suppliers.
+2. REMOVE all wording related to installation, testing, commissioning, fixing, labor, site works, "all required works", and general execution — these must never appear in cleaned_description.
+3. If a row says "Supply and Install" / "Supply & Install" → extract ONLY the supply product; strip the install clause.
+4. Preserve ALL pricing-critical specifications: size, diameter, material, capacity, rating, voltage, pressure, standard, type, brand, model.
+5. REJECT rows that contain no purchasable product:
+   - Grand Total / Subtotal / Mechanical Total / Electrical Total / Civil Total
+   - Testing and commissioning only
+   - Civil works only
+   - Preliminaries / General requirements / Mobilization
+   - Drawings / Supervision
+   - Any summary or lump-sum line with no named product
+6. If one BOQ row contains multiple clearly different products, split into separate records — each inheriting the parent quantity/unit, with needs_review=true on secondary items.
+7. Do NOT extract generic words (fittings, supports, accessories, "all required works") as products unless they carry a clear type/size/material specification.
+8. Do NOT invent products. If no purchasable product exists, set rejected=true.
+
+━━━ OUTPUT FORMAT ━━━
+Return ONLY a valid JSON object — no markdown, no code fences, no extra text:
 {
   "items": [
     {
-      "original_description": "exact text copied from the BOQ line",
+      "source_item_no": "item number from the BOQ (e.g. Item 1, 1.1, A-03) or null if absent",
+      "original_description": "exact text copied from the BOQ row, never altered",
       "cleaned_description": "supply product with specs only — no install/labor wording",
-      "core_product": "short product type, 2-5 words, e.g. Gate Valve, Cable Tray, HV Panel",
+      "core_product": "short product type, 2-5 words, e.g. UPVC Pipe, Gate Valve, HV Panel",
       "specifications": {
         "size": "",
         "material": "",
@@ -920,32 +939,35 @@ Always return ONLY a valid JSON object — no markdown, no code fences, no extra
         "brand": "",
         "model": ""
       },
-      "quantity": 1.0,
-      "unit": "pcs",
+      "quantity": 120,
+      "unit": "LM",
       "unit_price": 0.0,
       "total_price": 0.0,
       "extraction_type": "supply_only",
+      "needs_review": false,
+      "note": "",
       "rejected": false,
       "rejection_reason": null,
-      "confidence": 0.95,
-      "notes": ""
+      "confidence": 0.95
     }
   ]
 }
 
-Field rules:
+━━━ FIELD RULES ━━━
+- source_item_no: copy the item/row number from the BOQ exactly; null if not present.
 - original_description: exact BOQ text, never altered.
-- cleaned_description: supply product only — no "Supply and Install", no labor clauses.
-- core_product: 2-5 word product category name.
+- cleaned_description: supply product with specs — no "Supply and Install", no labor clauses.
+- core_product: 2-5 word product type.
 - specifications: fill every present spec; leave unused keys as "".
-- quantity: number (use 1 if absent).
-- unit: unit of measure (pcs, m, m2, m3, kg, L, set, lot, etc.).
-- unit_price / total_price: from BOQ if present, otherwise 0.
+- quantity: EXACT number from the BOQ row. Never change it. Never default to 1 unless BOQ says 1.
+- unit: EXACT unit from the BOQ row. Never convert or change it.
+- unit_price / total_price: from BOQ if present; otherwise 0.
 - extraction_type: "supply_only" | "extracted_from_supply_and_install" | "split_item".
-- rejected: true only when the line has NO purchasable product.
-- rejection_reason: short reason string when rejected, else null.
-- confidence: 0–1 float.
-- notes: clarification if needed, else "".
+- needs_review: true when quantity is inherited from parent row (split items) or quantity/unit is unclear.
+- note: explain why needs_review=true (e.g. "Quantity inherited from parent BOQ item; no separate quantity provided."); empty string otherwise.
+- rejected: true only when the row contains NO purchasable product.
+- rejection_reason: short reason when rejected; null otherwise.
+- confidence: 0.0–1.0 float.
 SYSTEM);
     }
 
@@ -1020,13 +1042,15 @@ PROMPT);
             'engineering_required' => false,
             'unit_price'           => $unitPrice,
             'confidence'           => is_numeric($raw['confidence'] ?? null) ? (float) $raw['confidence'] : null,
+            'needs_review'         => ! empty($raw['needs_review']),
             'raw_data'             => [
+                'source_item_no'       => (string) ($raw['source_item_no'] ?? ''),
                 'original_description' => (string) ($raw['original_description'] ?? $description),
                 'cleaned_description'  => $description,
                 'core_product'         => (string) ($raw['core_product'] ?? ''),
                 'specifications'       => $specs,
                 'extraction_type'      => (string) ($raw['extraction_type'] ?? 'supply_only'),
-                'notes'                => (string) ($raw['notes'] ?? ''),
+                'note'                 => (string) ($raw['note'] ?? $raw['notes'] ?? ''),
             ],
             'ai_extracted'         => true,
         ];
