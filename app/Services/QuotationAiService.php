@@ -141,8 +141,11 @@ class QuotationAiService
         // ── Direct Excel/CSV parsing — no external API needed ────────────────
         if (in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
             $result = $this->parseSpreadsheetDirect($absPath);
+        } elseif (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png'], true)) {
+            // PDF and images are sent to Gemini for AI extraction.
+            $result = $this->parseBoqWithGemini($file, $context);
         } else {
-            return $this->failure('Only Excel (.xlsx, .xls) and CSV files are supported for direct parsing. Please upload an Excel or CSV file.');
+            return $this->failure('Unsupported file type. Please upload an Excel (.xlsx, .xls), CSV, or PDF file.');
         }
 
         // ── Cache successful result for 30 days ──────────────────────────────
