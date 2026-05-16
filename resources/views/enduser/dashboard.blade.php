@@ -32,14 +32,14 @@
             <svg class="w-3 h-3" style="color:#6366f1;" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
             </svg>
-            <span style="font-size:11px; font-weight:700; color:#4f46e5;">New</span>
+            <span style="font-size:11px; font-weight:700; color:#4f46e5;">{{ __('app.banner_badge') }}</span>
         </div>
         <h3 class="font-black leading-tight mb-1"
             style="font-size:1.55rem; color:#1e1b4b; letter-spacing:-0.02em;">
-            Create BOQ &nbsp;<span style="background:linear-gradient(90deg,#4f46e5,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">for Free</span>
+            {{ __('app.banner_heading') }} &nbsp;<span style="background:linear-gradient(90deg,#4f46e5,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">{{ __('app.banner_for_free') }}</span>
         </h3>
         <p style="color:#64748b; font-size:0.82rem; line-height:1.5; max-width:340px;">
-            Generate accurate BOQs in minutes and streamline your construction estimation process.
+            {{ __('app.banner_subtitle') }}
         </p>
     </div>
 

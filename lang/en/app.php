@@ -57,6 +57,10 @@ return [
     // ── Dashboard Banner ────────────────────────────────────────────────────
     'banner_title'      => 'Create BOQ for FREE!',
     'banner_subtitle'   => 'Save time and create professional BOQs in minutes.',
+    'banner_badge'      => 'New',
+    'banner_heading'    => 'Create BOQ',
+    'banner_for_free'   => 'for Free',
+    'banner_subtitle'   => 'Generate accurate BOQs in minutes and streamline your construction estimation process.',
     'banner_tagline'    => 'Fast • Easy • Accurate',
     'banner_free_badge' => '100% Free',
     'banner_cta'        => 'Create BOQ Now',    'banner2_badge'     => 'Instant Pricing',
