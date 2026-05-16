@@ -19,9 +19,21 @@ class CatalogProductRepository
             return ['inserted' => 0, 'updated' => 0];
         }
 
-        $countBefore = DB::connection('catalog')
-            ->table('catalog_products')
-            ->count();
+        $totalRows = count($rows);
+
+        // Pre-count how many incoming rows already exist so we can split insert vs update.
+        // MySQL tuple-IN is efficient and avoids scanning the whole table.
+        $placeholders = implode(',', array_fill(0, $totalRows, '(?,?,?,?)'));
+        $bindings = collect($rows)
+            ->flatMap(fn($r) => [$r['qimta_code'], $r['product_name'], $r['size'], $r['unit']])
+            ->all();
+
+        $existingCount = (int) DB::connection('catalog')
+            ->selectOne(
+                "SELECT COUNT(*) AS cnt FROM catalog_products
+                 WHERE (qimta_code, product_name, size, unit) IN ($placeholders)",
+                $bindings
+            )->cnt;
 
         DB::connection('catalog')->table('catalog_products')->upsert(
             $rows,
@@ -34,14 +46,10 @@ class CatalogProductRepository
             ]
         );
 
-        $countAfter = DB::connection('catalog')
-            ->table('catalog_products')
-            ->count();
+        $inserted = max(0, $totalRows - $existingCount);
+        $updated  = max(0, $existingCount);
 
-        $inserted = max(0, $countAfter - $countBefore);
-        $updated  = count($rows) - $inserted;
-
-        return ['inserted' => $inserted, 'updated' => max(0, $updated)];
+        return ['inserted' => $inserted, 'updated' => $updated];
     }
 
     /**
