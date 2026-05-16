@@ -19,10 +19,8 @@ class CatalogStats
      */
     private const FALLBACK = [
         'products'   => 13190,
-        'items'      => 1334,
         'categories' => 72,
         'divisions'  => 5,
-        'brands'     => 72,
     ];
 
     /**
@@ -35,20 +33,20 @@ class CatalogStats
                 $db = DB::connection('catalog');
 
                 return [
-                    'products'   => $db->table('catalog_products')->count(),
-                    'items'      => $db->table('catalog_products')
-                        ->whereNotNull('item_description')
-                        ->where('item_description', '!=', '')
-                        ->distinct()->count('item_description'),
-                    'categories' => $db->table('catalog_categories')->count(),
+                    'products'   => $db->table('catalog_products')
+                        ->where('status', 'active')
+                        ->whereNull('deleted_at')
+                        ->count(),
+                    'categories' => $db->table('catalog_categories')
+                        ->where('status', 'active')
+                        ->whereNull('deleted_at')
+                        ->count(),
                     'divisions'  => $db->table('catalog_products')
+                        ->where('status', 'active')
+                        ->whereNull('deleted_at')
                         ->whereNotNull('division')
                         ->where('division', '!=', '')
                         ->distinct()->count('division'),
-                    'brands'     => $db->table('catalog_products')
-                        ->whereNotNull('brand')
-                        ->where('brand', '!=', '')
-                        ->distinct()->count('brand'),
                 ];
             } catch (\Exception $e) {
                 Log::warning('CatalogStats: DB unavailable, using fallback', ['err' => $e->getMessage()]);
