@@ -390,8 +390,14 @@ class QuotationAiService
                         $totalPrice = $unitPrice * $quantity;
                     }
 
+                    // ── Supply-only filter ───────────────────────────────
+                    $supply = $this->filterSupplyItem($description);
+                    if (! $supply['keep']) {
+                        continue;
+                    }
+
                     $allItems[] = [
-                        'description'          => $description,
+                        'description'          => $supply['description'],
                         'quantity'             => $quantity ?? 1,
                         'unit'                 => $unit,
                         'category'             => $category,
@@ -400,7 +406,11 @@ class QuotationAiService
                         'engineering_required' => false,
                         'unit_price'           => $unitPrice,
                         'confidence'           => 0.9,
-                        'raw_data'             => null,
+                        'raw_data'             => [
+                            'original_description' => $description,
+                            'cleaned_description'  => $supply['description'],
+                            'extraction_type'      => $supply['extraction_type'],
+                        ],
                         'ai_extracted'         => true,
                     ];
                 }
@@ -691,6 +701,10 @@ class QuotationAiService
             ->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}",
                 [
+                    // Permanent system instruction — always applied before BOQ content.
+                    'system_instruction' => [
+                        'parts' => [['text' => $this->buildSystemInstruction()]],
+                    ],
                     'contents' => [['parts' => $parts]],
                     // Do NOT set responseMimeType — not supported by all models (causes HTTP 400 on flash-lite).
                     // Raise output token limit so large BOQs (100+ items) are not truncated mid-JSON.
@@ -779,7 +793,10 @@ class QuotationAiService
 
         return [
             'success' => true,
-            'items'   => array_map([$this, 'normaliseGeminiItem'], $items),
+            'items'   => array_values(array_filter(
+                array_map([$this, 'normaliseGeminiItem'], $items),
+                fn ($item) => $item !== null,
+            )),
             'error'   => null,
         ];
     }
@@ -860,7 +877,79 @@ class QuotationAiService
         );
     }
 
-    /** Build the Gemini extraction prompt. */
+    /**
+     * Permanent system instruction injected into every Gemini call.
+     * This always runs before any BOQ content reaches the model.
+     */
+    private function buildSystemInstruction(): string
+    {
+        return trim(<<<'SYSTEM'
+You are a BOQ supply-product extraction engine for Qimta.
+
+Qimta prices products and materials only. It does NOT price installation, labor, testing, commissioning, site works, or project execution.
+
+For EVERY BOQ line apply these rules in order:
+1. KEEP only real supply products, materials, or equipment that can be purchased from suppliers.
+2. REMOVE all installation, testing, commissioning, labor, fixing, support works, and general execution wording.
+3. If a line says "Supply and Install" (or "Supply & Install" / "Supply/Install"), extract ONLY the supply product — strip the install part entirely.
+4. Extract the core product name and preserve pricing-critical specifications: size, material, rating, voltage, capacity, pressure rating, standard, brand, model, and unit.
+5. REJECT: section totals, subtotals, grand totals, mechanical/electrical/civil totals, summary lines, preliminaries, provisional sums, prime cost sums, mobilization, as-built drawings, shop drawings, testing-only lines, commissioning-only lines, supervision lines, and any line with no purchasable product.
+6. If one BOQ line contains multiple clearly different products, split them into separate item records.
+7. Do NOT extract generic fittings, supports, or accessories unless they are clearly specified with type/size/material.
+8. Do NOT invent missing products. If no clear supply product exists, set "rejected": true and provide a rejection_reason.
+9. Lines that start with or consist purely of installation/labor/fixing/erection/painting/laying/excavation verbs are always rejected.
+
+Always return ONLY a valid JSON object — no markdown, no code fences, no extra text:
+{
+  "items": [
+    {
+      "original_description": "exact text copied from the BOQ line",
+      "cleaned_description": "supply product with specs only — no install/labor wording",
+      "core_product": "short product type, 2-5 words, e.g. Gate Valve, Cable Tray, HV Panel",
+      "specifications": {
+        "size": "",
+        "material": "",
+        "rating": "",
+        "voltage": "",
+        "capacity": "",
+        "pressure_rating": "",
+        "standard": "",
+        "brand": "",
+        "model": ""
+      },
+      "quantity": 1.0,
+      "unit": "pcs",
+      "unit_price": 0.0,
+      "total_price": 0.0,
+      "extraction_type": "supply_only",
+      "rejected": false,
+      "rejection_reason": null,
+      "confidence": 0.95,
+      "notes": ""
+    }
+  ]
+}
+
+Field rules:
+- original_description: exact BOQ text, never altered.
+- cleaned_description: supply product only — no "Supply and Install", no labor clauses.
+- core_product: 2-5 word product category name.
+- specifications: fill every present spec; leave unused keys as "".
+- quantity: number (use 1 if absent).
+- unit: unit of measure (pcs, m, m2, m3, kg, L, set, lot, etc.).
+- unit_price / total_price: from BOQ if present, otherwise 0.
+- extraction_type: "supply_only" | "extracted_from_supply_and_install" | "split_item".
+- rejected: true only when the line has NO purchasable product.
+- rejection_reason: short reason string when rejected, else null.
+- confidence: 0–1 float.
+- notes: clarification if needed, else "".
+SYSTEM);
+    }
+
+    /**
+     * Per-BOQ task prompt — provides file context and triggers extraction.
+     * The permanent rules live in buildSystemInstruction() and are sent separately.
+     */
     private function buildGeminiPrompt(array $context = [], string $mime = ''): string
     {
         $projectName   = $context['project_name'] ?? '';
@@ -872,77 +961,70 @@ class QuotationAiService
 
         $isImage = str_starts_with($mime, 'image/');
         $sourceHint = $isImage
-            ? 'The input is an image (photo or scan) of a BOQ table or list. Use OCR to read every row carefully.'
-            : 'The input is a document file containing a BOQ table.';
+            ? 'The input is an image (photo or scan) of a BOQ. Use OCR to read every row carefully before applying the extraction rules.'
+            : 'The input is a document or spreadsheet containing a BOQ table.';
 
         return trim(<<<PROMPT
-You are a BOQ (Bill of Quantities) extraction assistant.
+Extract all supply products from the attached BOQ file using the system rules.
 {$contextLine}
 {$sourceHint}
 
-Extract every line item from the provided document and return ONLY a valid JSON object with this exact structure:
-{
-  "items": [
-    {
-      "product_name": "Full item description",
-      "quantity": 1.0,
-      "unit": "pcs",
-      "unit_price": 0.0,
-      "total_price": 0.0,
-      "category": "Category name or empty string",
-      "brand": "Brand name or empty string",
-      "engineering_required": false,
-      "confidence": 0.95
-    }
-  ]
-}
-
-Rules:
-- Include EVERY line item / product found in the document — do not skip any row.
-- "quantity" must be a number (use 1 if not specified).
-- "unit" is the unit of measure (pcs, m, m2, m3, kg, L, set, etc.).
-- "unit_price" is the unit price of the item from the document. If a column contains prices, you MUST read the value for every row. If only a total price is given and no unit price, calculate unit_price = total_price / quantity. If no price is available for a row, use 0.
-- "total_price" is the total/line amount (quantity × unit_price). If not explicitly shown, calculate it. Use 0 if not available.
-- "engineering_required" is true only if the item clearly needs engineering work.
-- "confidence" is a number between 0 and 1 reflecting extraction certainty.
-- Do NOT merge section headers or floor labels as items; extract only actual products/services.
-- Return ONLY the JSON object — no markdown, no code fences, no extra text.
+Apply every extraction rule from the system instruction to each line and return only the JSON object.
 PROMPT);
     }
 
     /**
-     * Normalise a single Gemini item into the shape expected by the Livewire component.
+     * Normalise a single Gemini supply-extraction item.
+     * Returns null for rejected items — callers must filter nulls.
      *
      * @param  array<string, mixed>  $raw
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      */
-    private function normaliseGeminiItem(array $raw): array
+    private function normaliseGeminiItem(array $raw): ?array
     {
+        // Drop rejected lines — they carry no purchasable product.
+        if (! empty($raw['rejected'])) {
+            return null;
+        }
+
         $quantity   = is_numeric($raw['quantity'] ?? null) ? (float) $raw['quantity'] : 1;
         $unitPrice  = is_numeric($raw['unit_price'] ?? null) ? (float) $raw['unit_price'] : null;
         $totalPrice = is_numeric($raw['total_price'] ?? null) ? (float) $raw['total_price'] : null;
 
-        // Derive unit_price from total_price if not given directly
+        // Derive unit_price from total_price when not given directly.
         if ($unitPrice === null && $totalPrice !== null && $totalPrice > 0 && $quantity > 0) {
             $unitPrice = $totalPrice / $quantity;
         }
-
-        // Treat 0 as unpriced
         if ($unitPrice !== null && $unitPrice <= 0) {
             $unitPrice = null;
         }
 
+        $specs = is_array($raw['specifications'] ?? null) ? $raw['specifications'] : [];
+
+        // Prefer cleaned_description (supply-only), fall back to legacy fields.
+        $description = (string) ($raw['cleaned_description']
+            ?? $raw['product_name']
+            ?? $raw['description']
+            ?? '');
+
         return [
-            'description'          => (string) ($raw['product_name'] ?? $raw['description'] ?? ''),
+            'description'          => $description,
             'quantity'             => $quantity,
             'unit'                 => (string) ($raw['unit'] ?? ''),
-            'category'             => (string) ($raw['category'] ?? ''),
-            'brand'                => (string) ($raw['brand'] ?? ''),
+            'category'             => (string) ($raw['core_product'] ?? $raw['category'] ?? ''),
+            'brand'                => (string) ($specs['brand'] ?? $raw['brand'] ?? ''),
             'status'               => 'pending',
-            'engineering_required' => (bool) ($raw['engineering_required'] ?? false),
+            'engineering_required' => false,
             'unit_price'           => $unitPrice,
             'confidence'           => is_numeric($raw['confidence'] ?? null) ? (float) $raw['confidence'] : null,
-            'raw_data'             => null,
+            'raw_data'             => [
+                'original_description' => (string) ($raw['original_description'] ?? $description),
+                'cleaned_description'  => $description,
+                'core_product'         => (string) ($raw['core_product'] ?? ''),
+                'specifications'       => $specs,
+                'extraction_type'      => (string) ($raw['extraction_type'] ?? 'supply_only'),
+                'notes'                => (string) ($raw['notes'] ?? ''),
+            ],
             'ai_extracted'         => true,
         ];
     }
@@ -966,6 +1048,87 @@ PROMPT);
             'confidence'           => is_numeric($raw['confidence'] ?? null) ? (float) $raw['confidence'] : null,
             'raw_data'             => $raw['raw'] ?? null,
             'ai_extracted'         => true,
+        ];
+    }
+
+    /**
+     * Determine whether a BOQ description represents a purchasable supply product.
+     *
+     * Returns:
+     *   ['keep' => true,  'description' => '...', 'extraction_type' => '...']
+     *   ['keep' => false, 'rejection_reason' => '...']
+     *
+     * @return array<string, mixed>
+     */
+    private function filterSupplyItem(string $description): array
+    {
+        $desc = trim($description);
+        if ($desc === '') {
+            return ['keep' => false, 'rejection_reason' => 'Empty description'];
+        }
+
+        // 1. Reject totals / summaries
+        if (preg_match(
+            '/\b(sub.?total|grand\s*total|section\s*total|total\s*price|total\s*amount|mechanical\s*total|electrical\s*total|civil\s*total|summary)\b/i',
+            $desc
+        )) {
+            return ['keep' => false, 'rejection_reason' => 'Section total or summary line'];
+        }
+
+        // 2. Reject pure non-supply lines
+        if (preg_match(
+            '/^\s*(preliminar|mobiliz|demobiliz|provisional\s+sum|contingenc|p\.?c\.?\s*sum|prime\s*cost)\b/i',
+            $desc
+        )) {
+            return ['keep' => false, 'rejection_reason' => 'Preliminary, provisional sum, or mobilization item'];
+        }
+
+        if (preg_match(
+            '/\b(supervision|testing\s+and\s+commissioning|commissioning\s+only|labour\s+only|labor\s+only|install(ation)?\s+only|site\s*clearance|excavat(ion)?|backfill(ing)?|compaction|scaffolding|temporary\s+works?|as.built\s+drawing|shop\s+drawing|method\s+statement|performance\s+bond|insurance)\b/i',
+            $desc
+        )) {
+            return ['keep' => false, 'rejection_reason' => 'Non-supply item (labor, site works, or project execution)'];
+        }
+
+        // 3. Lines that START with a pure installation / labor verb are rejected
+        if (preg_match(
+            '/^\s*(install(ing|ation)?|fix(ing)?|erect(ing|ion)?|lay(ing)?|paint(ing)?|plaster(ing)?|demolish(ing)?|remov(ing|al)?|dismantle|commission(ing)?|test(ing)?|supervise|supervision|excavat(ing|ion)?)\b/i',
+            $desc
+        )) {
+            return ['keep' => false, 'rejection_reason' => 'Starts with installation or labor verb'];
+        }
+
+        // 4. "Supply and Install" — extract supply product only
+        if (preg_match(
+            '/\b(supply\s+and\s+install(ation)?|supply\s*[\/&]\s*install(ation)?)\b/i',
+            $desc
+        )) {
+            // Strip the "Supply and Install" prefix
+            $cleaned = preg_replace(
+                '/\b(supply\s+and\s+install(ation)?|supply\s*[\/&]\s*install(ation)?)\s*(?:of\s*)?/i',
+                '',
+                $desc
+            );
+            // Strip trailing install/commission/test clauses
+            $cleaned = preg_replace(
+                '/,?\s*(includ(ing|e)?\s+)?(install(ation|ing)?|erect(ion|ing)?|fix(ing)?|connect(ion|ing)?|commission(ing)?|test(ing)?|as\s+per\s+spec[a-z]*)\b.*/i',
+                '',
+                (string) $cleaned
+            );
+            $cleaned = trim((string) $cleaned, ', ');
+
+            return [
+                'keep'           => true,
+                'description'    => $cleaned !== '' ? $cleaned : $desc,
+                'extraction_type' => 'extracted_from_supply_and_install',
+            ];
+        }
+
+        // 5. Accept as a supply item
+        return [
+            'keep'           => true,
+            'description'    => $desc,
+            'extraction_type' => 'supply_only',
         ];
     }
 
