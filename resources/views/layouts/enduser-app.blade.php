@@ -191,7 +191,7 @@
     <div class="sidebar-offset flex flex-col min-h-screen">
 
         {{-- ── TOP NAVBAR ─────────────────────────────────────── --}}
-        <header class="sticky top-0 z-10 bg-white border-b border-slate-200/80 shadow-sm">
+        <header class="sticky top-0 z-40 bg-white border-b border-slate-200/80 shadow-sm">
             <div class="flex items-center gap-4 px-4 sm:px-6 h-16">
 
                 {{-- Mobile hamburger --}}
@@ -280,37 +280,80 @@
                         </button>
 
                         <div x-show="open" x-cloak @click.outside="open = false"
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 scale-95"
-                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                              x-transition:leave="transition ease-in duration-100"
                              x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute end-0 top-full mt-2 w-48 bg-white rounded-xl
-                                    border border-slate-200 shadow-xl overflow-hidden z-50">
-                            <div class="px-4 py-3 border-b border-slate-100">
-                                <p class="text-sm font-semibold text-slate-900 truncate">{{ auth()->user()->name ?? 'User' }}</p>
-                                <p class="text-xs text-slate-500 truncate">{{ auth()->user()->email ?? '' }}</p>
+                             x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                             class="absolute end-0 top-full mt-2 w-64
+                                    bg-white
+                                    rounded-2xl border border-slate-200
+                                    shadow-xl z-50">
+
+                            {{-- ── Identity ──────────────────────────────────── --}}
+                            <div class="flex items-center gap-3.5 px-4 pt-4 pb-3.5">
+                                <div class="relative shrink-0">
+                                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500
+                                                flex items-center justify-center text-white font-bold text-sm
+                                                shadow-md shadow-emerald-500/30 overflow-hidden"
+                                         x-data="{ err: false }">
+                                        @if (auth()->check() && auth()->user()->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists(auth()->user()->avatar))
+                                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url(auth()->user()->avatar) }}" alt="" class="w-full h-full object-cover"
+                                                 x-show="!err" @@error="err = true">
+                                            <span x-show="err" x-cloak>{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}</span>
+                                        @else
+                                            {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}
+                                        @endif
+                                    </div>
+                                    <span class="absolute -bottom-0.5 -end-0.5 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full"></span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-bold text-slate-900 truncate leading-tight">{{ auth()->user()->name ?? 'User' }}</p>
+                                    <p class="text-[11px] text-slate-400 truncate mt-0.5 leading-tight">{{ auth()->user()->email ?? '' }}</p>
+                                </div>
                             </div>
-                            <div class="py-1">
-                                <a href="{{ route('enduser.profile') }}" wire:navigate class="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+
+                            {{-- ── Divider ─────────────────────────────────────── --}}
+                            <div class="mx-4 border-t border-slate-100"></div>
+
+                            {{-- ── Menu Items ──────────────────────────────────── --}}
+                            <div class="px-2 py-2">
+                                <a href="{{ route('enduser.profile') }}" wire:navigate @click="open = false"
+                                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 group
+                                          text-slate-600 hover:bg-slate-50/80 hover:text-slate-900">
+                                    <div class="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-white group-hover:shadow-sm
+                                                flex items-center justify-center transition-all duration-150 shrink-0
+                                                ring-1 ring-transparent group-hover:ring-slate-200">
+                                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="font-medium flex-1">{{ __('app.my_profile') }}</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-300 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
-                                    {{ __('app.my_profile') }}
                                 </a>
 
-                            </div>
-                            <div class="border-t border-slate-100 py-1">
+                                <div class="my-1 mx-1 border-t border-slate-100/80"></div>
+
                                 <a href="{{ route('enduser.logout') }}"
-                                   class="flex items-center gap-2.5 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                                    </svg>
-                                    {{ __('app.sign_out') }}
+                                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 group
+                                          text-red-500 hover:bg-red-50/70">
+                                    <div class="w-8 h-8 rounded-xl bg-red-50 group-hover:bg-white group-hover:shadow-sm
+                                                flex items-center justify-center transition-all duration-150 shrink-0
+                                                ring-1 ring-transparent group-hover:ring-red-100">
+                                        <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                        </svg>
+                                    </div>
+                                    <span class="font-medium">{{ __('app.sign_out') }}</span>
                                 </a>
                             </div>
+
+                            {{-- Bottom breathing room --}}
+                            <div class="h-2"></div>
                         </div>
                     </div>
                 </div>

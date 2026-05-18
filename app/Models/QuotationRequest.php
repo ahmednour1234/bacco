@@ -14,14 +14,34 @@ class QuotationRequest extends BaseModel
 {
     use HasFactory, SoftDeletes;
 
+    /** Number of days before a quotation's prices are considered stale. */
+    const EXPIRY_DAYS = 10;
+
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'status'         => QuotationRequestStatusEnum::class,
-            'source_type'    => QuotationSourceTypeEnum::class,
-            'project_status' => QuotationProjectStatusEnum::class,
-            'deleted_at'     => 'datetime',
+            'status'            => QuotationRequestStatusEnum::class,
+            'source_type'       => QuotationSourceTypeEnum::class,
+            'project_status'    => QuotationProjectStatusEnum::class,
+            'prices_fetched_at' => 'datetime',
+            'deleted_at'        => 'datetime',
         ]);
+    }
+
+    /**
+     * A quotation expires after EXPIRY_DAYS days from the last time prices
+     * were fetched (or from creation if prices have never been re-fetched).
+     * Only editable quotations (draft / tender) can expire.
+     */
+    public function isExpired(): bool
+    {
+        if (! in_array($this->status->value, ['tender', 'draft'], true)) {
+            return false;
+        }
+
+        $reference = $this->prices_fetched_at ?? $this->created_at;
+
+        return $reference->lt(now()->subDays(self::EXPIRY_DAYS));
     }
 
     // -------------------------------------------------------------------------

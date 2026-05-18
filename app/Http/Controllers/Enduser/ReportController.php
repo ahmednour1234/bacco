@@ -57,7 +57,7 @@ class ReportController extends Controller
         $monthlyOrders = Order::where('client_id', $clientId)
             ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
             ->select(
-                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
+                DB::raw("strftime('%Y-%m', created_at) as month"),
                 DB::raw('count(*) as count'),
                 DB::raw('COALESCE(sum(grand_total), 0) as total')
             )

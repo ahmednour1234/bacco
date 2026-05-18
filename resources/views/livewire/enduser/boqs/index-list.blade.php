@@ -207,7 +207,7 @@
                     <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
-                    New Blank BOQ
+                    {{ __('app.new_blank_boq') }}
                 </a>
             </div>
         </div>
@@ -251,7 +251,7 @@
                 @if($type !== '')
                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                 @endif
-                Type
+                {{ __('app.filter_type') }}
                 <svg class="h-3.5 w-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -264,7 +264,7 @@
             >
                 <button type="button" wire:click="$set('type', '')" @click="typeOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $type === '' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
-                    All Types
+                    {{ __('app.filter_all_types') }}
                 </button>
                 @foreach($types as $typeItem)
                     <button type="button" wire:click="$set('type', '{{ $typeItem->value }}')" @click="typeOpen = false"
@@ -321,7 +321,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/>
                 </svg>
-                {{ $sort === 'oldest' ? 'Oldest first' : 'Newest first' }}
+                {{ $sort === 'oldest' ? __('app.sort_oldest') : __('app.sort_newest') }}
                 <svg class="h-3.5 w-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -334,11 +334,11 @@
             >
                 <button type="button" wire:click="$set('sort', 'newest')" @click="sortOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $sort === 'newest' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
-                    Newest first
+                    {{ __('app.sort_newest') }}
                 </button>
                 <button type="button" wire:click="$set('sort', 'oldest')" @click="sortOpen = false"
                     class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $sort === 'oldest' ? 'font-semibold text-emerald-600' : 'text-slate-700' }}">
-                    Oldest first
+                    {{ __('app.sort_oldest') }}
                 </button>
             </div>
         </div>

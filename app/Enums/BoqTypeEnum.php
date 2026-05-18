@@ -10,8 +10,8 @@ enum BoqTypeEnum: string
     public function label(): string
     {
         return match($this) {
-            self::Tender  => 'Tender (Bidding)',
-            self::Awarded => 'On-hand (Awarded)',
+            self::Tender  => __('app.boq_type_tender'),
+            self::Awarded => __('app.boq_type_awarded'),
         };
     }
 

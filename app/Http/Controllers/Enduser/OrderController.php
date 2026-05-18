@@ -54,8 +54,13 @@ class OrderController extends Controller
                 'total_price' => (float) $item->total_price,
             ])->toArray();
 
-            $statusLabel = $order->status?->label() ?? ($order->getRawOriginal('status') ?? 'pending');
-            $statusValue = $order->status?->value ?? ($order->getRawOriginal('status') ?? 'pending');
+            // Use fixed English labels in PDF — DomPDF cannot render Arabic text correctly
+            $statusLabel = match($order->status?->value) {
+                'open'   => 'Open',
+                'closed' => 'Closed',
+                default  => ucfirst($order->status?->value ?? 'open'),
+            };
+            $statusValue = $order->status?->value ?? 'open';
 
             $pdf = Pdf::loadView('enduser.orders.pdf', [
                 'order'       => $order,

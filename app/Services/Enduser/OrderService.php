@@ -17,9 +17,9 @@ class OrderService
      * Create an Order (and its items) from a QuotationRequest + selected items array.
      * Selected items are the rows the client checked on the show-quotation page.
      */
-    public function createFromQuotation(QuotationRequest $quotation, array $selectedItems): Order
+    public function createFromQuotation(QuotationRequest $quotation, array $selectedItems, array $addressData = []): Order
     {
-        return DB::transaction(function () use ($quotation, $selectedItems) {
+        return DB::transaction(function () use ($quotation, $selectedItems, $addressData) {
 
             $vatRate  = 0.15;
             $subtotal = collect($selectedItems)
@@ -27,7 +27,7 @@ class OrderService
             $vatAmount  = round($subtotal * $vatRate, 2);
             $grandTotal = round($subtotal + $vatAmount, 2);
 
-            $order = $this->repo->create([
+            $order = $this->repo->create(array_merge([
                 'uuid'                  => Str::uuid(),
                 'order_no'              => $this->generateOrderNo(),
                 'quotation_request_id'  => $quotation->id,
@@ -39,7 +39,7 @@ class OrderService
                 'vat_amount'            => $vatAmount,
                 'grand_total'           => $grandTotal,
                 'currency'              => 'SAR',
-            ]);
+            ], $addressData));
 
             foreach ($selectedItems as $row) {
                 $unitPrice  = (float) ($row['unit_price'] ?? 0);

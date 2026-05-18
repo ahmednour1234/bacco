@@ -1,0 +1,22 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('quotation_requests', function (Blueprint $table) {
+            $table->timestamp('prices_fetched_at')->nullable()->after('updated_at');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('quotation_requests', function (Blueprint $table) {
+            $table->dropColumn('prices_fetched_at');
+        });
+    }
+};

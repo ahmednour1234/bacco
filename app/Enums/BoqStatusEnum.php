@@ -12,10 +12,10 @@ enum BoqStatusEnum: string
     public function label(): string
     {
         return match($this) {
-            self::Draft     => 'Draft',
-            self::Submitted => 'Submitted',
-            self::Completed => 'Completed',
-            self::Cancelled => 'Cancelled',
+            self::Draft     => __('app.status_draft'),
+            self::Submitted => __('app.status_submitted'),
+            self::Completed => __('app.status_completed'),
+            self::Cancelled => __('app.status_cancelled'),
         };
     }
 

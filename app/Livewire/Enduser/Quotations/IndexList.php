@@ -32,6 +32,27 @@ class IndexList extends Component
 
     protected array $allowedPerPage = [5, 10, 25, 50];
 
+    // ── Address modal ──────────────────────────────────────────────────────────
+    public bool   $showAddressModal      = false;
+    public string $pendingQuotationUuid  = '';
+    public string $addressType           = 'detailed'; // 'detailed' | 'national'
+
+    // Detailed address
+    public string $deliveryStreet      = '';
+    public string $deliveryDistrict    = '';
+    public string $deliveryCity        = '';
+    public string $deliveryRegion      = '';
+    public string $deliveryPostalCode  = '';
+    public string $deliveryCountry     = 'SA';
+
+    // National address (Saudi National Address)
+    public string $nationalBuildingNo   = '';
+    public string $nationalStreet       = '';
+    public string $nationalDistrict     = '';
+    public string $nationalCity         = '';
+    public string $nationalPostalCode   = '';
+    public string $nationalAdditionalNo = '';
+
     public function updating($name): void
     {
         if ($name !== 'page') {
@@ -48,26 +69,53 @@ class IndexList extends Component
         $this->resetPage();
     }
 
-    public function convertToOrder(string $uuid): void
+    public function openAddressModal(string $uuid): void
     {
-        $quotation = QuotationRequest::with(['items.unit'])
+        $quotation = QuotationRequest::with(['items'])
             ->where('uuid', $uuid)
             ->where('client_id', Auth::id())
             ->firstOrFail();
 
         if ($quotation->status->value !== 'tender') {
-            $this->dispatch('toast', message: 'Only tender quotations can be converted to an order.', type: 'error');
+            $this->dispatch('toast', message: __('app.only_tender_can_convert'), type: 'error');
             return;
         }
 
-        $items = $quotation->items;
-
-        if ($items->isEmpty()) {
-            $this->dispatch('toast', message: 'This quotation has no items.', type: 'error');
+        if ($quotation->isExpired()) {
+            $this->dispatch('toast', message: __('app.expired_block_msg'), type: 'error');
             return;
         }
 
-        $selectedItems = $items->map(fn($i) => [
+        if ($quotation->items->isEmpty()) {
+            $this->dispatch('toast', message: __('app.no_items_in_quotation'), type: 'error');
+            return;
+        }
+
+        $subtotal = $quotation->items
+            ->filter(fn($i) => ($i->status->value ?? '') !== 'rejected' && is_numeric($i->unit_price))
+            ->sum(fn($i) => (float) $i->unit_price * (float) $i->quantity);
+
+        if ($subtotal <= 0) {
+            $this->dispatch('toast', message: __('app.total_must_be_positive'), type: 'error');
+            return;
+        }
+
+        $this->pendingQuotationUuid = $uuid;
+        $this->showAddressModal     = true;
+    }
+
+    public function confirmConvertToOrder(): void
+    {
+        if (! $this->validateAddress()) {
+            return;
+        }
+
+        $quotation = QuotationRequest::with(['items.unit'])
+            ->where('uuid', $this->pendingQuotationUuid)
+            ->where('client_id', Auth::id())
+            ->firstOrFail();
+
+        $selectedItems = $quotation->items->map(fn($i) => [
             'id'          => $i->id,
             'product_id'  => $i->product_id,
             'description' => (string) $i->description,
@@ -80,23 +128,60 @@ class IndexList extends Component
             'selected'    => true,
         ])->values()->toArray();
 
-        $subtotal = collect($selectedItems)
-            ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price']))
-            ->sum(fn($i) => (float) $i['unit_price'] * (float) $i['quantity']);
-
-        if ($subtotal <= 0) {
-            $this->dispatch('toast', message: 'Total amount must be greater than 0 before converting.', type: 'error');
-            return;
-        }
-
         try {
-            $order = app(OrderService::class)->createFromQuotation($quotation, $selectedItems);
+            $order = app(OrderService::class)->createFromQuotation(
+                $quotation,
+                $selectedItems,
+                $this->buildAddressData(),
+            );
             $quotation->update(['status' => QuotationRequestStatusEnum::Submitted]);
             $this->redirect(route('enduser.orders.show', $order->uuid));
         } catch (\Throwable $e) {
-            Log::error('IndexList::convertToOrder failed.', ['message' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Failed to create order. Please try again.', type: 'error');
+            Log::error('IndexList::confirmConvertToOrder failed.', ['message' => $e->getMessage()]);
+            $this->dispatch('toast', message: __('app.order_create_failed'), type: 'error');
         }
+    }
+
+    private function validateAddress(): bool
+    {
+        if ($this->addressType === 'national') {
+            if (! $this->nationalBuildingNo || ! $this->nationalStreet || ! $this->nationalDistrict || ! $this->nationalCity || ! $this->nationalPostalCode) {
+                $this->dispatch('toast', message: __('app.address_fields_required'), type: 'error');
+                return false;
+            }
+        } else {
+            if (! $this->deliveryStreet || ! $this->deliveryCity) {
+                $this->dispatch('toast', message: __('app.address_fields_required'), type: 'error');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function buildAddressData(): array
+    {
+        if ($this->addressType === 'national') {
+            return [
+                'delivery_address_type' => 'national',
+                'delivery_building_no'  => $this->nationalBuildingNo,
+                'delivery_street'       => $this->nationalStreet,
+                'delivery_district'     => $this->nationalDistrict,
+                'delivery_city'         => $this->nationalCity,
+                'delivery_postal_code'  => $this->nationalPostalCode,
+                'delivery_additional_no'=> $this->nationalAdditionalNo,
+                'delivery_country'      => 'SA',
+            ];
+        }
+
+        return [
+            'delivery_address_type' => 'detailed',
+            'delivery_street'       => $this->deliveryStreet,
+            'delivery_district'     => $this->deliveryDistrict,
+            'delivery_city'         => $this->deliveryCity,
+            'delivery_region'       => $this->deliveryRegion,
+            'delivery_postal_code'  => $this->deliveryPostalCode,
+            'delivery_country'      => $this->deliveryCountry ?: 'SA',
+        ];
     }
 
     public function deleteQuotation(int $id): void

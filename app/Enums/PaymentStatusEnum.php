@@ -13,11 +13,11 @@ enum PaymentStatusEnum: string
     public function label(): string
     {
         return match($this) {
-            self::Pending   => 'Pending',
-            self::Submitted => 'Submitted',
-            self::Approved  => 'Approved',
-            self::Rejected  => 'Rejected',
-            self::Refunded  => 'Refunded',
+            self::Pending   => __('app.status_pending'),
+            self::Submitted => __('app.status_submitted'),
+            self::Approved  => __('app.status_approved'),
+            self::Rejected  => __('app.status_rejected'),
+            self::Refunded  => __('app.status_refunded'),
         };
     }
 

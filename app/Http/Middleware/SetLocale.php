@@ -22,13 +22,13 @@ class SetLocale
             $locale = session('locale', 'ar');
             app()->setLocale(in_array($locale, ['en', 'ar']) ? $locale : 'ar');
         } elseif (str_starts_with($path, '/ar/') || $path === '/ar') {
-            // Public Arabic URLs
+            // Public Arabic URLs — store in session
             app()->setLocale('ar');
             session(['locale' => 'ar']);
         } else {
-            // Public English URLs
+            // Public English URLs — apply English for this request only,
+            // do NOT overwrite the session so portal pages keep their locale.
             app()->setLocale('en');
-            session(['locale' => 'en']);
         }
 
         return $next($request);

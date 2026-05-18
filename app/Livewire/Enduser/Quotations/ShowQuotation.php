@@ -29,10 +29,34 @@ class ShowQuotation extends Component
     /** True while a background pricing job has been dispatched for this session. */
     public bool $pricingQueued = false;
 
+    /** True when the quotation's prices are older than the allowed validity period. */
+    public bool $isExpired = false;
+
     // Product picker state
     public ?int   $openPickerItemId = null;
     public string $productSearch    = '';
     public array  $productResults   = [];
+
+    // ── Address modal ──────────────────────────────────────────────────────────
+    public bool   $showAddressModal    = false;
+    public string $addressType         = 'detailed'; // 'detailed' | 'national'
+
+    // Detailed address
+    public string $deliveryStreet      = '';
+    public string $deliveryDistrict    = '';
+    public string $deliveryCity        = '';
+    public string $deliveryRegion      = '';
+    public string $deliveryPostalCode  = '';
+    public string $deliveryCountry     = 'SA';
+
+    // National address (Saudi National Address)
+    public string $nationalBuildingNo   = '';
+    public string $nationalStreet       = '';
+    public string $nationalDistrict     = '';
+    public string $nationalCity         = '';
+    public string $nationalPostalCode   = '';
+    public string $nationalAdditionalNo = '';
+
 
     public function mount(string $uuid): void
     {
@@ -44,8 +68,10 @@ class ShowQuotation extends Component
 
         $this->loadItems();
 
-        // Auto-trigger pricing if any items still lack a unit price
-        $needsPricing = collect($this->items)->contains(fn($i) => empty($i['unit_price']));
+        $this->isExpired = $this->quotation->isExpired();
+
+        // Auto-trigger pricing if any items still lack a unit price (and not expired)
+        $needsPricing = ! $this->isExpired && collect($this->items)->contains(fn($i) => empty($i['unit_price']));
 
         if ($needsPricing) {
             $this->pricingQueued = true;
@@ -206,7 +232,8 @@ class ShowQuotation extends Component
 
     public function refetchPrices(): void
     {
-        if (! $this->canEdit()) {
+        // Allow re-fetch even when expired — that's how the user renews the quotation
+        if (! $this->quotation || ! in_array($this->quotation->status->value, ['tender', 'draft'], true)) {
             return;
         }
 
@@ -256,6 +283,10 @@ class ShowQuotation extends Component
                 }
             }
 
+            // Stamp prices_fetched_at to reset the 10-day expiry clock
+            $this->quotation->update(['prices_fetched_at' => now()]);
+            $this->isExpired = false;
+
             $this->loadItems();
             $this->pricingQueued = false;
 
@@ -276,20 +307,50 @@ class ShowQuotation extends Component
 
     private function canEdit(): bool
     {
-        return $this->quotation && in_array(
-            $this->quotation->status->value,
-            ['tender', 'draft'],
-            true
-        );
+        return $this->quotation
+            && ! $this->isExpired
+            && in_array($this->quotation->status->value, ['tender', 'draft'], true);
     }
 
     // -------------------------------------------------------------------------
     // Submit for approval → create order → redirect
     // -------------------------------------------------------------------------
 
+    public function openAddressModal(): void
+    {
+        if (! $this->quotation) {
+            return;
+        }
+
+        if ($this->isExpired) {
+            $this->dispatch('toast', message: __('app.expired_block_msg'), type: 'error');
+            return;
+        }
+
+        $subtotal = collect(array_values($this->items))
+            ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
+            ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
+
+        if ($subtotal <= 0) {
+            $this->dispatch('toast', message: __('app.total_must_be_positive'), type: 'error');
+            return;
+        }
+
+        $this->showAddressModal = true;
+    }
+
     public function submitForApproval(): void
     {
         if (! $this->quotation) {
+            return;
+        }
+
+        if ($this->isExpired) {
+            $this->dispatch('toast', message: __('app.expired_block_msg'), type: 'error');
+            return;
+        }
+
+        if (! $this->validateAddress()) {
             return;
         }
 
@@ -301,11 +362,15 @@ class ShowQuotation extends Component
                 ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
 
             if ($subtotal <= 0) {
-                $this->dispatch('toast', message: 'Total amount must be greater than 0 before submitting.', type: 'error');
+                $this->dispatch('toast', message: __('app.total_must_be_positive'), type: 'error');
                 return;
             }
 
-            $order = app(OrderService::class)->createFromQuotation($this->quotation, $selectedItems);
+            $order = app(OrderService::class)->createFromQuotation(
+                $this->quotation,
+                $selectedItems,
+                $this->buildAddressData(),
+            );
 
             $this->quotation->update(['status' => QuotationRequestStatusEnum::Submitted]);
 
@@ -322,8 +387,54 @@ class ShowQuotation extends Component
 
         } catch (\Throwable $e) {
             Log::error('ShowQuotation::submitForApproval failed.', ['message' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Failed to submit quotation. Please try again.', type: 'error');
+            $this->dispatch('toast', message: __('app.order_create_failed'), type: 'error');
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Address helpers (shared with IndexList pattern)
+    // -------------------------------------------------------------------------
+
+    private function validateAddress(): bool
+    {
+        if ($this->addressType === 'national') {
+            if (! $this->nationalBuildingNo || ! $this->nationalStreet || ! $this->nationalDistrict || ! $this->nationalCity || ! $this->nationalPostalCode) {
+                $this->dispatch('toast', message: __('app.address_fields_required'), type: 'error');
+                return false;
+            }
+        } else {
+            if (! $this->deliveryStreet || ! $this->deliveryCity) {
+                $this->dispatch('toast', message: __('app.address_fields_required'), type: 'error');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function buildAddressData(): array
+    {
+        if ($this->addressType === 'national') {
+            return [
+                'delivery_address_type' => 'national',
+                'delivery_building_no'  => $this->nationalBuildingNo,
+                'delivery_street'       => $this->nationalStreet,
+                'delivery_district'     => $this->nationalDistrict,
+                'delivery_city'         => $this->nationalCity,
+                'delivery_postal_code'  => $this->nationalPostalCode,
+                'delivery_additional_no'=> $this->nationalAdditionalNo,
+                'delivery_country'      => 'SA',
+            ];
+        }
+
+        return [
+            'delivery_address_type' => 'detailed',
+            'delivery_street'       => $this->deliveryStreet,
+            'delivery_district'     => $this->deliveryDistrict,
+            'delivery_city'         => $this->deliveryCity,
+            'delivery_region'       => $this->deliveryRegion,
+            'delivery_postal_code'  => $this->deliveryPostalCode,
+            'delivery_country'      => $this->deliveryCountry ?: 'SA',
+        ];
     }
 
     // -------------------------------------------------------------------------

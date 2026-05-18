@@ -327,6 +327,37 @@
 
                     $canEdit = in_array($sv, ['draft', 'tender'], true);
                     $amount  = $quotation->items->sum(fn($i) => ($i->unit_price ?? 0) * $i->quantity);
+
+                    // Validity badge (only for draft/tender)
+                    $validityBadge = null;
+                    if (in_array($sv, ['draft', 'tender'], true)) {
+                        $validityRef = $quotation->prices_fetched_at ?? $quotation->created_at;
+                        $expiresAt   = $validityRef->copy()->addDays(\App\Models\QuotationRequest::EXPIRY_DAYS);
+                        $daysLeft    = (int) now()->startOfDay()->diffInDays($expiresAt->startOfDay(), false);
+
+                        if ($daysLeft < 0) {
+                            $ago = abs($daysLeft);
+                            $validityBadge = [
+                                'text'  => $ago === 1 ? __('app.expired_since_one_day') : __('app.expired_since_days', ['days' => $ago]),
+                                'class' => 'bg-red-50 text-red-600 ring-1 ring-red-200',
+                            ];
+                        } elseif ($daysLeft === 0) {
+                            $validityBadge = [
+                                'text'  => __('app.expires_today'),
+                                'class' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-200',
+                            ];
+                        } elseif ($daysLeft === 1) {
+                            $validityBadge = [
+                                'text'  => __('app.expires_in_one_day'),
+                                'class' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-200',
+                            ];
+                        } else {
+                            $validityBadge = [
+                                'text'  => __('app.expires_in_days', ['days' => $daysLeft]),
+                                'class' => 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200',
+                            ];
+                        }
+                    }
                 @endphp
 
                 <div class="group flex flex-col gap-4 rounded-2xl border border-slate-200 border-l-4 {{ $leftBorder }} bg-white px-6 py-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
@@ -339,6 +370,14 @@
                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide {{ $badgeClass }}">
                                 {{ $quotation->status->label() }}
                             </span>
+                            @if($validityBadge)
+                                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $validityBadge['class'] }}">
+                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    {{ $validityBadge['text'] }}
+                                </span>
+                            @endif
                             <span class="text-xs text-slate-400 font-mono">ID: #{{ $quotation->quotation_no }}</span>
                         </div>
 
@@ -393,9 +432,9 @@
                         @if($sv === 'tender')
                             <button
                                 type="button"
-                                wire:click="convertToOrder('{{ $quotation->uuid }}')"
+                                wire:click="openAddressModal('{{ $quotation->uuid }}')"
                                 wire:loading.attr="disabled"
-                                wire:target="convertToOrder('{{ $quotation->uuid }}')"
+                                wire:target="openAddressModal('{{ $quotation->uuid }}')"
                                 class="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:opacity-60"
                             >
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -471,5 +510,8 @@
             @endif
         </div>
     @endif
+
+    {{-- Address Modal --}}
+    @include('livewire.enduser.quotations._address-modal', ['confirmMethod' => 'confirmConvertToOrder'])
 
 </div>

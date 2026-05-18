@@ -225,7 +225,7 @@
         <div class="terms-line"></div>
         <ol class="terms-list">
             <li>Prices are quoted in Saudi Riyals (SAR) and are exclusive of VAT unless stated otherwise.</li>
-            <li>This quotation is valid for 30 days from the date of issue.</li>
+            <li>This quotation is valid for <strong>10 days</strong> from the date of issue.</li>
             <li>Payment terms: 50% advance, 50% upon delivery, unless otherwise agreed.</li>
             <li>Delivery schedule is subject to confirmation upon receipt of purchase order.</li>
             <li>All materials comply with project specifications and Saudi building codes.</li>

@@ -93,6 +93,100 @@
         </div>
     </div>
 
+    {{-- ───── Delivery Address ─────────────────────────────────────────────────── --}}
+    @if($order->delivery_address_type)
+    <div class="mb-5 rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center gap-2.5 border-b border-slate-100 px-6 py-4">
+            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </span>
+            <h2 class="text-sm font-semibold text-slate-800">{{ __('app.delivery_address') }}</h2>
+            <span class="ms-auto rounded-full px-2.5 py-0.5 text-[11px] font-semibold
+                {{ $order->delivery_address_type === 'national' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
+                {{ $order->delivery_address_type === 'national' ? __('app.address_type_national') : __('app.address_type_detailed') }}
+            </span>
+        </div>
+        <div class="px-6 py-4">
+            @if($order->delivery_address_type === 'national')
+            <div class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
+                @if($order->delivery_building_no)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.national_building_no') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_building_no }}</p>
+                </div>
+                @endif
+                @if($order->delivery_street)
+                <div class="sm:col-span-2">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.national_street') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_street }}</p>
+                </div>
+                @endif
+                @if($order->delivery_district)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.address_district') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_district }}</p>
+                </div>
+                @endif
+                @if($order->delivery_city)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.address_city') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_city }}</p>
+                </div>
+                @endif
+                @if($order->delivery_postal_code)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.address_postal_code') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_postal_code }}</p>
+                </div>
+                @endif
+                @if($order->delivery_additional_no)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.national_additional_no') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_additional_no }}</p>
+                </div>
+                @endif
+            </div>
+            @else
+            <div class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
+                @if($order->delivery_street)
+                <div class="col-span-2 sm:col-span-3">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.address_street') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_street }}</p>
+                </div>
+                @endif
+                @if($order->delivery_district)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.address_district') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_district }}</p>
+                </div>
+                @endif
+                @if($order->delivery_city)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.address_city') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_city }}</p>
+                </div>
+                @endif
+                @if($order->delivery_region)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.address_region') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_region }}</p>
+                </div>
+                @endif
+                @if($order->delivery_postal_code)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.address_postal_code') }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $order->delivery_postal_code }}</p>
+                </div>
+                @endif
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
     {{-- ───── BOQ Table ────────────────────────────────────────────────────────── --}}
     @php
         $logUpdates = $order->logisticsUpdates->sortByDesc('created_at');

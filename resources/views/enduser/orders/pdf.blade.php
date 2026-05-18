@@ -115,6 +115,50 @@
         </tr>
     </table>
 
+    {{-- Delivery Address --}}
+    @if($order->delivery_address_type)
+    <div class="section-hdr">
+        <table>
+            <tr>
+                <td><span class="section-title">Delivery Address</span></td>
+                <td class="right">
+                    <span class="section-badge">{{ $order->delivery_address_type === 'national' ? 'National Address' : 'Detailed Address' }}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <table class="meta-table">
+        @if($order->delivery_address_type === 'national')
+        <tr>
+            @if($order->delivery_building_no)<td><div class="meta-label">Building No.</div><div class="meta-value">{{ $order->delivery_building_no }}</div></td>@endif
+            @if($order->delivery_street)<td><div class="meta-label">Street</div><div class="meta-value">{{ $order->delivery_street }}</div></td>@endif
+            @if($order->delivery_district)<td><div class="meta-label">District</div><div class="meta-value">{{ $order->delivery_district }}</div></td>@endif
+            @if($order->delivery_city)<td><div class="meta-label">City</div><div class="meta-value">{{ $order->delivery_city }}</div></td>@endif
+        </tr>
+        @if($order->delivery_postal_code || $order->delivery_additional_no)
+        <tr>
+            @if($order->delivery_postal_code)<td><div class="meta-label">Postal Code</div><div class="meta-value">{{ $order->delivery_postal_code }}</div></td>@endif
+            @if($order->delivery_additional_no)<td><div class="meta-label">Additional No.</div><div class="meta-value">{{ $order->delivery_additional_no }}</div></td>@endif
+            <td></td><td></td>
+        </tr>
+        @endif
+        @else
+        <tr>
+            @if($order->delivery_street)<td colspan="2"><div class="meta-label">Street</div><div class="meta-value">{{ $order->delivery_street }}</div></td>@endif
+            @if($order->delivery_district)<td><div class="meta-label">District</div><div class="meta-value">{{ $order->delivery_district }}</div></td>@endif
+            @if($order->delivery_city)<td><div class="meta-label">City</div><div class="meta-value">{{ $order->delivery_city }}</div></td>@endif
+        </tr>
+        @if($order->delivery_region || $order->delivery_postal_code)
+        <tr>
+            @if($order->delivery_region)<td><div class="meta-label">Region</div><div class="meta-value">{{ $order->delivery_region }}</div></td>@endif
+            @if($order->delivery_postal_code)<td><div class="meta-label">Postal Code</div><div class="meta-value">{{ $order->delivery_postal_code }}</div></td>@endif
+            <td></td><td></td>
+        </tr>
+        @endif
+        @endif
+    </table>
+    @endif
+
     {{-- Items section header --}}
     <div class="section-hdr">
         <table>
