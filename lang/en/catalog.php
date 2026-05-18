@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'title'         => 'Construction Materials Catalog — 418K Products, BOQ Pricing | Qimta',
+    'title'         => 'Construction Materials Catalog — :products Products · BOQ Pricing | Qimta',
     'breadcrumb_home' => 'HOME',
     'breadcrumb_catalog' => 'CATALOG',
 

@@ -544,7 +544,7 @@ $_faqSchema = json_encode([
                             {{ __('welcome.hero.btn_primary') }}
                         </a>
 
-                        <a href="{{ route('enduser.register') }}" class="btn btn-outline btn-lg">
+                        <a href="{{ route('contact') }}" class="btn btn-outline btn-lg">
                             {{ __('welcome.hero.btn_secondary') }}
                         </a>
                     </div>
@@ -830,7 +830,7 @@ $_faqSchema = json_encode([
                     <div class="metric-icon">
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                     </div>
-                    <p class="metric-val">{{ __('welcome.engine.m1_title') }}</p>
+                    <p class="metric-val">{{ number_format($catalogStats['products']) }}</p>
                     <p class="metric-label">{{ __('welcome.engine.m1_desc') }}</p>
                 </div>
                 <div class="metric-card">
@@ -975,14 +975,14 @@ $_faqSchema = json_encode([
     <section class="faq">
         <div class="container">
             <div class="faq-inner">
-                <p class="faq-title">{{ __('welcome.faq.title') }}</p>
+                <h2 class="faq-title">{{ __('welcome.faq.title') }}</h2>
                 @foreach(range(1, 6) as $i)
                 <div class="faq-item">
                     <div class="faq-q" onclick="toggleFaq(this)">
                         {{ __("welcome.faq.q{$i}") }}
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                     </div>
-                    <div class="faq-a"><div class="faq-a-inner">{{ __("welcome.faq.a{$i}") }}</div></div>
+                    <div class="faq-a"><div class="faq-a-inner">{{ $i === 6 ? __("welcome.faq.a6", ['products' => number_format($catalogStats['products'])]) : __("welcome.faq.a{$i}") }}</div></div>
                 </div>
                 @endforeach
             </div>

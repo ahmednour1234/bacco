@@ -89,6 +89,7 @@ return [
     // ── ECOSYSTEM ────────────────────────────────────────────────────────────
     'eco' => [
         'label'             => 'Built for the Ecosystem',
+        'sub'               => 'One platform. Every supplier. Zero fragmentation.',
         'contractors_title' => 'Clients',
         'contractors_desc'  => 'Manage projects and price BOQs 10x faster with verified technical data.',
         'procurement_title' => 'Procurement',
@@ -107,6 +108,7 @@ return [
         'speed_qimta'   => '< 60 Seconds',
         'speed_trad'    => '3-7 Working Days',
         'valid_label'   => 'Technical Validation',
+        'valid_qimta'   => 'RAG Auto-Validated',
         'valid_trad'    => 'Manual Expert Review',
         'brand_label'   => 'Brand Coverage',
         'brand_qimta'   => 'Global Catalog',
@@ -114,6 +116,9 @@ return [
         'data_label'    => 'Data Accuracy',
         'data_qimta'    => '99.9% RAG Verified',
         'data_trad'     => 'Variable (Human Error)',
+        'buy_label'     => 'Purchase Platform',
+        'buy_qimta'     => 'Integrated Checkout',
+        'buy_trad'      => 'External Vendors & Platforms',
     ],
 
     // ── ENGINE ───────────────────────────────────────────────────────────────
@@ -129,8 +134,8 @@ return [
         'match_rate'    => 'Match Rate',
         'uptime'        => 'Uptime',
         'latency'       => 'Latency',
-        'm1_title'      => '500K+',
-        'm1_desc'       => 'Products Indexed',
+        'm1_title'      => '',
+        'm1_desc'       => 'Verified Products',
         'm2_title'      => '99.9%',
         'm2_desc'       => 'Match Rate',
         'm3_title'      => '<60s',
@@ -172,6 +177,7 @@ return [
         'benefit2'      => 'Real-time market demand data',
         'benefit3'      => 'RAG-verified product matching',
         'benefit4'      => 'Seamless procurement integration',
+        'benefit5'      => 'Priority placement in BOQ matching results',
     ],
 
     // ── CTA ──────────────────────────────────────────────────────────────────
@@ -183,7 +189,7 @@ return [
 
     // ── FAQ ──────────────────────────────────────────────────────────────────
     'faq' => [
-        'title'  => 'Frequently Asked Questions',
+        'title'  => 'BOQ Pricing FAQs — Construction Products, Matching & Integration',
         'q1'     => 'How accurate is the RAG matching engine?',
         'a1'     => 'Our RAG engine achieves 99.9% accuracy by cross-referencing 1B+ technical specs against manufacturer databases, with continuous real-time updates to maintain precision.',
         'q2'     => 'Is my data secure?',

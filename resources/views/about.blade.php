@@ -8,7 +8,7 @@
 
 @section('description', $isAr
     ? 'تعرف على كيمتا: منصة تسعير جداول الكميات لمشاريع البناء في السعودية والخليج. نربط المشترين بالعلامات التجارية ببيانات معتمدة وتسعير فوري.'
-    : 'Learn how Qimta is building the Gulf’s construction pricing layer — connecting buyers with 418K verified products, manufacturer data, and instant BOQ pricing.')
+    : 'Learn how Qimta is building the Gulf\'s construction pricing layer — connecting buyers with ' . number_format($catalogStats['products']) . ' verified products, manufacturer data, and instant BOQ pricing.')
 
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-demo">{{ __('about.nav.get_demo') }}</a>
@@ -133,7 +133,7 @@
 </style>
 @endsection
 
-@section('content')
+@push('schema')
 @php
 $_aboutSchema = json_encode([
     '@context' => 'https://schema.org',
@@ -144,7 +144,7 @@ $_aboutSchema = json_encode([
             'name'        => 'Qimta Technology Company',
             'url'         => 'https://www.qimta.com',
             'logo'        => 'https://www.qimta.com/images/logo.svg',
-            'description' => 'B2B construction pricing platform indexing 418K verified products across Saudi Arabia and GCC. RAG engine retrieves BOQ pricing in under 60 seconds.',
+            'description' => 'B2B construction pricing platform indexing ' . number_format($catalogStats['products']) . ' verified products across Saudi Arabia and GCC. RAG engine retrieves BOQ pricing in under 60 seconds.',
             'foundingDate'=> '2024',
             'address'     => [
                 '@type'           => 'PostalAddress',
@@ -158,7 +158,7 @@ $_aboutSchema = json_encode([
             ],
         ],
         [
-            '@type'    => 'BreadcrumbList',
+            '@type'           => 'BreadcrumbList',
             'itemListElement' => [
                 ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>'https://www.qimta.com/'],
                 ['@type'=>'ListItem','position'=>2,'name'=>'About Qimta','item'=>'https://www.qimta.com/about'],
@@ -168,6 +168,9 @@ $_aboutSchema = json_encode([
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 <script type="application/ld+json">{!! $_aboutSchema !!}</script>
+@endpush
+
+@section('content')
 <div class="container">
 <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 @if(app()->getLocale() === 'ar')

@@ -11,7 +11,7 @@
         : 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia';
     $__defaultDesc = $isAr
         ? 'كيمتا تُسعّر كل بند في جدول الكميات مقابل آلاف المنتجات الإنشائية. فوري، دقيق، جاهز للخليج العربي.'
-        : 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Access 418K products, instant BOQ matching, and verified manufacturer prices.';
+        : 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Instant BOQ matching with verified manufacturer prices.';
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}" dir="{{ $dir }}">
@@ -51,6 +51,8 @@
     <meta property="og:title"       content="@yield('title', $__defaultTitle)">
     <meta property="og:description" content="@yield('description', $__defaultDesc)">
     <meta property="og:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
+    <meta property="og:image:width"  content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:url"         content="{{ $__canonical }}">
     <meta property="og:locale"           content="{{ $isAr ? 'ar_SA' : 'en_US' }}">
     <meta property="og:locale:alternate" content="{{ $isAr ? 'en_US' : 'ar_SA' }}">

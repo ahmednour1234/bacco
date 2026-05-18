@@ -1,10 +1,10 @@
 ﻿@extends('layouts.app')
 
-@section('title', __('catalog.title'))
+@section('title', __('catalog.title', ['products' => number_format($catalogStats['products'])]))
 
 @section('description', app()->getLocale() === 'ar'
-    ? 'تصفح كتالوج كيمتا: 418 ألف منتج بناء، تسعير فوري لجداول الكميات، مواصفات تقنية معتمدة. استكشف مواد البناء في السعودية والخليج.'
-    : 'Browse Qimta’s construction materials catalog: 418K products, instant BOQ pricing, verified technical specs across Saudi Arabia and GCC markets.')
+    ? 'تصفح ' . number_format($catalogStats['products']) . ' منتج بناء موثّق عبر ' . number_format($catalogStats['categories']) . ' فئة. تسعير جداول الكميات الفوري للمقاولين وفرق المشتريات في السعودية والخليج. مجاناً.'
+    : 'Browse ' . number_format($catalogStats['products']) . ' verified construction products across ' . number_format($catalogStats['categories']) . ' categories. Instant BOQ pricing for contractors and procurement teams in Saudi Arabia and GCC. Free.')
 @section('og_image', 'https://qimta.com/images/og-catalog.jpg')
 @section('og_type', 'website')
 @section('styles')
@@ -64,18 +64,39 @@
 </style>
 @endsection
 
-@section('content')
+@push('schema')
 @php
-$_breadcrumb = json_encode([
+$_catSchema = json_encode([
     '@context' => 'https://schema.org',
-    '@type'    => 'BreadcrumbList',
-    'itemListElement' => [
-        ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>'https://www.qimta.com/'],
-        ['@type'=>'ListItem','position'=>2,'name'=>'Construction Catalog','item'=>'https://www.qimta.com/catalog'],
+    '@graph'   => [
+        [
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>'https://www.qimta.com/'],
+                ['@type'=>'ListItem','position'=>2,'name'=>'Construction Catalog','item'=>'https://www.qimta.com/catalog'],
+            ],
+        ],
+        [
+            '@type'         => 'ItemList',
+            'name'          => 'Construction Materials Catalog — Qimta',
+            'description'   => 'Browse ' . number_format($catalogStats['products']) . ' verified construction products across ' . number_format($catalogStats['categories']) . ' categories',
+            'numberOfItems' => $rows->count(),
+            'itemListElement' => $rows->values()->map(function ($d, $i) {
+                return [
+                    '@type'    => 'ListItem',
+                    'position' => $i + 1,
+                    'name'     => $d->name,
+                    'url'      => 'https://www.qimta.com/catalog/' . $d->slug,
+                ];
+            })->values()->all(),
+        ],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
-<script type="application/ld+json">{!! $_breadcrumb !!}</script>
+<script type="application/ld+json">{!! $_catSchema !!}</script>
+@endpush
+
+@section('content')
 <div class="container">
 
     {{-- Breadcrumb --}}
