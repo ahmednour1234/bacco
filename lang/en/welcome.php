@@ -129,6 +129,14 @@ return [
         'match_rate'    => 'Match Rate',
         'uptime'        => 'Uptime',
         'latency'       => 'Latency',
+        'm1_title'      => '500K+',
+        'm1_desc'       => 'Products Indexed',
+        'm2_title'      => '99.9%',
+        'm2_desc'       => 'Match Rate',
+        'm3_title'      => '<60s',
+        'm3_desc'       => 'Matching Speed',
+        'm4_title'      => '99.99%',
+        'm4_desc'       => 'Uptime',
     ],
 
     // ── DIVISIONS ────────────────────────────────────────────────────────────
