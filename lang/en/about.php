@@ -80,7 +80,7 @@ return [
     'footer' => [
         'brand'    => 'Qimta Technologies',
         'tagline'  => 'The global pricing layer for enterprise construction procurement.',
-        'copy'     => '© 2024 Qimta Technologies. All rights reserved.',
+        'copy'     => '© 2026 Qimta Technology Company. All rights reserved.',
         'legal_h'  => 'Legal',
         'privacy'  => 'Privacy Policy',
         'terms'    => 'Terms of Service',

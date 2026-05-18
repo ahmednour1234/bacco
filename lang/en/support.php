@@ -38,9 +38,9 @@ return [
     'catalog' => [
         'title' => 'Indexed Catalog',
         'q1' => 'How many products are in the catalog?',
-        'a1' => 'Qimta currently indexes over 418,000 products across structural, architectural, mechanical, electrical, and finishing categories. The catalog is updated continuously as brands publish new technical data.',
+        'a1' => 'Qimta currently indexes over 13,190 products across structural, architectural, mechanical, electrical, and finishing categories. The catalog is updated continuously as brands publish new technical data.',
         'q2' => 'Why are prices hidden until registration?',
-        'a2' => 'To maintain the integrity of commercial agreements between brands and verified buyers, individual SKU pricing and technical data sheets are behind our secure registration wall. We currently index over 418,000 architectural and technical specifications.',
+        'a2' => 'To maintain the integrity of commercial agreements between brands and verified buyers, individual SKU pricing and technical data sheets are behind our secure registration wall. We currently index over 13,190 architectural and technical specifications.',
         'q3' => 'How often is the catalog updated?',
         'a3' => 'The catalog is updated in real time as brands publish or revise product data. Major catalog sweeps happen quarterly, ensuring discontinued products are removed and new SKUs are indexed within 48 hours of submission.',
     ],

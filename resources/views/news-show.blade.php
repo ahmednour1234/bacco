@@ -6,22 +6,28 @@
     $title = $isAr ? $article->title_ar : $article->title_en;
     $desc  = $isAr ? ($article->desc_ar ?? '') : ($article->desc_en ?? '');
     $cat   = $isAr ? ($article->name_ar ?? $article->name_en) : $article->name_en;
+    $metaDesc = mb_substr(strip_tags($desc), 0, 155)
+        ?: ($isAr
+            ? 'اقرأ المقال كاملاً على منصة كيمتا لأخبار البناء والمشتريات في الخليج.'
+            : 'Read the full article on Qimta — construction and procurement news for Saudi Arabia and GCC.');
 
-    function readTimeShow(string $html): int {
-        $words = str_word_count(strip_tags($html));
-        return max(1, (int) ceil($words / 200));
+    if (!function_exists('readTimeShow')) {
+        function readTimeShow(string $html): int {
+            $words = str_word_count(strip_tags($html));
+            return max(1, (int) ceil($words / 200));
+        }
     }
 @endphp
 
-@section('title', $title)
-@section('description', $desc ?: ($isAr ? 'اقرأ المقال كاملاً على منصة كيمتا لأخبار البناء والمشتريات في الخليج.' : 'Read the full article on Qimta — construction and procurement news for Saudi Arabia and GCC.'))
+@section('title', $title . ' | Qimta ' . $cat)
+@section('description', $metaDesc)
 @section('og_type', 'article')
 {{-- Suppress AR hreflang when article has no Arabic content (AR requests redirect to EN) --}}
 @if(empty($article->title_ar))
 @section('no_ar_hreflang', '1')
 @endif
 @if($article->image)
-@section('og_image', Storage::url($article->image))
+@section('og_image', 'https://www.qimta.com' . Storage::url($article->image))
 @endif
 
 @push('schema')
@@ -101,9 +107,18 @@ $_articleSchema = json_encode([
                 <span class="ns-meta-dot">�</span>
                 <span class="ns-meta-item">Qimta {{ $isAr ? 'فريق' : 'Team' }}</span>
                 <div class="ns-lang-toggle" style="{{ $isAr ? 'margin-right:auto' : 'margin-left:auto' }}">
-                    <a href="{{ route('locale.switch', 'en') }}" class="ns-lang {{ !$isAr ? 'active' : '' }}">EN</a>
-                    <a href="{{ route('locale.switch', 'ar') }}" class="ns-lang {{ $isAr ? 'active' : '' }}">AR</a>
+                    <a href="{{ route('news.show', $article->slug) }}" class="ns-lang {{ !$isAr ? 'active' : '' }}">EN</a>
+                    <a href="{{ $article->title_ar ? route('ar.news.show', $article->slug) : route('news.show', $article->slug) }}" class="ns-lang {{ $isAr ? 'active' : '' }}">AR</a>
                 </div>
+            </div>
+
+            {{-- Fact Block --}}
+            <div dir="{{ $dir }}" style="font-size:13px;color:#555;line-height:1.85;border-left:3px solid #006a3b;padding:11px 16px;background:#f7fdf9;border-radius:0 8px 8px 0;margin:0 0 24px;">
+                @if($isAr)
+                    كيمتا منصة الذكاء الاصطناعي لتسعير جداول الكميات الإنشائية — تُفهرس {{ number_format($catalogStats['products']) }} منتجاً موثقاً عبر {{ $catalogStats['categories'] }} فئة و{{ $catalogStats['divisions'] }} قسم هندسي في السعودية والخليج العربي. يستخدمها المقاولون والمشترون للحصول على أسعار تنافسية خلال أقل من 60 ثانية. تغطي المنصة السوق السعودي والإماراتي والقطري والكويتي والبحريني والعُماني.
+                @else
+                    Qimta is Saudi Arabia's AI-powered BOQ pricing platform — indexing {{ number_format($catalogStats['products']) }} verified construction products across {{ $catalogStats['categories'] }} categories and {{ $catalogStats['divisions'] }} engineering divisions. Procurement teams in Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, and Oman use Qimta to retrieve competitive BOQ pricing in under 60 seconds.
+                @endif
             </div>
 
             {{-- Hero image --}}
@@ -121,6 +136,17 @@ $_articleSchema = json_encode([
             {{-- Article body --}}
             <div class="ns-article-body" dir="{{ $dir }}">
                 {!! $desc !!}
+            </div>
+
+            {{-- Internal contextual links --}}
+            <div dir="{{ $dir }}" style="margin:32px 0 8px;padding:20px 22px;background:#f5f5f5;border-radius:10px;">
+                <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin:0 0 12px;">{{ $isAr ? 'استكشف على كيمتا' : 'Explore on Qimta' }}</p>
+                <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;">
+                    <li><a href="{{ url('/catalog') }}" style="color:#006a3b;text-decoration:none;font-size:14px;">{{ $isAr ? 'كتالوج مواد البناء — ' . number_format($catalogStats['products']) . ' منتج موثق' : 'Construction Materials Catalog — ' . number_format($catalogStats['products']) . ' Verified Products' }}</a></li>
+                    <li><a href="{{ url('/for-brands') }}" style="color:#006a3b;text-decoration:none;font-size:14px;">{{ $isAr ? 'أدرج منتجاتك على كيمتا — للعلامات التجارية والموردين' : 'List Your Products on Qimta — For Brands &amp; Manufacturers' }}</a></li>
+                    <li><a href="{{ url('/about') }}" style="color:#006a3b;text-decoration:none;font-size:14px;">{{ $isAr ? 'عن منصة كيمتا لتسعير مواد البناء' : 'About Qimta — AI Construction Pricing Platform' }}</a></li>
+                    <li><a href="{{ route('news') }}" style="color:#006a3b;text-decoration:none;font-size:14px;">{{ $isAr ? 'جميع أخبار البناء والمشتريات في الخليج' : 'All Construction &amp; Procurement News' }}</a></li>
+                </ul>
             </div>
 
             {{-- Share --}}
@@ -180,7 +206,7 @@ $_articleSchema = json_encode([
                 <p class="ns-sidebar-heading">{{ $isAr ? 'استكشف المنصة' : 'Explore Qimta' }}</p>
                 <a href="{{ route('catalog.index') }}" class="ns-related-link">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-{{ $isAr ? 'left' : 'right' }}:6px"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                    {{ $isAr ? 'كتالوج مواد البناء — 418 ألف منتج' : 'Construction Materials Catalog — 418K Products' }}
+                    {{ $isAr ? 'كتالوج مواد البناء — ' . number_format($catalogStats['products']) . ' منتج' : 'Construction Materials Catalog — ' . number_format($catalogStats['products']) . ' Products' }}
                 </a>
                 <a href="{{ route('for-brands') }}" class="ns-related-link">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-{{ $isAr ? 'left' : 'right' }}:6px"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>

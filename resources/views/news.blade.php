@@ -12,28 +12,44 @@
 @endphp
 
 @section('title', $isAr
-    ? 'أخبار ومقالات قطاع البناء والمشتريات في الخليج | كيمتا'
-    : 'Construction & Procurement News — Gulf Market Pricing | Qimta')
+    ? 'أخبار تسعير مشاريع البناء والمشتريات في الخليج | كيمتا'
+    : 'Construction BOQ Pricing News & Industry Insights | Qimta')
 
 @section('description', $isAr
-    ? 'أحدث أخبار قطاع البناء والمشتريات في الخليج: أسعار المواد، اتجاهات السوق، وتحليلات من فريق كيمتا.'
-    : 'Construction industry news, material pricing trends, and procurement insights for Saudi Arabia and GCC markets — by the Qimta team.')
+    ? 'تحليل تسعير مواد البناء، أدلة جداول الكميات، وتحديثات معايير المشتريات للسعودية ودول الخليج. محتوى عربي وإنجليزي | كيمتا'
+    : 'Construction pricing analysis, BOQ guides, procurement standards updates for Saudi Arabia and GCC. EN + AR content. | Qimta')
 
-@section('og_image', 'https://qimta.com/images/og-news.jpg')
+@section('og_image', 'https://www.qimta.com/images/og-news.jpg')
 @section('og_type', 'website')
 
-@section('content')
+@push('schema')
 @php
 $_newsBreadcrumb = json_encode([
     '@context' => 'https://schema.org',
-    '@type'    => 'BreadcrumbList',
-    'itemListElement' => [
-        ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>'https://www.qimta.com/'],
-        ['@type'=>'ListItem','position'=>2,'name'=>$isAr ? 'أخبار ومقالات' : 'News & Insights','item'=>'https://www.qimta.com' . request()->getPathInfo()],
+    '@graph'   => [
+        [
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>'https://www.qimta.com/'],
+                ['@type'=>'ListItem','position'=>2,'name'=>$isAr ? 'أخبار تسعير البناء' : 'News','item'=>'https://www.qimta.com/news'],
+            ],
+        ],
+        [
+            '@type'      => 'WebPage',
+            '@id'        => 'https://www.qimta.com/news#webpage',
+            'url'        => 'https://www.qimta.com/news',
+            'name'       => 'Construction BOQ Pricing News & Industry Insights | Qimta',
+            'description'=> 'Construction pricing analysis, BOQ guides, procurement standards updates for Saudi Arabia and GCC. EN + AR content. | Qimta',
+            'inLanguage' => $isAr ? 'ar' : 'en',
+            'isPartOf'   => ['@id' => 'https://www.qimta.com/#website'],
+        ],
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 <script type="application/ld+json">{!! $_newsBreadcrumb !!}</script>
+@endpush
+
+@section('content')
 <div style="background:#f8f9fa; min-height:100vh;" dir="{{ $dir }}">
 
     {{-- ── Breadcrumb ──────────────────────────────────────────────────── --}}

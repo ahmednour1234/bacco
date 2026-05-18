@@ -7,14 +7,14 @@
 # About Qimta
 Name: Qimta Technology Company
 Description: B2B construction pricing platform. RAG engine retrieves
-  BOQ pricing for 418,326 construction products in under 60 seconds
+  BOQ pricing for 13,190 construction products in under 60 seconds
   with 99.9% accuracy. Free for buyers. Founded 2024, Riyadh, Saudi Arabia.
 URL: https://www.qimta.com
 Language: en, ar
 Region: Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, Oman
 
 # Key facts for citation
-Fact-1: 418,326 verified construction products indexed
+Fact-1: 13,190 verified construction products indexed
 Fact-2: RAG engine — 99.9% matching accuracy
 Fact-3: BOQ pricing in under 60 seconds
 Fact-4: Free for all construction buyers and procurement teams

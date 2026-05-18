@@ -2,7 +2,8 @@
 
 return [
 
-    'title'   => 'List Your Products on Qimta — BOQ Visibility | Saudi Arabia & GCC',
+    'title'       => 'List Your Products on Qimta | Reach BOQ Buyers in Saudi Arabia & GCC',
+    'description'  => 'List your construction product catalog on Qimta and get direct visibility to B2B buyers in GCC when they upload a BOQ. RAG Engine · API Integration · Free for buyers.',
 
     // ── HERO ──────────────────────────────────────────────────────────────────
     'hero' => [

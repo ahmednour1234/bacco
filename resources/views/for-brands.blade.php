@@ -2,11 +2,9 @@
 
 @section('title', __('for-brands.title'))
 
-@section('description', app()->getLocale() === 'ar'
-    ? 'أدرج منتجاتك على كيمتا لتظهر في جداول الكميات B2B لمشاريع البناء في الخليج. وكن أول بحضور أمام مشترين أمام Qimta RAG.'
-    : 'Get your products priced in Gulf B2B BOQs. Qimta exposes your brand to ' . number_format($catalogStats['products']) . ' catalog positions and live buyer demand across Saudi Arabia and GCC.')
+@section('description', __('for-brands.description'))
 
-@section('og_image', 'https://qimta.com/images/og-for-brands.jpg')
+@section('og_image', 'https://www.qimta.com/images/og-for-brands.jpg')
 @section('og_type', 'website')
 
 @section('styles')
@@ -105,7 +103,7 @@
         display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
     }
     .adv-icon svg { width: 22px; height: 22px; stroke: var(--green); fill: none; stroke-width: 1.8; }
-    .adv-card h4 { font-size: 17px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.3px; }
+    .adv-card h2 { font-size: 17px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.3px; }
     .adv-card p { font-size: 13.5px; color: #666; line-height: 1.7; }
 
     /* ── HOW IT WORKS ── */
@@ -126,7 +124,7 @@
         display: flex; align-items: center; justify-content: center;
         margin-bottom: 16px;
     }
-    .how-step h5 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #fff; }
+    .how-step h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #fff; }
     .how-step p { font-size: 13px; color: rgba(255,255,255,.6); line-height: 1.65; }
 
     /* ── PRICING ── */
@@ -176,7 +174,7 @@
     .form-bullet { display: flex; align-items: flex-start; gap: 12px; }
     .form-bullet-icon { width: 36px; height: 36px; border-radius: 10px; background: #f0fdf4; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
     .form-bullet-icon svg { width: 18px; height: 18px; stroke: var(--green); fill: none; stroke-width: 1.8; }
-    .form-bullet h5 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .form-bullet h3 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
     .form-bullet p { font-size: 13px; color: #666; line-height: 1.55; }
 
     .brand-form { background: #f9fafb; border: 1.5px solid var(--border); border-radius: 20px; padding: 36px; }
@@ -205,6 +203,33 @@
     .form-submit:hover { background: #005a32; }
 </style>
 @endsection
+
+@push('schema')
+@php
+$_brandsSchema = json_encode([
+    '@context' => 'https://schema.org',
+    '@graph'   => [
+        [
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>'https://www.qimta.com/'],
+                ['@type'=>'ListItem','position'=>2,'name'=>'For Brands','item'=>'https://www.qimta.com/for-brands'],
+            ],
+        ],
+        [
+            '@type'       => 'WebPage',
+            '@id'         => 'https://www.qimta.com/for-brands#webpage',
+            'url'         => 'https://www.qimta.com/for-brands',
+            'name'        => 'List Your Products on Qimta | Reach BOQ Buyers in Saudi Arabia & GCC',
+            'description' => 'List your construction product catalog on Qimta and get direct visibility to B2B buyers in GCC when they upload a BOQ. RAG Engine · API Integration · Free for buyers.',
+            'inLanguage'  => 'en',
+            'isPartOf'    => ['@id' => 'https://www.qimta.com/#website'],
+        ],
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+<script type="application/ld+json">{!! $_brandsSchema !!}</script>
+@endpush
 
 @section('content')
 
@@ -285,7 +310,7 @@
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
                 </div>
-                <h4>{{ __('for-brands.adv.demand_title') }}</h4>
+                <h2>{{ __('for-brands.adv.demand_title') }}</h2>
                 <p>{{ __('for-brands.adv.demand_desc') }}</p>
             </div>
             <div class="adv-card">
@@ -294,7 +319,7 @@
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
                 </div>
-                <h4>{{ __('for-brands.adv.identity_title') }}</h4>
+                <h2>{{ __('for-brands.adv.identity_title') }}</h2>
                 <p>{{ __('for-brands.adv.identity_desc') }}</p>
             </div>
             <div class="adv-card">
@@ -304,7 +329,7 @@
                         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                     </svg>
                 </div>
-                <h4>{{ __('for-brands.adv.visibility_title') }}</h4>
+                <h2>{{ __('for-brands.adv.visibility_title') }}</h2>
                 <p>{{ __('for-brands.adv.visibility_desc') }}</p>
             </div>
             <div class="adv-card">
@@ -313,7 +338,7 @@
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                     </svg>
                 </div>
-                <h4>{{ __('for-brands.adv.path_title') }}</h4>
+                <h2>{{ __('for-brands.adv.path_title') }}</h2>
                 <p>{{ __('for-brands.adv.path_desc') }}</p>
             </div>
         </div>
@@ -328,22 +353,22 @@
         <div class="how-steps">
             <div class="how-step">
                 <div class="step-num">1</div>
-                <h5>{{ __('for-brands.how.step1_title') }}</h5>
+                <h3>{{ __('for-brands.how.step1_title') }}</h3>
                 <p>{{ __('for-brands.how.step1_desc') }}</p>
             </div>
             <div class="how-step">
                 <div class="step-num">2</div>
-                <h5>{{ __('for-brands.how.step2_title') }}</h5>
+                <h3>{{ __('for-brands.how.step2_title') }}</h3>
                 <p>{{ __('for-brands.how.step2_desc') }}</p>
             </div>
             <div class="how-step">
                 <div class="step-num">3</div>
-                <h5>{{ __('for-brands.how.step3_title') }}</h5>
+                <h3>{{ __('for-brands.how.step3_title') }}</h3>
                 <p>{{ __('for-brands.how.step3_desc') }}</p>
             </div>
             <div class="how-step">
                 <div class="step-num">4</div>
-                <h5>{{ __('for-brands.how.step4_title') }}</h5>
+                <h3>{{ __('for-brands.how.step4_title') }}</h3>
                 <p>{{ __('for-brands.how.step4_desc') }}</p>
             </div>
         </div>
@@ -398,7 +423,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h5>{{ __('for-brands.form.bullet1_title') }}</h5>
+                        <h3>{{ __('for-brands.form.bullet1_title') }}</h3>
                         <p>{{ __('for-brands.form.bullet1_desc') }}</p>
                     </div>
                 </div>
@@ -410,7 +435,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h5>{{ __('for-brands.form.bullet2_title') }}</h5>
+                        <h3>{{ __('for-brands.form.bullet2_title') }}</h3>
                         <p>{{ __('for-brands.form.bullet2_desc') }}</p>
                     </div>
                 </div>

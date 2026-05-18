@@ -24,7 +24,7 @@
     @php
         $__path = rtrim(request()->getPathInfo(), '/') ?: '/';
         // Canonical is always the current URL (without trailing slash)
-        $__canonical = 'https://qimta.com' . $__path;
+        $__canonical = 'https://www.qimta.com' . $__path;
         // Derive the EN path (strip /ar prefix if present)
         if ($__path === '/ar') {
             $__enPath = '/';
@@ -35,8 +35,8 @@
         }
         // Arabic path always has /ar prefix
         $__arPath = ($__enPath === '/') ? '/ar/' : '/ar' . $__enPath;
-        $__enUrl  = 'https://qimta.com' . $__enPath;
-        $__arUrl  = 'https://qimta.com' . $__arPath;
+        $__enUrl  = 'https://www.qimta.com' . $__enPath;
+        $__arUrl  = 'https://www.qimta.com' . $__arPath;
     @endphp
     <link rel="canonical"  href="{{ $__canonical }}">
     <link rel="alternate"  hreflang="x-default" href="{{ $__enUrl }}">
@@ -45,12 +45,12 @@
     <link rel="alternate"  hreflang="ar"         href="{{ $__arUrl }}">
     <link rel="alternate"  hreflang="ar-SA"      href="{{ $__arUrl }}">
     @endunless
-    {{-- Open Graph / Twitter Card (after @php block so $__canonical is defined) --}}
+    {{-- Open Graph / Twitter Card --}}
     <meta property="og:type"        content="@yield('og_type', 'website')">
     <meta property="og:site_name"   content="Qimta Technology Company">
     <meta property="og:title"       content="@yield('title', $__defaultTitle)">
     <meta property="og:description" content="@yield('description', $__defaultDesc)">
-    <meta property="og:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
+    <meta property="og:image"       content="@yield('og_image', 'https://www.qimta.com/images/qimta-og.jpg')">
     <meta property="og:image:width"  content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:url"         content="{{ $__canonical }}">
@@ -60,7 +60,7 @@
     <meta name="twitter:site"        content="@@QimtaSm">
     <meta name="twitter:title"       content="@yield('title', $__defaultTitle)">
     <meta name="twitter:description" content="@yield('description', $__defaultDesc)">
-    <meta name="twitter:image"       content="@yield('og_image', 'https://qimta.com/images/qimta-og.jpg')">
+    <meta name="twitter:image"       content="@yield('og_image', 'https://www.qimta.com/images/qimta-og.jpg')">
     {{-- Self-hosted Cairo variable font: eliminates 2 external DNS lookups (FCP fix) --}}
     <link rel="preload" href="/fonts/cairo/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/cairo/cairo-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -223,12 +223,49 @@
         }
     </style>
     @yield('styles')
+    @php
+    $_globalSchema = json_encode([
+        '@context' => 'https://schema.org',
+        '@graph'   => [
+            [
+                '@type'           => 'Organization',
+                '@id'             => 'https://www.qimta.com/#organization',
+                'name'            => 'Qimta Technology Company',
+                'alternateName'   => ['كيمتا', 'Qimta'],
+                'url'             => 'https://www.qimta.com',
+                'logo'            => 'https://www.qimta.com/images/logo1.png',
+                'description'     => 'B2B construction pricing platform. RAG engine retrieves BOQ pricing for ' . number_format($catalogStats['products']) . ' products in under 60 seconds.',
+                'foundingDate'    => '2024',
+                'foundingLocation'=> ['@type' => 'Place', 'name' => 'Riyadh, Saudi Arabia', 'addressCountry' => 'SA'],
+                'areaServed'      => ['SA', 'AE', 'QA', 'KW', 'BH', 'OM'],
+                'sameAs'          => [
+                    'https://www.linkedin.com/company/qimta/',
+                    'https://www.youtube.com/@Qimtatech',
+                    'https://x.com/QimtaSm',
+                ],
+            ],
+            [
+                '@type'           => 'WebSite',
+                '@id'             => 'https://www.qimta.com/#website',
+                'url'             => 'https://www.qimta.com',
+                'name'            => 'Qimta',
+                'inLanguage'      => ['en', 'ar'],
+                'potentialAction' => [
+                    '@type'        => 'SearchAction',
+                    'target'       => 'https://www.qimta.com/catalog?q={search_term_string}',
+                    'query-input'  => 'required name=search_term_string',
+                ],
+            ],
+        ],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $_globalSchema !!}</script>
     @stack('schema')
 </head>
 <body>
 
     {{-- NAV --}}
-    <nav class="nav">
+    <nav class="nav" aria-label="Primary Navigation">
         <div class="container nav-inner">
             <a href="/" class="nav-logo" aria-label="Qimta — Home">
                 <x-logo style="height:80px;width:auto;" />
