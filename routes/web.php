@@ -29,6 +29,19 @@ use App\Http\Controllers\Supplier\DashboardController as SupplierDashboardContro
 use App\Http\Controllers\Supplier\ProductController as SupplierProductController;
 use App\Http\Controllers\Supplier\ProfileController as SupplierProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+
+// ─── Serve public storage files directly (no symlink required) ────────────────
+Route::get('/public/storage/{path}', function (string $path) {
+    $disk     = Storage::disk('public');
+    $safePath = ltrim($path, '/');
+
+    if (! $disk->exists($safePath)) {
+        abort(404);
+    }
+
+    return $disk->response($safePath);
+})->where('path', '.*')->name('storage.serve');
 
 Route::get('/', [\App\Http\Controllers\CatalogController::class, 'home']);
 
