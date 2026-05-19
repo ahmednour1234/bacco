@@ -27,7 +27,7 @@
 @section('no_ar_hreflang', '1')
 @endif
 @if($article->image)
-@section('og_image', 'https://www.qimta.com' . Storage::url($article->image))
+@section('og_image', 'https://www.qimta.com' . Storage::disk('public')->url($article->image))
 @endif
 
 @push('schema')
@@ -48,7 +48,7 @@ $_articleSchema = json_encode([
     '@type'            => 'NewsArticle',
     'headline'         => $title,
     'description'      => mb_substr(strip_tags($desc), 0, 200),
-    'image'            => $article->image ? 'https://www.qimta.com'.Storage::url($article->image) : 'https://www.qimta.com/images/qimta-og.jpg',
+    'image'            => $article->image ? 'https://www.qimta.com'.Storage::disk('public')->url($article->image) : 'https://www.qimta.com/images/qimta-og.jpg',
     'datePublished'    => $article->created_at?->toISOString(),
     'dateModified'     => $article->updated_at?->toISOString(),
     'author'           => ['@type'=>'Organization','name'=>'Qimta Technology Company','url'=>'https://www.qimta.com'],
@@ -124,7 +124,7 @@ $_articleSchema = json_encode([
             {{-- Hero image --}}
             @if($article->image)
             <div class="ns-hero">
-                <img src="{{ Storage::url($article->image) }}" alt="{{ $title }}" class="ns-hero-img">
+                <img src="{{ Storage::disk('public')->url($article->image) }}" alt="{{ $title }}" class="ns-hero-img">
                 <div class="ns-hero-overlay">
                     <div class="ns-play-btn">
                         <svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>

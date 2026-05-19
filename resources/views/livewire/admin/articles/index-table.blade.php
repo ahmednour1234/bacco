@@ -59,7 +59,7 @@
                             {{-- Image --}}
                             <td class="px-5 py-4">
                                 @if ($article->image)
-                                    <img src="{{ Storage::url($article->image) }}"
+                                    <img src="{{ Storage::disk('public')->url($article->image) }}"
                                          alt="{{ $article->name_en }}"
                                          class="h-12 w-12 rounded-lg object-cover border border-slate-200">
                                 @else

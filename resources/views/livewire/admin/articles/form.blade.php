@@ -239,7 +239,7 @@
 
         @if ($existingImage)
             <div class="mb-4 flex items-center gap-4">
-                <img src="{{ Storage::url($existingImage) }}"
+                <img src="{{ Storage::disk('public')->url($existingImage) }}"
                      alt="Current image"
                      class="h-24 w-24 rounded-xl object-cover border border-slate-200">
                 <p class="text-xs text-slate-500">Current image. Upload a new one below to replace it.</p>

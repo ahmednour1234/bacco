@@ -139,7 +139,7 @@ $_newsBreadcrumb = json_encode([
                     {{-- Image side --}}
                     <div style="position:relative; min-height:340px; background:#1a1a2e;">
                         @if($featured->image)
-                            <img src="{{ Storage::url($featured->image) }}" alt=""
+                            <img src="{{ Storage::disk('public')->url($featured->image) }}" alt=""
                                  style="width:100%; height:100%; object-fit:cover; opacity:.75; display:block;">
                         @else
                             {{-- Placeholder gradient --}}
@@ -198,7 +198,7 @@ $_newsBreadcrumb = json_encode([
                     {{-- Thumbnail --}}
                     <div style="position:relative; height:175px; background:#1a1a2e; overflow:hidden;">
                         @if($article->image)
-                            <img src="{{ Storage::url($article->image) }}" alt=""
+                            <img src="{{ Storage::disk('public')->url($article->image) }}" alt=""
                                  style="width:100%; height:100%; object-fit:cover; display:block;">
                         @else
                             <div style="width:100%; height:100%; background:linear-gradient(135deg,#0d1b2a,#1b263b); display:flex; align-items:center; justify-content:center;">
