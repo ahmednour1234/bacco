@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # ── Redirect www → non-www ────────────────────────────────────────────────
+    RewriteCond %{HTTP_HOST} ^www\.qimta\.com$ [NC]
+    RewriteRule ^(.*)$ https://qimta.com/$1 [L,R=301]
+
+    # ── Route everything through public/ (Laravel document root) ──────────────
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

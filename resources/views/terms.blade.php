@@ -394,7 +394,7 @@
                 </div>
                 {{-- Circuit board tech image --}}
                 <img
-                    src="/public/images/circuit-board.svg"
+                    src="{{ asset('images/circuit-board.svg') }}"
                     alt="Security Technology"
                     class="terms-circuit-img"
                     loading="lazy"

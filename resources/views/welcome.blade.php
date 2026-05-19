@@ -895,7 +895,7 @@ $_faqSchema = json_encode([
             <div class="news-grid">
                 <div class="news-card">
                     <div class="news-img-placeholder">
-                        <img src="/public/images/news/construction-materials.jpg"
+                        <img src="{{ asset('images/news/construction-materials.jpg') }}"
                              width="800" height="534"
                              alt="{{ $isAr ? 'أسعار مواد البناء في السعودية - مشروع إنشائي بالسعودية' : 'Construction materials pricing in Saudi Arabia - local building project' }}"
                              loading="lazy">
@@ -908,7 +908,7 @@ $_faqSchema = json_encode([
                 </div>
                 <div class="news-card">
                     <div class="news-img-placeholder">
-                        <img src="/public/images/news/smart-pricing-tech.jpg"
+                        <img src="{{ asset('images/news/smart-pricing-tech.jpg') }}"
                              width="800" height="534"
                              alt="{{ $isAr ? 'تقنية التسعير الذكي لمواد البناء - منصة كيمتا للإنشاء' : 'Smart construction pricing technology powered by QIMTA platform' }}"
                              loading="lazy">
@@ -921,7 +921,7 @@ $_faqSchema = json_encode([
                 </div>
                 <div class="news-card">
                     <div class="news-img-placeholder">
-                        <img src="/public/images/news/business-meeting.jpg"
+                        <img src="{{ asset('images/news/business-meeting.jpg') }}"
                              width="800" height="534"
                              alt="{{ $isAr ? 'نجاح عملاء كيمتا - مقاول يوفر تكاليف المشاريع الإنشائية' : 'QIMTA client success - contractor reducing construction project costs' }}"
                              loading="lazy">
