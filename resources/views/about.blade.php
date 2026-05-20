@@ -199,16 +199,6 @@ $_aboutSchema = json_encode([
         </div>
     </section>
 
-    <!-- MISSION -->
-    <section class="mission">
-        <div class="container">
-            <p class="mission-label">{{ __('about.mission.label') }}</p>
-            <p class="mission-text">
-                {{ __('about.mission.text') }} <span class="accent">{{ __('about.mission.free') }}</span> {{ __('about.mission.text2') }}
-            </p>
-        </div>
-    </section>
-
     <!-- PROBLEM vs STANDARD -->
     <section class="pvs">
         <div class="container">

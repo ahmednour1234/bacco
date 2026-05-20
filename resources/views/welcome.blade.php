@@ -719,42 +719,6 @@ $_faqSchema = json_encode([
         </div>
     </section>
 
-    <!-- ECOSYSTEM -->
-    <section class="eco">
-        <div class="container">
-            <div class="eco-header">
-                <p class="eco-label">{{ __('welcome.eco.label') }}</p>
-                <p class="eco-sub">{{ __('welcome.eco.sub') }}</p>
-            </div>
-            <div class="eco-grid">
-                <div class="eco-card">
-                    <div class="eco-icon">
-                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </div>
-                    <p class="eco-title">{{ __('welcome.eco.contractors_title') }}</p>
-                    <p class="eco-desc">{{ __('welcome.eco.contractors_desc') }}</p>
-                    <a href="{{ route('enduser.register') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
-                </div>
-                <div class="eco-card">
-                    <div class="eco-icon">
-                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                    </div>
-                    <p class="eco-title">{{ __('welcome.eco.procurement_title') }}</p>
-                    <p class="eco-desc">{{ __('welcome.eco.procurement_desc') }}</p>
-                    <a href="{{ route('catalog.index') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
-                </div>
-                <div class="eco-card">
-                    <div class="eco-icon">
-                        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                    </div>
-                    <p class="eco-title">{{ __('welcome.eco.brands_title') }}</p>
-                    <p class="eco-desc">{{ __('welcome.eco.brands_desc') }}</p>
-                    <a href="{{ route('for-brands') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- COMPARISON TABLE -->
     <section class="compare">
         <div class="container">
@@ -795,6 +759,42 @@ $_faqSchema = json_encode([
                     </tr>
                 </tbody>
             </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ECOSYSTEM -->
+    <section class="eco">
+        <div class="container">
+            <div class="eco-header">
+                <p class="eco-label">{{ __('welcome.eco.label') }}</p>
+                <p class="eco-sub">{{ __('welcome.eco.sub') }}</p>
+            </div>
+            <div class="eco-grid">
+                <div class="eco-card">
+                    <div class="eco-icon">
+                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <p class="eco-title">{{ __('welcome.eco.contractors_title') }}</p>
+                    <p class="eco-desc">{{ __('welcome.eco.contractors_desc') }}</p>
+                    <a href="{{ route('enduser.register') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
+                </div>
+                <div class="eco-card">
+                    <div class="eco-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </div>
+                    <p class="eco-title">{{ __('welcome.eco.procurement_title') }}</p>
+                    <p class="eco-desc">{{ __('welcome.eco.procurement_desc') }}</p>
+                    <a href="{{ route('catalog.index') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
+                </div>
+                <div class="eco-card">
+                    <div class="eco-icon">
+                        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    </div>
+                    <p class="eco-title">{{ __('welcome.eco.brands_title') }}</p>
+                    <p class="eco-desc">{{ __('welcome.eco.brands_desc') }}</p>
+                    <a href="{{ route('for-brands') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
+                </div>
             </div>
         </div>
     </section>
