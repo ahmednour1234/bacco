@@ -67,7 +67,37 @@ class ParseBoqJob implements ShouldQueue
             }
 
             if (empty($result['items'])) {
-                Cache::put($msgCacheKey, 'No items could be found in the file. Please check the file or add items manually.', now()->addMinutes(30));
+                $rejectedItems = $result['rejected'] ?? [];
+                $rejectedCount = count($rejectedItems);
+
+                // Even when no supply items were found, persist the rejected ones so users can see what was filtered.
+                if ($rejectedCount > 0) {
+                    BoqItem::where('boq_id', $this->boqId)->delete();
+                    foreach ($rejectedItems as $rejItem) {
+                        $rawData = is_array($rejItem['raw_data'] ?? null) ? $rejItem['raw_data'] : [];
+                        BoqItem::create([
+                            'boq_id'               => $this->boqId,
+                            'description'          => (string) ($rejItem['description'] ?? ''),
+                            'quantity'             => is_numeric($rejItem['quantity'] ?? null) ? (float) $rejItem['quantity'] : 1,
+                            'unit_id'              => $rejItem['unit_id'] ?? null,
+                            'category'             => (string) ($rejItem['category'] ?? ''),
+                            'brand'                => (string) ($rejItem['brand'] ?? ''),
+                            'status'               => 'rejected',
+                            'engineering_required' => false,
+                            'confidence'           => null,
+                            'unit_price'           => null,
+                            'raw_data'             => $rawData,
+                            'ai_extracted'         => true,
+                            'is_selected'          => false,
+                        ]);
+                    }
+
+                    $msg = "No procurable supply items were found. {$rejectedCount} item(s) were filtered out (installation/labor/general works). You can review the filtered items or add supply items manually.";
+                } else {
+                    $msg = 'No items could be found in the file. Please check the file or add items manually.';
+                }
+
+                Cache::put($msgCacheKey, $msg, now()->addMinutes(30));
                 Cache::put($cacheKey, 'no_items', now()->addMinutes(30));
                 return;
             }
@@ -110,7 +140,34 @@ class ParseBoqJob implements ShouldQueue
                 $count++;
             }
 
-            Cache::put($msgCacheKey, "Successfully extracted {$count} items from your file.", now()->addMinutes(30));
+            // Persist rejected items so users can see what was filtered and why.
+            $rejectedCount = 0;
+            foreach ($result['rejected'] ?? [] as $rejItem) {
+                $rawData = is_array($rejItem['raw_data'] ?? null) ? $rejItem['raw_data'] : [];
+                BoqItem::create([
+                    'boq_id'               => $this->boqId,
+                    'description'          => (string) ($rejItem['description'] ?? ''),
+                    'quantity'             => is_numeric($rejItem['quantity'] ?? null) ? (float) $rejItem['quantity'] : 1,
+                    'unit_id'              => $rejItem['unit_id'] ?? null,
+                    'category'             => (string) ($rejItem['category'] ?? ''),
+                    'brand'                => (string) ($rejItem['brand'] ?? ''),
+                    'status'               => 'rejected',
+                    'engineering_required' => false,
+                    'confidence'           => null,
+                    'unit_price'           => null,
+                    'raw_data'             => $rawData,
+                    'ai_extracted'         => true,
+                    'is_selected'          => false,
+                ]);
+                $rejectedCount++;
+            }
+
+            $msg = "Successfully extracted {$count} supply item(s) from your file.";
+            if ($rejectedCount > 0) {
+                $msg .= " {$rejectedCount} item(s) were filtered out (installation/labor/general works).";
+            }
+
+            Cache::put($msgCacheKey, $msg, now()->addMinutes(30));
             Cache::put($cacheKey, 'done', now()->addMinutes(30));
 
         } catch (\Throwable $e) {

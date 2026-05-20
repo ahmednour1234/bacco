@@ -21,8 +21,11 @@ class QuotationAiService
 
     private bool $testMode;
 
-    public function __construct()
+    private BoqCleaningService $boqCleaner;
+
+    public function __construct(BoqCleaningService $boqCleaner)
     {
+        $this->boqCleaner    = $boqCleaner;
         $this->baseUrl       = rtrim((string) config('services.ai_quotation.base_url', ''), '/');
         $this->parseEndpoint = ltrim((string) config('services.ai_quotation.parse_endpoint', 'parse'), '/');
         $this->apiKey        = (string) config('services.ai_quotation.api_key', '');
@@ -148,6 +151,13 @@ class QuotationAiService
             return $this->failure('Unsupported file type. Please upload an Excel (.xlsx, .xls), CSV, or PDF file.');
         }
 
+        // ── Apply description cleaning and compound splitting ─────────────────
+        if ($result['success'] && ! empty($result['items'])) {
+            $cleaning           = $this->boqCleaner->process($result['items']);
+            $result['items']    = $cleaning['accepted'];
+            $result['rejected'] = array_merge($result['rejected'] ?? [], $cleaning['rejected']);
+        }
+
         // ── Cache successful result for 30 days ──────────────────────────────
         if ($result['success'] && $fileHash !== null) {
             Cache::put('boq_analysis_' . $fileHash, $result, now()->addDays(30));
@@ -195,7 +205,8 @@ class QuotationAiService
                 $sheets = $spreadsheet->getAllSheets();
             }
 
-            $allItems = [];
+            $allItems    = [];
+            $allRejected = [];
 
             foreach ($sheets as $sheet) {
                 $highestRow    = $sheet->getHighestDataRow();
@@ -394,8 +405,25 @@ class QuotationAiService
                     }
 
                     // ── Supply-only filter ───────────────────────────────
-                    $supply = $this->filterSupplyItem($description);
+                    $supply = $this->boqCleaner->filterItem($description);
                     if (! $supply['keep']) {
+                        $allRejected[] = [
+                            'description'          => $description,
+                            'quantity'             => $quantity ?? 1,
+                            'unit'                 => $unit,
+                            'category'             => $category,
+                            'brand'                => $brand,
+                            'status'               => 'rejected',
+                            'engineering_required' => false,
+                            'unit_price'           => $unitPrice,
+                            'confidence'           => 0.0,
+                            'raw_data'             => [
+                                'original_description' => $description,
+                                'extraction_type'      => 'rejected',
+                                'rejection_reason'     => $supply['rejection_reason'],
+                            ],
+                            'ai_extracted'         => true,
+                        ];
                         continue;
                     }
 
@@ -423,12 +451,16 @@ class QuotationAiService
                 return $this->failure('No items could be extracted from the file. Please make sure the file has rows with item descriptions and quantities.');
             }
 
-            Log::info('QuotationAiService: Direct spreadsheet parse succeeded.', ['items' => count($allItems)]);
+            Log::info('QuotationAiService: Direct spreadsheet parse succeeded.', [
+                'items'    => count($allItems),
+                'rejected' => count($allRejected),
+            ]);
 
             return [
-                'success' => true,
-                'items'   => $allItems,
-                'error'   => null,
+                'success'  => true,
+                'items'    => $allItems,
+                'rejected' => $allRejected,
+                'error'    => null,
             ];
 
         } catch (\Throwable $e) {
@@ -794,13 +826,36 @@ class QuotationAiService
             Log::info('QuotationAiService: Gemini returned zero items.');
         }
 
+        $normItems = array_values(array_filter(
+            array_map([$this, 'normaliseGeminiItem'], $items),
+            fn ($item) => $item !== null,
+        ));
+
+        // Safety-net: programmatic filter catches edge cases the AI may have missed
+        $safeAccepted = [];
+        $safeRejected = [];
+
+        foreach ($normItems as $normItem) {
+            $check = $this->boqCleaner->filterItem((string) ($normItem['description'] ?? ''));
+            if ($check['keep']) {
+                $safeAccepted[] = $normItem;
+            } else {
+                $normItem['status']   = 'rejected';
+                $rawData              = is_array($normItem['raw_data'] ?? null) ? $normItem['raw_data'] : [];
+                $normItem['raw_data'] = array_merge($rawData, ['rejection_reason' => $check['rejection_reason']]);
+                $safeRejected[]       = $normItem;
+            }
+        }
+
+        if (! empty($safeRejected)) {
+            Log::info('QuotationAiService: Safety-net filter caught items from Gemini.', ['count' => count($safeRejected)]);
+        }
+
         return [
-            'success' => true,
-            'items'   => array_values(array_filter(
-                array_map([$this, 'normaliseGeminiItem'], $items),
-                fn ($item) => $item !== null,
-            )),
-            'error'   => null,
+            'success'  => true,
+            'items'    => $safeAccepted,
+            'rejected' => $safeRejected,
+            'error'    => null,
         ];
     }
 

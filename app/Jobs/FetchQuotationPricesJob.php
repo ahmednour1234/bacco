@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\NotificationTypeEnum;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
+use App\Services\BoqCleaningService;
 use App\Services\NotificationService;
 use App\Services\PricingService;
 use Illuminate\Bus\Queueable;
@@ -29,7 +30,7 @@ class FetchQuotationPricesJob implements ShouldQueue
         private readonly string $quotationUuid,
     ) {}
 
-    public function handle(PricingService $pricingService, NotificationService $notificationService): void
+    public function handle(PricingService $pricingService, NotificationService $notificationService, BoqCleaningService $boqCleaner): void
     {
         $quotation = QuotationRequest::find($this->quotationId);
 
@@ -50,8 +51,24 @@ class FetchQuotationPricesJob implements ShouldQueue
             ])
             ->toArray();
 
+        // Pre-flight guard: skip any item that should not reach the pricing engine.
+        // This is a last-resort safety net for items that bypassed earlier filtering.
+        $guardedItems = [];
+        foreach ($items as $item) {
+            $check = $boqCleaner->filterItem((string) $item['description']);
+            if ($check['keep']) {
+                $guardedItems[] = $item;
+            } else {
+                Log::warning('FetchQuotationPricesJob: Pricing guard caught non-supply item.', [
+                    'quotation_id' => $this->quotationId,
+                    'description'  => $item['description'],
+                    'reason'       => $check['rejection_reason'],
+                ]);
+            }
+        }
+
         try {
-            $priced    = $pricingService->fetchPrices($items);
+            $priced    = $pricingService->fetchPrices($guardedItems);
             $gotPrices = 0;
 
             foreach ($priced as $row) {
