@@ -646,6 +646,50 @@ $_faqSchema = json_encode([
         </div>
     </section>
 
+    <!-- COMPARISON TABLE -->
+    <section class="compare">
+        <div class="container">
+            <div class="compare-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>{{ __('welcome.compare.feature') }}</th>
+                        <th class="col-qimta">{{ __('welcome.compare.qimta_engine') }}</th>
+                        <th class="col-trad">{{ __('welcome.compare.traditional') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ __('welcome.compare.speed_label') }}</td>
+                        <td class="col-qimta">{{ __('welcome.compare.speed_qimta') }}</td>
+                        <td class="col-trad">{{ __('welcome.compare.speed_trad') }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ __('welcome.compare.valid_label') }}</td>
+                        <td class="col-qimta">{{ __('welcome.compare.valid_qimta') }}</td>
+                        <td class="col-trad">{{ __('welcome.compare.valid_trad') }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ __('welcome.compare.brand_label') }}</td>
+                        <td class="col-qimta">{{ __('welcome.compare.brand_qimta') }}</td>
+                        <td class="col-trad">{{ __('welcome.compare.brand_trad') }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ __('welcome.compare.data_label') }}</td>
+                        <td class="col-qimta">{{ __('welcome.compare.data_qimta') }}</td>
+                        <td class="col-trad">{{ __('welcome.compare.data_trad') }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ __('welcome.compare.buy_label') }}</td>
+                        <td class="col-qimta">{{ __('welcome.compare.buy_qimta') }}</td>
+                        <td class="col-trad">{{ __('welcome.compare.buy_trad') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </section>
+
     <!-- HOW IT WORKS -->
     <section class="how">
         <div class="container">
@@ -715,50 +759,6 @@ $_faqSchema = json_encode([
                     <p class="pillar-title">{{ __('welcome.pillars.p3_title') }}</p>
                     <p class="pillar-desc">{{ __('welcome.pillars.p3_desc') }}</p>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- COMPARISON TABLE -->
-    <section class="compare">
-        <div class="container">
-            <div class="compare-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>{{ __('welcome.compare.feature') }}</th>
-                        <th class="col-qimta">{{ __('welcome.compare.qimta_engine') }}</th>
-                        <th class="col-trad">{{ __('welcome.compare.traditional') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{{ __('welcome.compare.speed_label') }}</td>
-                        <td class="col-qimta">{{ __('welcome.compare.speed_qimta') }}</td>
-                        <td class="col-trad">{{ __('welcome.compare.speed_trad') }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ __('welcome.compare.valid_label') }}</td>
-                        <td class="col-qimta">{{ __('welcome.compare.valid_qimta') }}</td>
-                        <td class="col-trad">{{ __('welcome.compare.valid_trad') }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ __('welcome.compare.brand_label') }}</td>
-                        <td class="col-qimta">{{ __('welcome.compare.brand_qimta') }}</td>
-                        <td class="col-trad">{{ __('welcome.compare.brand_trad') }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ __('welcome.compare.data_label') }}</td>
-                        <td class="col-qimta">{{ __('welcome.compare.data_qimta') }}</td>
-                        <td class="col-trad">{{ __('welcome.compare.data_trad') }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ __('welcome.compare.buy_label') }}</td>
-                        <td class="col-qimta">{{ __('welcome.compare.buy_qimta') }}</td>
-                        <td class="col-trad">{{ __('welcome.compare.buy_trad') }}</td>
-                    </tr>
-                </tbody>
-            </table>
             </div>
         </div>
     </section>
