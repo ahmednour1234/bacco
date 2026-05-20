@@ -610,14 +610,14 @@ class QuotationAiService
     private function parseBoqWithGemini(UploadedFile|string $file, array $context = []): array
     {
         $geminiKey     = (string) config('services.gemini.key', '');
-        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.0-flash');
-        // Ordered list of models to try — use stable/GA model names
+        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.5-flash');
+        // Ordered list of models to try — prefer current stable models
         $geminiModels  = array_values(array_unique(array_filter([
             $primaryModel,
+            'gemini-3.5-flash',
             'gemini-2.5-flash',
-            'gemini-2.0-flash',
-            'gemini-1.5-flash',
-            'gemini-1.5-flash-latest',
+            'gemini-2.5-flash-lite',
+            'gemini-2.5-pro',
         ])));
 
         // ── Check if Gemini API key is configured ───────────────────────────
@@ -772,6 +772,9 @@ class QuotationAiService
                 $errorMsg = "Gemini API authentication failed. Please check your GEMINI_API_KEY in .env.";
             } elseif ($status === 403) {
                 $errorMsg = "Gemini API access forbidden. Your API key may not have the required permissions.";
+                $isUnavailable = true;
+            } elseif ($status === 404) {
+                $errorMsg = "Gemini model '{$model}' not found — it may have been deprecated. Trying next model.";
                 $isUnavailable = true;
             } elseif ($status === 429) {
                 $errorMsg = "Gemini API rate limit exceeded. Please try again in a few moments.";
