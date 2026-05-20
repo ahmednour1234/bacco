@@ -1,33 +1,33 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', __('catalog.title', ['products' => number_format($catalogStats['products'])]))
 
 @section('description', app()->getLocale() === 'ar'
-    ? 'تصفح ' . number_format($catalogStats['products']) . ' منتج بناء موثّق عبر ' . number_format($catalogStats['categories']) . ' فئة. تسعير جداول الكميات الفوري للمقاولين وفرق المشتريات في السعودية والخليج. مجاناً.'
+    ? '???? ' . number_format($catalogStats['products']) . ' ???? ???? ????? ??? ' . number_format($catalogStats['categories']) . ' ???. ????? ????? ??????? ?????? ????????? ???? ????????? ?? ???????? ???????. ??????.'
     : 'Browse ' . number_format($catalogStats['products']) . ' verified construction products across ' . number_format($catalogStats['categories']) . ' categories. Instant BOQ pricing for contractors and procurement teams in Saudi Arabia and GCC. Free.')
 @section('og_image', 'https://qimta.com/images/og-catalog.jpg')
 @section('og_type', 'website')
 @section('styles')
 <style>
-    /* ── BREADCRUMB ── */
+    /* -- BREADCRUMB -- */
     .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #999; margin-bottom: 32px; }
     .breadcrumb a { color: #999; transition: color .2s; }
     .breadcrumb a:hover { color: var(--green); }
     .breadcrumb svg { width: 12px; height: 12px; stroke: #bbb; fill: none; stroke-width: 2; flex-shrink: 0; }
 
-    /* ── PAGE HEADER ── */
+    /* -- PAGE HEADER -- */
     .catalog-header { padding: 48px 0 40px; }
     .catalog-header h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 12px; }
     .catalog-header .subtitle { font-size: 15px; color: #555; max-width: 640px; line-height: 1.6; margin-bottom: 32px; }
     .catalog-header .subtitle span { color: var(--green); font-weight: 700; }
 
-    /* ── SEARCH ── */
+    /* -- SEARCH -- */
     .catalog-search-wrap { position: relative; max-width: 480px; margin-bottom: 36px; }
     .catalog-search-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; stroke: #aaa; fill: none; stroke-width: 2; }
     .catalog-search { width: 100%; padding: 13px 16px 13px 44px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; transition: border-color .2s, box-shadow .2s; background: var(--white); }
     .catalog-search:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,106,59,.1); }
 
-    /* ── INFO BANNER ── */
+    /* -- INFO BANNER -- */
     .catalog-info { display: flex; gap: 24px; flex-wrap: wrap; background: #f9f9f9; border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 40px; font-size: 13px; color: #555; line-height: 1.6; }
     .catalog-info-col { flex: 1; min-width: 260px; }
     .catalog-info-col h2 { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #999; margin-bottom: 6px; }
@@ -36,12 +36,12 @@
     .catalog-info-note { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 260px; }
     .catalog-info-note svg { width: 16px; height: 16px; flex-shrink: 0; color: #e5900e; margin-top: 2px; }
 
-    /* ── DIVISION GRID ── */
+    /* -- DIVISION GRID -- */
     .division-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding-bottom: 64px; }
     @media (max-width: 900px) { .division-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 560px) { .division-grid { grid-template-columns: 1fr; } }
 
-    /* ── DIVISION CARD ── */
+    /* -- DIVISION CARD -- */
     .div-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 24px; background: var(--white); transition: border-color .2s, box-shadow .2s, transform .2s; display: flex; flex-direction: column; }
     .div-card:hover { border-color: var(--green); box-shadow: 0 4px 24px rgba(0,106,59,0.08); transform: translateY(-2px); }
     .div-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
@@ -57,7 +57,7 @@
     .div-card:hover .div-browse { gap: 10px; }
     .div-card:hover .div-browse svg { transform: translateX(3px); }
 
-    /* ── EMPTY STATE ── */
+    /* -- EMPTY STATE -- */
     .catalog-empty { text-align: center; padding: 80px 24px; color: #999; }
     .catalog-empty svg { width: 48px; height: 48px; stroke: #ccc; fill: none; stroke-width: 1.5; margin: 0 auto 16px; }
     .catalog-empty h3 { font-size: 18px; font-weight: 700; color: #555; margin-bottom: 8px; }
@@ -78,7 +78,7 @@ $_catSchema = json_encode([
         ],
         [
             '@type'         => 'ItemList',
-            'name'          => 'Construction Materials Catalog — Qimta',
+            'name'          => 'Construction Materials Catalog � Qimta',
             'description'   => 'Browse ' . number_format($catalogStats['products']) . ' verified construction products across ' . number_format($catalogStats['categories']) . ' categories',
             'numberOfItems' => $rows->count(),
             'itemListElement' => $rows->values()->map(function ($d, $i) {

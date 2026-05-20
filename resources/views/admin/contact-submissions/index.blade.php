@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin-app')
+@extends('layouts.admin-app')
 
 @section('title', __('app.contact_submissions'))
 

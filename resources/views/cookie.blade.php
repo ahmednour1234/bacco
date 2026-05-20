@@ -8,7 +8,7 @@
 <style>
 /* ── COOKIE PAGE ────────────────────────────────────────────────────────── */
 .cookie-page {
-    font-family: 'The Year of The Camel', serif;
+    font-family: 'Cairo', sans-serif;
     color: var(--dark);
     background: #fff;
     max-width: 780px;

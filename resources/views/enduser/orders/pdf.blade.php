@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -96,15 +96,15 @@
         <tr>
             <td>
                 <div class="meta-label">Project Name</div>
-                <div class="meta-value">{{ $order->quotationRequest?->project_name ?? 'â€”' }}</div>
+                <div class="meta-value">{{ $order->quotationRequest?->project_name ?? '—' }}</div>
             </td>
             <td>
                 <div class="meta-label">Client</div>
-                <div class="meta-value">{{ $order->client?->name ?? 'â€”' }}</div>
+                <div class="meta-value">{{ $order->client?->name ?? '—' }}</div>
             </td>
             <td>
                 <div class="meta-label">Order Date</div>
-                <div class="meta-value">{{ $order->created_at ? $order->created_at->format('M d, Y') : 'â€”' }}</div>
+                <div class="meta-value">{{ $order->created_at ? $order->created_at->format('M d, Y') : '—' }}</div>
             </td>
             <td>
                 <div class="meta-label">Status</div>
@@ -185,17 +185,17 @@
             @foreach($items as $i => $item)
             <tr>
                 <td style="color:#94a3b8;">{{ $i + 1 }}</td>
-                <td><div class="item-desc">{{ $item['description'] ?: 'â€”' }}</div></td>
+                <td><div class="item-desc">{{ $item['description'] ?: '—' }}</div></td>
                 <td>
                     <div class="item-qty">{{ number_format((float)$item['quantity']) }}</div>
                     <div class="item-unit">{{ $item['unit'] }}</div>
                 </td>
-                <td class="item-brand">{{ $item['brand'] !== 'â€”' ? $item['brand'] : '' }}</td>
+                <td class="item-brand">{{ $item['brand'] !== '—' ? $item['brand'] : '' }}</td>
                 <td>
                     @if(is_numeric($item['unit_price']) && (float)$item['unit_price'] > 0)
                         <span class="item-price">{{ number_format((float)$item['unit_price'], 2) }}</span>
                     @else
-                        <span class="not-priced">â€”</span>
+                        <span class="not-priced">—</span>
                     @endif
                 </td>
                 <td class="right">
@@ -238,7 +238,7 @@
     <div class="footer">
         <table>
             <tr>
-                <td>Qimta Platform â€” {{ config('app.url') }}</td>
+                <td>Qimta Platform — {{ config('app.url') }}</td>
                 <td class="right">This document is system-generated and does not require a signature.</td>
             </tr>
         </table>

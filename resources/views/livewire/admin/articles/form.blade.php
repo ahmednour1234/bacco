@@ -1,5 +1,5 @@
-﻿<form wire:submit="save" class="space-y-6" x-data="articleForm()" x-init="init()">
-    {{-- ── Basic Info ──────────────────────────────────────────────────── --}}
+<form wire:submit="save" class="space-y-6" x-data="articleForm()" x-init="init()">
+    {{-- -- Basic Info ---------------------------------------------------- --}}
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 class="mb-5 text-sm font-semibold text-slate-700 uppercase tracking-wide">Article Names</h3>
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -20,7 +20,7 @@
                     Name <span class="text-slate-400 font-normal">(Arabic)</span>
                 </label>
                 <input type="text" wire:model.blur="name_ar" dir="rtl"
-                       placeholder="مثال: أفضل ممارسات الأمان"
+                       placeholder="????: ???? ??????? ??????"
                        class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                 @error('name_ar') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
@@ -42,14 +42,14 @@
                     Title <span class="text-slate-400 font-normal">(Arabic)</span>
                 </label>
                 <input type="text" wire:model.blur="title_ar" dir="rtl"
-                       placeholder="مثال: الحفاظ على أمان حساب كيمتا"
+                       placeholder="????: ?????? ??? ???? ???? ?????"
                        class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
                 @error('title_ar') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
         </div>
     </div>
 
-    {{-- ── HTML Descriptions ───────────────────────────────────────────── --}}
+    {{-- -- HTML Descriptions --------------------------------------------- --}}
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 class="mb-5 text-sm font-semibold text-slate-700 uppercase tracking-wide">Content (HTML Editor)</h3>
 
@@ -57,7 +57,7 @@
         <input type="file" x-ref="mediaEnInput"  accept="image/*,video/*" class="hidden" @change="insertMediaEn($event)">
         <input type="file" x-ref="mediaArInput"  accept="image/*,video/*" class="hidden" @change="insertMediaAr($event)">
 
-        {{-- ── English Editor ──────────────────────────────── --}}
+        {{-- -- English Editor -------------------------------- --}}
         <div class="mb-8">
             <label class="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700">
                 Description
@@ -112,7 +112,7 @@
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Lists --}}
-                <button type="button" @click="exec('en','insertUnorderedList')" class="editor-btn" title="Bullet list">• List</button>
+                <button type="button" @click="exec('en','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
                 <button type="button" @click="exec('en','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
@@ -132,7 +132,7 @@
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Clear --}}
-                <button type="button" @click="exec('en','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">✕</button>
+                <button type="button" @click="exec('en','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
             </div>
 
             {{-- Editor body EN --}}
@@ -149,7 +149,7 @@
             @error('desc_en') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        {{-- ── Arabic Editor ────────────────────────────────── --}}
+        {{-- -- Arabic Editor ---------------------------------- --}}
         <div>
             <label class="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700">
                 Description
@@ -199,7 +199,7 @@
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" @click="exec('ar','insertUnorderedList')" class="editor-btn" title="Bullet list">• List</button>
+                <button type="button" @click="exec('ar','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
                 <button type="button" @click="exec('ar','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
@@ -216,7 +216,7 @@
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" @click="exec('ar','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">✕</button>
+                <button type="button" @click="exec('ar','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
             </div>
 
             <div id="editor-ar"
@@ -233,7 +233,7 @@
         </div>
     </div>
 
-    {{-- ── Image Upload ────────────────────────────────────────────────── --}}
+    {{-- -- Image Upload -------------------------------------------------- --}}
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 class="mb-5 text-sm font-semibold text-slate-700 uppercase tracking-wide">Featured Image</h3>
 
@@ -259,15 +259,15 @@
             <svg class="h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            <span class="text-sm text-slate-500">Click to upload image <span class="text-xs text-slate-400">(JPG, PNG, WebP — max 4MB)</span></span>
+            <span class="text-sm text-slate-500">Click to upload image <span class="text-xs text-slate-400">(JPG, PNG, WebP � max 4MB)</span></span>
             <input type="file" wire:model="image" accept="image/*" class="hidden">
         </label>
         @error('image') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
 
-        <div wire:loading wire:target="image" class="mt-2 text-xs text-emerald-600">Uploading…</div>
+        <div wire:loading wire:target="image" class="mt-2 text-xs text-emerald-600">Uploading�</div>
     </div>
 
-    {{-- ── Status ──────────────────────────────────────────────────────── --}}
+    {{-- -- Status -------------------------------------------------------- --}}
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <label class="inline-flex cursor-pointer items-center gap-3">
             <input type="checkbox" wire:model="active"
@@ -276,7 +276,7 @@
         </label>
     </div>
 
-    {{-- ── Actions ─────────────────────────────────────────────────────── --}}
+    {{-- -- Actions ------------------------------------------------------- --}}
     <div class="flex items-center gap-3">
         <button type="submit"
                 class="inline-flex items-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
@@ -295,7 +295,7 @@
 </form>
 
 <style>
-/* ── Toolbar controls ──────────────────────────────────────────────── */
+/* -- Toolbar controls ------------------------------------------------ */
 .editor-btn {
     display: inline-flex;
     align-items: center;
@@ -325,7 +325,7 @@
 }
 .editor-select:focus { border-color: #34d399; }
 
-/* ── Editor body ────────────────────────────────────────────────────── */
+/* -- Editor body ------------------------------------------------------ */
 .editor-body {
     width: 100%;
     border: 1px solid #e2e8f0;
@@ -345,7 +345,7 @@
     box-shadow: 0 0 0 3px rgba(52,211,153,.15);
 }
 
-/* ── Content styles inside editor ───────────────────────────────────── */
+/* -- Content styles inside editor ------------------------------------- */
 .editor-body h1 { font-size: 1.6rem;  font-weight: 800; margin: 1rem 0 .6rem; }
 .editor-body h2 { font-size: 1.3rem;  font-weight: 700; margin: .9rem 0 .5rem; }
 .editor-body h3 { font-size: 1.1rem;  font-weight: 600; margin: .75rem 0 .4rem; }

@@ -1,4 +1,4 @@
-ï»¿<div
+<div
     x-data="{
         statusOpen: false,
         typeOpen: false,
@@ -496,10 +496,10 @@
 
                     {{-- Card Body --}}
                     <div class="flex-1 px-4 pt-2 pb-3">
-                        <h3 class="truncate text-base font-bold text-slate-900">{{ $boq->project?->name ?? 'â€”' }}</h3>
+                        <h3 class="truncate text-base font-bold text-slate-900">{{ $boq->project?->name ?? '—' }}</h3>
                         <div class="mt-2">
                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $typeColor }}">
-                                {{ $boq->type?->label() ?? 'â€”' }}
+                                {{ $boq->type?->label() ?? '—' }}
                             </span>
                         </div>
                         <div class="mt-3 flex items-center gap-4 text-xs text-slate-500">

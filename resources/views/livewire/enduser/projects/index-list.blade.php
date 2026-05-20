@@ -1,4 +1,4 @@
-﻿<div
+<div
     x-data="{ toast: null, showToast(m, t='success') { this.toast={message:m,type:t}; setTimeout(()=>this.toast=null,4000); } }"
     x-on:toast.window="showToast($event.detail.message, $event.detail.type)"
 >

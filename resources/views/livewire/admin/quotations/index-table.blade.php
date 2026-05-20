@@ -1,4 +1,4 @@
-﻿<div
+<div
     x-data="{
         statusOpen: false,
         companyOpen: false,
@@ -6,7 +6,7 @@
     }"
 >
 
-    {{-- ───── Page Header ─────────────────────────────────────────────────── --}}
+    {{-- ----- Page Header --------------------------------------------------- --}}
     <div class="mb-5 flex items-center justify-between">
         <div>
             <h1 class="text-lg font-semibold text-slate-800">{{ __('app.all_quotations') }}</h1>
@@ -16,7 +16,7 @@
         </div>
     </div>
 
-    {{-- ───── Filters Row ──────────────────────────────────────────────────── --}}
+    {{-- ----- Filters Row ---------------------------------------------------- --}}
     <div class="mb-4 flex flex-wrap items-center gap-2">
 
         {{-- Search --}}
@@ -153,7 +153,7 @@
 
     </div>
 
-    {{-- ───── Table Card ────────────────────────────────────────────────────── --}}
+    {{-- ----- Table Card ------------------------------------------------------ --}}
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
 
@@ -208,19 +208,19 @@
                                 {{-- Company --}}
                                 <td class="px-4 py-3">
                                     <span class="block max-w-[140px] truncate text-sm font-medium text-slate-700">
-                                        {{ $quotation->client?->clientProfile?->company_name ?? '—' }}
+                                        {{ $quotation->client?->clientProfile?->company_name ?? '�' }}
                                     </span>
                                 </td>
 
                                 {{-- Client --}}
                                 <td class="px-4 py-3">
-                                    <span class="text-sm text-slate-600">{{ $quotation->client?->name ?? '—' }}</span>
+                                    <span class="text-sm text-slate-600">{{ $quotation->client?->name ?? '�' }}</span>
                                 </td>
 
                                 {{-- Project --}}
                                 <td class="px-4 py-3">
                                     <span class="block max-w-[160px] truncate text-sm text-slate-600">
-                                        {{ $quotation->project_name ?? '—' }}
+                                        {{ $quotation->project_name ?? '�' }}
                                     </span>
                                 </td>
 
@@ -231,7 +231,7 @@
 
                                 {{-- Amount --}}
                                 <td class="px-4 py-3 text-end font-mono text-sm font-semibold text-slate-700">
-                                    {{ $amount > 0 ? number_format($amount, 2) : '—' }}
+                                    {{ $amount > 0 ? number_format($amount, 2) : '�' }}
                                 </td>
 
                                 {{-- Status --}}
@@ -271,7 +271,7 @@
             <p class="text-xs text-slate-400">
                 {{ __('app.showing') }}
                 <span class="font-medium text-slate-600">{{ $quotations->firstItem() }}</span>
-                –
+                �
                 <span class="font-medium text-slate-600">{{ $quotations->lastItem() }}</span>
                 {{ __('app.of') }}
                 <span class="font-medium text-slate-600">{{ $quotations->total() }}</span>

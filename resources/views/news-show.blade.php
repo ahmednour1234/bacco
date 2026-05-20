@@ -229,7 +229,7 @@ $_articleSchema = json_encode([
 </div>
 
 <style>
-.ns-page { background:#f7f7f5; min-height:100vh; font-family:'The Year of The Camel','Cairo',serif; }
+.ns-page { background:#f7f7f5; min-height:100vh; font-family:'Cairo', sans-serif; }
 .ns-container { max-width:1100px; margin:0 auto; padding:0 28px; }
 
 /* Breadcrumb */
@@ -250,7 +250,7 @@ $_articleSchema = json_encode([
 .ns-badge:hover { background:#004d2a; }
 
 /* Title */
-.ns-title { font-size:clamp(1.55rem,3.5vw,2.2rem); font-weight:800; color:#111; line-height:1.25; margin:0 0 18px; font-family:'The Year of The Camel','Cairo',serif; }
+.ns-title { font-size:clamp(1.55rem,3.5vw,2.2rem); font-weight:800; color:#111; line-height:1.25; margin:0 0 18px; font-family:'Cairo', sans-serif; }
 
 /* Meta */
 .ns-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; color:#888; padding-bottom:22px; border-bottom:1px solid #e8e8e5; margin-bottom:24px; }
@@ -268,7 +268,7 @@ $_articleSchema = json_encode([
 .ns-play-btn:hover { background:rgba(255,255,255,.28); transform:scale(1.08); }
 
 /* Article body */
-.ns-article-body { font-size:16px; line-height:1.9; color:#2d2d2d; font-family:'The Year of The Camel','Cairo',serif; }
+.ns-article-body { font-size:16px; line-height:1.9; color:#2d2d2d; font-family:'Cairo', sans-serif; }
 .ns-article-body h1 { font-size:1.9rem; font-weight:800; margin:2rem 0 .8rem; color:#111; }
 .ns-article-body h2 { font-size:1.4rem; font-weight:700; margin:1.8rem 0 .7rem; color:#111; border-bottom:1px solid #e8e8e5; padding-bottom:8px; }
 .ns-article-body h3 { font-size:1.15rem; font-weight:700; margin:1.5rem 0 .6rem; color:#1a1a1a; }

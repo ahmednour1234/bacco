@@ -21,7 +21,7 @@
             --border:#e0e0e0;
         }
         body {
-            font-family: 'The Year of The Camel', serif;
+            font-family: 'Cairo', sans-serif;
             background: #fff;
             color: var(--dark);
             min-height: 100vh;

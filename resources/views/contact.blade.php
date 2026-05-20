@@ -1,13 +1,13 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
 @section('title', $isAr
-    ? 'تواصل مع كيمتا — Onboarding المشترين والعلامات التجارية | مشاريع الخليج'
-    : 'Contact Qimta — Brand Onboarding & Enterprise Inquiries | Gulf Projects')
+    ? '????? ?? ????? � Onboarding ???????? ????????? ???????? | ?????? ??????'
+    : 'Contact Qimta � Brand Onboarding & Enterprise Inquiries | Gulf Projects')
 
 @section('description', $isAr
-    ? 'تواصل مع فريق كيمتا للاستفسار عن خدماتنا للعلامات التجارية والمشترين والمشاريع في الخليج.'
+    ? '????? ?? ???? ????? ????????? ?? ??????? ???????? ???????? ????????? ????????? ?? ??????.'
     : 'Get in touch with Qimta for brand listing, enterprise BOQ solutions, or buyer onboarding. Serving construction projects across Saudi Arabia and the GCC.')
 
 @section('nav-cta')
@@ -23,7 +23,7 @@
     :root { --gray:#666; }
     .container { max-width: 1080px; padding: 0 32px; }
 
-    /* ── HERO ── */
+    /* -- HERO -- */
     .contact-hero { background: var(--cream); padding: 56px 0 64px; border-bottom: 1px solid var(--border); }
     .contact-hero-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; }
     .hero-left { flex: 1; }
@@ -37,7 +37,7 @@
     [dir="rtl"] .hero-status { letter-spacing: 0; }
     .hero-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
 
-    /* ── INQUIRY TYPE CARDS ── */
+    /* -- INQUIRY TYPE CARDS -- */
     .inquiry-section { background: var(--white); padding: 64px 0; border-bottom: 1px solid var(--border); }
     .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); margin-bottom: 28px; display: block; }
     [dir="rtl"] .section-label { letter-spacing: 0; }
@@ -49,7 +49,7 @@
     .inq-title { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
     .inq-desc { font-size: 12px; color: var(--gray); line-height: 1.65; }
 
-    /* ── FORM + CHANNELS ── */
+    /* -- FORM + CHANNELS -- */
     .form-section { background: var(--cream); padding: 64px 0; border-bottom: 1px solid var(--border); }
     .form-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; display: grid; grid-template-columns: 1fr 360px; gap: 0; overflow: hidden; }
     .form-left { padding: 40px 40px 40px 40px; border-right: 1px solid var(--border); }
@@ -100,7 +100,7 @@
     .region-quote { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 8px; line-height: 1.4; }
     .region-body { font-size: 12px; color: var(--gray); line-height: 1.65; }
 
-    /* ── LOCATIONS ── */
+    /* -- LOCATIONS -- */
     .locations-section { background: var(--white); padding: 72px 0; border-bottom: 1px solid var(--border); }
     .locations-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
     .loc-visual { position: relative; border-radius: 20px; overflow: hidden; height: 340px; background: #e5e7eb; }
@@ -138,7 +138,7 @@
     .office-dir:hover { background: var(--green); color: var(--white); border-color: var(--green); }
     .office-dir svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 
-    /* ── CTA BANNER ── */
+    /* -- CTA BANNER -- */
     .cta-banner { background: var(--green); padding: 64px 0; }
     .cta-inner { text-align: center; }
     .cta-h2 { font-size: 34px; font-weight: 800; color: var(--white); letter-spacing: -1px; margin-bottom: 14px; }
@@ -148,7 +148,7 @@
     .cta-btn:hover { opacity: .9; }
     .cta-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 
-    /* ── RESPONSIVE ── */
+    /* -- RESPONSIVE -- */
     @media (max-width: 860px) {
         .contact-hero-inner { flex-direction: column; gap: 20px; }
         .hero-status { align-self: flex-start; }
@@ -177,13 +177,13 @@ $_localBiz = json_encode([
     '@id'                => 'https://www.qimta.com/#organization',
     'name'               => 'Qimta Technology Company',
     'legalName'          => 'Qimta Technology Company',
-    'alternateName'      => 'كيمتا تكنولوجيا',
+    'alternateName'      => '????? ?????????',
     'description'        => 'Qimta is a B2B construction pricing platform that retrieves verified pricing for ' . number_format($catalogStats['products']) . ' products via a RAG engine in under 60 seconds. Free for construction buyers and procurement teams. Available in Arabic and English. Deployed across Saudi Arabia and GCC.',
     'url'                => 'https://www.qimta.com',
     'logo'               => 'https://www.qimta.com/images/qimta-og.jpg',
     'email'              => 'sales@qimta.com',
     'telephone'          => '+963937101976',
-    'priceRange'         => 'مجاني للمشترين / Free for buyers',
+    'priceRange'         => '????? ???????? / Free for buyers',
     'applicationCategory'=> 'BusinessApplication',
     'address'            => [
         '@type'           => 'PostalAddress',
@@ -224,7 +224,7 @@ $_localBiz = json_encode([
 @endphp
 <script type="application/ld+json">{!! $_localBiz !!}</script>
 
-{{-- ── HERO ── --}}
+{{-- -- HERO -- --}}
 <section class="contact-hero">
     <div class="container">
         <div class="contact-hero-inner">
@@ -242,7 +242,7 @@ $_localBiz = json_encode([
     </div>
 </section>
 
-{{-- ── INQUIRY TYPE ── --}}
+{{-- -- INQUIRY TYPE -- --}}
 <section class="inquiry-section">
     <div class="container">
         <span class="section-label">{{ __('contact.inquiry.label') }}</span>
@@ -312,7 +312,7 @@ $_localBiz = json_encode([
     </div>
 </section>
 
-{{-- ── FORM + CHANNELS ── --}}
+{{-- -- FORM + CHANNELS -- --}}
 <section class="form-section">
     <div class="container">
         <div class="form-card">
@@ -453,7 +453,7 @@ $_localBiz = json_encode([
     </div>
 </section>
 
-{{-- ── LOCATIONS ── --}}
+{{-- -- LOCATIONS -- --}}
 <section class="locations-section">
     <div class="container">
         <div class="locations-inner">
@@ -485,7 +485,7 @@ $_localBiz = json_encode([
                                     <polygon points="49,55 44,44 54,44" fill="#006A3B"/>
                                     {{-- Label --}}
                                     <rect x="20" y="68" width="60" height="14" rx="4" fill="white" opacity=".9"/>
-                                    <text x="50" y="78" text-anchor="middle" font-size="6" fill="#333" font-weight="bold">QIMTA — Damascus</text>
+                                    <text x="50" y="78" text-anchor="middle" font-size="6" fill="#333" font-weight="bold">QIMTA � Damascus</text>
                                 </svg>
                             </div>
                         </div>
@@ -497,7 +497,7 @@ $_localBiz = json_encode([
                             <div class="loc-pin-icon">
                                 <div class="loc-pin-inner">Q</div>
                             </div>
-                            <div class="loc-pin-label">QIMTA — Damascus</div>
+                            <div class="loc-pin-label">QIMTA � Damascus</div>
                         </div>
                         {{-- SVG skyline --}}
                         <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.25" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
@@ -598,7 +598,7 @@ $_localBiz = json_encode([
     </div>
 </section>
 
-{{-- ── CTA BANNER ── --}}
+{{-- -- CTA BANNER -- --}}
 <section class="cta-banner">
     <div class="container">
         <div class="cta-inner">

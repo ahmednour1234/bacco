@@ -1,19 +1,19 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
 @section('title', $isAr
-    ? 'كيمتا — منصة تسعير جداول الكميات | السعودية والخليج'
-    : 'Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
+    ? '????? � ???? ????? ????? ??????? | ???????? ???????'
+    : 'Qimta � Construction BOQ Pricing Platform | Saudi Arabia & GCC')
 
 @section('description', $isAr
-    ? 'كيمتا: سعر كل بند من جدول الكميات في دقائق. ' . number_format($catalogStats['products']) . ' منتجاً موثّقاً ومليارات المواصفات التقنية. منصة تسعير مشاريع البناء للسعودية والخليج.'
+    ? '?????: ??? ?? ??? ?? ???? ??????? ?? ?????. ' . number_format($catalogStats['products']) . ' ?????? ??????? ???????? ????????? ???????. ???? ????? ?????? ?????? ???????? ???????.'
     : 'Qimta prices every BOQ line across every brand in seconds. Access ' . number_format($catalogStats['products']) . ' verified products and 1B technical specs. The construction pricing platform for Saudi Arabia & GCC.')
 
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-nav-cta">
         {{ __('welcome.nav.price_boq') }}
-        <span class="cta-badge">{{ $isAr ? 'مجاني' : 'FREE' }}</span>
+        <span class="cta-badge">{{ $isAr ? '?????' : 'FREE' }}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </a>
 @endsection
@@ -24,7 +24,7 @@
 
 @section('styles')
 <style>
-    /* ── HERO ── */
+    /* -- HERO -- */
     .hero {
         padding: 105px 0 90px;
         background: var(--white);
@@ -211,7 +211,7 @@
         border: 1px solid rgba(0, 0, 0, .06);
     }
 
-    /* ── STATS ── */
+    /* -- STATS -- */
     .stats { background: rgba(0, 134, 76, 0.30); padding: 64px 0; }
     .stats-label { font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 4px; color: var(--green); text-transform: uppercase; margin-bottom: 6px; line-height: 24px; }
     [dir="rtl"] .stats-label { letter-spacing: 0; }
@@ -227,7 +227,7 @@
     [dir="rtl"] .stat-value { letter-spacing: 0; }
     .stat-line { width: 36px; height: 3px; background: var(--green); margin-top: 14px; border-radius: 2px; }
 
-    /* ── PROBLEM ── */
+    /* -- PROBLEM -- */
     .problem { padding: 80px 0; background: var(--white); }
     .section-intro { font-size: 14px; color: var(--gray-text); max-width: 520px; margin-bottom: 48px; line-height: 1.65; }
     .section-intro strong { display: block; font-size: 20px; font-weight: 700; margin-bottom: 6px; color: var(--dark); }
@@ -238,7 +238,7 @@
     .problem-title { font-size: 17px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
     .problem-desc { font-size: 13px; color: var(--gray-text); line-height: 1.65; }
 
-    /* ── HOW IT WORKS ── */
+    /* -- HOW IT WORKS -- */
     .how { padding: 80px 0; background: var(--white); }
     .section-title { font-family: 'Cairo', sans-serif; font-size: 25px; font-weight: 800; color: var(--dark); text-align: left; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
     [dir="rtl"] .section-title { text-align: right; }
@@ -258,7 +258,7 @@
     .how-icon svg { width: 32px; height: 32px; stroke: var(--dark); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
     .how-card.active .how-icon svg { stroke: #f0a800; }
 
-    /* ── PILLARS ── */
+    /* -- PILLARS -- */
     .pillars { background: var(--green); padding: 40px 0; }
     .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,.08); }
     .pillar { padding: 48px 40px; background: var(--green); }
@@ -270,7 +270,7 @@
     [dir="rtl"] .pillar-title { letter-spacing: 0; }
     .pillar-desc { font-size: 12px; color: rgba(255,255,255,.7); line-height: 1.6; }
 
-    /* ── ECOSYSTEM ── */
+    /* -- ECOSYSTEM -- */
     .eco { padding: 80px 0; background: var(--white); }
     .eco-header { margin-bottom: 48px; }
     .eco-label { font-size: 28px; font-weight: 900; color: var(--dark); margin-bottom: 12px; }
@@ -291,7 +291,7 @@
         .eco-card-toggle svg.open { transform: rotate(180deg); }
     }
 
-    /* ── COMPARISON TABLE ── */
+    /* -- COMPARISON TABLE -- */
     .compare { padding: 80px 0; background: var(--cream); }
     .compare-wrap { border-radius: 20px; padding: 8px; background: var(--white); overflow-x: auto; box-shadow: 0 4px 24px rgba(0,0,0,.07); }
     .compare table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 14px; overflow: hidden; min-width: 540px; font-family: 'Cairo', sans-serif; }
@@ -306,7 +306,7 @@
     .compare tr:last-child td, .compare tr:last-child th { border-bottom: none; }
     .check { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(255,255,255,.25); border-radius: 50%; color: var(--white); font-size: 16px; font-weight: 900; border: 2px solid rgba(255,255,255,.5); }
 
-    /* ── ENGINE ── */
+    /* -- ENGINE -- */
     .engine { padding: 80px 0; background: var(--white); }
     .engine-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
     .engine-card { background: var(--dark); border-radius: 16px; padding: 40px; color: var(--white); }
@@ -328,7 +328,7 @@
     .metric-val { font-size: 17px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
     .metric-label { font-size: 13px; color: var(--gray-text); font-weight: 500; line-height: 1.5; }
 
-    /* ── DIVISIONS ── */
+    /* -- DIVISIONS -- */
     .divs { padding: 60px 0; background: var(--cream); }
     .divs-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
     .div-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 18px 16px; text-decoration: none; color: inherit; display: block; transition: border-color .2s, box-shadow .2s; }
@@ -337,7 +337,7 @@
     .div-name { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
     .div-count { font-size: 12px; color: #888; }
 
-    /* ── NEWS ── */
+    /* -- NEWS -- */
     .news { padding: 80px 0; background: var(--white); }
     .news-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
     .news-top-title { font-size: 16px; font-weight: 700; color: var(--dark); }
@@ -356,7 +356,7 @@
     .news-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
     .news-desc { font-size: 13px; color: var(--gray-text); line-height: 1.65; }
 
-    /* ── BRAND CTA ── */
+    /* -- BRAND CTA -- */
     .brand { padding: 80px 0; background: var(--dark); }
     .brand-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; max-width: 1100px; margin: 0 auto; padding: 0 32px; }
     .brand-left h3 { font-family: 'Cairo', sans-serif; font-size: 38px; font-weight: 900; color: var(--white); margin-bottom: 16px; line-height: 1.15; }
@@ -371,13 +371,13 @@
     .brand-benefit { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 13px; color: #bbb; line-height: 1.6; }
     .brand-benefit::before { content: ""; display: flex; align-items: center; justify-content: center; min-width: 20px; width: 20px; height: 20px; background: var(--green); border-radius: 50%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; }
 
-    /* ── CTA BANNER ── */
+    /* -- CTA BANNER -- */
     .cta-banner { padding: 80px 0; background: var(--white); text-align: center; }
     .cta-banner h2 { font-size: 40px; font-weight: 900; color: var(--dark); margin-bottom: 12px; letter-spacing: -1px; }
     [dir="rtl"] .cta-banner h2 { letter-spacing: 0; }
     .cta-banner p { font-size: 14px; color: var(--gray-text); margin-bottom: 30px; line-height: 1.65; }
 
-    /* ── FAQ ── */
+    /* -- FAQ -- */
     .faq { padding: 80px 0; background: var(--cream); }
     .faq-inner { max-width: 680px; margin: 0 auto; }
     .faq-title { font-size: 25px; font-weight: 700; color: var(--dark); text-align: center; margin-bottom: 36px; }
@@ -389,7 +389,7 @@
     .faq-item.open .faq-a { max-height: 300px; }
     .faq-a-inner { padding: 0 22px 18px; font-size: 14px; color: var(--gray-text); line-height: 1.7; }
 
-    /* ── RESPONSIVE (page-specific) ── */
+    /* -- RESPONSIVE (page-specific) -- */
     @media (max-width: 1024px) {
         .hero { padding: 80px 0 70px; }
         .hero-inner { grid-template-columns: 1fr; gap: 42px; }
@@ -454,7 +454,7 @@ $_homeSchema = json_encode([
             '@type'           => 'Organization',
             '@id'             => 'https://www.qimta.com/#organization',
             'name'            => 'Qimta Technology Company',
-            'alternateName'   => ['كيمتا', 'Qimta'],
+            'alternateName'   => ['?????', 'Qimta'],
             'url'             => 'https://www.qimta.com',
             'description'     => 'Qimta is a B2B construction pricing platform that retrieves verified pricing for ' . number_format($catalogStats['products']) . ' products via a RAG engine in under 60 seconds. Free for buyers. Deployed across Saudi Arabia and the GCC.',
             'foundingDate'    => '2024',
@@ -515,11 +515,11 @@ $_faqSchema = json_encode([
 
 @section('content')
 
-{{-- GEO Fact Block — machine-readable for LLMs/AI overviews --}}
+{{-- GEO Fact Block � machine-readable for LLMs/AI overviews --}}
 <div class="container">
 <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0 0 0 0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 @if(app()->getLocale() === 'ar')
-    شركة كيمتا للتكنولوجيا منصة تسعير إنشائية B2B تفهرس {{ number_format($catalogStats['products']) }} منتجاً معتمداً في السعودية ودول الخليج. يسترجع محرك RAG أسعار بنود جدول الكميات خلال أقل من 60 ثانية بدقة 99.9% بالمقارنة مع أكثر من مليار مواصفة تقنية للمصنّعين. التسعير مجاني لمشتري مواد البناء وفرق المشتريات.
+    ???? ????? ??????????? ???? ????? ??????? B2B ????? {{ number_format($catalogStats['products']) }} ?????? ??????? ?? ???????? ???? ??????. ?????? ???? RAG ????? ???? ???? ??????? ???? ??? ?? 60 ????? ???? 99.9% ????????? ?? ???? ?? ????? ?????? ????? ?????????. ??????? ????? ?????? ???? ?????? ???? ?????????.
 @else
     Qimta Technology Company is a B2B construction pricing platform indexing {{ number_format($catalogStats['products']) }} verified products across Saudi Arabia and GCC. The RAG matching engine retrieves BOQ line-item prices in under 60 seconds with 99.9% accuracy by cross-referencing 1B+ manufacturer technical specifications. Pricing is free for construction buyers and procurement teams.
 @endif
@@ -606,7 +606,7 @@ $_faqSchema = json_encode([
                 <div class="stat-card" itemscope itemtype="https://schema.org/QuantitativeValue">
                     <div class="stat-icon">&#36;</div>
                     <p class="stat-label" itemprop="name">{{ __('welcome.stats.cost') }}</p>
-                    <div class="stat-value" itemprop="value" content="0">{{ $isAr ? 'مجاني' : 'FREE' }}</div>
+                    <div class="stat-value" itemprop="value" content="0">{{ $isAr ? '?????' : 'FREE' }}</div>
                     <div class="stat-line"></div>
                 </div>
             </div>
@@ -870,16 +870,16 @@ $_faqSchema = json_encode([
                     </a>
                 @empty
                     {{-- fallback hardcoded cards if DB unavailable --}}
-                    <div class="div-card"><p class="div-num">Div 03</p><p class="div-name">{{ $isAr ? 'خرسانة' : 'Concrete' }}</p><p class="div-count">12,402 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 04</p><p class="div-name">{{ $isAr ? 'بناء' : 'Masonry' }}</p><p class="div-count">8,190 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 05</p><p class="div-name">{{ $isAr ? 'معادن' : 'Metals' }}</p><p class="div-count">26,561 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 07</p><p class="div-name">{{ $isAr ? 'عزل حراري ومائي' : 'Thermal & Moisture' }}</p><p class="div-count">15,003 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 08</p><p class="div-name">{{ $isAr ? 'فتحات' : 'Openings' }}</p><p class="div-count">53,291 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 09</p><p class="div-name">{{ $isAr ? 'تشطيبات' : 'Finishes' }}</p><p class="div-count">42,891 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 21</p><p class="div-name">{{ $isAr ? 'إطفاء الحريق' : 'Fire Suppression' }}</p><p class="div-count">5,620 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 22</p><p class="div-name">{{ $isAr ? 'سباكة' : 'Plumbing' }}</p><p class="div-count">28,109 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 23</p><p class="div-name">{{ $isAr ? 'تكييف' : 'HVAC' }}</p><p class="div-count">31,005 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 26</p><p class="div-name">{{ $isAr ? 'كهرباء' : 'Electrical' }}</p><p class="div-count">55,420 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 03</p><p class="div-name">{{ $isAr ? '??????' : 'Concrete' }}</p><p class="div-count">12,402 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 04</p><p class="div-name">{{ $isAr ? '????' : 'Masonry' }}</p><p class="div-count">8,190 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 05</p><p class="div-name">{{ $isAr ? '?????' : 'Metals' }}</p><p class="div-count">26,561 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 07</p><p class="div-name">{{ $isAr ? '??? ????? ?????' : 'Thermal & Moisture' }}</p><p class="div-count">15,003 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 08</p><p class="div-name">{{ $isAr ? '?????' : 'Openings' }}</p><p class="div-count">53,291 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 09</p><p class="div-name">{{ $isAr ? '???????' : 'Finishes' }}</p><p class="div-count">42,891 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 21</p><p class="div-name">{{ $isAr ? '????? ??????' : 'Fire Suppression' }}</p><p class="div-count">5,620 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 22</p><p class="div-name">{{ $isAr ? '?????' : 'Plumbing' }}</p><p class="div-count">28,109 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 23</p><p class="div-name">{{ $isAr ? '?????' : 'HVAC' }}</p><p class="div-count">31,005 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 26</p><p class="div-name">{{ $isAr ? '??????' : 'Electrical' }}</p><p class="div-count">55,420 {{ __('welcome.divs.products') }}</p></div>
                 @endforelse
             </div>
         </div>
@@ -897,7 +897,7 @@ $_faqSchema = json_encode([
                     <div class="news-img-placeholder">
                         <img src="{{ asset('images/news/construction-materials.jpg') }}"
                              width="800" height="534"
-                             alt="{{ $isAr ? 'أسعار مواد البناء في السعودية - مشروع إنشائي بالسعودية' : 'Construction materials pricing in Saudi Arabia - local building project' }}"
+                             alt="{{ $isAr ? '????? ???? ?????? ?? ???????? - ????? ?????? ?????????' : 'Construction materials pricing in Saudi Arabia - local building project' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">
@@ -910,7 +910,7 @@ $_faqSchema = json_encode([
                     <div class="news-img-placeholder">
                         <img src="{{ asset('images/news/smart-pricing-tech.jpg') }}"
                              width="800" height="534"
-                             alt="{{ $isAr ? 'تقنية التسعير الذكي لمواد البناء - منصة كيمتا للإنشاء' : 'Smart construction pricing technology powered by QIMTA platform' }}"
+                             alt="{{ $isAr ? '????? ??????? ????? ????? ?????? - ???? ????? ???????' : 'Smart construction pricing technology powered by QIMTA platform' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">
@@ -923,7 +923,7 @@ $_faqSchema = json_encode([
                     <div class="news-img-placeholder">
                         <img src="{{ asset('images/news/business-meeting.jpg') }}"
                              width="800" height="534"
-                             alt="{{ $isAr ? 'نجاح عملاء كيمتا - مقاول يوفر تكاليف المشاريع الإنشائية' : 'QIMTA client success - contractor reducing construction project costs' }}"
+                             alt="{{ $isAr ? '???? ????? ????? - ????? ???? ?????? ???????? ?????????' : 'QIMTA client success - contractor reducing construction project costs' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">

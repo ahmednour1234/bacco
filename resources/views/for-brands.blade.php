@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', __('for-brands.title'))
 
@@ -9,7 +9,7 @@
 
 @section('styles')
 <style>
-    /* ── HERO ── */
+    /* -- HERO -- */
     .brands-hero {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -22,17 +22,17 @@
     .brands-hero-eyebrow {
         font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
         color: var(--green); margin-bottom: 18px;
-        font-family: 'The Year of The Camel', serif;
+        font-family: 'Cairo', sans-serif;
     }
     .brands-hero h1 {
         font-size: clamp(32px, 4.5vw, 52px); font-weight: 900; letter-spacing: -1.5px;
         line-height: 1.1; margin-bottom: 20px; color: var(--dark);
-        font-family: 'The Year of The Camel', serif;
+        font-family: 'Cairo', sans-serif;
     }
     /* RTL (Arabic) hero keeps the same font */
     [dir="rtl"] .brands-hero-eyebrow,
     [dir="rtl"] .brands-hero h1 {
-        font-family: 'The Year of The Camel', serif;
+        font-family: 'Cairo', sans-serif;
         letter-spacing: 0;
     }
     .brands-hero p {
@@ -67,7 +67,7 @@
         background: linear-gradient(135deg, rgba(0,106,59,.4) 0%, transparent 60%);
     }
 
-    /* ── STATS BAR ── */
+    /* -- STATS BAR -- */
     .stats-bar {
         display: grid; grid-template-columns: repeat(4, 1fr);
         border: 1.5px solid var(--border); border-radius: 16px;
@@ -84,12 +84,12 @@
     .stat-cell .s-val { font-size: 32px; font-weight: 900; letter-spacing: -1.5px; color: var(--green); line-height: 1; }
     .stat-cell .s-sub { font-size: 12px; color: #888; margin-top: 4px; }
 
-    /* ── SECTION TITLE ── */
+    /* -- SECTION TITLE -- */
     .section-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; text-align: center; }
     .section-title { font-size: clamp(24px, 3vw, 36px); font-weight: 900; letter-spacing: -0.8px; text-align: center; margin-bottom: 48px; }
     .section-title span { color: var(--green); }
 
-    /* ── ADVANTAGES GRID ── */
+    /* -- ADVANTAGES GRID -- */
     .advantages-section { margin-bottom: 88px; }
     .advantages-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
     @media (max-width: 700px) { .advantages-grid { grid-template-columns: 1fr; } }
@@ -106,7 +106,7 @@
     .adv-card h2 { font-size: 17px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.3px; }
     .adv-card p { font-size: 13.5px; color: #666; line-height: 1.7; }
 
-    /* ── HOW IT WORKS ── */
+    /* -- HOW IT WORKS -- */
     .how-section {
         background: #0d1f17; border-radius: 24px; padding: 64px;
         margin-bottom: 88px; color: #fff;
@@ -127,7 +127,7 @@
     .how-step h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #fff; }
     .how-step p { font-size: 13px; color: rgba(255,255,255,.6); line-height: 1.65; }
 
-    /* ── PRICING ── */
+    /* -- PRICING -- */
     .pricing-section { margin-bottom: 88px; }
     .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
     @media (max-width: 700px) { .pricing-grid { grid-template-columns: 1fr; } }
@@ -162,7 +162,7 @@
     .pricing-btn.solid { background: var(--green); color: #fff; }
     .pricing-btn.solid:hover { background: #005a32; }
 
-    /* ── FORM SECTION ── */
+    /* -- FORM SECTION -- */
     .form-section {
         display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
         align-items: start; margin-bottom: 88px;
@@ -221,7 +221,7 @@ $_brandsSchema = json_encode([
             '@id'         => 'https://www.qimta.com/for-brands#webpage',
             'url'         => 'https://www.qimta.com/for-brands',
             'name'        => 'List Your Products on Qimta | Reach BOQ Buyers in Saudi Arabia & GCC',
-            'description' => 'List your construction product catalog on Qimta and get direct visibility to B2B buyers in GCC when they upload a BOQ. RAG Engine · API Integration · Free for buyers.',
+            'description' => 'List your construction product catalog on Qimta and get direct visibility to B2B buyers in GCC when they upload a BOQ. RAG Engine � API Integration � Free for buyers.',
             'inLanguage'  => 'en',
             'isPartOf'    => ['@id' => 'https://www.qimta.com/#website'],
         ],
@@ -237,14 +237,14 @@ $_brandsSchema = json_encode([
 <div class="container">
 <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 @if(app()->getLocale() === 'ar')
-    تتيح شركة كيمتا للتكنولوجيا للعلامات التجارية ومصنّعي مواد البناء إدراج بيانات منتجاتهم المعتمدة عبر {{ $catalogStats['categories'] }} فئة و{{ $catalogStats['divisions'] }} قسماً. يُفهرس كل منتج مقابل {{ number_format($catalogStats['products']) }} رقم SKU ويُطابق مع طلبات جداول الكميات الفعلية من مقاولين وفرق مشتريات في السعودية ودول الخليج.
+    ???? ???? ????? ??????????? ???????? ???????? ??????? ???? ?????? ????? ?????? ???????? ???????? ??? {{ $catalogStats['categories'] }} ??? ?{{ $catalogStats['divisions'] }} ?????. ?????? ?? ???? ????? {{ number_format($catalogStats['products']) }} ??? SKU ??????? ?? ????? ????? ??????? ??????? ?? ??????? ???? ??????? ?? ???????? ???? ??????.
 @else
     Qimta Technology Company enables construction material brands and manufacturers to list verified product data across {{ $catalogStats['categories'] }} categories and {{ $catalogStats['divisions'] }} divisions. Listed products are indexed against {{ number_format($catalogStats['products']) }} SKUs and matched to live BOQ requests from contractors and procurement teams in Saudi Arabia and GCC.
 @endif
 </p>
 </div>
 
-{{-- ── HERO ─────────────────────────────────────────────────── --}}
+{{-- -- HERO --------------------------------------------------- --}}
 <div class="container">
     <div class="brands-hero">
         <div>
@@ -266,7 +266,7 @@ $_brandsSchema = json_encode([
     </div>
 </div>
 
-{{-- ── STATS BAR ───────────────────────────────────────────── --}}
+{{-- -- STATS BAR --------------------------------------------- --}}
 <div class="container">
     <div class="stats-bar">
         @php
@@ -297,7 +297,7 @@ $_brandsSchema = json_encode([
     </div>
 </div>
 
-{{-- ── THE QIMTA ADVANTAGE ──────────────────────────────────── --}}
+{{-- -- THE QIMTA ADVANTAGE ------------------------------------ --}}
 <div class="container">
     <div class="advantages-section">
         <div class="section-eyebrow">{{ __('for-brands.adv.eyebrow') }}</div>
@@ -345,7 +345,7 @@ $_brandsSchema = json_encode([
     </div>
 </div>
 
-{{-- ── HOW IT WORKS ─────────────────────────────────────────── --}}
+{{-- -- HOW IT WORKS ------------------------------------------- --}}
 <div class="container">
     <div class="how-section">
         <div class="section-eyebrow">{{ __('for-brands.how.eyebrow') }}</div>
@@ -375,7 +375,7 @@ $_brandsSchema = json_encode([
     </div>
 </div>
 
-{{-- ── MARKET POSITIONING ───────────────────────────────────── --}}
+{{-- -- MARKET POSITIONING ------------------------------------- --}}
 <div class="container">
     <div class="pricing-section">
         <div class="section-eyebrow">{{ __('for-brands.pricing.eyebrow') }}</div>
@@ -409,7 +409,7 @@ $_brandsSchema = json_encode([
     </div>
 </div>
 
-{{-- ── APPLICATION FORM ─────────────────────────────────────── --}}
+{{-- -- APPLICATION FORM --------------------------------------- --}}
 <div class="container" id="apply">
     <div class="form-section">
         <div class="form-section-left">
