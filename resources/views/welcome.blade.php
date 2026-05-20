@@ -3,17 +3,17 @@
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
 @section('title', $isAr
-    ? '????? � ???? ????? ????? ??????? | ???????? ???????'
-    : 'Qimta � Construction BOQ Pricing Platform | Saudi Arabia & GCC')
+    ? 'كيمتا — منصة تسعير جداول الكميات | السعودية والخليج'
+    : 'Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
 
 @section('description', $isAr
-    ? '?????: ??? ?? ??? ?? ???? ??????? ?? ?????. ' . number_format($catalogStats['products']) . ' ?????? ??????? ???????? ????????? ???????. ???? ????? ?????? ?????? ???????? ???????.'
+    ? 'كيمتا: سعر كل بند من جدول الكميات في دقائق. ' . number_format($catalogStats['products']) . ' منتجاً موثّقاً ومليارات المواصفات التقنية. منصة تسعير مشاريع البناء للسعودية والخليج.'
     : 'Qimta prices every BOQ line across every brand in seconds. Access ' . number_format($catalogStats['products']) . ' verified products and 1B technical specs. The construction pricing platform for Saudi Arabia & GCC.')
 
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-nav-cta">
         {{ __('welcome.nav.price_boq') }}
-        <span class="cta-badge">{{ $isAr ? '?????' : 'FREE' }}</span>
+        <span class="cta-badge">{{ $isAr ? 'مجاني' : 'FREE' }}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </a>
 @endsection
@@ -454,7 +454,7 @@ $_homeSchema = json_encode([
             '@type'           => 'Organization',
             '@id'             => 'https://www.qimta.com/#organization',
             'name'            => 'Qimta Technology Company',
-            'alternateName'   => ['?????', 'Qimta'],
+            'alternateName'   => ['كيمتا', 'Qimta'],
             'url'             => 'https://www.qimta.com',
             'description'     => 'Qimta is a B2B construction pricing platform that retrieves verified pricing for ' . number_format($catalogStats['products']) . ' products via a RAG engine in under 60 seconds. Free for buyers. Deployed across Saudi Arabia and the GCC.',
             'foundingDate'    => '2024',
@@ -515,11 +515,11 @@ $_faqSchema = json_encode([
 
 @section('content')
 
-{{-- GEO Fact Block � machine-readable for LLMs/AI overviews --}}
+{{-- GEO Fact Block � machine-readable for LLMs/AI overviews --}}
 <div class="container">
 <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0 0 0 0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 @if(app()->getLocale() === 'ar')
-    ???? ????? ??????????? ???? ????? ??????? B2B ????? {{ number_format($catalogStats['products']) }} ?????? ??????? ?? ???????? ???? ??????. ?????? ???? RAG ????? ???? ???? ??????? ???? ??? ?? 60 ????? ???? 99.9% ????????? ?? ???? ?? ????? ?????? ????? ?????????. ??????? ????? ?????? ???? ?????? ???? ?????????.
+    شركة كيمتا للتكنولوجيا منصة تسعير إنشائية B2B تفهرس {{ number_format($catalogStats['products']) }} منتجاً معتمداً في السعودية ودول الخليج. يسترجع محرك RAG أسعار بنود جدول الكميات خلال أقل من 60 ثانية بدقة 99.9% بالمقارنة مع أكثر من مليار مواصفة تقنية للمصنّعين. التسعير مجاني لمشتري مواد البناء وفرق المشتريات.
 @else
     Qimta Technology Company is a B2B construction pricing platform indexing {{ number_format($catalogStats['products']) }} verified products across Saudi Arabia and GCC. The RAG matching engine retrieves BOQ line-item prices in under 60 seconds with 99.9% accuracy by cross-referencing 1B+ manufacturer technical specifications. Pricing is free for construction buyers and procurement teams.
 @endif
@@ -606,7 +606,7 @@ $_faqSchema = json_encode([
                 <div class="stat-card" itemscope itemtype="https://schema.org/QuantitativeValue">
                     <div class="stat-icon">&#36;</div>
                     <p class="stat-label" itemprop="name">{{ __('welcome.stats.cost') }}</p>
-                    <div class="stat-value" itemprop="value" content="0">{{ $isAr ? '?????' : 'FREE' }}</div>
+                    <div class="stat-value" itemprop="value" content="0">{{ $isAr ? 'مجاني' : 'FREE' }}</div>
                     <div class="stat-line"></div>
                 </div>
             </div>
@@ -870,16 +870,16 @@ $_faqSchema = json_encode([
                     </a>
                 @empty
                     {{-- fallback hardcoded cards if DB unavailable --}}
-                    <div class="div-card"><p class="div-num">Div 03</p><p class="div-name">{{ $isAr ? '??????' : 'Concrete' }}</p><p class="div-count">12,402 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 04</p><p class="div-name">{{ $isAr ? '????' : 'Masonry' }}</p><p class="div-count">8,190 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 05</p><p class="div-name">{{ $isAr ? '?????' : 'Metals' }}</p><p class="div-count">26,561 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 07</p><p class="div-name">{{ $isAr ? '??? ????? ?????' : 'Thermal & Moisture' }}</p><p class="div-count">15,003 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 08</p><p class="div-name">{{ $isAr ? '?????' : 'Openings' }}</p><p class="div-count">53,291 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 09</p><p class="div-name">{{ $isAr ? '???????' : 'Finishes' }}</p><p class="div-count">42,891 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 21</p><p class="div-name">{{ $isAr ? '????? ??????' : 'Fire Suppression' }}</p><p class="div-count">5,620 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 22</p><p class="div-name">{{ $isAr ? '?????' : 'Plumbing' }}</p><p class="div-count">28,109 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 23</p><p class="div-name">{{ $isAr ? '?????' : 'HVAC' }}</p><p class="div-count">31,005 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 26</p><p class="div-name">{{ $isAr ? '??????' : 'Electrical' }}</p><p class="div-count">55,420 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 03</p><p class="div-name">{{ $isAr ? 'خرسانة' : 'Concrete' }}</p><p class="div-count">12,402 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 04</p><p class="div-name">{{ $isAr ? 'بناء' : 'Masonry' }}</p><p class="div-count">8,190 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 05</p><p class="div-name">{{ $isAr ? 'معادن' : 'Metals' }}</p><p class="div-count">26,561 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 07</p><p class="div-name">{{ $isAr ? 'عزل حراري ومائي' : 'Thermal & Moisture' }}</p><p class="div-count">15,003 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 08</p><p class="div-name">{{ $isAr ? 'فتحات' : 'Openings' }}</p><p class="div-count">53,291 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 09</p><p class="div-name">{{ $isAr ? 'تشطيبات' : 'Finishes' }}</p><p class="div-count">42,891 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 21</p><p class="div-name">{{ $isAr ? 'إطفاء الحريق' : 'Fire Suppression' }}</p><p class="div-count">5,620 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 22</p><p class="div-name">{{ $isAr ? 'سباكة' : 'Plumbing' }}</p><p class="div-count">28,109 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 23</p><p class="div-name">{{ $isAr ? 'تكييف' : 'HVAC' }}</p><p class="div-count">31,005 {{ __('welcome.divs.products') }}</p></div>
+                    <div class="div-card"><p class="div-num">Div 26</p><p class="div-name">{{ $isAr ? 'كهرباء' : 'Electrical' }}</p><p class="div-count">55,420 {{ __('welcome.divs.products') }}</p></div>
                 @endforelse
             </div>
         </div>
@@ -897,7 +897,7 @@ $_faqSchema = json_encode([
                     <div class="news-img-placeholder">
                         <img src="{{ asset('images/news/construction-materials.jpg') }}"
                              width="800" height="534"
-                             alt="{{ $isAr ? '????? ???? ?????? ?? ???????? - ????? ?????? ?????????' : 'Construction materials pricing in Saudi Arabia - local building project' }}"
+                             alt="{{ $isAr ? 'أسعار مواد البناء في السعودية - مشروع إنشائي بالسعودية' : 'Construction materials pricing in Saudi Arabia - local building project' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">
@@ -910,7 +910,7 @@ $_faqSchema = json_encode([
                     <div class="news-img-placeholder">
                         <img src="{{ asset('images/news/smart-pricing-tech.jpg') }}"
                              width="800" height="534"
-                             alt="{{ $isAr ? '????? ??????? ????? ????? ?????? - ???? ????? ???????' : 'Smart construction pricing technology powered by QIMTA platform' }}"
+                             alt="{{ $isAr ? 'تقنية التسعير الذكي لمواد البناء - منصة كيمتا للإنشاء' : 'Smart construction pricing technology powered by QIMTA platform' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">
@@ -923,7 +923,7 @@ $_faqSchema = json_encode([
                     <div class="news-img-placeholder">
                         <img src="{{ asset('images/news/business-meeting.jpg') }}"
                              width="800" height="534"
-                             alt="{{ $isAr ? '???? ????? ????? - ????? ???? ?????? ???????? ?????????' : 'QIMTA client success - contractor reducing construction project costs' }}"
+                             alt="{{ $isAr ? 'نجاح عملاء كيمتا - مقاول يوفر تكاليف المشاريع الإنشائية' : 'QIMTA client success - contractor reducing construction project costs' }}"
                              loading="lazy">
                     </div>
                     <div class="news-body">
