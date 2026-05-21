@@ -141,14 +141,21 @@ class QuotationAiService
             }
         }
 
-        // ── Direct Excel/CSV parsing — no external API needed ────────────────
-        if (in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
+        // ── Route by file type ───────────────────────────────────────────────
+        if ($ext === 'csv') {
+            // CSV: parse locally (simple structure, no AI needed).
             $result = $this->parseSpreadsheetDirect($absPath);
-        } elseif (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png'], true)) {
-            // PDF and images are sent to Gemini for AI extraction.
+            if (! $result['success']) {
+                $result = $this->parseBoqWithGemini($file, $context);
+            }
+        } elseif (in_array($ext, ['xlsx', 'xls'], true)) {
+            // Excel: always send to Gemini — it understands BOQ structure far better
+            // than positional column detection, especially for Arabic/mixed layouts.
+            $result = $this->parseBoqWithGemini($file, $context);
+        } elseif (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif'], true)) {
             $result = $this->parseBoqWithGemini($file, $context);
         } else {
-            return $this->failure('Unsupported file type. Please upload an Excel (.xlsx, .xls), CSV, or PDF file.');
+            return $this->failure('Unsupported file type. Please upload an Excel (.xlsx, .xls), CSV, PDF, or image file.');
         }
 
         // ── Apply description cleaning and compound splitting ─────────────────
@@ -174,68 +181,97 @@ class QuotationAiService
      */
     private function parseSpreadsheetDirect(string $absPath): array
     {
+        ini_set('memory_limit', '512M');
         $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
 
         try {
+            // ── Build sheets data — use the lightest strategy that works ────
+            $sheetsData = null;
+
             if ($ext === 'csv') {
-                $reader = IOFactory::createReader('Csv');
-                $reader->setReadDataOnly(true);
-                $spreadsheet = $reader->load($absPath);
-                $sheets = [$spreadsheet->getActiveSheet()];
-            } else {
+                // Read CSV directly without any library.
+                $raw = file_get_contents($absPath);
+                if ($raw !== false && $raw !== '') {
+                    $lines = preg_split('/\r\n|\r|\n/', $raw);
+                    $rows  = [];
+                    foreach ($lines as $line) {
+                        if (trim($line) === '') {
+                            continue;
+                        }
+                        $rows[] = str_getcsv($line);
+                    }
+                    $sheetsData = [['name' => 'Sheet1', 'grid' => $rows]];
+                }
+            } elseif ($ext === 'xlsx') {
+                // Lightweight ZipArchive reader — uses ~5 MB vs ~100 MB for PhpSpreadsheet.
+                $sheetsData = $this->readXlsxAsGrids($absPath);
+            }
+
+            // Fallback to PhpSpreadsheet for .xls or when the lightweight reader failed.
+            if ($sheetsData === null) {
                 $readerTypes = $ext === 'xls' ? ['Xls', 'Xlsx'] : ['Xlsx', 'Xls'];
                 $spreadsheet = null;
                 foreach ($readerTypes as $type) {
                     try {
                         $reader = IOFactory::createReader($type);
                         $reader->setReadDataOnly(true);
-                        if ($reader->canRead($absPath)) {
-                            $spreadsheet = $reader->load($absPath);
-                            break;
-                        }
+                        $spreadsheet = $reader->load($absPath);
+                        break;
                     } catch (\Throwable) {
                         continue;
                     }
                 }
-
                 if ($spreadsheet === null) {
-                    return $this->failure('Could not read the Excel file. Please make sure it is a valid .xlsx or .xls file.');
+                    try {
+                        $spreadsheet = IOFactory::load($absPath);
+                    } catch (\Throwable $e) {
+                        Log::warning('QuotationAiService: IOFactory::load failed.', ['message' => $e->getMessage()]);
+                    }
                 }
+                if ($spreadsheet !== null) {
+                    $sheetsData = [];
+                    foreach ($spreadsheet->getAllSheets() as $sheet) {
+                        $highestRow    = $sheet->getHighestDataRow();
+                        $highestColumn = $sheet->getHighestDataColumn();
+                        if ($highestRow < 2) {
+                            continue;
+                        }
+                        $grid = [];
+                        foreach ($sheet->getRowIterator(1, $highestRow) as $rowObj) {
+                            $rowData      = [];
+                            $cellIterator = $rowObj->getCellIterator('A', $highestColumn);
+                            $cellIterator->setIterateOnlyExistingCells(false);
+                            foreach ($cellIterator as $cell) {
+                                try {
+                                    $value = $cell->getCalculatedValue();
+                                } catch (\Throwable) {
+                                    $value = $cell->getOldCalculatedValue() ?? $cell->getValue();
+                                }
+                                if (is_string($value) && str_starts_with(ltrim($value), '=')) {
+                                    $value = '';
+                                }
+                                $rowData[] = $value;
+                            }
+                            $grid[] = $rowData;
+                        }
+                        $sheetsData[] = ['name' => $sheet->getTitle(), 'grid' => $grid];
+                    }
+                    unset($spreadsheet);
+                }
+            }
 
-                $sheets = $spreadsheet->getAllSheets();
+            if ($sheetsData === null || empty($sheetsData)) {
+                return $this->failure('Could not read the Excel file. Please make sure it is a valid .xlsx or .xls file.');
             }
 
             $allItems    = [];
             $allRejected = [];
 
-            foreach ($sheets as $sheet) {
-                $highestRow    = $sheet->getHighestDataRow();
-                $highestColumn = $sheet->getHighestDataColumn();
+            foreach ($sheetsData as $sheetData) {
+                $grid = $sheetData['grid'];
 
-                if ($highestRow < 2) {
+                if (count($grid) < 2) {
                     continue;
-                }
-
-                $grid = [];
-                foreach ($sheet->getRowIterator(1, $highestRow) as $rowObj) {
-                    $rowData      = [];
-                    $cellIterator = $rowObj->getCellIterator('A', $highestColumn);
-                    $cellIterator->setIterateOnlyExistingCells(false);
-                    foreach ($cellIterator as $cell) {
-                        try {
-                            $value = $cell->getCalculatedValue();
-                        } catch (\Throwable) {
-                            // Structured table references (Table13[[#This Row],...]) can't be
-                            // resolved by PhpSpreadsheet — use the value Excel last saved instead.
-                            $value = $cell->getOldCalculatedValue() ?? $cell->getValue();
-                        }
-                        // If still a raw formula string, blank it out
-                        if (is_string($value) && str_starts_with(ltrim($value), '=')) {
-                            $value = '';
-                        }
-                        $rowData[] = $value;
-                    }
-                    $grid[] = $rowData;
                 }
 
                 // ── Find the header row (first row with meaningful column names) ──
@@ -469,6 +505,130 @@ class QuotationAiService
             ]);
 
             return $this->failure('Failed to read the Excel file: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Parse an .xlsx file using ZipArchive + SimpleXML — minimal memory (~5 MB vs ~100 MB for PhpSpreadsheet).
+     * Returns an array of ['name' => string, 'grid' => array[][]] for each sheet, or null on failure.
+     *
+     * @return array<int, array{name: string, grid: array<int, array<int, string>>}>|null
+     */
+    private function readXlsxAsGrids(string $absPath): ?array
+    {
+        if (! class_exists(\ZipArchive::class)) {
+            return null;
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($absPath) !== true) {
+            return null;
+        }
+
+        try {
+            // ── Shared strings table ─────────────────────────────────────────
+            $sharedStrings = [];
+            $ssContent     = $zip->getFromName('xl/sharedStrings.xml');
+            if ($ssContent !== false && $ssContent !== '') {
+                $xml = @simplexml_load_string($ssContent, 'SimpleXMLElement', LIBXML_NOERROR | LIBXML_NOWARNING);
+                if ($xml) {
+                    foreach ($xml->si as $si) {
+                        if (isset($si->t)) {
+                            $sharedStrings[] = (string) $si->t;
+                        } else {
+                            $text = '';
+                            foreach ($si->r ?? [] as $r) {
+                                $text .= (string) ($r->t ?? '');
+                            }
+                            $sharedStrings[] = $text;
+                        }
+                    }
+                }
+            }
+
+            // ── Sheet names from workbook ────────────────────────────────────
+            $sheetNames = [];
+            $wbContent  = $zip->getFromName('xl/workbook.xml');
+            if ($wbContent !== false) {
+                $wb = @simplexml_load_string($wbContent, 'SimpleXMLElement', LIBXML_NOERROR | LIBXML_NOWARNING);
+                if ($wb) {
+                    foreach ($wb->sheets->sheet ?? [] as $sheet) {
+                        $sheetNames[] = (string) $sheet['name'];
+                    }
+                }
+            }
+
+            // ── Parse each sheet ─────────────────────────────────────────────
+            $sheetsData = [];
+            $idx        = 1;
+
+            while (true) {
+                $sheetContent = $zip->getFromName("xl/worksheets/sheet{$idx}.xml");
+                if ($sheetContent === false) {
+                    break;
+                }
+
+                $grid = [];
+                $xml  = @simplexml_load_string($sheetContent, 'SimpleXMLElement', LIBXML_NOERROR | LIBXML_NOWARNING);
+
+                if ($xml) {
+                    foreach ($xml->sheetData->row ?? [] as $row) {
+                        $rowData = [];
+                        $maxCol  = -1;
+
+                        foreach ($row->c ?? [] as $cell) {
+                            // Parse column letter (e.g. "B3" → column index 1)
+                            $cellRef = (string) ($cell['r'] ?? 'A1');
+                            preg_match('/^([A-Z]+)/i', $cellRef, $m);
+                            $colStr   = strtoupper($m[1] ?? 'A');
+                            $colIndex = 0;
+                            for ($i = 0, $len = strlen($colStr); $i < $len; $i++) {
+                                $colIndex = $colIndex * 26 + (ord($colStr[$i]) - 64);
+                            }
+                            $colIndex--; // 0-based
+
+                            $type   = (string) ($cell['t'] ?? '');
+                            $rawVal = (string) ($cell->v ?? '');
+
+                            $value = match ($type) {
+                                's'         => $sharedStrings[(int) $rawVal] ?? '',
+                                'inlineStr' => (string) ($cell->is->t ?? ''),
+                                'b'         => ($rawVal ? 'TRUE' : 'FALSE'),
+                                default     => $rawVal,
+                            };
+
+                            $rowData[$colIndex] = $value;
+                            $maxCol             = max($maxCol, $colIndex);
+                        }
+
+                        if ($maxCol >= 0) {
+                            $fullRow = [];
+                            for ($i = 0; $i <= $maxCol; $i++) {
+                                $fullRow[] = $rowData[$i] ?? '';
+                            }
+                            // Only add rows that have at least one non-empty cell.
+                            if (array_filter($fullRow, fn($v) => trim((string) $v) !== '') !== []) {
+                                $grid[] = $fullRow;
+                            }
+                        }
+                    }
+                }
+
+                $sheetsData[] = [
+                    'name' => $sheetNames[$idx - 1] ?? "Sheet{$idx}",
+                    'grid' => $grid,
+                ];
+                $idx++;
+            }
+
+            $zip->close();
+
+            return $sheetsData ?: null;
+
+        } catch (\Throwable $e) {
+            $zip->close();
+            Log::warning('QuotationAiService: readXlsxAsGrids failed.', ['message' => $e->getMessage()]);
+            return null;
         }
     }
 
@@ -945,44 +1105,51 @@ class QuotationAiService
     private function buildSystemInstruction(): string
     {
         return trim(<<<'SYSTEM'
-You are a BOQ Supply Product Extraction Engine.
+You are a strict BOQ Supply Product Extraction Engine for a procurement platform.
 
-Your job is to extract supply-only products from BOQ items for pricing.
-You must NOT price installation, testing, commissioning, civil works, labor, totals, or general works.
+YOUR ONLY JOB: Extract rows that describe a real, purchasable physical product or piece of equipment that a supplier can price and deliver. Nothing else.
+
+━━━ REJECT IMMEDIATELY — DO NOT OUTPUT THESE ━━━
+Set rejected=true for ANY row that matches the following patterns:
+
+1. ROW IS JUST A NUMBER OR ITEM CODE:
+   - e.g. "1", "2", "3-1", "5-7", "A", "B", "IV" — row has no product name, only a numbering code.
+
+2. SECTION / CHAPTER HEADINGS:
+   - e.g. "Mechanical Works", "Electrical Works", "Plumbing", "الأعمال الميكانيكية", "أعمال الصرف الصحي", "الأعمال الكهربائية", "الأعمال المعمارية", "الأعمال المدنية"
+   - Any row whose entire text is a category name, chapter title, or division header.
+
+3. TOTALS, SUBTOTALS, AND SUMMARY LINES:
+   - e.g. "Grand Total", "Sub Total", "Total Value", "اجمالي", "الإجمالي", "المجموع", "اجمالى قيمة الأعمال", "اجمالى قيمة الأعمال المعمارية رقماً وكتابة"
+   - Any row containing "Total" or "إجمالي" or "مجموع" as the primary content.
+
+4. LABOR / INSTALLATION ONLY:
+   - Testing and commissioning, site supervision, mobilization, preliminaries, drawings, permits, insurance, scaffolding, general attendance, temporary works.
+
+5. VAGUE / GENERIC DESCRIPTIONS WITH NO PRODUCT:
+   - "All required works", "Complete system as specified", "As per drawings", "Allow for", "Provisional sum", "PC sum"
+   - Arabic equivalents: "حسب المواصفات", "كما هو مبين بالرسومات", "بند مؤقت", "أعمال كاملة"
+
+6. BLANK OR NEAR-BLANK ROWS:
+   - Rows where the description column is empty, or contains only spaces, dashes, or a single character.
+
+━━━ KEEP — THESE ARE VALID SUPPLY PRODUCTS ━━━
+Only output items where you can clearly identify a named, purchasable product:
+- Physical materials: pipe, cable, fitting, valve, panel, fixture, pump, tank, conduit, duct, grille, door, window, tile, paint, etc.
+- Equipment with specifications: brand, model, size, rating, voltage, capacity, material, standard.
+- "Supply and Install" rows: KEEP but strip the install clause — output the supply product only.
 
 ━━━ CRITICAL RULE — QUANTITY & UNIT ━━━
-Never change, guess, convert, or overwrite the original quantity or unit from the BOQ row.
-- Copy quantity and unit EXACTLY as they appear in the BOQ.
-- If the BOQ says Qty: 120 LM → output must be quantity=120, unit="LM".
-- Do NOT convert LM to piece, Nos to piece, or any other unit.
-- Do NOT change 80 LM to 60 or any other value.
-- Do NOT default a missing quantity to 1 unless the original BOQ quantity is actually 1.
-- If quantity or unit is genuinely unclear, set needs_review=true instead of guessing.
-- When splitting one BOQ row into multiple products, every split product inherits the SAME original quantity and unit from the parent row, unless the BOQ explicitly gives separate quantities per product.
-- Secondary split products (fittings, accessories, sub-components) must have needs_review=true and a note explaining that the quantity was inherited.
-
-━━━ EXTRACTION RULES ━━━
-1. KEEP only real supply products, materials, or equipment purchasable from suppliers.
-2. REMOVE all wording related to installation, testing, commissioning, fixing, labor, site works, "all required works", and general execution — these must never appear in cleaned_description.
-3. If a row says "Supply and Install" / "Supply & Install" → extract ONLY the supply product; strip the install clause.
-4. Preserve ALL pricing-critical specifications: size, diameter, material, capacity, rating, voltage, pressure, standard, type, brand, model.
-5. REJECT rows that contain no purchasable product:
-   - Grand Total / Subtotal / Mechanical Total / Electrical Total / Civil Total
-   - Testing and commissioning only
-   - Civil works only
-   - Preliminaries / General requirements / Mobilization
-   - Drawings / Supervision
-   - Any summary or lump-sum line with no named product
-6. If one BOQ row contains multiple clearly different products, split into separate records — each inheriting the parent quantity/unit, with needs_review=true on secondary items.
-7. Do NOT extract generic words (fittings, supports, accessories, "all required works") as products unless they carry a clear type/size/material specification.
-8. Do NOT invent products. If no purchasable product exists, set rejected=true.
+- Copy quantity and unit EXACTLY as they appear in the BOQ. Never change, guess, or convert them.
+- If quantity or unit is genuinely unclear, set needs_review=true.
+- Split products inherit the parent row's quantity/unit and must have needs_review=true.
 
 ━━━ OUTPUT FORMAT ━━━
 Return ONLY a valid JSON object — no markdown, no code fences, no extra text:
 {
   "items": [
     {
-      "source_item_no": "item number from the BOQ (e.g. Item 1, 1.1, A-03) or null if absent",
+      "source_item_no": "item number from the BOQ row, e.g. 1.1, A-03 — or null if absent",
       "original_description": "exact text copied from the BOQ row, never altered",
       "cleaned_description": "supply product with specs only — no install/labor wording",
       "core_product": "short product type, 2-5 words, e.g. UPVC Pipe, Gate Valve, HV Panel",
@@ -1012,20 +1179,19 @@ Return ONLY a valid JSON object — no markdown, no code fences, no extra text:
 }
 
 ━━━ FIELD RULES ━━━
-- source_item_no: copy the item/row number from the BOQ exactly; null if not present.
+- source_item_no: the row/item number label only; null if not present.
 - original_description: exact BOQ text, never altered.
-- cleaned_description: supply product with specs — no "Supply and Install", no labor clauses.
+- cleaned_description: supply product with specs — never contains "Supply and Install", labor, or install clauses.
 - core_product: 2-5 word product type.
-- specifications: fill every present spec; leave unused keys as "".
-- quantity: EXACT number from the BOQ row. Never change it. Never default to 1 unless BOQ says 1.
-- unit: EXACT unit from the BOQ row. Never convert or change it.
+- quantity / unit: EXACT values from the BOQ. Never change them.
 - unit_price / total_price: from BOQ if present; otherwise 0.
 - extraction_type: "supply_only" | "extracted_from_supply_and_install" | "split_item".
-- needs_review: true when quantity is inherited from parent row (split items) or quantity/unit is unclear.
-- note: explain why needs_review=true (e.g. "Quantity inherited from parent BOQ item; no separate quantity provided."); empty string otherwise.
-- rejected: true only when the row contains NO purchasable product.
-- rejection_reason: short reason when rejected; null otherwise.
+- needs_review: true when quantity is inherited or unclear.
+- rejected: true for ALL rows in the REJECT list above. When in doubt, REJECT.
+- rejection_reason: brief reason when rejected=true; null otherwise.
 - confidence: 0.0–1.0 float.
+
+REMEMBER: When in doubt, REJECT. It is better to miss a marginal item than to include garbage.
 SYSTEM);
     }
 
@@ -1085,10 +1251,15 @@ PROMPT);
         $specs = is_array($raw['specifications'] ?? null) ? $raw['specifications'] : [];
 
         // Prefer cleaned_description (supply-only), fall back to legacy fields.
-        $description = (string) ($raw['cleaned_description']
+        $description = trim((string) ($raw['cleaned_description']
             ?? $raw['product_name']
             ?? $raw['description']
-            ?? '');
+            ?? ''));
+
+        // Drop items where description is blank, a pure number, or just an item code (e.g. "5-7", "A").
+        if ($description === '' || preg_match('/^[\d\.\-\/\s]+$/', $description)) {
+            return null;
+        }
 
         return [
             'description'          => $description,
@@ -1246,6 +1417,7 @@ PROMPT);
      */
     private function spreadsheetToCsvText(string $absPath): ?string
     {
+        ini_set('memory_limit', '512M');
         $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
 
         // CSV: read raw — no library needed.
@@ -1254,18 +1426,41 @@ PROMPT);
             return ($content !== false && $content !== '') ? $content : null;
         }
 
-        // Try explicit PhpSpreadsheet readers in priority order.
+        // Try lightweight ZipArchive reader first for xlsx.
+        if ($ext === 'xlsx') {
+            $sheetsData = $this->readXlsxAsGrids($absPath);
+            if ($sheetsData !== null) {
+                $output = '';
+                foreach ($sheetsData as $sheetData) {
+                    $output .= 'Sheet: ' . $sheetData['name'] . "\n";
+                    foreach ($sheetData['grid'] as $rowCells) {
+                        while (count($rowCells) > 0 && trim((string) end($rowCells)) === '') {
+                            array_pop($rowCells);
+                        }
+                        if (count($rowCells) > 0) {
+                            $output .= implode(',', array_map(function (mixed $v): string {
+                                $v = (string) $v;
+                                return (str_contains($v, ',') || str_contains($v, '"') || str_contains($v, "\n"))
+                                    ? '"' . str_replace('"', '""', $v) . '"'
+                                    : $v;
+                            }, $rowCells)) . "\n";
+                        }
+                    }
+                    $output .= "\n";
+                }
+                if ($output !== '') {
+                    return $output;
+                }
+            }
+        }
+
+        // Fall back to PhpSpreadsheet readers in priority order.
         $readerTypes = $ext === 'xls' ? ['Xls', 'Xlsx'] : ['Xlsx', 'Xls'];
 
         foreach ($readerTypes as $readerType) {
             try {
                 $reader = IOFactory::createReader($readerType);
                 $reader->setReadDataOnly(true);
-
-                if (! $reader->canRead($absPath)) {
-                    continue;
-                }
-
                 $spreadsheet   = $reader->load($absPath);
                 $output        = '';
 

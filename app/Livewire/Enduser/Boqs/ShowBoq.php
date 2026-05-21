@@ -226,6 +226,7 @@ class ShowBoq extends Component
     {
         $this->items = $this->boq
             ->items()
+            ->where('status', '!=', 'rejected')
             ->with('product')
             ->get()
             ->map(fn(BoqItem $item) => [

@@ -193,21 +193,23 @@ class CreateBoq extends Component
             $this->boqFileName = $lastDoc->file_name;
         }
 
-        $this->items = $boq->items->map(fn(BoqItem $item) => [
-            'id'                   => $item->id,
-            'description'          => (string) $item->description,
-            'quantity'             => (float) $item->quantity,
-            'unit'                 => $item->unit?->name ?? '',
-            'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
-            'category'             => (string) ($item->category ?? ''),
-            'brand'                => (string) ($item->brand ?? ''),
-            'status'               => $item->status->value ?? 'pending',
-            'engineering_required' => (bool) $item->engineering_required,
-            'confidence'           => is_numeric($item->confidence) ? (float) $item->confidence : null,
-            'raw_data'             => $item->raw_data,
-            'ai_extracted'         => (bool) $item->ai_extracted,
-            'is_selected'          => (bool) $item->is_selected,
-        ])->values()->toArray();
+        $this->items = $boq->items
+            ->filter(fn(BoqItem $item) => $item->status->value !== 'rejected')
+            ->map(fn(BoqItem $item) => [
+                'id'                   => $item->id,
+                'description'          => (string) $item->description,
+                'quantity'             => (float) $item->quantity,
+                'unit'                 => $item->unit?->name ?? '',
+                'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
+                'category'             => (string) ($item->category ?? ''),
+                'brand'                => (string) ($item->brand ?? ''),
+                'status'               => $item->status->value ?? 'pending',
+                'engineering_required' => (bool) $item->engineering_required,
+                'confidence'           => is_numeric($item->confidence) ? (float) $item->confidence : null,
+                'raw_data'             => $item->raw_data,
+                'ai_extracted'         => (bool) $item->ai_extracted,
+                'is_selected'          => (bool) $item->is_selected,
+            ])->values()->toArray();
     }
 
     // -------------------------------------------------------------------------
@@ -241,8 +243,8 @@ class CreateBoq extends Component
 
         if ($this->boqFile) {
             $extension = strtolower($this->boqFile->getClientOriginalExtension());
-            if (! in_array($extension, ['pdf', 'xlsx', 'xls', 'csv', 'jpg', 'jpeg', 'png'], true)) {
-                $this->addError('boqFile', 'The file must be of type: pdf, xlsx, xls, csv, jpg, jpeg, or png.');
+            if (! in_array($extension, ['pdf', 'xlsx', 'xls', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif'], true)) {
+                $this->addError('boqFile', 'The file must be of type: pdf, xlsx, xls, csv, or an image.');
                 return;
             }
         }
