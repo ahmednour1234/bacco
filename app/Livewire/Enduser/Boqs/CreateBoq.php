@@ -243,8 +243,8 @@ class CreateBoq extends Component
 
         if ($this->boqFile) {
             $extension = strtolower($this->boqFile->getClientOriginalExtension());
-            if (! in_array($extension, ['pdf', 'xlsx', 'xls', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif'], true)) {
-                $this->addError('boqFile', 'The file must be of type: pdf, xlsx, xls, csv, or an image.');
+            if (! in_array($extension, ['pdf', 'xlsx', 'xlsm', 'xlsb', 'xls', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif'], true)) {
+                $this->addError('boqFile', 'The file must be of type: pdf, xlsx, xlsm, xls, csv, or an image.');
                 return;
             }
         }
@@ -283,7 +283,7 @@ class CreateBoq extends Component
 
             $this->boqFile = null;
 
-            // ── Call AI service synchronously (no queue worker needed) ────────
+            // ── Call AI service (synchronous — runs in the same request) ──────
             $absPath = Storage::disk('local')->path($storedPath);
             $ai      = app(QuotationAiService::class);
             $result  = $ai->parseBoq($absPath, [

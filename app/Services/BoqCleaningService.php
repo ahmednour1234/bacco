@@ -21,19 +21,46 @@ class BoqCleaningService
     private const TOTAL_PATTERN = '/\b(sub.?total|grand\s*total|section\s*total|total\s*price|total\s*amount|mechanical\s*total|electrical\s*total|civil\s*total|plumbing\s*total|hvac\s*total|fire\s*total|summary|subtotal)\b/i';
 
     /** Preliminary, mobilisation, provisional sum — at start of description */
-    private const PRELIMINARY_PATTERN = '/^\s*(preliminar|mobiliz(?:ation)?|demobiliz(?:ation)?|provisional\s+sum|contingenc|p\.?\s*c\.?\s*sum|prime\s*cost\s*sum)\b/i';
+    private const PRELIMINARY_PATTERN = '/^\s*(preliminar|mobiliz(?:ation)?|demobiliz(?:ation)?|provisional\s+sum|contingenc|p\.?\s*c\.?\s*sum|prime\s*cost\s*sum|scope\s+of\s+works?|bill\s+of\s+quantities|general\s+(?:conditions?|requirements?))\b/i';
+
+    /**
+     * Descriptions that are NOT standalone procurable items:
+     *   - Floor/level labels: "GF Floor", "B1 Floor", "Level 3", "Ground Floor"
+     *   - Pure dimensions/specs: "Dia 32 mm", "32 mm Dia", "Ø25", "100 mm"
+     *   - Single generic words with no product context
+     */
+    private const FRAGMENT_PATTERN = '/^(?:(?:GF|BF|RF|GR|LG|UG|G(?:round)?|B\d+|[A-Z]?\d+(?:st|nd|rd|th)?|L\d+|Mez(?:zanine)?)\s*[-\x{2013}]?\s*(?:Floor|Level|Fl\.|Storey)|(?:Floor|Level|Storey)\s*[-\x{2013}]?\s*(?:\d+|[A-Z]{1,2}\d*)|(?:Dia(?:meter)?|OD|ID)\.?\s*[\d.]+\s*(?:mm|cm|m|inch(?:es)?|in)\.?|[\d.]+\s*(?:mm|cm|m)\s*(?:Dia(?:meter)?)?\.?|\d+(?:[.,]\d+)?\s+(?:SQM|sqm|sq\.?\s*m|M2|m2)\b|\d+|No\.?)\s*$/iu';
 
     /** Mid-description keywords that signal a pure non-supply line */
-    private const PURE_LABOR_PATTERN = '/\b(supervision|testing\s+and\s+commissioning|commissioning\s+only|labour\s+only|labor\s+only|install(?:ation)?\s+only|site\s*clearance|excavat(?:ion|ing)?|backfill(?:ing)?|compaction|scaffolding|temporary\s+works?|as.?built\s+draw(?:ing)?|shop\s+draw(?:ing)?|method\s+statement|performance\s+bond|insurance\s+premium|civil\s+works?\s+only|transportation\s+only|haulage\s+only)\b/i';
+    private const PURE_LABOR_PATTERN = '/\b(supervision|testing\s+and\s+commissioning|commissioning\s+only|labour\s+only|labor\s+only|install(?:ation)?\s+only|site\s*clearance|excavat(?:ion|ing)?|backfill(?:ing)?|compaction|scaffolding|temporary\s+works?|as.?built\s+draw(?:ings?)?|shop\s+draw(?:ings?)?|method\s+statement|performance\s+bond|insurance\s+premium|civil\s+works?\s+only|transportation\s+only|haulage\s+only|wiring\s+(?:for|of|at|to|between)|cabling\s+(?:for|of|at|to|between)|points?\s+(?:wiring|cabling)|conduit\s+installation|duct(?:ing)?\s+(?:for|of)|pipe\s+routing|electrical\s+wiring\s+(?:floor|wall|ceiling|raised)\s+mounted|housekeeping|bodily\s+injury|(?:third\s+party|public|employer.?s?)\s+(?:all\s+risks?\s+)?liability|contractors?\s+all\s+risk|site\s+insurance|works?\s+insurance|\bCAR\s+(?:to\s+cover|insurance|policy)|night\s+shift|payments?\s+shall\s+be\s+arranged|rental\s+(?:payments?|fees?|charges?)|provide\s+protection|security\s+(?:as\s+per|guard|personnel|service)|preparation\s+of\s+(?:shop|as.?built|construction|working)\s+draw|\bpreliminar(?:y|ies)|\bmobilization|pre.?construction|project\s+management\s+(?:fee|cost)|overhead\s+(?:and\s+profit|cost)|contingenc(?:y|ies)|modification\s+of\s+existing|modif(?:y|ication)\s+existing|surface\s+prepar(?:ing|ation)?\s+for|terminat(?:e|ing|ion)\s+(?:and\s+)?(?:labelling|labeling|testing|commissioning)|cable\s+(?:terminat|label)|labelling\s+and\s+testing|integration\s+(?:works?|services?|only|fee|cost)|all\s+necessary\s+(?:accessories|materials|fittings|works?)|hangers?\s*,\s*supports?|تركيب\s+فقط|أعمال\s+(?:مدنية|هدم|التكسير|التكسير\s+و|الهدم|الإزالة|التشطيب)|تكسير\s+و(?:إزالة|تنظيف)|تصميم\s+و(?:إنشاء|انشاء|تركيب|تنفيذ|اختبار|انشاء\s+و))\b/iu';
 
     /** Lines that START with an installation / labor verb — not a supply item */
-    private const LABOR_VERB_START_PATTERN = '/^\s*(?:install(?:ing|ation)?|fix(?:ing)?|erect(?:ing|ion)?|lay(?:ing)?|paint(?:ing)?|plaster(?:ing)?|demolish(?:ing)?|remov(?:ing|al)?|dismantle|commission(?:ing)?|test(?:ing)?|supervise|supervision|excavat(?:ing|ion)?|transport(?:ing|ation)?|mobiliz(?:ation)?|civil\s+works?|maintenance\s+works?)\b/i';
+    private const LABOR_VERB_START_PATTERN = '/^\s*(?:install(?:ing|ation)?|fix(?:ing)?|erect(?:ing|ion)?|lay(?:ing)?|paint(?:ing)?|plaster(?:ing)?|demolish(?:ing)?|remov(?:ing|al)?|dismantle|commission(?:ing)?|test(?:ing)?|supervise|supervision|excavat(?:ing|ion)?|transport(?:ing|ation)?|mobiliz(?:ation)?|civil\s+works?|maintenance\s+works?|modif(?:y|ication)|adjust(?:ment|ing)?|repair(?:ing)?|terminat(?:e|ing|ion)|connect(?:ing|ion)|wire\s+(?:the|all|from|to)|cleaning(?!\s+(?:material|agent|solution|cloth|equipment|product|suppl|kit|wipe|tool|brush|chemical))|housekeeping|cart\s+away|secure\b|concealed\s+mounting|preparation\s+of|repaint(?:ing)?|relocat(?:e|ing|ion)?|chipping|surface\s+prepar(?:ing|ation)?|(?:floor\s+)?level(?:l?ing)(?!\s+(?:screed|concrete|compound|agent))|protect(?:ing|ion\s+of)?\s+(?:existing|the)|night\s+shift|hangers?\b|all\s+necessary\s+|all\s+required\s+|تركيب|تمديد|تشغيل|صيانة|إزالة|هدم|ديمو|فك\s+و\s*إعادة\s+تركيب|فك\s+و|فكّ?\b|تغيير\s+(?:[اإأ]تجاه|موضع)|تجديد|تأهيل|معالجة\s+الجدران|دهان|تكسير|تصميم|إنشاء|انشاء|استبدال|تنفيذ|حفر|ردم|رصف|أعمال)\b/iu';
+
+    /** Items that require engineering design or specialist approval before procurement */
+    private const ENGINEERING_REQUIRED_PATTERN = '/\b(
+        # Electrical systems
+        panel\s*boards?|distribution\s*panel\s*boards?|distribution\s*boards?|switchboard|switchgear|transformer|mdb|smdb|ssb|msb|ups|genset|generator|ats\b|
+        # HVAC systems
+        chiller|air\s*handling\s*unit|\bahu\b|fahu|fan\s*coil(?:\s*unit)?|\bfcu\b|\bvrf\b|\bvrv\b|doas|crac|
+        cooling\s*tower|heat\s*exchanger|pressure\s*reducing\s*valve|
+        # Fire suppression
+        fm\s*200|fm200|halon|suppression\s*system|fire\s*alarm\s*panel|fire\s*panel|deluge\s*valve|fm\s*200\s*panel|
+        # BMS & Controls
+        \bbms\b|scada|building\s*management\s*system|\bddc\b|\bplc\b|
+        # Pumping equipment
+        pump\s*set|booster\s*pump|fire\s*pump|sump\s*pump|submersible\s*pump|
+        # Compound HVAC
+        variable\s*refrigerant|variable\s*flow|
+        # Arabic equivalents
+        لوحة\s*كهربائية|لوحة\s*توزيع|وحدة\s*معالجة\s*هواء|مولد\s*كهربائي|مبرد\s*مياه|نظام\s*إطفاء
+    )\b/ixu';
 
     /** "Supply and Install" variants — product must be extracted from the description */
-    private const SUPPLY_AND_INSTALL_PATTERN = '/\b(?:supply\s+and\s+install(?:ation)?|supply\s*[\/&]\s*install(?:ation)?|furnish\s+and\s+install|provide\s+and\s+install|supply,?\s*install)\b/i';
+    private const SUPPLY_AND_INSTALL_PATTERN = '/\b(?:supply\s+and\s+install(?:ation)?|supply\s*[\/&]\s*install(?:ation)?|furnish\s+and\s+install|provide\s+and\s+install|supply,?\s*install|توريد\s+و\s*تركيب|توريد\s+و\s*تثبيت|توريد\s+و\s*تمديد|توريد\s+و\s*توصيل)\b/iu';
 
     /** Prefix to strip when "Supply and Install" is detected */
-    private const SUPPLY_AND_INSTALL_PREFIX = '/^\s*(?:supply\s+and\s+install(?:ation)?\s+of?|supply\s*[\/&]\s*install(?:ation)?\s+of?|furnish\s+and\s+install\s+of?|provide\s+and\s+install\s+of?|supply,?\s*install\s+of?)\s*/i';
+    private const SUPPLY_AND_INSTALL_PREFIX = '/^\s*(?:supply\s+and\s+install(?:ation)?(?:\s+of\b)?|supply\s*[\/&]\s*install(?:ation)?(?:\s+of\b)?|furnish\s+and\s+install(?:\s+of\b)?|provide\s+and\s+install(?:\s+of\b)?|supply,?\s*install(?:\s+of\b)?|توريد\s+و\s*(?:تركيب|تثبيت|تمديد|توصيل)\s+(?:ال)?)\s*/iu';
 
     /** Trailing installation clauses to strip after product extraction */
     private const TRAILING_INSTALL_CLAUSE = '/,?\s*(?:includ(?:ing|e)?\s+)?(?:install(?:ation|ing)?|erect(?:ion|ing)?|fix(?:ing)?|connect(?:ion|ing)?|commission(?:ing)?|test(?:ing)?|as\s+per\s+spec[a-z]*)\b.*/i';
@@ -42,6 +69,7 @@ class BoqCleaningService
 
     /** @var list<non-empty-string> */
     private const CLEAN_PATTERNS = [
+        // English generic phrases
         '/,?\s*complete\s+with\s+(?:all\s+)?(?:necessary\s+)?(?:accessories|fittings)[^,;)]*?(?=[,;)]|$)/i',
         '/,?\s*including\s+(?:all\s+)?fittings(?:[,\s]+(?:and\s+)?supports?)?(?:[,\s]+(?:and\s+)?accessories)?/i',
         '/,?\s*with\s+fittings(?:[,\s]+(?:and\s+)?supports?)?(?:[,\s]+(?:and\s+)?accessories)?/i',
@@ -55,6 +83,18 @@ class BoqCleaningService
         '/,?\s*as\s+indicated(?:\s+on\s+(?:the\s+)?drawings?)?/i',
         '/,?\s*as\s+specified/i',
         '/\s*\([^)]*?(?:as\s+per|as\s+specified|as\s+indicated|per\s+draw(?:ing)?|refer\s+to)[^)]*?\)/i',
+        // Arabic generic trailing clauses — strip everything from these phrases onwards
+        '/[،,]?\s*والبند\s+محمل\s+عليه.*/u',
+        '/[،,]?\s*شامل\s+(?:جميع|كافة)\s+الأعمال.*/u',
+        '/[،,]?\s*متضمن(?:ا)?\s+(?:جميع|كافة)\s+الأعمال.*/u',
+        '/[،,]?\s*(?:طبقاً|وفقاً)\s+(?:للمواصفات|للرسومات|للمخطط|لتوجيهات).*/u',
+        '/[،,]?\s*مع\s+أخذ\s+الموافقة.*/u',
+        '/[،,]?\s*(?:ويكون|وتكون)\s+(?:العمل|الخامات).*/u',
+        '/[،,]?\s*موضح\s+(?:في|ب|بـ?)\s*المخطط.*/u',
+        '/[،,]?\s*وبأى\s+أماكن\s+أخرى.*/u',
+        '/[،,]?\s*يحمل\s+على\s+البند.*/u',
+        '/[،,]?\s*باللون\s+المطلوب.*/u',
+        '/\s+(?:TAIF|BOQ|TAIF-BOQ)[-\s]*(?:[A-Z0-9]+)?\b.*$/u',
     ];
 
     // ── Compound-split helpers ────────────────────────────────────────────────
@@ -66,6 +106,15 @@ class BoqCleaningService
     private const SPEC_CONTINUATION_PATTERN = '/^[\d.]+\s*(?:mm|cm|m|m2|m3|kg|kw|kva|kvar|v|a|bar|psi|inch|ft|liter|l)?\s*(?:long|wide|high|deep|thick|dia|diameter|capacity|rating)?$/i';
 
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Return true when a BOQ item requires engineering design or specialist
+     * approval before it can be procured (e.g. panel boards, chillers, BMS).
+     */
+    public function requiresEngineering(string $description): bool
+    {
+        return (bool) preg_match(self::ENGINEERING_REQUIRED_PATTERN, $description);
+    }
 
     /**
      * Determine whether a BOQ line description represents a procurable supply item.
@@ -81,6 +130,12 @@ class BoqCleaningService
             return ['keep' => false, 'rejection_reason' => 'Empty description'];
         }
 
+        // Strip leading BOQ item numbers like "2-", "1.", "A:", "البند 3:", "درج 1:"
+        // Also strip comma-separated floor number lists: "3,4,5,6,7,8,9 Concealed mounting"
+        $stripped = preg_replace('/^\s*(?:[\x{0600}-\x{06FF}]+\s+)?[\d\w]+[-:.)][\s\-]*/u', '', $desc);
+        $stripped = preg_replace('/^\s*\d+(?:\s*,\s*\d+)+\s+/', '', (string) $stripped);
+        $stripped = trim((string) $stripped);
+
         // 1. Total / summary aggregate lines
         if (preg_match(self::TOTAL_PATTERN, $desc)) {
             return ['keep' => false, 'rejection_reason' => 'Section total or summary line'];
@@ -91,13 +146,43 @@ class BoqCleaningService
             return ['keep' => false, 'rejection_reason' => 'Preliminary, provisional sum, or mobilization item'];
         }
 
+        // 2b. Fragment-only lines: floor labels, pure dimension specs, bare numbers
+        if (preg_match(self::FRAGMENT_PATTERN, $desc) ||
+            ($stripped !== '' && $stripped !== $desc && preg_match(self::FRAGMENT_PATTERN, $stripped))) {
+            return ['keep' => false, 'rejection_reason' => 'Fragment or non-product line (floor label, dimension spec, or bare number)'];
+        }
+
+        // 2c. Continuation fragment: description contains unmatched closing parenthesis
+        //     e.g. "Fluke test) - wall mounted" or "J45 termination, labelling, Fluke test) - ..."
+        //     This signals the row is a tail-end fragment of a parenthetical from the previous row.
+        if (substr_count($desc, ')') > substr_count($desc, '(')) {
+            return ['keep' => false, 'rejection_reason' => 'Continuation fragment (unmatched closing parenthesis)'];
+        }
+
+        // 2e. Continuation fragment: starts with a lowercase word fragment.
+        //     Catches 1-3 char fragments ("t", "k", "ier") AND 4+ char words ending in
+        //     common suffix patterns ("kets" from sockets, "ers", "ons", etc.).
+        //     BOQ product names start with a capital letter or a known abbreviation.
+        if (preg_match('/^\s*([a-z]+)[\s,]/', $desc, $_m) &&
+            !preg_match('/^\s*(?:the|and|an|of|on|at|in|to|by|for|up|uv|ip|ac|dc|ph|led|pvc|no)\b/i', $desc) &&
+            (strlen($_m[1]) <= 3 || preg_match('/(?:ets|ers|ons|ings|ies|nds|rds|sts|nts|cts|ths)$/i', $_m[1]))) {
+            return ['keep' => false, 'rejection_reason' => 'Continuation fragment (starts with lowercase word fragment)'];
+        }
+
+        // 2d. Standalone vague concept or adjective words that are not procurable products.
+        //     e.g. "Integration", "Wiring", "Cabling", "Pendent", "Upright" alone on a row.
+        if (preg_match('/^\s*(?:integration|commissioning|testing|inspection|survey|assessment|report|documentation|coordination|management|administration|overhead|profit|wiring|cabling|pendent|pendant|upright|recessed|exposed|flush|concealed)\s*$/i', $desc)) {
+            return ['keep' => false, 'rejection_reason' => 'Standalone non-product concept word'];
+        }
+
         // 3. Mid-description keywords indicating a pure labor / non-supply line
         if (preg_match(self::PURE_LABOR_PATTERN, $desc)) {
             return ['keep' => false, 'rejection_reason' => 'Non-supply item (labor, site works, or project execution)'];
         }
 
-        // 4. Description starts with an installation or labor verb
-        if (preg_match(self::LABOR_VERB_START_PATTERN, $desc)) {
+        // 4. Description starts with an installation or labor verb (check both raw and number-stripped)
+        if (preg_match(self::LABOR_VERB_START_PATTERN, $desc) ||
+            ($stripped !== $desc && $stripped !== '' && preg_match(self::LABOR_VERB_START_PATTERN, $stripped))) {
             return ['keep' => false, 'rejection_reason' => 'Starts with installation or labor verb'];
         }
 

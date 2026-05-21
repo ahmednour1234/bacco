@@ -7,1035 +7,541 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class QuotationAiService
 {
     private string $baseUrl;
-
     private string $parseEndpoint;
-
     private string $apiKey;
-
     private int $timeout;
-
     private bool $testMode;
-
     private BoqCleaningService $boqCleaner;
 
     public function __construct(BoqCleaningService $boqCleaner)
     {
-        $this->boqCleaner    = $boqCleaner;
-        $this->baseUrl       = rtrim((string) config('services.ai_quotation.base_url', ''), '/');
+        $this->boqCleaner = $boqCleaner;
+        $this->baseUrl = rtrim((string) config('services.ai_quotation.base_url', ''), '/');
         $this->parseEndpoint = ltrim((string) config('services.ai_quotation.parse_endpoint', 'parse'), '/');
-        $this->apiKey        = (string) config('services.ai_quotation.api_key', '');
-        $this->timeout       = (int) config('services.ai_quotation.timeout', 180);
-        $this->testMode      = (bool) config('services.ai_quotation.test_mode', false);
+        $this->apiKey = (string) config('services.ai_quotation.api_key', '');
+        $this->timeout = (int) config('services.ai_quotation.timeout', 90);
+        $this->testMode = (bool) config('services.ai_quotation.test_mode', false);
     }
 
-    /**
-     * Return a hardcoded dummy response for local testing.
-     * Activated when AI_QUOTATION_TEST_MODE=true in .env.
-     *
-     * @return array{success: bool, items: array<int, array<string, mixed>>, error: string|null}
-     */
-    private function mockResponse(): array
-    {
-        sleep(2); // Simulate network delay so the UI spinner feels real.
-
-        return [
-            'success' => true,
-            'error'   => null,
-            'items'   => [
-                [
-                    'product_name'         => 'Steel Square Hollow Section 100×100×4mm',
-                    'quantity'             => 50,
-                    'unit'                 => 'pcs',
-                    'category'             => 'Structural Steel',
-                    'brand'                => '',
-                    'engineering_required' => false,
-                    'unit_price'           => 0,
-                    'ai_extracted'         => true,
-                ],
-                [
-                    'product_name'         => 'Cement OPC 42.5 (50 kg bag)',
-                    'quantity'             => 200,
-                    'unit'                 => 'bag',
-                    'category'             => 'Concrete Works',
-                    'brand'                => 'Lafarge',
-                    'engineering_required' => false,
-                    'unit_price'           => 0,
-                    'ai_extracted'         => true,
-                ],
-                [
-                    'product_name'         => 'Ceramic Floor Tile 60×60 cm (Beige)',
-                    'quantity'             => 300,
-                    'unit'                 => 'm2',
-                    'category'             => 'Flooring',
-                    'brand'                => 'RAK Ceramics',
-                    'engineering_required' => false,
-                    'unit_price'           => 0,
-                    'ai_extracted'         => true,
-                ],
-                [
-                    'product_name'         => 'UPVC Window 120×150 cm Double Glazed',
-                    'quantity'             => 12,
-                    'unit'                 => 'set',
-                    'category'             => 'Windows & Doors',
-                    'brand'                => '',
-                    'engineering_required' => true,
-                    'unit_price'           => 0,
-                    'ai_extracted'         => true,
-                ],
-                [
-                    'product_name'         => 'Electrical Conduit PVC 25mm (3m)',
-                    'quantity'             => 100,
-                    'unit'                 => 'pcs',
-                    'category'             => 'Electrical',
-                    'brand'                => '',
-                    'engineering_required' => false,
-                    'unit_price'           => 0,
-                    'ai_extracted'         => true,
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Parse a BOQ file and extract items.
-     * For Excel/CSV files: parsed directly with PhpSpreadsheet (no API calls).
-     * Results are cached by file hash.
-     *
-     * @param  \Illuminate\Http\UploadedFile|string  $file  Uploaded file or stored path
-     * @param  array<string, mixed>  $context  Extra context (boq_id, project_name, project_status)
-     * @return array{success: bool, items: array<int, array<string, mixed>>, error: string|null}
-     */
     public function parseBoq(UploadedFile|string $file, array $context = []): array
     {
-        // ── Test / offline mode — never calls any external API ───────────────
         if ($this->testMode) {
-            Log::info('QuotationAiService: Running in TEST MODE — returning mock data.');
-
-            $mock = $this->mockResponse();
-            $mock['items'] = array_map([$this, 'normaliseItem'], $mock['items']);
-
-            return $mock;
+            return $this->mockResponse();
         }
 
-        // ── Resolve absolute path ────────────────────────────────────────────
-        if ($file instanceof UploadedFile) {
-            $absPath = (string) $file->getRealPath();
-            $ext     = strtolower($file->getClientOriginalExtension());
-        } else {
-            $absPath = file_exists($file) ? $file : storage_path('app/' . $file);
-            $ext     = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
+        [$absPath, $ext] = $this->resolveFile($file);
+
+        if (! is_file($absPath)) {
+            return $this->failure('File not found or not readable.');
         }
 
-        // ── Cache look-up: same file content → return stored result ─────────
-        $fileHash = is_file($absPath) ? hash_file('sha256', $absPath) : null;
-        if ($fileHash !== null) {
-            $cached = Cache::get('boq_analysis_' . $fileHash);
-            if ($cached !== null) {
-                Log::info('QuotationAiService: Returning cached analysis.', ['hash' => $fileHash]);
-                return $cached;
-            }
+        $fileHash = hash_file('sha256', $absPath);
+        $cacheKey = 'boq_analysis_' . $fileHash;
+
+        if (($cached = Cache::get($cacheKey)) !== null) {
+            return $cached;
         }
 
-        // ── Route by file type ───────────────────────────────────────────────
-        if ($ext === 'csv') {
-            // CSV: parse locally (simple structure, no AI needed).
+        if (in_array($ext, ['xlsx', 'xlsm', 'xlsb', 'xls', 'csv'], true)) {
+            // Read Excel locally first. Fallback to Gemini if local parse failed or found 0 items.
             $result = $this->parseSpreadsheetDirect($absPath);
-            if (! $result['success']) {
-                $result = $this->parseBoqWithGemini($file, $context);
+
+            if (! $result['success'] || empty($result['items'])) {
+                $geminiResult = $this->parseBoqWithGemini($file, $context);
+                // Only use Gemini result if it actually found items
+                if ($geminiResult['success'] && ! empty($geminiResult['items'])) {
+                    $result = $geminiResult;
+                } elseif (! $result['success']) {
+                    $result = $geminiResult;
+                }
+                // else: keep local result (even with 0 items) if Gemini also failed
             }
-        } elseif (in_array($ext, ['xlsx', 'xls'], true)) {
-            // Excel: always send to Gemini — it understands BOQ structure far better
-            // than positional column detection, especially for Arabic/mixed layouts.
-            $result = $this->parseBoqWithGemini($file, $context);
         } elseif (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif'], true)) {
             $result = $this->parseBoqWithGemini($file, $context);
         } else {
-            return $this->failure('Unsupported file type. Please upload an Excel (.xlsx, .xls), CSV, PDF, or image file.');
+            return $this->failure('Unsupported file type. Please upload Excel, CSV, PDF, or image file.');
         }
 
-        // ── Apply description cleaning and compound splitting ─────────────────
         if ($result['success'] && ! empty($result['items'])) {
-            $cleaning           = $this->boqCleaner->process($result['items']);
-            $result['items']    = $cleaning['accepted'];
-            $result['rejected'] = array_merge($result['rejected'] ?? [], $cleaning['rejected']);
+            $cleaning = $this->boqCleaner->process($result['items']);
+            $result['items'] = $cleaning['accepted'] ?? $result['items'];
+            $result['rejected'] = array_merge($result['rejected'] ?? [], $cleaning['rejected'] ?? []);
         }
 
-        // ── Cache successful result for 30 days ──────────────────────────────
-        if ($result['success'] && $fileHash !== null) {
-            Cache::put('boq_analysis_' . $fileHash, $result, now()->addDays(30));
+        if ($result['success']) {
+            Cache::put($cacheKey, $result, now()->addDays(30));
         }
 
         return $result;
     }
 
-    /**
-     * Parse an Excel or CSV file directly using PhpSpreadsheet.
-     * Auto-detects header rows and maps columns to BOQ item fields.
-     *
-     * @return array{success: bool, items: array<int, array<string, mixed>>, error: string|null}
-     */
+    private function resolveFile(UploadedFile|string $file): array
+    {
+        if ($file instanceof UploadedFile) {
+            return [(string) $file->getRealPath(), strtolower($file->getClientOriginalExtension())];
+        }
+
+        $absPath = is_file($file) ? $file : storage_path('app/' . ltrim($file, '/'));
+        return [$absPath, strtolower(pathinfo($absPath, PATHINFO_EXTENSION))];
+    }
+
     private function parseSpreadsheetDirect(string $absPath): array
     {
-        ini_set('memory_limit', '512M');
-        $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
+        ini_set('memory_limit', '1024M');
+        set_time_limit(180);
 
         try {
-            // ── Build sheets data — use the lightest strategy that works ────
-            $sheetsData = null;
+            $sheets = $this->spreadsheetToGrids($absPath);
 
-            if ($ext === 'csv') {
-                // Read CSV directly without any library.
-                $raw = file_get_contents($absPath);
-                if ($raw !== false && $raw !== '') {
-                    $lines = preg_split('/\r\n|\r|\n/', $raw);
-                    $rows  = [];
-                    foreach ($lines as $line) {
-                        if (trim($line) === '') {
-                            continue;
-                        }
-                        $rows[] = str_getcsv($line);
-                    }
-                    $sheetsData = [['name' => 'Sheet1', 'grid' => $rows]];
-                }
-            } elseif ($ext === 'xlsx') {
-                // Lightweight ZipArchive reader — uses ~5 MB vs ~100 MB for PhpSpreadsheet.
-                $sheetsData = $this->readXlsxAsGrids($absPath);
+            if (empty($sheets)) {
+                return $this->failure('Could not read the Excel file.');
             }
 
-            // Fallback to PhpSpreadsheet for .xls or when the lightweight reader failed.
-            if ($sheetsData === null) {
-                $readerTypes = $ext === 'xls' ? ['Xls', 'Xlsx'] : ['Xlsx', 'Xls'];
-                $spreadsheet = null;
-                foreach ($readerTypes as $type) {
-                    try {
-                        $reader = IOFactory::createReader($type);
-                        $reader->setReadDataOnly(true);
-                        $spreadsheet = $reader->load($absPath);
-                        break;
-                    } catch (\Throwable) {
-                        continue;
-                    }
-                }
-                if ($spreadsheet === null) {
-                    try {
-                        $spreadsheet = IOFactory::load($absPath);
-                    } catch (\Throwable $e) {
-                        Log::warning('QuotationAiService: IOFactory::load failed.', ['message' => $e->getMessage()]);
-                    }
-                }
-                if ($spreadsheet !== null) {
-                    $sheetsData = [];
-                    foreach ($spreadsheet->getAllSheets() as $sheet) {
-                        $highestRow    = $sheet->getHighestDataRow();
-                        $highestColumn = $sheet->getHighestDataColumn();
-                        if ($highestRow < 2) {
-                            continue;
-                        }
-                        $grid = [];
-                        foreach ($sheet->getRowIterator(1, $highestRow) as $rowObj) {
-                            $rowData      = [];
-                            $cellIterator = $rowObj->getCellIterator('A', $highestColumn);
-                            $cellIterator->setIterateOnlyExistingCells(false);
-                            foreach ($cellIterator as $cell) {
-                                try {
-                                    $value = $cell->getCalculatedValue();
-                                } catch (\Throwable) {
-                                    $value = $cell->getOldCalculatedValue() ?? $cell->getValue();
-                                }
-                                if (is_string($value) && str_starts_with(ltrim($value), '=')) {
-                                    $value = '';
-                                }
-                                $rowData[] = $value;
-                            }
-                            $grid[] = $rowData;
-                        }
-                        $sheetsData[] = ['name' => $sheet->getTitle(), 'grid' => $grid];
-                    }
-                    unset($spreadsheet);
-                }
-            }
+            $items = [];
+            $rejected = [];
 
-            if ($sheetsData === null || empty($sheetsData)) {
-                return $this->failure('Could not read the Excel file. Please make sure it is a valid .xlsx or .xls file.');
-            }
-
-            $allItems    = [];
-            $allRejected = [];
-
-            foreach ($sheetsData as $sheetData) {
-                $grid = $sheetData['grid'];
-
+            foreach ($sheets as $sheet) {
+                $grid = $sheet['grid'];
                 if (count($grid) < 2) {
                     continue;
                 }
 
-                // ── Find the header row (first row with meaningful column names) ──
-                $headerRowIndex = null;
-                $headerMap      = [];
+                $header = $this->detectHeader($grid);
 
-                // Keywords mapped to our field names
-                $fieldKeywords = [
-                    'description' => ['description', 'item description', 'item name', 'name', 'material', 'scope', 'work', 'activity', 'details', 'وصف', 'البند', 'البنود', 'الوصف'],
-                    'quantity'    => ['quantity', 'qty', 'amount', 'no.', 'nos', 'count', 'الكمية', 'كمية'],
-                    'unit'        => ['unit', 'uom', 'u/m', 'الوحدة', 'وحدة'],
-                    'unit_price'  => ['unit price', 'unit cost', 'rate', 'price', 'cost', 'سعر الوحدة', 'السعر'],
-                    'total_price' => ['total', 'total price', 'amount', 'line total', 'الإجمالي', 'المجموع', 'إجمالي'],
-                    'brand'       => ['brand', 'make', 'manufacturer', 'العلامة', 'الماركة'],
-                    'category'    => ['category', 'section', 'division', 'type', 'القسم', 'النوع'],
-                    'item_code'   => ['item code', 'code', 'ref', 'no', '#', 'كود', 'الكود', 'رقم'],
-                ];
-
-                for ($r = 0; $r < min(15, count($grid)); $r++) {
-                    $row       = $grid[$r];
-                    $matchCount = 0;
-                    $tempMap   = [];
-
-                    foreach ($row as $colIdx => $cellValue) {
-                        $cell = strtolower(trim((string) $cellValue));
-                        if ($cell === '') {
-                            continue;
-                        }
-
-                        foreach ($fieldKeywords as $field => $keywords) {
-                            foreach ($keywords as $kw) {
-                                if (str_contains($cell, $kw)) {
-                                    if (! isset($tempMap[$field])) {
-                                        $tempMap[$field] = $colIdx;
-                                        $matchCount++;
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if ($matchCount >= 2) {
-                        $headerRowIndex = $r;
-                        $headerMap      = $tempMap;
-                        break;
-                    }
+                if ($header === null || ! isset($header['map']['description'])) {
+                    Log::warning('QuotationAiService: header not detected in sheet.', ['sheet' => $sheet['name']]);
+                    continue;
                 }
 
-                // ── If no header found, try to guess from data shape ─────────
-                if ($headerRowIndex === null) {
-                    // Use row 0 as header anyway if it has text cells
-                    $headerRowIndex = 0;
-                    foreach ($grid[0] as $colIdx => $cellValue) {
-                        $cell = strtolower(trim((string) $cellValue));
-                        if ($cell === '') {
-                            continue;
-                        }
-                        // Map positionally: first long-text col = description, first numeric col = quantity
-                        foreach ($fieldKeywords as $field => $keywords) {
-                            foreach ($keywords as $kw) {
-                                if (str_contains($cell, $kw)) {
-                                    if (! isset($headerMap[$field])) {
-                                        $headerMap[$field] = $colIdx;
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                $map = $header['map'];
+                $start = $header['row'] + 1;
 
-                    // Last resort: find the first column with long text in row 1
-                    if (! isset($headerMap['description'])) {
-                        foreach ($grid[1] ?? [] as $colIdx => $cellValue) {
-                            if (strlen(trim((string) $cellValue)) > 10) {
-                                $headerMap['description'] = $colIdx;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                // ── Extract items from rows after header ─────────────────────
-                $dataStartRow = $headerRowIndex + 1;
-
-                for ($r = $dataStartRow; $r < count($grid); $r++) {
+                for ($r = $start; $r < count($grid); $r++) {
                     $row = $grid[$r];
+                    $description = $this->cell($row, $map['description'] ?? null);
+                    $itemNo      = $this->cell($row, $map['item_code'] ?? null);
+                    $unit        = $this->cell($row, $map['unit'] ?? null);
+                    $quantity    = $this->number($this->cell($row, $map['quantity'] ?? null));
+                    $unitPrice   = $this->number($this->cell($row, $map['unit_price'] ?? null));
+                    $totalPrice  = $this->number($this->cell($row, $map['total_price'] ?? null));
 
-                    // Get description
-                    $description = '';
-                    if (isset($headerMap['description'])) {
-                        $description = trim((string) ($row[$headerMap['description']] ?? ''));
-                    } else {
-                        // Find the longest non-numeric cell value as description
-                        foreach ($row as $v) {
-                            $v = trim((string) $v);
-                            if (strlen($v) > strlen($description) && ! is_numeric($v)) {
-                                $description = $v;
-                            }
-                        }
-                    }
-
-                    // Skip blank rows and section headers (no quantity)
                     if ($description === '') {
                         continue;
                     }
 
-                    // Skip rows that look like headers or section titles (no numeric data)
-                    $hasNumeric = false;
-                    foreach ($row as $v) {
-                        if (is_numeric($v) && $v > 0) {
-                            $hasNumeric = true;
-                            break;
-                        }
-                    }
-                    if (! $hasNumeric && strlen($description) < 80) {
-                        // Likely a section header — skip
+                    // Skip floor breakdown sub-rows: Ref. is "-" meaning it's a per-floor
+                    // quantity split of the parent item, not a standalone product.
+                    if ($itemNo === '-' || $this->isFloorBreakdownRow($itemNo, $description)) {
                         continue;
                     }
 
-                    $quantity   = null;
-                    $unit       = '';
-                    $unitPrice  = null;
-                    $totalPrice = null;
-                    $brand      = '';
-                    $category   = '';
-
-                    if (isset($headerMap['quantity'])) {
-                        $v = $row[$headerMap['quantity']] ?? null;
-                        if (is_numeric($v) && $v > 0) {
-                            $quantity = (float) $v;
-                        }
+                    if ($this->isTotalOrHeaderRow($description)) {
+                        continue;
                     }
 
-                    if (isset($headerMap['unit'])) {
-                        $unit = trim((string) ($row[$headerMap['unit']] ?? ''));
+                    if ($quantity === null || $quantity <= 0) {
+                        $rejected[] = $this->rejectedRow($description, $unit, $quantity, 'Missing quantity', $itemNo, $sheet['name']);
+                        continue;
                     }
 
-                    if (isset($headerMap['unit_price'])) {
-                        $v = $row[$headerMap['unit_price']] ?? null;
-                        if (is_numeric($v) && $v > 0) {
-                            $unitPrice = (float) $v;
-                        }
-                    }
-
-                    if (isset($headerMap['total_price'])) {
-                        $v = $row[$headerMap['total_price']] ?? null;
-                        if (is_numeric($v) && $v > 0) {
-                            $totalPrice = (float) $v;
-                        }
-                    }
-
-                    if (isset($headerMap['brand'])) {
-                        $brand = trim((string) ($row[$headerMap['brand']] ?? ''));
-                    }
-
-                    if (isset($headerMap['category'])) {
-                        $category = trim((string) ($row[$headerMap['category']] ?? ''));
-                    }
-
-                    // Derive missing price
-                    if ($unitPrice === null && $totalPrice !== null && $quantity !== null && $quantity > 0) {
+                    if ($unitPrice === null && $totalPrice !== null && $quantity > 0) {
                         $unitPrice = $totalPrice / $quantity;
                     }
-                    if ($totalPrice === null && $unitPrice !== null && $quantity !== null) {
-                        $totalPrice = $unitPrice * $quantity;
-                    }
 
-                    // ── Supply-only filter ───────────────────────────────
                     $supply = $this->boqCleaner->filterItem($description);
-                    if (! $supply['keep']) {
-                        $allRejected[] = [
-                            'description'          => $description,
-                            'quantity'             => $quantity ?? 1,
-                            'unit'                 => $unit,
-                            'category'             => $category,
-                            'brand'                => $brand,
-                            'status'               => 'rejected',
-                            'engineering_required' => false,
-                            'unit_price'           => $unitPrice,
-                            'confidence'           => 0.0,
-                            'raw_data'             => [
-                                'original_description' => $description,
-                                'extraction_type'      => 'rejected',
-                                'rejection_reason'     => $supply['rejection_reason'],
-                            ],
-                            'ai_extracted'         => true,
-                        ];
+
+                    if (! ($supply['keep'] ?? false)) {
+                        $rejected[] = $this->rejectedRow(
+                            $description,
+                            $unit,
+                            $quantity,
+                            (string) ($supply['rejection_reason'] ?? 'Rejected by cleaner'),
+                            $itemNo,
+                            $sheet['name']
+                        );
                         continue;
                     }
 
-                    $allItems[] = [
-                        'description'          => $supply['description'],
-                        'quantity'             => $quantity ?? 1,
+                    $finalDescription = (string) ($supply['description'] ?? $description);
+
+                    $items[] = [
+                        'description'          => $finalDescription,
+                        'quantity'             => $quantity,
                         'unit'                 => $unit,
-                        'category'             => $category,
-                        'brand'                => $brand,
+                        'category'             => $sheet['name'],
+                        'brand'                => '',
                         'status'               => 'pending',
-                        'engineering_required' => false,
+                        'engineering_required' => $this->boqCleaner->requiresEngineering($finalDescription),
                         'unit_price'           => $unitPrice,
-                        'confidence'           => 0.9,
+                        'confidence'           => 0.95,
+                        'needs_review'         => false,
                         'raw_data'             => [
+                            'sheet'                => $sheet['name'],
+                            'row_number'           => $r + 1,
+                            'source_item_no'       => $itemNo,
                             'original_description' => $description,
-                            'cleaned_description'  => $supply['description'],
-                            'extraction_type'      => $supply['extraction_type'],
+                        'cleaned_description'  => $finalDescription,
+                            'extraction_type'      => (string) ($supply['extraction_type'] ?? 'supply_only'),
                         ],
-                        'ai_extracted'         => true,
+                        'ai_extracted' => true,
                     ];
                 }
             }
 
-            if (empty($allItems)) {
-                return $this->failure('No items could be extracted from the file. Please make sure the file has rows with item descriptions and quantities.');
+            if (empty($items)) {
+                return $this->failure('No BOQ supply items could be extracted from the Excel file.');
             }
-
-            Log::info('QuotationAiService: Direct spreadsheet parse succeeded.', [
-                'items'    => count($allItems),
-                'rejected' => count($allRejected),
-            ]);
 
             return [
                 'success'  => true,
-                'items'    => $allItems,
-                'rejected' => $allRejected,
+                'items'    => $items,
+                'rejected' => $rejected,
                 'error'    => null,
             ];
-
         } catch (\Throwable $e) {
             Log::error('QuotationAiService: parseSpreadsheetDirect failed.', [
+                'path'    => $absPath,
                 'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
 
             return $this->failure('Failed to read the Excel file: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Parse an .xlsx file using ZipArchive + SimpleXML — minimal memory (~5 MB vs ~100 MB for PhpSpreadsheet).
-     * Returns an array of ['name' => string, 'grid' => array[][]] for each sheet, or null on failure.
-     *
-     * @return array<int, array{name: string, grid: array<int, array<int, string>>}>|null
-     */
-    private function readXlsxAsGrids(string $absPath): ?array
+    private function spreadsheetToGrids(string $absPath): array
     {
-        if (! class_exists(\ZipArchive::class)) {
-            return null;
+        $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
+
+        if ($ext === 'csv') {
+            $rows = [];
+            $handle = fopen($absPath, 'rb');
+            if ($handle !== false) {
+                while (($row = fgetcsv($handle)) !== false) {
+                    $rows[] = $this->trimTrailingEmptyCells($row);
+                }
+                fclose($handle);
+            }
+            return [['name' => 'Sheet1', 'grid' => $rows]];
         }
 
-        $zip = new \ZipArchive();
-        if ($zip->open($absPath) !== true) {
-            return null;
-        }
+        $reader = IOFactory::createReader($ext === 'xls' ? 'Xls' : 'Xlsx');
+        $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($absPath);
+        $sheets = [];
 
-        try {
-            // ── Shared strings table ─────────────────────────────────────────
-            $sharedStrings = [];
-            $ssContent     = $zip->getFromName('xl/sharedStrings.xml');
-            if ($ssContent !== false && $ssContent !== '') {
-                $xml = @simplexml_load_string($ssContent, 'SimpleXMLElement', LIBXML_NOERROR | LIBXML_NOWARNING);
-                if ($xml) {
-                    foreach ($xml->si as $si) {
-                        if (isset($si->t)) {
-                            $sharedStrings[] = (string) $si->t;
-                        } else {
-                            $text = '';
-                            foreach ($si->r ?? [] as $r) {
-                                $text .= (string) ($r->t ?? '');
-                            }
-                            $sharedStrings[] = $text;
-                        }
+        foreach ($spreadsheet->getAllSheets() as $sheet) {
+            $highestRow         = $sheet->getHighestDataRow();
+            $highestColumn      = $sheet->getHighestDataColumn();
+            $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+
+            // BOQ data is normally in first 8-20 columns.
+            // Files with heavy formatting/images can report 300+ columns — limit to 30.
+            $maxColumnIndex = min($highestColumnIndex, 30);
+
+            $grid = [];
+            for ($row = 1; $row <= $highestRow; $row++) {
+                $rowData  = [];
+                $hasValue = false;
+
+                for ($col = 1; $col <= $maxColumnIndex; $col++) {
+                    $value = $sheet->getCell([$col, $row])->getValue();
+                    $value = ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText)
+                        ? $value->getPlainText()
+                        : (string) ($value ?? '');
+                    $value = trim($value);
+                    if ($value !== null && $value !== '') {
+                        $hasValue = true;
                     }
+                    $rowData[] = $value;
+                }
+
+                $rowData = $this->trimTrailingEmptyCells($rowData);
+                if ($hasValue) {
+                    $grid[] = $rowData;
                 }
             }
 
-            // ── Sheet names from workbook ────────────────────────────────────
-            $sheetNames = [];
-            $wbContent  = $zip->getFromName('xl/workbook.xml');
-            if ($wbContent !== false) {
-                $wb = @simplexml_load_string($wbContent, 'SimpleXMLElement', LIBXML_NOERROR | LIBXML_NOWARNING);
-                if ($wb) {
-                    foreach ($wb->sheets->sheet ?? [] as $sheet) {
-                        $sheetNames[] = (string) $sheet['name'];
-                    }
-                }
+            if (! empty($grid)) {
+                $sheets[] = ['name' => $sheet->getTitle(), 'grid' => $grid];
             }
-
-            // ── Parse each sheet ─────────────────────────────────────────────
-            $sheetsData = [];
-            $idx        = 1;
-
-            while (true) {
-                $sheetContent = $zip->getFromName("xl/worksheets/sheet{$idx}.xml");
-                if ($sheetContent === false) {
-                    break;
-                }
-
-                $grid = [];
-                $xml  = @simplexml_load_string($sheetContent, 'SimpleXMLElement', LIBXML_NOERROR | LIBXML_NOWARNING);
-
-                if ($xml) {
-                    foreach ($xml->sheetData->row ?? [] as $row) {
-                        $rowData = [];
-                        $maxCol  = -1;
-
-                        foreach ($row->c ?? [] as $cell) {
-                            // Parse column letter (e.g. "B3" → column index 1)
-                            $cellRef = (string) ($cell['r'] ?? 'A1');
-                            preg_match('/^([A-Z]+)/i', $cellRef, $m);
-                            $colStr   = strtoupper($m[1] ?? 'A');
-                            $colIndex = 0;
-                            for ($i = 0, $len = strlen($colStr); $i < $len; $i++) {
-                                $colIndex = $colIndex * 26 + (ord($colStr[$i]) - 64);
-                            }
-                            $colIndex--; // 0-based
-
-                            $type   = (string) ($cell['t'] ?? '');
-                            $rawVal = (string) ($cell->v ?? '');
-
-                            $value = match ($type) {
-                                's'         => $sharedStrings[(int) $rawVal] ?? '',
-                                'inlineStr' => (string) ($cell->is->t ?? ''),
-                                'b'         => ($rawVal ? 'TRUE' : 'FALSE'),
-                                default     => $rawVal,
-                            };
-
-                            $rowData[$colIndex] = $value;
-                            $maxCol             = max($maxCol, $colIndex);
-                        }
-
-                        if ($maxCol >= 0) {
-                            $fullRow = [];
-                            for ($i = 0; $i <= $maxCol; $i++) {
-                                $fullRow[] = $rowData[$i] ?? '';
-                            }
-                            // Only add rows that have at least one non-empty cell.
-                            if (array_filter($fullRow, fn($v) => trim((string) $v) !== '') !== []) {
-                                $grid[] = $fullRow;
-                            }
-                        }
-                    }
-                }
-
-                $sheetsData[] = [
-                    'name' => $sheetNames[$idx - 1] ?? "Sheet{$idx}",
-                    'grid' => $grid,
-                ];
-                $idx++;
-            }
-
-            $zip->close();
-
-            return $sheetsData ?: null;
-
-        } catch (\Throwable $e) {
-            $zip->close();
-            Log::warning('QuotationAiService: readXlsxAsGrids failed.', ['message' => $e->getMessage()]);
-            return null;
         }
+
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+
+        return $sheets;
     }
 
-    /**
-     * Call the custom primary AI extract endpoint.
-     *
-     * @param  \Illuminate\Http\UploadedFile|string  $file
-     * @param  array<string, mixed>  $context
-     * @return array{success: bool, items: array<int, array<string, mixed>>, error: string|null}
-     */
-    private function callPrimaryApi(UploadedFile|string $file, array $context = []): array
+    private function detectHeader(array $grid): ?array
     {
-        if (empty($this->baseUrl)) {
-            Log::warning('QuotationAiService: AI_QUOTATION_BASE_URL is not configured.');
+        $keywords = [
+            'item_code'   => ['رقم البند', 'item no', 'item number', 'ref.', 'ref', 'item', 'no.', 'no', '#', 'كود'],
+            'description' => ['وصف البند', 'scope of works', 'scope of work', 'scope', 'item description', 'description of works', 'description', 'بالعربية', 'الوصف', 'البند', 'بيان'],
+            'unit'        => ['الوحدة', 'unit', 'uom', 'u/m'],
+            'quantity'    => ['الكمية', 'qty', 'quantity', 'q.ty'],
+            'unit_price'  => ['سعر الوحدة', 'u/price', 'unit price', 'unit rate', 'rate', 'price'],
+            'total_price' => ['السعر الإجمالي', 'total amount', 'total price', 'amount', 'الإجمالي'],
+        ];
 
-            return $this->failure('AI service is not configured.');
-        }
+        $best      = null;
+        $bestScore = 0;
 
-        $url = "{$this->baseUrl}/extract/products";
+        for ($r = 0; $r < min(30, count($grid)); $r++) {
+            $map   = [];
+            $score = 0;
 
-        try {
-            $request = Http::timeout($this->timeout)->connectTimeout(5)->asMultipart();
+            foreach ($grid[$r] as $c => $value) {
+                $cell = mb_strtolower(trim((string) $value));
+                if ($cell === '') {
+                    continue;
+                }
 
-            if ($this->apiKey !== '') {
-                $request = $request->withToken($this->apiKey);
-            }
-
-            // Attach file
-            if ($file instanceof UploadedFile) {
-                $mime    = $this->mimeForExtension($file->getClientOriginalExtension());
-                $request = $request->attach(
-                    'file',
-                    $file->getContent(),
-                    $file->getClientOriginalName(),
-                    ['Content-Type' => $mime]
-                );
-            } else {
-                // $file is an absolute path (passed from uploadBoq via Storage::disk('local')->path())
-                // Use it directly — do NOT prepend storage_path() again.
-                $absPath  = file_exists($file) ? $file : storage_path('app/' . $file);
-                $ext      = strtolower(pathinfo(basename($file), PATHINFO_EXTENSION));
-                $mime     = $this->mimeForExtension($ext);
-                $request  = $request->attach(
-                    'file',
-                    file_get_contents($absPath),
-                    basename($file),
-                    ['Content-Type' => $mime]
-                );
-            }
-
-            // Attach context fields
-            foreach ($context as $key => $value) {
-                $request = $request->attach($key, (string) $value);
-            }
-
-            $response = $request->post($url);
-
-        } catch (ConnectionException $e) {
-            Log::error('QuotationAiService: Connection timeout or refused.', [
-                'url'     => $url,
-                'message' => $e->getMessage(),
-            ]);
-
-            return $this->failure('AI service timed out or is unavailable. Please try again later.', true);
-        } catch (\Throwable $e) {
-            Log::error('QuotationAiService: Unexpected error calling AI endpoint.', [
-                'url'     => $url,
-                'message' => $e->getMessage(),
-            ]);
-
-            return $this->failure('An unexpected error occurred while contacting the AI service.', true);
-        }
-
-        if (! $response->successful()) {
-            $body = $response->body();
-
-            Log::error('QuotationAiService: AI endpoint returned non-2xx response.', [
-                'url'    => $url,
-                'status' => $response->status(),
-                'body'   => $body,
-            ]);
-
-            // Expose FastAPI validation detail in debug mode so we can see exactly what failed
-            $detail = '';
-            if (config('app.debug') && $response->status() === 422) {
-                $errJson = $response->json();
-                if (is_array($errJson['detail'] ?? null)) {
-                    $msgs   = array_map(fn($e) => implode(' → ', (array) ($e['loc'] ?? [])) . ': ' . ($e['msg'] ?? ''), $errJson['detail']);
-                    $detail = ' — ' . implode('; ', $msgs);
+                foreach ($keywords as $field => $list) {
+                    foreach ($list as $kw) {
+                        if (str_contains($cell, mb_strtolower($kw))) {
+                            if (! isset($map[$field])) {
+                                $map[$field] = $c;
+                                $score++;
+                            }
+                            break 2;
+                        }
+                    }
                 }
             }
 
-            return $this->failure("AI service returned HTTP {$response->status()}{$detail}.");
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best      = ['row' => $r, 'map' => $map];
+            }
         }
 
-        $json = $response->json();
+        return $bestScore >= 3 ? $best : null;
+    }
 
-        if (! is_array($json)) {
-            Log::error('QuotationAiService: AI response is not valid JSON.', [
-                'body' => $response->body(),
-            ]);
+    private function cell(array $row, ?int $index): string
+    {
+        if ($index === null) {
+            return '';
+        }
+        return trim((string) ($row[$index] ?? ''));
+    }
 
-            return $this->failure('AI service returned an invalid response.');
+    private function number(string $value): ?float
+    {
+        $value = trim(str_replace([',', 'SAR', 'ر.س'], '', $value));
+        if ($value === '' || ! is_numeric($value)) {
+            return null;
+        }
+        return (float) $value;
+    }
+
+    private function trimTrailingEmptyCells(array $row): array
+    {
+        while (! empty($row) && trim((string) end($row)) === '') {
+            array_pop($row);
+        }
+        return array_values($row);
+    }
+
+    private function isTotalOrHeaderRow(string $description): bool
+    {
+        $d = mb_strtolower(trim($description));
+
+        if ($d === '' || preg_match('/^[\d\.\-\/\s]+$/u', $d)) {
+            return true;
         }
 
-        if (! ($json['success'] ?? true)) {
-            $message = $json['message'] ?? 'AI service reported a failure.';
-            Log::warning('QuotationAiService: AI returned success=false.', compact('message'));
-
-            return $this->failure($message);
+        // Section totals / summaries
+        if (preg_match('/(اجمالي|إجمالي|المجموع|grand\s*total|sub\s*total|total\s*amount|total\s*price)/iu', $d)) {
+            return true;
         }
 
-        $items = data_get($json, 'data.items', []);
-
-        if (! is_array($items)) {
-            $items = [];
+        // Pure floor / level labels used as section headers
+        if (preg_match('/^(gf|g\.f\.?|ground\s*floor|basement|rooftop|mezzanine|podium|floor\s*\d+|\d+(st|nd|rd|th)\s*floor)\s*$/iu', $d)) {
+            return true;
         }
 
-        if (empty($items)) {
-            Log::info('QuotationAiService: AI returned zero items for BOQ.', $context);
+        // Division / section header lines (e.g. "Division - 02: Wood Works")
+        if (preg_match('/^division\s*([-:]|\d)/iu', $d)) {
+            return true;
         }
 
+        return false;
+    }
+
+    private function isFloorBreakdownRow(string $itemNo, string $description): bool
+    {
+        // A row whose Ref column is empty or a dash is a sub-breakdown row (per-floor split).
+        $ref = trim($itemNo);
+        if ($ref === '' || $ref === '-') {
+            // Confirm by checking the description is a location/floor label
+            $d = mb_strtolower(trim($description));
+            return (bool) preg_match(
+                '/^(gf|g\.f\.?|ground\s*floor|basement|rooftop|mezzanine|podium|floor\s*\d+|\d+(st|nd|rd|th)\s*floor|\d+f)\s*$/iu',
+                $d
+            );
+        }
+        return false;
+    }
+
+    private function rejectedRow(string $description, string $unit, ?float $quantity, string $reason, string $itemNo = '', string $sheet = ''): array
+    {
         return [
-            'success' => true,
-            'items'   => array_map([$this, 'normaliseItem'], $items),
-            'error'   => null,
+            'description'          => $description,
+            'quantity'             => $quantity ?? 0,
+            'unit'                 => $unit,
+            'category'             => $sheet,
+            'brand'                => '',
+            'status'               => 'rejected',
+            'engineering_required' => false,
+            'unit_price'           => null,
+            'confidence'           => 0.0,
+            'raw_data'             => [
+                'sheet'                => $sheet,
+                'source_item_no'       => $itemNo,
+                'original_description' => $description,
+                'extraction_type'      => 'rejected',
+                'rejection_reason'     => $reason,
+            ],
+            'ai_extracted' => true,
         ];
     }
 
-    // ── Gemini fallback ──────────────────────────────────────────────────────
-
-    /**
-     * Extract BOQ items using Google Gemini as a fallback.
-     *
-     * @param  \Illuminate\Http\UploadedFile|string  $file
-     * @param  array<string, mixed>  $context
-     * @return array{success: bool, items: array<int, array<string, mixed>>, error: string|null}
-     */
     private function parseBoqWithGemini(UploadedFile|string $file, array $context = []): array
     {
-        $geminiKey     = (string) config('services.gemini.key', '');
-        $primaryModel  = (string) config('services.gemini.model', 'gemini-2.5-flash');
-        // Ordered list of models to try — prefer current stable models
-        $geminiModels  = array_values(array_unique(array_filter([
-            $primaryModel,
-            'gemini-3.5-flash',
-            'gemini-2.5-flash',
-            'gemini-2.5-flash-lite',
-            'gemini-2.5-pro',
-        ])));
-
-        // ── Check if Gemini API key is configured ───────────────────────────
-        if (empty($geminiKey)) {
-            Log::warning('QuotationAiService: GEMINI_API_KEY is not configured.');
-            return $this->failure('AI service is not configured. Please set GEMINI_API_KEY in your .env file.');
+        $geminiKey = (string) config('services.gemini.key', '');
+        if ($geminiKey === '') {
+            return $this->failure('AI service is not configured. Please set GEMINI_API_KEY in .env file.');
         }
 
+        [$absPath, $ext] = $this->resolveFile($file);
+        $filename = basename($absPath);
+        $mime     = $this->mimeForExtension($ext);
+
         try {
-            if ($file instanceof UploadedFile) {
-                $absPath  = $file->getRealPath();
-                $ext      = strtolower($file->getClientOriginalExtension());
-                $filename = $file->getClientOriginalName();
-            } else {
-                $absPath  = file_exists($file) ? $file : storage_path('app/' . $file);
-                $ext      = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
-                $filename = basename($absPath);
+            if (in_array($ext, ['xlsx', 'xlsm', 'xlsb', 'xls', 'csv'], true)) {
+                $text = $this->spreadsheetToCompactCsvText($absPath);
+                if ($text === null || trim($text) === '') {
+                    return $this->failure('Could not convert spreadsheet to readable text.');
+                }
+
+                $text = mb_substr($text, 0, 180000);
+                return $this->callGeminiGenerateContent([
+                    ['text' => "BOQ spreadsheet converted to CSV:\n\n" . $text],
+                    ['text' => $this->buildGeminiPrompt($context, 'text/plain')],
+                ], $geminiKey, $this->geminiModel());
             }
 
-            // Excel/CSV: convert to plain text so Gemini can parse rows.
-            // Gemini does NOT accept text/plain as inline_data — must be sent as a text part.
-            if (in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
-                $csvText = $this->spreadsheetToCsvText($absPath);
-                if ($csvText !== null) {
-                    // Send the CSV as plain text parts — no inline_data needed.
-                    $prompt      = $this->buildGeminiPrompt($context, 'text/plain');
-                    $textContent = "BOQ file content (converted from spreadsheet):\n\n" . $csvText;
-
-                    $lastResult = $this->failure('Failed to process file with all available AI models.');
-
-                    foreach ($geminiModels as $attemptModel) {
-                        $lastResult = $this->callGeminiGenerateContent(
-                            [
-                                ['text' => $textContent],
-                                ['text' => $prompt],
-                            ],
-                            $geminiKey,
-                            $attemptModel
-                        );
-
-                        if ($lastResult['success']) {
-                            return $lastResult;
-                        }
-
-                        Log::info('QuotationAiService: Gemini model failed, trying next.', [
-                            'model' => $attemptModel,
-                            'error' => $lastResult['error'],
-                        ]);
-                    }
-
-                    return $lastResult;
-                }
-
-                // PhpSpreadsheet failed — fall back to raw bytes with Excel MIME type.
-                Log::warning('QuotationAiService: PhpSpreadsheet failed — sending raw bytes to Gemini.', [
-                    'path' => $absPath,
-                ]);
-                $raw = file_get_contents($absPath);
-                if ($raw === false || $raw === '') {
-                    return $this->failure('Could not read the uploaded file for AI processing.');
-                }
-                $bytes = $raw;
-                $mime  = $this->mimeForExtension($ext);
-            } else {
-                $raw = file_get_contents($absPath);
-                if ($raw === false || $raw === '') {
-                    return $this->failure('Could not read the uploaded file for Gemini processing.');
-                }
-                $bytes = $raw;
-                $mime  = $this->mimeForExtension($ext);
+            $bytes = file_get_contents($absPath);
+            if ($bytes === false || $bytes === '') {
+                return $this->failure('Could not read uploaded file for AI processing.');
             }
 
             $prompt = $this->buildGeminiPrompt($context, $mime);
 
-            // Files > 20 MB must go through the Gemini Files API.
-            $lastResult = $this->failure('Failed to process file with all available AI models.');
-
-            foreach ($geminiModels as $attemptModel) {
-                if (strlen($bytes) > 20 * 1024 * 1024) {
-                    $lastResult = $this->geminiViaFilesApi($bytes, $mime, $filename, $prompt, $geminiKey, $attemptModel);
-                } else {
-                    $lastResult = $this->geminiViaInlineData($bytes, $mime, $prompt, $geminiKey, $attemptModel);
-                }
-
-                if ($lastResult['success']) {
-                    return $lastResult;
-                }
-
-                Log::info('QuotationAiService: Gemini model failed, trying next.', [
-                    'model' => $attemptModel,
-                    'error' => $lastResult['error'],
-                ]);
+            if (strlen($bytes) > 20 * 1024 * 1024) {
+                return $this->geminiViaFilesApi($bytes, $mime, $filename, $prompt, $geminiKey, $this->geminiModel());
             }
 
-            return $lastResult;
-
+            return $this->callGeminiGenerateContent([
+                ['inline_data' => ['mime_type' => $mime, 'data' => base64_encode($bytes)]],
+                ['text' => $prompt],
+            ], $geminiKey, $this->geminiModel());
         } catch (\Throwable $e) {
-            Log::error('QuotationAiService: Gemini fallback threw an exception.', [
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
-
-            return $this->failure('An error occurred while processing your file with AI. Please try again or upload a different file.');
+            Log::error('QuotationAiService: Gemini fallback failed.', ['message' => $e->getMessage()]);
+            return $this->failure('An error occurred while processing file with AI: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Call Gemini generateContent with the file embedded as base64 inline data.
-     *
-     * @param  array<string, mixed>  $parts  Gemini "parts" array
-     */
+    private function geminiModel(): string
+    {
+        return (string) config('services.gemini.model', 'gemini-2.5-flash');
+    }
+
     private function callGeminiGenerateContent(array $parts, string $key, string $model): array
     {
-        $response = Http::timeout($this->timeout)
-            ->withoutVerifying()
-            ->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}",
-                [
-                    // Permanent system instruction — always applied before BOQ content.
-                    'system_instruction' => [
-                        'parts' => [['text' => $this->buildSystemInstruction()]],
+        try {
+            $response = Http::timeout($this->timeout)
+                ->connectTimeout(15)
+                ->withoutVerifying()
+                ->withOptions([
+                    'curl' => [
+                        CURLOPT_SSLVERSION   => CURL_SSLVERSION_TLSv1_2,
+                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                     ],
-                    'contents' => [['parts' => $parts]],
-                    // Do NOT set responseMimeType — not supported by all models (causes HTTP 400 on flash-lite).
-                    // Raise output token limit so large BOQs (100+ items) are not truncated mid-JSON.
-                    'generationConfig' => [
+                ])
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}", [
+                    'system_instruction' => ['parts' => [['text' => $this->buildSystemInstruction()]]],
+                    'contents'           => [['parts' => $parts]],
+                    'generationConfig'   => [
                         'maxOutputTokens' => 65536,
                         'temperature'     => 0.1,
                     ],
-                ]
-            );
+                ]);
+        } catch (ConnectionException $e) {
+            return $this->failure('Gemini connection timeout or unavailable.', true);
+        }
 
         if (! $response->successful()) {
-            $status = $response->status();
-            $errorMsg = "Gemini API returned HTTP {$status}.";
-
-            // Extract actual error message from Gemini's response body
-            $geminiError = '';
-            $bodyJson = $response->json();
-            if (is_array($bodyJson)) {
-                $geminiError = (string) data_get($bodyJson, 'error.message', '');
-            }
-            if ($geminiError === '') {
-                $geminiError = substr($response->body(), 0, 300);
-            }
-
-            // Provide specific error messages for common Gemini API errors
-            $isUnavailable = false;
-            if ($status === 400) {
-                $errorMsg = "Gemini API error (400): {$geminiError}";
-            } elseif ($status === 401) {
-                $errorMsg = "Gemini API authentication failed. Please check your GEMINI_API_KEY in .env.";
-            } elseif ($status === 403) {
-                $errorMsg = "Gemini API access forbidden. Your API key may not have the required permissions.";
-                $isUnavailable = true;
-            } elseif ($status === 404) {
-                $errorMsg = "Gemini model '{$model}' not found — it may have been deprecated. Trying next model.";
-                $isUnavailable = true;
-            } elseif ($status === 429) {
-                $errorMsg = "Gemini API rate limit exceeded. Please try again in a few moments.";
-                $isUnavailable = true;
-            } elseif ($status === 500 || $status === 503) {
-                $errorMsg = "Gemini API server error. Please try again later.";
-                $isUnavailable = true;
-            }
-
-            Log::error('QuotationAiService: Gemini generateContent failed.', [
-                'model'  => $model,
-                'status' => $status,
-                'body'   => $response->body(),
+            $message = (string) data_get($response->json(), 'error.message', $response->body());
+            Log::error('QuotationAiService: Gemini HTTP error.', [
+                'model'   => $model,
+                'status'  => $response->status(),
+                'message' => $message,
             ]);
-
-            return $this->failure($errorMsg, $isUnavailable);
+            return $this->failure("Gemini API returned HTTP {$response->status()}: {$message}", in_array($response->status(), [429, 500, 503], true));
         }
 
         $text = (string) $response->json('candidates.0.content.parts.0.text');
-
         if ($text === '') {
             return $this->failure('Gemini returned an empty response.');
         }
 
-        // Strip markdown code fences if present.
         if (preg_match('/```(?:json)?\s*([\s\S]*?)\s*```/i', $text, $m)) {
             $text = $m[1];
         }
-
-        // Extract the first JSON object or array from the response.
         if (preg_match('/\{[\s\S]*\}/s', $text, $m)) {
-            $text = $m[0];
-        } elseif (preg_match('/\[[\s\S]*\]/s', $text, $m)) {
             $text = $m[0];
         }
 
         $decoded = json_decode($text, true);
-
         if (! is_array($decoded)) {
-            Log::error('QuotationAiService: Gemini response could not be decoded as JSON.', ['text' => $text]);
-
+            Log::error('QuotationAiService: Gemini non JSON response.', ['text' => mb_substr($text, 0, 1000)]);
             return $this->failure('Gemini returned a non-JSON response.');
         }
 
-        $items = $decoded['items'] ?? (array_is_list($decoded) ? $decoded : []);
+        $rawItems = $decoded['items'] ?? (array_is_list($decoded) ? $decoded : []);
+        $items    = [];
+        $rejected = [];
 
-        if (! is_array($items)) {
-            $items = [];
-        }
-
-        if (empty($items)) {
-            Log::info('QuotationAiService: Gemini returned zero items.');
-        }
-
-        $normItems = array_values(array_filter(
-            array_map([$this, 'normaliseGeminiItem'], $items),
-            fn ($item) => $item !== null,
-        ));
-
-        // Safety-net: programmatic filter catches edge cases the AI may have missed
-        $safeAccepted = [];
-        $safeRejected = [];
-
-        foreach ($normItems as $normItem) {
-            $check = $this->boqCleaner->filterItem((string) ($normItem['description'] ?? ''));
-            if ($check['keep']) {
-                $safeAccepted[] = $normItem;
+        foreach ($rawItems as $raw) {
+            if (! is_array($raw)) {
+                continue;
+            }
+            $item = $this->normaliseGeminiItem($raw);
+            if ($item === null) {
+                continue;
+            }
+            $check = $this->boqCleaner->filterItem((string) $item['description']);
+            if ($check['keep'] ?? false) {
+                $items[] = $item;
             } else {
-                $normItem['status']   = 'rejected';
-                $rawData              = is_array($normItem['raw_data'] ?? null) ? $normItem['raw_data'] : [];
-                $normItem['raw_data'] = array_merge($rawData, ['rejection_reason' => $check['rejection_reason']]);
-                $safeRejected[]       = $normItem;
+                $item['status']                          = 'rejected';
+                $item['raw_data']['rejection_reason']    = $check['rejection_reason'] ?? 'Rejected by cleaner';
+                $rejected[]                              = $item;
             }
         }
 
-        if (! empty($safeRejected)) {
-            Log::info('QuotationAiService: Safety-net filter caught items from Gemini.', ['count' => count($safeRejected)]);
-        }
-
-        return [
-            'success'  => true,
-            'items'    => $safeAccepted,
-            'rejected' => $safeRejected,
-            'error'    => null,
-        ];
+        return ['success' => true, 'items' => $items, 'rejected' => $rejected, 'error' => null];
     }
 
-    /** Send file as base64 inline data (≤ 20 MB). */
-    private function geminiViaInlineData(string $bytes, string $mime, string $prompt, string $key, string $model): array
-    {
-        return $this->callGeminiGenerateContent(
-            [
-                ['inline_data' => ['mime_type' => $mime, 'data' => base64_encode($bytes)]],
-                ['text'        => $prompt],
-            ],
-            $key,
-            $model
-        );
-    }
-
-    /** Upload file via Gemini Files API then call generateContent (> 20 MB). */
     private function geminiViaFilesApi(string $bytes, string $mime, string $filename, string $prompt, string $key, string $model): array
     {
         $boundary = 'GeminiBoundary' . bin2hex(random_bytes(8));
@@ -1049,217 +555,85 @@ class QuotationAiService
         $body .= $bytes . "\r\n";
         $body .= "--{$boundary}--";
 
-        $uploadResponse = Http::timeout(120)
+        $upload = Http::timeout(120)
+            ->connectTimeout(15)
             ->withoutVerifying()
-            ->withHeaders([
-                'X-Goog-Upload-Protocol' => 'multipart',
+            ->withOptions([
+                'curl' => [
+                    CURLOPT_SSLVERSION   => CURL_SSLVERSION_TLSv1_2,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                ],
             ])
+            ->withHeaders(['X-Goog-Upload-Protocol' => 'multipart'])
             ->withBody($body, "multipart/related; boundary={$boundary}")
             ->post("https://generativelanguage.googleapis.com/upload/v1beta/files?key={$key}");
 
-        if (! $uploadResponse->successful()) {
-            $status = $uploadResponse->status();
-            $errorMsg = "Gemini Files API upload failed with HTTP {$status}.";
-
-            $isUnavailable = false;
-            if ($status === 401) {
-                $errorMsg = "Gemini API authentication failed. Please check your GEMINI_API_KEY in .env.";
-            } elseif ($status === 413) {
-                $errorMsg = "File is too large. Please upload a file smaller than 2GB.";
-            } elseif ($status === 429) {
-                $errorMsg = "Rate limit exceeded. Please wait a moment and try again.";
-                $isUnavailable = true;
-            } elseif ($status === 503) {
-                $errorMsg = "Gemini API is temporarily unavailable. Please try again later.";
-                $isUnavailable = true;
-            }
-
-            Log::error('QuotationAiService: Gemini Files API upload failed.', [
-                'status' => $status,
-                'body'   => $uploadResponse->body(),
-            ]);
-
-            return $this->failure($errorMsg, $isUnavailable);
+        if (! $upload->successful()) {
+            return $this->failure('Gemini Files API upload failed with HTTP ' . $upload->status());
         }
 
-        $fileUri = (string) $uploadResponse->json('file.uri');
-
+        $fileUri = (string) $upload->json('file.uri');
         if ($fileUri === '') {
-            return $this->failure('Gemini Files API did not return a valid file URI.');
+            return $this->failure('Gemini Files API did not return file URI.');
         }
 
-        return $this->callGeminiGenerateContent(
-            [
-                ['file_data' => ['mime_type' => $mime, 'file_uri' => $fileUri]],
-                ['text'      => $prompt],
-            ],
-            $key,
-            $model
-        );
+        return $this->callGeminiGenerateContent([
+            ['file_data' => ['mime_type' => $mime, 'file_uri' => $fileUri]],
+            ['text' => $prompt],
+        ], $key, $model);
     }
 
-    /**
-     * Permanent system instruction injected into every Gemini call.
-     * This always runs before any BOQ content reaches the model.
-     */
-    private function buildSystemInstruction(): string
+    private function spreadsheetToCompactCsvText(string $absPath): ?string
     {
-        return trim(<<<'SYSTEM'
-You are a strict BOQ Supply Product Extraction Engine for a procurement platform.
+        $sheets = $this->spreadsheetToGrids($absPath);
+        if (empty($sheets)) {
+            return null;
+        }
 
-YOUR ONLY JOB: Extract rows that describe a real, purchasable physical product or piece of equipment that a supplier can price and deliver. Nothing else.
+        $output = '';
+        foreach ($sheets as $sheet) {
+            $output .= 'Sheet: ' . $sheet['name'] . "\n";
+            foreach ($sheet['grid'] as $row) {
+                $row = $this->trimTrailingEmptyCells($row);
+                if (empty($row)) {
+                    continue;
+                }
+                $output .= implode(',', array_map([$this, 'csvEscape'], $row)) . "\n";
+            }
+            $output .= "\n";
+        }
 
-━━━ REJECT IMMEDIATELY — DO NOT OUTPUT THESE ━━━
-Set rejected=true for ANY row that matches the following patterns:
+        return $output;
+    }
 
-1. ROW IS JUST A NUMBER OR ITEM CODE:
-   - e.g. "1", "2", "3-1", "5-7", "A", "B", "IV" — row has no product name, only a numbering code.
-
-2. SECTION / CHAPTER HEADINGS:
-   - e.g. "Mechanical Works", "Electrical Works", "Plumbing", "الأعمال الميكانيكية", "أعمال الصرف الصحي", "الأعمال الكهربائية", "الأعمال المعمارية", "الأعمال المدنية"
-   - Any row whose entire text is a category name, chapter title, or division header.
-
-3. TOTALS, SUBTOTALS, AND SUMMARY LINES:
-   - e.g. "Grand Total", "Sub Total", "Total Value", "اجمالي", "الإجمالي", "المجموع", "اجمالى قيمة الأعمال", "اجمالى قيمة الأعمال المعمارية رقماً وكتابة"
-   - Any row containing "Total" or "إجمالي" or "مجموع" as the primary content.
-
-4. LABOR / INSTALLATION ONLY:
-   - Testing and commissioning, site supervision, mobilization, preliminaries, drawings, permits, insurance, scaffolding, general attendance, temporary works.
-
-5. VAGUE / GENERIC DESCRIPTIONS WITH NO PRODUCT:
-   - "All required works", "Complete system as specified", "As per drawings", "Allow for", "Provisional sum", "PC sum"
-   - Arabic equivalents: "حسب المواصفات", "كما هو مبين بالرسومات", "بند مؤقت", "أعمال كاملة"
-
-6. BLANK OR NEAR-BLANK ROWS:
-   - Rows where the description column is empty, or contains only spaces, dashes, or a single character.
-
-━━━ KEEP — THESE ARE VALID SUPPLY PRODUCTS ━━━
-Only output items where you can clearly identify a named, purchasable product:
-- Physical materials: pipe, cable, fitting, valve, panel, fixture, pump, tank, conduit, duct, grille, door, window, tile, paint, etc.
-- Equipment with specifications: brand, model, size, rating, voltage, capacity, material, standard.
-- "Supply and Install" rows: KEEP but strip the install clause — output the supply product only.
-
-━━━ CRITICAL RULE — QUANTITY & UNIT ━━━
-- Copy quantity and unit EXACTLY as they appear in the BOQ. Never change, guess, or convert them.
-- If quantity or unit is genuinely unclear, set needs_review=true.
-- Split products inherit the parent row's quantity/unit and must have needs_review=true.
-
-━━━ OUTPUT FORMAT ━━━
-Return ONLY a valid JSON object — no markdown, no code fences, no extra text:
-{
-  "items": [
+    private function csvEscape(mixed $value): string
     {
-      "source_item_no": "item number from the BOQ row, e.g. 1.1, A-03 — or null if absent",
-      "original_description": "exact text copied from the BOQ row, never altered",
-      "cleaned_description": "supply product with specs only — no install/labor wording",
-      "core_product": "short product type, 2-5 words, e.g. UPVC Pipe, Gate Valve, HV Panel",
-      "specifications": {
-        "size": "",
-        "material": "",
-        "rating": "",
-        "voltage": "",
-        "capacity": "",
-        "pressure_rating": "",
-        "standard": "",
-        "brand": "",
-        "model": ""
-      },
-      "quantity": 120,
-      "unit": "LM",
-      "unit_price": 0.0,
-      "total_price": 0.0,
-      "extraction_type": "supply_only",
-      "needs_review": false,
-      "note": "",
-      "rejected": false,
-      "rejection_reason": null,
-      "confidence": 0.95
-    }
-  ]
-}
-
-━━━ FIELD RULES ━━━
-- source_item_no: the row/item number label only; null if not present.
-- original_description: exact BOQ text, never altered.
-- cleaned_description: supply product with specs — never contains "Supply and Install", labor, or install clauses.
-- core_product: 2-5 word product type.
-- quantity / unit: EXACT values from the BOQ. Never change them.
-- unit_price / total_price: from BOQ if present; otherwise 0.
-- extraction_type: "supply_only" | "extracted_from_supply_and_install" | "split_item".
-- needs_review: true when quantity is inherited or unclear.
-- rejected: true for ALL rows in the REJECT list above. When in doubt, REJECT.
-- rejection_reason: brief reason when rejected=true; null otherwise.
-- confidence: 0.0–1.0 float.
-
-REMEMBER: When in doubt, REJECT. It is better to miss a marginal item than to include garbage.
-SYSTEM);
+        $value = (string) $value;
+        return str_contains($value, ',') || str_contains($value, '"') || str_contains($value, "\n")
+            ? '"' . str_replace('"', '""', $value) . '"'
+            : $value;
     }
 
-    /**
-     * Per-BOQ task prompt — provides file context and triggers extraction.
-     * The permanent rules live in buildSystemInstruction() and are sent separately.
-     */
-    private function buildGeminiPrompt(array $context = [], string $mime = ''): string
-    {
-        $projectName   = $context['project_name'] ?? '';
-        $projectStatus = $context['project_status'] ?? '';
-
-        $contextLine = $projectName !== ''
-            ? "Project: {$projectName}" . ($projectStatus !== '' ? " (Status: {$projectStatus})" : '')
-            : '';
-
-        $isImage = str_starts_with($mime, 'image/');
-        $sourceHint = $isImage
-            ? 'The input is an image (photo or scan) of a BOQ. Use OCR to read every row carefully before applying the extraction rules.'
-            : 'The input is a document or spreadsheet containing a BOQ table.';
-
-        return trim(<<<PROMPT
-Extract all supply products from the attached BOQ file using the system rules.
-{$contextLine}
-{$sourceHint}
-
-Apply every extraction rule from the system instruction to each line and return only the JSON object.
-PROMPT);
-    }
-
-    /**
-     * Normalise a single Gemini supply-extraction item.
-     * Returns null for rejected items — callers must filter nulls.
-     *
-     * @param  array<string, mixed>  $raw
-     * @return array<string, mixed>|null
-     */
     private function normaliseGeminiItem(array $raw): ?array
     {
-        // Drop rejected lines — they carry no purchasable product.
         if (! empty($raw['rejected'])) {
             return null;
         }
 
-        $quantity   = is_numeric($raw['quantity'] ?? null) ? (float) $raw['quantity'] : 1;
-        $unitPrice  = is_numeric($raw['unit_price'] ?? null) ? (float) $raw['unit_price'] : null;
+        $description = trim((string) ($raw['cleaned_description'] ?? $raw['product_name'] ?? $raw['description'] ?? ''));
+        if ($description === '' || preg_match('/^[\d\.\-\/\s]+$/u', $description)) {
+            return null;
+        }
+
+        $quantity   = is_numeric($raw['quantity'] ?? null)    ? (float) $raw['quantity']    : 1;
+        $unitPrice  = is_numeric($raw['unit_price'] ?? null)  ? (float) $raw['unit_price']  : null;
         $totalPrice = is_numeric($raw['total_price'] ?? null) ? (float) $raw['total_price'] : null;
 
-        // Derive unit_price from total_price when not given directly.
-        if ($unitPrice === null && $totalPrice !== null && $totalPrice > 0 && $quantity > 0) {
+        if ($unitPrice === null && $totalPrice !== null && $quantity > 0) {
             $unitPrice = $totalPrice / $quantity;
-        }
-        if ($unitPrice !== null && $unitPrice <= 0) {
-            $unitPrice = null;
         }
 
         $specs = is_array($raw['specifications'] ?? null) ? $raw['specifications'] : [];
-
-        // Prefer cleaned_description (supply-only), fall back to legacy fields.
-        $description = trim((string) ($raw['cleaned_description']
-            ?? $raw['product_name']
-            ?? $raw['description']
-            ?? ''));
-
-        // Drop items where description is blank, a pure number, or just an item code (e.g. "5-7", "A").
-        if ($description === '' || preg_match('/^[\d\.\-\/\s]+$/', $description)) {
-            return null;
-        }
 
         return [
             'description'          => $description,
@@ -1268,7 +642,7 @@ PROMPT);
             'category'             => (string) ($raw['core_product'] ?? $raw['category'] ?? ''),
             'brand'                => (string) ($specs['brand'] ?? $raw['brand'] ?? ''),
             'status'               => 'pending',
-            'engineering_required' => false,
+            'engineering_required' => $this->boqCleaner->requiresEngineering($description),
             'unit_price'           => $unitPrice,
             'confidence'           => is_numeric($raw['confidence'] ?? null) ? (float) $raw['confidence'] : null,
             'needs_review'         => ! empty($raw['needs_review']),
@@ -1281,239 +655,115 @@ PROMPT);
                 'extraction_type'      => (string) ($raw['extraction_type'] ?? 'supply_only'),
                 'note'                 => (string) ($raw['note'] ?? $raw['notes'] ?? ''),
             ],
-            'ai_extracted'         => true,
+            'ai_extracted' => true,
         ];
     }
 
-    /**
-     * Normalise a single AI item into the shape expected by the Livewire component.
-     *
-     * @param  array<string, mixed>  $raw
-     * @return array<string, mixed>
-     */
-    private function normaliseItem(array $raw): array
+    private function buildSystemInstruction(): string
+    {
+        return <<<'TXT'
+You are a strict BOQ Supply Product Extraction Engine.
+Extract only purchasable physical supply products. Reject totals, headings, general requirements, installation-only, testing, commissioning, supervision, mobilization, civil works, labor, and vague rows.
+For Supply & Install rows, keep only the supply product and remove install/labor wording.
+Return only valid JSON: {"items":[{"source_item_no":null,"original_description":"","cleaned_description":"","core_product":"","specifications":{},"quantity":0,"unit":"","unit_price":0,"total_price":0,"extraction_type":"supply_only","needs_review":false,"note":"","rejected":false,"rejection_reason":null,"confidence":0.95}]}
+TXT;
+    }
+
+    private function buildGeminiPrompt(array $context = [], string $mime = ''): string
+    {
+        $projectName   = (string) ($context['project_name'] ?? '');
+        $projectStatus = (string) ($context['project_status'] ?? '');
+        $contextLine   = $projectName !== ''
+            ? "Project: {$projectName}" . ($projectStatus !== '' ? " ({$projectStatus})" : '')
+            : '';
+        $sourceHint = str_starts_with($mime, 'image/')
+            ? 'The input is an image of a BOQ. OCR carefully.'
+            : 'The input is a BOQ document/spreadsheet.';
+
+        return trim(<<<PROMPT
+You are a procurement specialist. Your task is to extract ONLY tangible, physical supply products from this Bill of Quantities (BOQ).
+
+{$contextLine}
+{$sourceHint}
+
+STRICT RULES — include ONLY items that are ALL of the following:
+1. A physical, tangible product that can be ordered from a supplier and delivered to site.
+2. Has a real quantity (not 0 or "varies" with no meaning).
+3. Has enough description to identify what the product is.
+
+EXCLUDE all of the following (do NOT include them):
+- Labor, installation, or workmanship items (e.g. "install", "fix", "erect", "dismantle", "painting", "cleaning service")
+- Project management, overhead, or profit items
+- Insurance, bonds, liability items (e.g. "bodily injury", "third party liability", "CAR insurance")
+- Shop drawings, as-built drawings, method statements, documentation
+- Preliminary items, mobilisation, demobilisation, provisional sums
+- Housekeeping, site clearance, waste removal
+- Floor/level labels (e.g. "GF Floor", "Level 3") — these are headers, not products
+- Pure dimension specs without a product noun (e.g. "Dia 32 mm", "25 mm") — reject unless a product name is present
+- Security services, night shifts, rentals, payments
+- Any item whose description is too vague or fragmentary to identify a specific product
+
+For each valid physical product return JSON with:
+- description: clean product name only (strip "supply and install", "supply and fix", installation clauses, floor/spec suffixes)
+- quantity: numeric value (use 1 if unclear but product is real)
+- unit: unit of measure (pcs, m, m2, m3, set, no, kg, etc.)
+- category: product category
+- brand: brand/manufacturer if mentioned, else ""
+- engineering_required: true if the item needs engineering design before procurement (panel boards, chillers, generators, fire suppression systems, BMS, pumps, AHUs, switchgear, transformers), else false
+
+Return ONLY a valid JSON object: {"items": [...]}. No explanations, no markdown, no extra text.
+PROMPT);
+    }
+
+    private function mockResponse(): array
     {
         return [
-            'description'          => (string) ($raw['product_name'] ?? ''),
-            'quantity'             => is_numeric($raw['quantity'] ?? null) ? (float) $raw['quantity'] : 1,
-            'unit'                 => (string) ($raw['unit'] ?? ''),
-            'category'             => (string) ($raw['category'] ?? ''),
-            'brand'                => (string) ($raw['brand'] ?? ''),
-            'status'               => 'pending',
-            'engineering_required' => (bool) ($raw['engineering_required'] ?? false),
-            'confidence'           => is_numeric($raw['confidence'] ?? null) ? (float) $raw['confidence'] : null,
-            'raw_data'             => $raw['raw'] ?? null,
-            'ai_extracted'         => true,
+            'success' => true,
+            'error'   => null,
+            'items'   => [[
+                'description'          => 'Sample BOQ Item',
+                'quantity'             => 1,
+                'unit'                 => 'No',
+                'category'             => 'Sample',
+                'brand'                => '',
+                'status'               => 'pending',
+                'engineering_required' => false,
+                'unit_price'           => null,
+                'confidence'           => 1,
+                'raw_data'             => [],
+                'ai_extracted'         => true,
+            ]],
+            'rejected' => [],
         ];
     }
 
-    /**
-     * Determine whether a BOQ description represents a purchasable supply product.
-     *
-     * Returns:
-     *   ['keep' => true,  'description' => '...', 'extraction_type' => '...']
-     *   ['keep' => false, 'rejection_reason' => '...']
-     *
-     * @return array<string, mixed>
-     */
-    private function filterSupplyItem(string $description): array
-    {
-        $desc = trim($description);
-        if ($desc === '') {
-            return ['keep' => false, 'rejection_reason' => 'Empty description'];
-        }
-
-        // 1. Reject totals / summaries
-        if (preg_match(
-            '/\b(sub.?total|grand\s*total|section\s*total|total\s*price|total\s*amount|mechanical\s*total|electrical\s*total|civil\s*total|summary)\b/i',
-            $desc
-        )) {
-            return ['keep' => false, 'rejection_reason' => 'Section total or summary line'];
-        }
-
-        // 2. Reject pure non-supply lines
-        if (preg_match(
-            '/^\s*(preliminar|mobiliz|demobiliz|provisional\s+sum|contingenc|p\.?c\.?\s*sum|prime\s*cost)\b/i',
-            $desc
-        )) {
-            return ['keep' => false, 'rejection_reason' => 'Preliminary, provisional sum, or mobilization item'];
-        }
-
-        if (preg_match(
-            '/\b(supervision|testing\s+and\s+commissioning|commissioning\s+only|labour\s+only|labor\s+only|install(ation)?\s+only|site\s*clearance|excavat(ion)?|backfill(ing)?|compaction|scaffolding|temporary\s+works?|as.built\s+drawing|shop\s+drawing|method\s+statement|performance\s+bond|insurance)\b/i',
-            $desc
-        )) {
-            return ['keep' => false, 'rejection_reason' => 'Non-supply item (labor, site works, or project execution)'];
-        }
-
-        // 3. Lines that START with a pure installation / labor verb are rejected
-        if (preg_match(
-            '/^\s*(install(ing|ation)?|fix(ing)?|erect(ing|ion)?|lay(ing)?|paint(ing)?|plaster(ing)?|demolish(ing)?|remov(ing|al)?|dismantle|commission(ing)?|test(ing)?|supervise|supervision|excavat(ing|ion)?)\b/i',
-            $desc
-        )) {
-            return ['keep' => false, 'rejection_reason' => 'Starts with installation or labor verb'];
-        }
-
-        // 4. "Supply and Install" — extract supply product only
-        if (preg_match(
-            '/\b(supply\s+and\s+install(ation)?|supply\s*[\/&]\s*install(ation)?)\b/i',
-            $desc
-        )) {
-            // Strip the "Supply and Install" prefix
-            $cleaned = preg_replace(
-                '/\b(supply\s+and\s+install(ation)?|supply\s*[\/&]\s*install(ation)?)\s*(?:of\s*)?/i',
-                '',
-                $desc
-            );
-            // Strip trailing install/commission/test clauses
-            $cleaned = preg_replace(
-                '/,?\s*(includ(ing|e)?\s+)?(install(ation|ing)?|erect(ion|ing)?|fix(ing)?|connect(ion|ing)?|commission(ing)?|test(ing)?|as\s+per\s+spec[a-z]*)\b.*/i',
-                '',
-                (string) $cleaned
-            );
-            $cleaned = trim((string) $cleaned, ', ');
-
-            return [
-                'keep'           => true,
-                'description'    => $cleaned !== '' ? $cleaned : $desc,
-                'extraction_type' => 'extracted_from_supply_and_install',
-            ];
-        }
-
-        // 5. Accept as a supply item
-        return [
-            'keep'           => true,
-            'description'    => $desc,
-            'extraction_type' => 'supply_only',
-        ];
-    }
-
-    /**
-     * @return array{success: bool, items: array, error: string}
-     */
     private function failure(string $message, bool $serviceUnavailable = false): array
     {
-        return ['success' => false, 'items' => [], 'error' => $message, 'service_unavailable' => $serviceUnavailable];
+        return [
+            'success'             => false,
+            'items'               => [],
+            'rejected'            => [],
+            'error'               => $message,
+            'service_unavailable' => $serviceUnavailable,
+        ];
     }
 
     private function mimeForExtension(string $ext): string
     {
         return match (strtolower($ext)) {
-            'pdf'          => 'application/pdf',
-            'xlsx'         => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'xls'          => 'application/vnd.ms-excel',
-            'csv'          => 'text/csv',
-            'jpg', 'jpeg'  => 'image/jpeg',
-            'png'          => 'image/png',
-            'gif'          => 'image/gif',
-            'webp'         => 'image/webp',
-            default        => 'application/octet-stream',
+            'pdf'         => 'application/pdf',
+            'xlsx'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xlsm'        => 'application/vnd.ms-excel.sheet.macroEnabled.12',
+            'xlsb'        => 'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
+            'xls'         => 'application/vnd.ms-excel',
+            'csv'         => 'text/csv',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png'         => 'image/png',
+            'gif'         => 'image/gif',
+            'bmp'         => 'image/bmp',
+            'webp'        => 'image/webp',
+            'tiff', 'tif' => 'image/tiff',
+            default       => 'application/octet-stream',
         };
-    }
-
-    /**
-     * Read an xlsx, xls, or csv file and return all sheets as CSV text.
-     * Returns null on failure.
-     */
-    private function spreadsheetToCsvText(string $absPath): ?string
-    {
-        ini_set('memory_limit', '512M');
-        $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
-
-        // CSV: read raw — no library needed.
-        if ($ext === 'csv') {
-            $content = file_get_contents($absPath);
-            return ($content !== false && $content !== '') ? $content : null;
-        }
-
-        // Try lightweight ZipArchive reader first for xlsx.
-        if ($ext === 'xlsx') {
-            $sheetsData = $this->readXlsxAsGrids($absPath);
-            if ($sheetsData !== null) {
-                $output = '';
-                foreach ($sheetsData as $sheetData) {
-                    $output .= 'Sheet: ' . $sheetData['name'] . "\n";
-                    foreach ($sheetData['grid'] as $rowCells) {
-                        while (count($rowCells) > 0 && trim((string) end($rowCells)) === '') {
-                            array_pop($rowCells);
-                        }
-                        if (count($rowCells) > 0) {
-                            $output .= implode(',', array_map(function (mixed $v): string {
-                                $v = (string) $v;
-                                return (str_contains($v, ',') || str_contains($v, '"') || str_contains($v, "\n"))
-                                    ? '"' . str_replace('"', '""', $v) . '"'
-                                    : $v;
-                            }, $rowCells)) . "\n";
-                        }
-                    }
-                    $output .= "\n";
-                }
-                if ($output !== '') {
-                    return $output;
-                }
-            }
-        }
-
-        // Fall back to PhpSpreadsheet readers in priority order.
-        $readerTypes = $ext === 'xls' ? ['Xls', 'Xlsx'] : ['Xlsx', 'Xls'];
-
-        foreach ($readerTypes as $readerType) {
-            try {
-                $reader = IOFactory::createReader($readerType);
-                $reader->setReadDataOnly(true);
-                $spreadsheet   = $reader->load($absPath);
-                $output        = '';
-
-                foreach ($spreadsheet->getAllSheets() as $sheet) {
-                    $highestRow    = $sheet->getHighestDataRow();
-                    $highestColumn = $sheet->getHighestDataColumn();
-
-                    if ($highestRow < 1) {
-                        continue;
-                    }
-
-                    $output .= 'Sheet: ' . $sheet->getTitle() . "\n";
-
-                    $grid = $sheet->rangeToArray(
-                        "A1:{$highestColumn}{$highestRow}",
-                        null,
-                        true,   // calculateFormulas
-                        true,   // formatData
-                        false   // returnCellRef (false = numeric keys)
-                    );
-
-                    foreach ($grid as $rowCells) {
-                        // Strip trailing empty cells
-                        while (count($rowCells) > 0 && trim((string) end($rowCells)) === '') {
-                            array_pop($rowCells);
-                        }
-
-                        if (count($rowCells) > 0) {
-                            $output .= implode(',', array_map(function (mixed $v): string {
-                                $v = (string) $v;
-                                return (str_contains($v, ',') || str_contains($v, '"') || str_contains($v, "\n"))
-                                    ? '"' . str_replace('"', '""', $v) . '"'
-                                    : $v;
-                            }, $rowCells)) . "\n";
-                        }
-                    }
-
-                    $output .= "\n";
-                }
-
-                if ($output !== '') {
-                    return $output;
-                }
-
-            } catch (\Throwable $e) {
-                Log::warning('QuotationAiService: spreadsheetToCsvText reader failed, trying next.', [
-                    'reader'  => $readerType,
-                    'path'    => $absPath,
-                    'message' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        return null;
     }
 }

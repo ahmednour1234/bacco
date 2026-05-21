@@ -255,6 +255,7 @@ class ShowQuotation extends Component
 
     private function runPricingSync(): void
     {
+        set_time_limit(300); // Prevent 60-second fatal timeout during AI price fetching
         try {
             $dbItems = QuotationItem::where('quotation_request_id', $this->quotation->id)
                 ->get()
