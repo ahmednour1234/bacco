@@ -41,11 +41,17 @@ class QuotationAiService
             return $this->failure('File not found or not readable.');
         }
 
-        $fileHash = hash_file('sha256', $absPath);
-        $cacheKey = 'boq_analysis_' . $fileHash;
+        $fileHash     = hash_file('sha256', $absPath);
+        $cacheKey     = 'boq_analysis_' . $fileHash;
+        $forceRefresh = (bool) ($context['force_refresh'] ?? false);
 
-        if (($cached = Cache::get($cacheKey)) !== null) {
+        if (! $forceRefresh && ($cached = Cache::get($cacheKey)) !== null) {
             return $cached;
+        }
+
+        // Clear stale cached result when force-refreshing
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
         }
 
         if (in_array($ext, ['xlsx', 'xlsm', 'xlsb', 'xls', 'csv'], true)) {

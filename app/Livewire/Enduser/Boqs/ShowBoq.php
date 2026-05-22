@@ -162,6 +162,7 @@ class ShowBoq extends Component
             $result  = $ai->parseBoq($absPath, [
                 'boq_id'       => $this->boq->id,
                 'project_name' => $this->boq->project?->name ?? '',
+                'force_refresh' => true,
             ]);
 
             if (! $result['success']) {
