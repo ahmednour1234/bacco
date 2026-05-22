@@ -529,213 +529,119 @@
                         </div>
                     </div>
 
-                    {{-- Address preview / empty state --}}
-                    @if($deliveryStreet)
-                        <div class="p-6">
-                            <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-1 font-mono text-sm text-slate-700 leading-relaxed">
-                                @if($deliveryShortAddress)
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold tracking-widest text-emerald-700 uppercase">{{ strtoupper($deliveryShortAddress) }}</span>
-                                        <span class="text-xs text-slate-400">{{ app()->getLocale() === 'ar' ? 'العنوان القصير' : 'Short Address' }}</span>
+                    {{-- ── Address type selector ─────────────────────────────── --}}
+                    <div class="p-6 space-y-5">
+
+                        {{-- Radio cards --}}
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+                            {{-- National Address --}}
+                            <label class="relative flex cursor-pointer items-start gap-4 rounded-xl border-2 p-4 transition {{ $deliveryAddressMode === 'national' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-slate-300 bg-white' }}">
+                                <input type="radio" wire:model.live="deliveryAddressMode" value="national" class="sr-only">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $deliveryAddressMode === 'national' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500' }}">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-sm font-semibold {{ $deliveryAddressMode === 'national' ? 'text-emerald-800' : 'text-slate-700' }}">{{ app()->getLocale() === 'ar' ? 'العنوان الوطني' : 'National Address' }}</span>
+                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">{{ app()->getLocale() === 'ar' ? 'موصى به' : 'Recommended' }}</span>
                                     </div>
+                                    <p class="mt-0.5 text-xs {{ $deliveryAddressMode === 'national' ? 'text-emerald-600' : 'text-slate-400' }}">{{ app()->getLocale() === 'ar' ? 'أدخل العنوان الوطني المسجل في نظام وصل' : 'Enter your Saudi Post national address code' }}</p>
+                                </div>
+                                @if($deliveryAddressMode === 'national')
+                                    <svg class="absolute top-3 end-3 h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 @endif
-                                <p class="font-semibold">
-                                    @if($deliveryBuildingNo) <span class="text-slate-900">{{ $deliveryBuildingNo }}</span> @endif
-                                    {{ $deliveryStreet }}
-                                </p>
-                                <p class="text-slate-500">
-                                    {{ implode('، ', array_filter([$deliveryDistrict, $deliveryCity])) }}
-                                    @if($deliveryPostalCode)
-                                        <span>{{ $deliveryPostalCode }}</span>
-                                        @if($deliveryAdditionalNo)-{{ $deliveryAdditionalNo }}@endif
-                                    @endif
-                                </p>
-                                <p class="text-slate-500">{{ $deliveryRegion }}{{ $deliveryRegion ? '، ' : '' }}المملكة العربية السعودية</p>
-                            </div>
-                        </div>
-                    @else
-                        <div class="p-8 text-center">
-                            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-50">
-                                <svg class="h-6 w-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            </div>
-                            <p class="text-sm font-medium text-slate-700">{{ app()->getLocale() === 'ar' ? 'لم يتم إضافة عنوان بعد' : 'No address added yet' }}</p>
-                            <p class="mt-1 text-xs text-slate-400">{{ app()->getLocale() === 'ar' ? 'أضف عنوانك الوطني لتحديد موقع التوصيل' : 'Add your national address for delivery' }}</p>
-                            <button type="button" @click="open = true"
-                                class="mt-4 inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 transition">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                {{ app()->getLocale() === 'ar' ? 'أضف العنوان الوطني' : 'Add National Address' }}
-                            </button>
-                            @error('deliveryStreet')<p class="mt-2 text-xs text-red-500">{{ $message }}</p>@enderror
-                            @error('deliveryCity')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                            @error('deliveryRegion')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                        </div>
-                    @endif
+                            </label>
 
-                    {{-- ── National Address Modal ────────────────────────────────── --}}
-                    <div x-show="open" x-cloak
-                         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                         x-transition:enter="transition ease-out duration-200"
-                         x-transition:enter-start="opacity-0"
-                         x-transition:enter-end="opacity-100"
-                         x-transition:leave="transition ease-in duration-150"
-                         x-transition:leave-start="opacity-100"
-                         x-transition:leave-end="opacity-0">
-
-                        {{-- Backdrop --}}
-                        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="open = false"></div>
-
-                        {{-- Dialog --}}
-                        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 scale-95 translate-y-4">
-
-                            {{-- Modal header --}}
-                            <div class="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
-                                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-sm font-bold text-white">{{ app()->getLocale() === 'ar' ? 'العنوان الوطني' : 'National Address' }}</h3>
-                                        <p class="text-xs text-emerald-100">{{ app()->getLocale() === 'ar' ? 'أدخل بيانات عنوانك وفق نظام البريد السعودي' : 'Enter your Saudi Post national address' }}</p>
-                                    </div>
+                            {{-- Detailed Address --}}
+                            <label class="relative flex cursor-pointer items-start gap-4 rounded-xl border-2 p-4 transition {{ $deliveryAddressMode === 'detailed' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-slate-300 bg-white' }}">
+                                <input type="radio" wire:model.live="deliveryAddressMode" value="detailed" class="sr-only">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $deliveryAddressMode === 'detailed' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500' }}">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-sm font-semibold {{ $deliveryAddressMode === 'detailed' ? 'text-emerald-800' : 'text-slate-700' }}">{{ app()->getLocale() === 'ar' ? 'عنوان تفصيلي' : 'Detailed Address' }}</span>
+                                    <p class="mt-0.5 text-xs {{ $deliveryAddressMode === 'detailed' ? 'text-emerald-600' : 'text-slate-400' }}">{{ app()->getLocale() === 'ar' ? 'أدخل العنوان بتفاصيل الشارع والحي والمدينة' : 'Enter street, district, city details manually' }}</p>
                                 </div>
-                                <button type="button" @click="open = false" class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                </button>
-                            </div>
-
-                            {{-- Modal body --}}
-                            <div class="max-h-[70vh] overflow-y-auto p-6 space-y-4">
-
-                                {{-- Short Address code (optional) --}}
-                                <div>
-                                    <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                        <svg class="h-3.5 w-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
-                                        {{ app()->getLocale() === 'ar' ? 'العنوان القصير (اختياري)' : 'Short Address (Optional)' }}
-                                    </label>
-                                    <input type="text" wire:model.blur="deliveryShortAddress"
-                                        placeholder="RJHH6392"
-                                        maxlength="8"
-                                        class="h-11 w-full rounded-xl border bg-slate-50 px-4 font-mono text-sm uppercase text-slate-700 shadow-sm outline-none transition placeholder:normal-case @error('deliveryShortAddress') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                                    <p class="mt-1 text-xs text-slate-400">{{ app()->getLocale() === 'ar' ? 'الرمز القصير المكوّن من 8 خانات (مثل: RJHH6392) — يمكن الحصول عليه من wasel.com.sa' : '8-character code (e.g. RJHH6392) from wasel.com.sa' }}</p>
-                                    @error('deliveryShortAddress')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                                </div>
-
-                                <div class="border-t border-dashed border-slate-200 pt-2">
-                                    <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ app()->getLocale() === 'ar' ? 'أو أدخل العنوان يدوياً' : 'Or enter address manually' }}</p>
-                                </div>
-
-                                {{-- Building No + Additional No --}}
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'رقم المبنى' : 'Building No.' }}</label>
-                                        <input type="text" wire:model.blur="deliveryBuildingNo"
-                                            placeholder="1234" maxlength="4" inputmode="numeric"
-                                            class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryBuildingNo') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                                        @error('deliveryBuildingNo')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                                    </div>
-                                    <div>
-                                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'الرقم الإضافي' : 'Additional No.' }}</label>
-                                        <input type="text" wire:model.blur="deliveryAdditionalNo"
-                                            placeholder="5678" maxlength="4" inputmode="numeric"
-                                            class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryAdditionalNo') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                                        @error('deliveryAdditionalNo')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                                    </div>
-                                </div>
-
-                                {{-- Street Name --}}
-                                <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'اسم الشارع' : 'Street Name' }} <span class="text-red-500">*</span></label>
-                                    <input type="text" wire:model.blur="deliveryStreet"
-                                        placeholder="{{ app()->getLocale() === 'ar' ? 'مثال: طريق الملك فهد' : 'e.g. King Fahd Road' }}"
-                                        class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryStreet') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                                    @error('deliveryStreet')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                                </div>
-
-                                {{-- District + City --}}
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'الحي' : 'District' }} <span class="text-red-500">*</span></label>
-                                        <input type="text" wire:model.blur="deliveryDistrict"
-                                            placeholder="{{ app()->getLocale() === 'ar' ? 'مثال: العليا' : 'e.g. Al Olaya' }}"
-                                            class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryDistrict') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                                        @error('deliveryDistrict')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                                    </div>
-                                    <div>
-                                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'المدينة' : 'City' }} <span class="text-red-500">*</span></label>
-                                        <input type="text" wire:model.blur="deliveryCity"
-                                            placeholder="{{ app()->getLocale() === 'ar' ? 'مثال: الرياض' : 'e.g. Riyadh' }}"
-                                            class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryCity') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                                        @error('deliveryCity')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                                    </div>
-                                </div>
-
-                                {{-- Region dropdown + Postal Code --}}
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'المنطقة' : 'Region' }} <span class="text-red-500">*</span></label>
-                                        <select wire:model.blur="deliveryRegion"
-                                            class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryRegion') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                                            <option value="">{{ app()->getLocale() === 'ar' ? 'اختر المنطقة' : 'Select Region' }}</option>
-                                            @foreach([
-                                                'الرياض','مكة المكرمة','المدينة المنورة','القصيم',
-                                                'المنطقة الشرقية','عسير','تبوك','حائل',
-                                                'الحدود الشمالية','جازان','نجران','الباحة','الجوف',
-                                            ] as $region)
-                                                <option value="{{ $region }}" @selected($deliveryRegion === $region)>{{ $region }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('deliveryRegion')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                                    </div>
-                                    <div>
-                                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'الرمز البريدي' : 'Postal Code' }} <span class="text-red-500">*</span></label>
-                                        <input type="text" wire:model.blur="deliveryPostalCode"
-                                            placeholder="12345" maxlength="5" inputmode="numeric"
-                                            class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryPostalCode') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                                        @error('deliveryPostalCode')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                                    </div>
-                                </div>
-
-                                {{-- Live address preview --}}
-                                @if($deliveryStreet || $deliveryCity)
-                                <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-                                    <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-600">{{ app()->getLocale() === 'ar' ? 'معاينة العنوان' : 'Address Preview' }}</p>
-                                    <div class="font-mono text-xs text-slate-700 space-y-0.5 leading-relaxed">
-                                        @if($deliveryShortAddress)
-                                            <p class="font-bold tracking-widest text-emerald-700 uppercase">{{ $deliveryShortAddress }}</p>
-                                        @endif
-                                        <p>{{ trim(($deliveryBuildingNo ? $deliveryBuildingNo.' ' : '').$deliveryStreet) }}</p>
-                                        <p>{{ implode(' ', array_filter([$deliveryDistrict, $deliveryCity, $deliveryPostalCode.($deliveryAdditionalNo?'-'.$deliveryAdditionalNo:'')])) }}</p>
-                                        <p>{{ implode('، ', array_filter([$deliveryRegion, 'المملكة العربية السعودية'])) }}</p>
-                                    </div>
-                                </div>
+                                @if($deliveryAddressMode === 'detailed')
+                                    <svg class="absolute top-3 end-3 h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 @endif
-
-                            </div>
-
-                            {{-- Modal footer --}}
-                            <div class="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
-                                <button type="button" @click="open = false"
-                                    class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition">
-                                    {{ app()->getLocale() === 'ar' ? 'إلغاء' : 'Cancel' }}
-                                </button>
-                                <button type="button" wire:click="saveAddress" wire:loading.attr="disabled"
-                                    class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition disabled:opacity-60">
-                                    <svg wire:loading wire:target="saveAddress" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                                    <svg wire:loading.remove wire:target="saveAddress" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                    {{ app()->getLocale() === 'ar' ? 'حفظ العنوان' : 'Save Address' }}
-                                </button>
-                            </div>
+                            </label>
 
                         </div>
+
+                        {{-- National Address Form --}}
+                        @if($deliveryAddressMode === 'national')
+                        <div class="rounded-xl border border-emerald-100 bg-emerald-50/50 p-5 space-y-4">
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                                {{ app()->getLocale() === 'ar' ? 'العنوان الوطني' : 'National Address' }}
+                            </span>
+                            <div>
+                                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'رمز العنوان الوطني' : 'National Address Code' }} <span class="text-red-500">*</span></label>
+                                <input type="text" wire:model.blur="deliveryShortAddress"
+                                    placeholder="RJHH6392" maxlength="8"
+                                    class="h-12 w-full rounded-xl border bg-white px-4 font-mono text-base uppercase tracking-widest text-slate-700 shadow-sm outline-none transition placeholder:normal-case placeholder:text-slate-400 @error('deliveryShortAddress') border-red-400 ring-2 ring-red-100 @else border-emerald-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
+                                <p class="mt-1.5 text-xs text-slate-400">{{ app()->getLocale() === 'ar' ? '8 خانات من الحروف والأرقام الإنجليزية — من wasel.com.sa' : '8 alphanumeric chars (e.g. RJHH6392) from wasel.com.sa' }}</p>
+                                @error('deliveryShortAddress')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- Detailed Address Form --}}
+                        @if($deliveryAddressMode === 'detailed')
+                        <div class="space-y-4">
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                {{ app()->getLocale() === 'ar' ? 'أدخل تفاصيل العنوان' : 'Enter Address Details' }}
+                            </span>
+                            <div>
+                                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'الشارع' : 'Street' }} <span class="text-red-500">*</span></label>
+                                <input type="text" wire:model.blur="deliveryStreet"
+                                    placeholder="{{ app()->getLocale() === 'ar' ? 'مثال: طريق الملك فهد' : 'e.g. King Fahd Road' }}"
+                                    class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryStreet') border-red-400 ring-2 ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
+                                @error('deliveryStreet')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div>
+                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'الحي' : 'District' }} <span class="text-red-500">*</span></label>
+                                    <input type="text" wire:model.blur="deliveryDistrict"
+                                        placeholder="{{ app()->getLocale() === 'ar' ? 'مثال: العليا' : 'e.g. Al Olaya' }}"
+                                        class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryDistrict') border-red-400 ring-2 ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
+                                    @error('deliveryDistrict')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'المدينة' : 'City' }} <span class="text-red-500">*</span></label>
+                                    <input type="text" wire:model.blur="deliveryCity"
+                                        placeholder="{{ app()->getLocale() === 'ar' ? 'مثال: الرياض' : 'e.g. Riyadh' }}"
+                                        class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryCity') border-red-400 ring-2 ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
+                                    @error('deliveryCity')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div>
+                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'المنطقة' : 'Region' }} <span class="text-red-500">*</span></label>
+                                    <select wire:model.live="deliveryRegion"
+                                        class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryRegion') border-red-400 ring-2 ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
+                                        <option value="">{{ app()->getLocale() === 'ar' ? 'اختر المنطقة' : 'Select Region' }}</option>
+                                        @foreach(['الرياض','مكة المكرمة','المدينة المنورة','القصيم','المنطقة الشرقية','عسير','تبوك','حائل','الحدود الشمالية','جازان','نجران','الباحة','الجوف'] as $region)
+                                            <option value="{{ $region }}" @selected($deliveryRegion === $region)>{{ $region }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('deliveryRegion')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ app()->getLocale() === 'ar' ? 'الرمز البريدي' : 'Postal Code' }} <span class="text-red-500">*</span></label>
+                                    <input type="text" wire:model.blur="deliveryPostalCode"
+                                        placeholder="12345" maxlength="5" inputmode="numeric"
+                                        class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('deliveryPostalCode') border-red-400 ring-2 ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
+                                    @error('deliveryPostalCode')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                     </div>
-                    {{-- /Modal --}}
-
                 </div>
 
                 <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
