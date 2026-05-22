@@ -57,7 +57,7 @@
                             'cancelled'  => 'bg-red-100 text-red-700',
                             default      => 'bg-amber-100 text-amber-700',
                         };
-                        
+
                         $typeColors = [
                             'tender'  => 'bg-blue-100 text-blue-700',
                             'awarded' => 'bg-emerald-100 text-emerald-700',
@@ -95,6 +95,19 @@
                     <p class="text-xs text-slate-400 mt-0.5">{{ __('app.select_items_quotation') }}</p>
                 </div>
                 <div class="ml-auto flex items-center gap-2">
+                    <button type="button" wire:click="reparseBoq"
+                        wire:loading.attr="disabled"
+                        wire:target="reparseBoq"
+                        class="inline-flex items-center gap-1.5 rounded-xl border border-violet-200 bg-violet-50 px-3.5 py-2 text-xs font-semibold text-violet-700 transition hover:bg-violet-100 disabled:opacity-60">
+                        <svg wire:loading.remove wire:target="reparseBoq" class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 104.582 9H4"/>
+                        </svg>
+                        <svg wire:loading wire:target="reparseBoq" class="h-3.5 w-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 104.582 9H4"/>
+                        </svg>
+                        <span wire:loading.remove wire:target="reparseBoq">{{ __('app.reparse_boq') }}</span>
+                        <span wire:loading wire:target="reparseBoq">{{ __('app.processing') }}…</span>
+                    </button>
                     <button type="button" wire:click="selectAll"
                         class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
                         {{ __('app.select_all') }}

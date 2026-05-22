@@ -10,10 +10,13 @@ use App\Models\BoqItem;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
+use App\Models\UploadedDocument;
 use App\Services\PricingService;
+use App\Services\QuotationAiService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
@@ -25,6 +28,8 @@ class ShowBoq extends Component
 
     /** @var array<int, array<string, mixed>> */
     public array $items = [];
+
+    public bool $reprocessing = false;
 
     public function mount(string $uuid): void
     {
@@ -130,6 +135,112 @@ class ShowBoq extends Component
                 BoqItem::where('id', $itemId)->update(['engineering_required' => $newState]);
                 break;
             }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Re-parse BOQ from the original uploaded file
+    // -------------------------------------------------------------------------
+
+    public function reparseBoq(): void
+    {
+        $this->reprocessing = true;
+
+        try {
+            $doc = UploadedDocument::where('boq_id', $this->boq->id)
+                ->latest()
+                ->first();
+
+            if (! $doc || ! Storage::disk('local')->exists($doc->file_path)) {
+                $this->dispatch('toast', message: 'Original file not found. Please upload the file again.', type: 'error');
+                $this->reprocessing = false;
+                return;
+            }
+
+            $absPath = Storage::disk('local')->path($doc->file_path);
+            $ai      = app(QuotationAiService::class);
+            $result  = $ai->parseBoq($absPath, [
+                'boq_id'       => $this->boq->id,
+                'project_name' => $this->boq->project?->name ?? '',
+            ]);
+
+            if (! $result['success']) {
+                $this->dispatch('toast', message: $result['error'] ?? 'Re-extraction failed. Please try again.', type: 'error');
+                $this->reprocessing = false;
+                return;
+            }
+
+            // Wipe old items and persist fresh results.
+            BoqItem::where('boq_id', $this->boq->id)->delete();
+
+            foreach ($result['items'] ?? [] as $aiItem) {
+                $item = array_merge([
+                    'description'          => '',
+                    'quantity'             => 1,
+                    'unit_id'              => null,
+                    'category'             => '',
+                    'brand'                => '',
+                    'status'               => 'pending',
+                    'engineering_required' => false,
+                    'confidence'           => null,
+                    'unit_price'           => null,
+                    'raw_data'             => null,
+                    'ai_extracted'         => true,
+                    'is_selected'          => false,
+                ], $aiItem);
+
+                BoqItem::create([
+                    'boq_id'               => $this->boq->id,
+                    'description'          => (string) ($item['description'] ?? ''),
+                    'quantity'             => is_numeric($item['quantity']) ? (float) $item['quantity'] : 1,
+                    'unit_id'              => $item['unit_id'] ?? null,
+                    'category'             => (string) ($item['category'] ?? ''),
+                    'brand'                => (string) ($item['brand'] ?? ''),
+                    'status'               => $item['status'] ?? 'pending',
+                    'engineering_required' => (bool) ($item['engineering_required'] ?? false),
+                    'confidence'           => is_numeric($item['confidence'] ?? null) ? (float) $item['confidence'] : null,
+                    'unit_price'           => is_numeric($item['unit_price'] ?? null) ? (float) $item['unit_price'] : null,
+                    'raw_data'             => $item['raw_data'] ?? null,
+                    'ai_extracted'         => true,
+                    'is_selected'          => false,
+                ]);
+            }
+
+            foreach ($result['rejected'] ?? [] as $rejItem) {
+                $rawData = is_array($rejItem['raw_data'] ?? null) ? $rejItem['raw_data'] : [];
+                BoqItem::create([
+                    'boq_id'               => $this->boq->id,
+                    'description'          => (string) ($rejItem['description'] ?? ''),
+                    'quantity'             => is_numeric($rejItem['quantity'] ?? null) ? (float) $rejItem['quantity'] : 1,
+                    'unit_id'              => $rejItem['unit_id'] ?? null,
+                    'category'             => (string) ($rejItem['category'] ?? ''),
+                    'brand'                => (string) ($rejItem['brand'] ?? ''),
+                    'status'               => 'rejected',
+                    'engineering_required' => false,
+                    'confidence'           => null,
+                    'unit_price'           => null,
+                    'raw_data'             => $rawData,
+                    'ai_extracted'         => true,
+                    'is_selected'          => false,
+                ]);
+            }
+
+            $this->loadItems();
+
+            $count         = count($result['items'] ?? []);
+            $rejectedCount = count($result['rejected'] ?? []);
+            $msg           = "Re-extracted {$count} supply item(s) from the file.";
+            if ($rejectedCount > 0) {
+                $msg .= " {$rejectedCount} item(s) were filtered out.";
+            }
+
+            $this->dispatch('toast', message: $msg, type: 'success');
+
+        } catch (\Throwable $e) {
+            Log::error('ShowBoq::reparseBoq failed.', ['message' => $e->getMessage()]);
+            $this->dispatch('toast', message: 'Re-extraction failed. Please try again.', type: 'error');
+        } finally {
+            $this->reprocessing = false;
         }
     }
 

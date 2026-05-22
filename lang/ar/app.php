@@ -429,6 +429,7 @@ return [
     'select_all'               => 'تحديد الكل',
     'deselect_all'             => 'إلغاء تحديد الكل',
     'approve_all'              => 'الموافقة على الكل',
+    'reparse_boq'              => 'إعادة الاستخراج من الملف',
     'no_items_boq'             => 'لا توجد عناصر في جدول الكميات.',
     'enter_description'        => 'أدخل الوصف',
     'toggle_engineering'       => 'تبديل متطلب الخدمات الهندسية',

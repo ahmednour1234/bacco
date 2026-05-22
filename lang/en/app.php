@@ -500,6 +500,7 @@ return [
     'select_all'               => 'Select All',
     'deselect_all'             => 'Deselect All',
     'approve_all'              => 'Approve All',
+    'reparse_boq'              => 'Re-extract from File',
     'no_items_boq'             => 'No items in this BOQ.',
     'enter_description'        => 'Enter description',
     'toggle_engineering'       => 'Toggle engineering required',
