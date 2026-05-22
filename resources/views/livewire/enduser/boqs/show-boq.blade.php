@@ -420,20 +420,18 @@
                         <div class="p-6 space-y-5">
 
                             {{-- Radio cards --}}
-                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div class="grid grid-cols-2 gap-4">
 
                                 {{-- National Address --}}
-                                <label class="relative flex cursor-pointer items-start gap-4 rounded-xl border-2 p-4 transition {{ $deliveryAddressMode === 'national' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-slate-300 bg-white' }}">
+                                <label class="relative flex flex-col items-center text-center cursor-pointer gap-3 rounded-2xl border-2 px-4 py-5 transition {{ $deliveryAddressMode === 'national' ? 'border-emerald-500 bg-emerald-50 shadow-sm' : 'border-slate-200 hover:border-emerald-200 hover:bg-slate-50 bg-white' }}">
                                     <input type="radio" wire:model.live="deliveryAddressMode" value="national" class="sr-only">
-                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $deliveryAddressMode === 'national' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl {{ $deliveryAddressMode === 'national' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200' : 'bg-slate-100 text-slate-400' }}">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     </span>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex flex-wrap items-center gap-2">
-                                            <span class="text-sm font-semibold {{ $deliveryAddressMode === 'national' ? 'text-emerald-800' : 'text-slate-700' }}">{{ app()->getLocale()==='ar' ? 'العنوان الوطني' : 'National Address' }}</span>
-                                            <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">{{ app()->getLocale()==='ar' ? 'موصى به' : 'Recommended' }}</span>
-                                        </div>
-                                        <p class="mt-0.5 text-xs {{ $deliveryAddressMode === 'national' ? 'text-emerald-600' : 'text-slate-400' }}">{{ app()->getLocale()==='ar' ? 'أدخل العنوان الوطني المسجل في نظام وصل' : 'Enter your Saudi Post national address code' }}</p>
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-bold {{ $deliveryAddressMode === 'national' ? 'text-emerald-800' : 'text-slate-700' }}">{{ app()->getLocale()==='ar' ? 'العنوان الوطني' : 'National Address' }}</p>
+                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-emerald-700">{{ app()->getLocale()==='ar' ? 'موصى به' : 'Recommended' }}</span>
+                                        <p class="text-[11px] leading-relaxed {{ $deliveryAddressMode === 'national' ? 'text-emerald-600' : 'text-slate-400' }}">{{ app()->getLocale()==='ar' ? 'رمز وصل المكون من 8 خانات' : '8-char Saudi Post code' }}</p>
                                     </div>
                                     @if($deliveryAddressMode === 'national')
                                         <svg class="absolute top-3 end-3 h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -441,14 +439,14 @@
                                 </label>
 
                                 {{-- Detailed Address --}}
-                                <label class="relative flex cursor-pointer items-start gap-4 rounded-xl border-2 p-4 transition {{ $deliveryAddressMode === 'detailed' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-slate-300 bg-white' }}">
+                                <label class="relative flex flex-col items-center text-center cursor-pointer gap-3 rounded-2xl border-2 px-4 py-5 transition {{ $deliveryAddressMode === 'detailed' ? 'border-emerald-500 bg-emerald-50 shadow-sm' : 'border-slate-200 hover:border-emerald-200 hover:bg-slate-50 bg-white' }}">
                                     <input type="radio" wire:model.live="deliveryAddressMode" value="detailed" class="sr-only">
-                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $deliveryAddressMode === 'detailed' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500' }}">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl {{ $deliveryAddressMode === 'detailed' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200' : 'bg-slate-100 text-slate-400' }}">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     </span>
-                                    <div class="min-w-0 flex-1">
-                                        <span class="text-sm font-semibold {{ $deliveryAddressMode === 'detailed' ? 'text-emerald-800' : 'text-slate-700' }}">{{ app()->getLocale()==='ar' ? 'عنوان تفصيلي' : 'Detailed Address' }}</span>
-                                        <p class="mt-0.5 text-xs {{ $deliveryAddressMode === 'detailed' ? 'text-emerald-600' : 'text-slate-400' }}">{{ app()->getLocale()==='ar' ? 'أدخل العنوان بتفاصيل الشارع والحي والمدينة' : 'Enter street, district, city details manually' }}</p>
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-bold {{ $deliveryAddressMode === 'detailed' ? 'text-emerald-800' : 'text-slate-700' }}">{{ app()->getLocale()==='ar' ? 'عنوان تفصيلي' : 'Detailed Address' }}</p>
+                                        <p class="text-[11px] leading-relaxed {{ $deliveryAddressMode === 'detailed' ? 'text-emerald-600' : 'text-slate-400' }}">{{ app()->getLocale()==='ar' ? 'شارع، حي، مدينة، منطقة' : 'Street, district, city' }}</p>
                                     </div>
                                     @if($deliveryAddressMode === 'detailed')
                                         <svg class="absolute top-3 end-3 h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
