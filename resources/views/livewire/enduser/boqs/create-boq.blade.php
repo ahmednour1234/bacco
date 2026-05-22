@@ -644,30 +644,6 @@
                     </div>
                 </div>
 
-                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
-                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-purple-100 text-purple-600">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                        </span>
-                        <h2 class="text-sm font-semibold text-slate-800">{{ app()->getLocale() === 'ar' ? 'طريقة الدفع' : 'Payment Method' }}</h2>
-                    </div>
-                    <div class="p-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        @foreach([
-                            ['value'=>'bank_transfer','ar'=>'تحويل بنكي','en'=>'Bank Transfer','icon'=>'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z'],
-                            ['value'=>'cash',         'ar'=>'نقد',       'en'=>'Cash',         'icon'=>'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z'],
-                            ['value'=>'credit',       'ar'=>'ائتمان',    'en'=>'Credit',       'icon'=>'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
-                        ] as $pm)
-                            <label class="flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition {{ $paymentMethod===$pm['value']?'border-emerald-500 bg-emerald-50':'border-slate-200 hover:border-slate-300' }}">
-                                <input type="radio" wire:model.live="paymentMethod" value="{{ $pm['value'] }}" class="sr-only">
-                                <span class="flex h-9 w-9 items-center justify-center rounded-lg {{ $paymentMethod===$pm['value']?'bg-emerald-500 text-white':'bg-slate-100 text-slate-500' }}">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $pm['icon'] }}"/></svg>
-                                </span>
-                                <span class="text-sm font-semibold {{ $paymentMethod===$pm['value']?'text-emerald-700':'text-slate-600' }}">{{ app()->getLocale()==='ar'?$pm['ar']:$pm['en'] }}</span>
-                                @if($paymentMethod===$pm['value'])<svg class="ms-auto h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>@endif
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
             </div>
 
             {{-- Right: Order Summary sidebar --}}

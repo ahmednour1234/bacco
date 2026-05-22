@@ -580,7 +580,7 @@ class ShowBoq extends Component
                     ]);
                 }
 
-                $quotation->update(['status' => QuotationRequestStatusEnum::UnderReview]);
+                $quotation->update(['status' => QuotationRequestStatusEnum::InReview]);
 
                 return $order;
             });
