@@ -7,6 +7,8 @@ enum PriceSourceEnum: string
     case Manual   = 'manual';
     case Supplier = 'supplier';
     case Catalog  = 'catalog';
+    case Gemini   = 'gemini';
+    case Boq      = 'boq';
 
     public function label(): string
     {
@@ -14,6 +16,8 @@ enum PriceSourceEnum: string
             self::Manual   => 'Manual',
             self::Supplier => 'Supplier',
             self::Catalog  => 'Catalog',
+            self::Gemini   => 'AI (Gemini)',
+            self::Boq      => 'BOQ',
         };
     }
 

@@ -7,6 +7,7 @@ enum QuotationSourceTypeEnum: string
     case Manual  = 'manual';
     case Website = 'website';
     case Api     = 'api';
+    case Boq     = 'boq';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum QuotationSourceTypeEnum: string
             self::Manual  => 'Manual',
             self::Website => 'Website',
             self::Api     => 'API',
+            self::Boq     => 'BOQ',
         };
     }
 

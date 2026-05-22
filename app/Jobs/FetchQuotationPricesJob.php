@@ -110,6 +110,10 @@ class FetchQuotationPricesJob implements ShouldQueue
                 recipientIds: [$this->userId],
                 actionUrl: route('enduser.quotations.show', $this->quotationUuid),
             );
+        } finally {
+            // Always mark the quotation so the UI polling can advance past the loading screen,
+            // whether pricing succeeded fully, partially, or failed entirely.
+            $quotation->update(['prices_fetched_at' => now()]);
         }
     }
 }

@@ -5,11 +5,22 @@ namespace App\Livewire\Enduser\Boqs;
 use App\Enums\BoqStatusEnum;
 use App\Enums\BoqTypeEnum;
 use App\Enums\NotificationTypeEnum;
+use App\Enums\OrderStatusEnum;
 use App\Enums\ProjectStatusEnum;
 use App\Enums\QuotationItemStatusEnum;
+use App\Enums\QuotationRequestStatusEnum;
+use App\Enums\QuotationSourceTypeEnum;
+use App\Enums\QuotationVersionStatusEnum;
+use App\Jobs\FetchQuotationPricesJob;
 use App\Models\Boq;
 use App\Models\BoqItem;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Project;
+use App\Models\QuotationItem;
+use App\Models\QuotationRequest;
+use App\Models\QuotationVersion;
+use App\Models\QuotationVersionItem;
 use App\Models\Unit;
 use App\Models\UploadedDocument;
 use App\Services\NotificationService;
@@ -31,6 +42,9 @@ class CreateBoq extends Component
     // -------------------------------------------------------------------------
     // State
     // -------------------------------------------------------------------------
+
+    /** Wizard step: 1=Extraction, 2=Confirmation, 3=Fetch Prices, 4=Address+Payment, 5=Order Placed */
+    public int $currentStep = 1;
 
     public ?int $boqId = null;
     public ?int $projectId = null;
@@ -56,6 +70,35 @@ class CreateBoq extends Component
     public bool $processing = false;
 
     public string $boqFileName = '';
+
+    // ── Step 3: Quotation & Prices ─────────────────────────────────────────
+    public ?int   $quotationId    = null;
+    public string $quotationUuid  = '';
+    /** @var array<int, array<string, mixed>> */
+    public array  $pricedItems    = [];
+    public float  $quotationTotal = 0;
+    public int    $pricedCount    = 0;
+    public int    $unpricedCount  = 0;
+
+    // ── Step 4: Address & Payment ─────────────────────────────────────────
+    public string $deliveryAddressMode  = 'detailed';   // 'national' | 'detailed'
+    public string $deliveryShortAddress = '';            // 8-char code e.g. RJHH6392
+    public string $deliveryBuildingNo   = '';
+    public string $deliveryStreet       = '';
+    public string $deliveryDistrict     = '';
+    public string $deliveryCity         = '';
+    public string $deliveryRegion       = '';
+    public string $deliveryPostalCode   = '';
+    public string $deliveryAdditionalNo = '';
+    public string $paymentMethod        = 'bank_transfer';
+
+    // ── Step 3: Prices fetching state ─────────────────────────────────────
+    public bool $pricesFetching = false;
+
+    // ── Step 5: Order Placed ──────────────────────────────────────────────
+    public string $orderUuid       = '';
+    public string $orderNo         = '';
+    public float  $orderGrandTotal = 0;
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -318,7 +361,7 @@ class CreateBoq extends Component
                     'unit_price'           => null,
                     'raw_data'             => null,
                     'ai_extracted'         => true,
-                    'is_selected'          => false,
+                    'is_selected'          => true,
                 ], $aiItem);
 
                 BoqItem::create([
@@ -334,7 +377,7 @@ class CreateBoq extends Component
                     'unit_price'           => is_numeric($item['unit_price'] ?? null) ? (float) $item['unit_price'] : null,
                     'raw_data'             => $item['raw_data'] ?? null,
                     'ai_extracted'         => true,
-                    'is_selected'          => false,
+                    'is_selected'          => true,
                 ]);
             }
 
@@ -346,6 +389,9 @@ class CreateBoq extends Component
 
             $this->dispatch('boq-upload-done');
             $this->dispatch('toast', message: count($this->items) . ' items extracted from your file.', type: 'success');
+
+            // Advance wizard to step 2 (item confirmation)
+            $this->currentStep = 2;
 
         } catch (\Throwable $e) {
             Log::error('CreateBoq::uploadBoq failed.', [
@@ -388,6 +434,7 @@ class CreateBoq extends Component
             $this->processing = false;
             $this->dispatch('boq-upload-done');
             $this->dispatch('toast', message: $message ?: (count($this->items) . ' items extracted from your file.'), type: 'success');
+            $this->currentStep = 2;
         } elseif ($status === 'no_items') {
             $this->processing = false;
             $this->dispatch('boq-upload-done');
@@ -421,13 +468,13 @@ class CreateBoq extends Component
             'engineering_required' => false,
             'confidence'           => null,
             'ai_extracted'         => false,
-            'is_selected'          => false,
+            'is_selected'          => true,
         ];
     }
 
     public function updateItem(int $index, string $field, mixed $value): void
     {
-        $allowed = ['description', 'quantity', 'unit', 'category', 'brand', 'engineering_required'];
+        $allowed = ['description', 'quantity', 'unit', 'category', 'brand', 'engineering_required', 'is_selected'];
 
         if (! array_key_exists($index, $this->items) || ! in_array($field, $allowed, true)) {
             return;
@@ -438,6 +485,10 @@ class CreateBoq extends Component
         }
 
         if ($field === 'engineering_required') {
+            $value = (bool) $value;
+        }
+
+        if ($field === 'is_selected') {
             $value = (bool) $value;
         }
 
@@ -477,7 +528,8 @@ class CreateBoq extends Component
         $ids = [];
 
         foreach ($this->items as $index => $item) {
-            $this->items[$index]['status'] = QuotationItemStatusEnum::Sourcing->value;
+            $this->items[$index]['status']      = QuotationItemStatusEnum::Sourcing->value;
+            $this->items[$index]['is_selected'] = true;
 
             if (! empty($item['id'])) {
                 $ids[] = (int) $item['id'];
@@ -491,6 +543,22 @@ class CreateBoq extends Component
         }
 
         $this->dispatch('toast', message: 'All items approved successfully.', type: 'success');
+    }
+
+    public function selectAllItems(): void
+    {
+        foreach ($this->items as $index => $item) {
+            if (($item['status'] ?? '') !== 'rejected') {
+                $this->items[$index]['is_selected'] = true;
+            }
+        }
+    }
+
+    public function deselectAllItems(): void
+    {
+        foreach ($this->items as $index => $item) {
+            $this->items[$index]['is_selected'] = false;
+        }
     }
 
     public function deleteItem(int $index): void
@@ -564,6 +632,348 @@ class CreateBoq extends Component
         );
 
         $this->redirect(route('enduser.boqs.show', $boq->uuid));
+    }
+
+    // -------------------------------------------------------------------------
+    // Wizard step navigation
+    // -------------------------------------------------------------------------
+
+    public function goBack(): void
+    {
+        if ($this->currentStep > 1) {
+            $this->currentStep--;
+        }
+    }
+
+    /** Step 2 → 3: create quotation request then fetch prices synchronously. */
+    public function confirmItems(): void
+    {
+        if (empty($this->items)) {
+            $this->dispatch('toast', message: 'Please add at least one item before proceeding.', type: 'error');
+            return;
+        }
+
+        $activeItems = array_values(array_filter(
+            $this->items,
+            fn($i) => ($i['status'] ?? 'pending') !== 'rejected' && !empty($i['is_selected'])
+        ));
+
+        if (empty($activeItems)) {
+            $this->dispatch('toast', message: 'يرجى تحديد عنصر واحد على الأقل للتسعير.', type: 'error');
+            return;
+        }
+
+        try {
+            DB::transaction(function () use ($activeItems) {
+                // Persist project + BOQ
+                $project = $this->persistProject();
+                $boq     = $this->persistBoq($project, BoqStatusEnum::Submitted);
+                $this->persistItems($boq);
+
+                // ── Create QuotationRequest ────────────────────────────────
+                $quotation = QuotationRequest::create([
+                    'client_id'    => Auth::id(),
+                    'project_id'   => $project->id,
+                    'boq_id'       => $boq->id,
+                    'quotation_no' => $this->generateQuotationNo(),
+                    'project_name' => $this->projectName,
+                    'status'       => QuotationRequestStatusEnum::Tender,
+                    'source_type'  => QuotationSourceTypeEnum::Boq,
+                ]);
+
+                $this->quotationId   = $quotation->id;
+                $this->quotationUuid = $quotation->uuid;
+
+                // ── Create QuotationItems ─────────────────────────────────
+                foreach ($activeItems as $row) {
+                    $unitName = trim((string) ($row['unit'] ?? ''));
+                    $unitId   = null;
+                    if ($unitName !== '') {
+                        $unitId = Unit::firstOrCreate(
+                            ['name' => $unitName],
+                            ['symbol' => mb_strtolower(mb_substr($unitName, 0, 20))]
+                        )->id;
+                    }
+
+                    $boqUnitPrice = is_numeric($row['unit_price'] ?? null) && (float) $row['unit_price'] > 0
+                        ? (float) $row['unit_price']
+                        : null;
+
+                    QuotationItem::create([
+                        'quotation_request_id' => $quotation->id,
+                        'product_id'           => $row['product_id'] ?? null,
+                        'description'          => (string) ($row['description'] ?? ''),
+                        'quantity'             => is_numeric($row['quantity'] ?? null) ? (float) $row['quantity'] : 0,
+                        'unit_id'              => $unitId,
+                        'unit_price'           => $boqUnitPrice,
+                        'price_source'         => $boqUnitPrice !== null ? 'boq' : null,
+                        'price_status'         => 'pending',
+                        'category'             => (string) ($row['category'] ?? ''),
+                        'brand'                => (string) ($row['brand'] ?? ''),
+                        'status'               => 'pending',
+                        'engineering_required' => (bool) ($row['engineering_required'] ?? false),
+                        'confidence'           => is_numeric($row['confidence'] ?? null) ? (float) $row['confidence'] : null,
+                        'ai_extracted'         => (bool) ($row['ai_extracted'] ?? false),
+                        'is_selected'          => true,
+                    ]);
+                }
+            });
+
+            // ── Load items for display (no prices yet) ──────────────────────
+            $qItems = QuotationItem::where('quotation_request_id', $this->quotationId)->with('unit')->get();
+            $this->pricedItems  = $qItems->map(fn($qi) => [
+                'description' => (string) $qi->description,
+                'quantity'    => (float) $qi->quantity,
+                'unit'        => $qi->unit?->name ?? '',
+                'unit_price'  => null,
+                'line_total'  => 0,
+                'category'    => (string) ($qi->category ?? ''),
+            ])->toArray();
+            $this->quotationTotal = 0;
+            $this->pricedCount    = 0;
+            $this->unpricedCount  = count($this->pricedItems);
+
+            // ── Dispatch pricing job (async) ─────────────────────────────────
+            FetchQuotationPricesJob::dispatch($this->quotationId, Auth::id(), $this->quotationUuid);
+            $this->pricesFetching = true;
+
+            $this->currentStep = 3;
+
+        } catch (\Throwable $e) {
+            Log::error('CreateBoq::confirmItems failed.', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            $this->dispatch('toast', message: 'Failed to process items. Please try again.', type: 'error');
+        }
+    }
+
+    /** Poll called every 5s while prices are being fetched in the background. */
+    public function pollPriceStatus(): void
+    {
+        if (! $this->pricesFetching || ! $this->quotationId) {
+            return;
+        }
+
+        $quotation = QuotationRequest::find($this->quotationId);
+        if (! $quotation || ! $quotation->prices_fetched_at) {
+            return;
+        }
+
+        $refreshed         = QuotationItem::where('quotation_request_id', $this->quotationId)->with('unit')->get();
+        $this->pricedItems = [];
+        $total             = 0;
+        $pricedCount       = 0;
+        $unpricedCount     = 0;
+
+        foreach ($refreshed as $qi) {
+            $unitPrice = is_numeric($qi->unit_price) && $qi->unit_price > 0 ? (float) $qi->unit_price : null;
+            $quantity  = (float) $qi->quantity;
+            $lineTotal = $unitPrice !== null ? round($unitPrice * $quantity, 2) : 0;
+
+            $this->pricedItems[] = [
+                'description' => (string) $qi->description,
+                'quantity'    => $quantity,
+                'unit'        => $qi->unit?->name ?? '',
+                'unit_price'  => $unitPrice,
+                'line_total'  => $lineTotal,
+                'category'    => (string) ($qi->category ?? ''),
+            ];
+
+            if ($unitPrice !== null) {
+                $pricedCount++;
+                $total += $lineTotal;
+            } else {
+                $unpricedCount++;
+            }
+        }
+
+        $this->quotationTotal = round($total, 2);
+        $this->pricedCount    = $pricedCount;
+        $this->unpricedCount  = $unpricedCount;
+        $this->pricesFetching = false;
+    }
+
+    /** Step 3 → 4: go to address & payment. */
+    public function proceedToAddress(): void
+    {
+        $this->currentStep = 4;
+    }
+
+    /** Validate address fields and close the modal (dispatches event to Alpine). */
+    public function saveAddress(): void
+    {
+        if ($this->deliveryAddressMode === 'national') {
+            $this->validate([
+                'deliveryShortAddress' => ['required', 'regex:/^[A-Za-z0-9]{8}$/'],
+            ], [
+                'deliveryShortAddress.required' => 'العنوان القصير مطلوب.',
+                'deliveryShortAddress.regex'    => 'العنوان القصير يجب أن يكون 8 خانات (حروف وأرقام إنجليزية).',
+            ]);
+        } else {
+            $this->validate([
+                'deliveryBuildingNo'   => 'nullable|regex:/^\d{0,4}$/',
+                'deliveryStreet'       => 'required|string|max:200',
+                'deliveryDistrict'     => 'required|string|max:100',
+                'deliveryCity'         => 'required|string|max:100',
+                'deliveryRegion'       => 'required|string|max:100',
+                'deliveryPostalCode'   => ['required', 'regex:/^\d{5}$/'],
+                'deliveryAdditionalNo' => 'nullable|regex:/^\d{0,4}$/',
+            ], [
+                'deliveryStreet.required'     => 'اسم الشارع مطلوب.',
+                'deliveryDistrict.required'   => 'الحي مطلوب.',
+                'deliveryCity.required'       => 'المدينة مطلوبة.',
+                'deliveryRegion.required'     => 'المنطقة مطلوبة.',
+                'deliveryPostalCode.required' => 'الرمز البريدي مطلوب.',
+                'deliveryPostalCode.regex'    => 'الرمز البريدي يجب أن يكون 5 أرقام.',
+                'deliveryBuildingNo.regex'    => 'رقم المبنى يجب أن يكون 4 أرقام كحد أقصى.',
+                'deliveryAdditionalNo.regex'  => 'الرقم الإضافي يجب أن يكون 4 أرقام كحد أقصى.',
+            ]);
+        }
+
+        $this->dispatch('address-saved');
+    }
+
+    /** Step 4 → 5: validate address, create order. */
+    public function placeOrder(): void
+    {
+        if ($this->deliveryAddressMode === 'national') {
+            $this->validate([
+                'deliveryShortAddress' => ['required', 'regex:/^[A-Za-z0-9]{8}$/'],
+                'paymentMethod'        => 'required|string|in:bank_transfer,cash,credit',
+            ], [
+                'deliveryShortAddress.required' => 'العنوان القصير مطلوب.',
+                'deliveryShortAddress.regex'    => 'العنوان القصير يجب أن يكون 8 خانات (حروف وأرقام إنجليزية).',
+            ]);
+        } else {
+            $this->validate([
+                'deliveryStreet'     => 'required|string|max:200',
+                'deliveryDistrict'   => 'required|string|max:100',
+                'deliveryCity'       => 'required|string|max:100',
+                'deliveryRegion'     => 'required|string|max:100',
+                'deliveryPostalCode' => ['required', 'regex:/^\d{5}$/'],
+                'paymentMethod'      => 'required|string|in:bank_transfer,cash,credit',
+            ], [
+                'deliveryStreet.required'     => 'اسم الشارع مطلوب.',
+                'deliveryDistrict.required'   => 'الحي مطلوب.',
+                'deliveryCity.required'       => 'المدينة مطلوبة.',
+                'deliveryRegion.required'     => 'المنطقة مطلوبة.',
+                'deliveryPostalCode.required' => 'الرمز البريدي مطلوب.',
+                'deliveryPostalCode.regex'    => 'الرمز البريدي يجب أن يكون 5 أرقام.',
+            ]);
+        }
+
+        if (! $this->quotationId) {
+            $this->dispatch('toast', message: 'Quotation not found. Please go back and try again.', type: 'error');
+            return;
+        }
+
+        try {
+            $order = DB::transaction(function () {
+                $quotation = QuotationRequest::findOrFail($this->quotationId);
+
+                // ── Create a QuotationVersion (self-accepted) ──────────────
+                $version = QuotationVersion::create([
+                    'quotation_request_id' => $quotation->id,
+                    'version_number'       => 1,
+                    'prepared_by'          => Auth::id(),
+                    'status'               => QuotationVersionStatusEnum::Accepted,
+                    'valid_until'          => now()->addDays(30)->toDateString(),
+                    'notes'                => 'Auto-generated from BOQ wizard',
+                ]);
+
+                // ── Build version items + compute totals ───────────────────
+                $quotationItems = QuotationItem::where('quotation_request_id', $quotation->id)->get();
+                $totalAmount    = 0;
+
+                foreach ($quotationItems as $qi) {
+                    $unitPrice  = is_numeric($qi->unit_price) && $qi->unit_price > 0 ? (float) $qi->unit_price : 0;
+                    $quantity   = (float) $qi->quantity;
+                    $totalPrice = round($unitPrice * $quantity, 2);
+
+                    QuotationVersionItem::create([
+                        'quotation_version_id' => $version->id,
+                        'quotation_item_id'    => $qi->id,
+                        'product_id'           => $qi->product_id,
+                        'description'          => (string) $qi->description,
+                        'quantity'             => $quantity,
+                        'unit_id'              => $qi->unit_id,
+                        'unit_price'           => $unitPrice,
+                        'total_price'          => $totalPrice,
+                        'price_source'         => $qi->price_source ?? 'manual',
+                        'vat_rate'             => 15,
+                    ]);
+
+                    $totalAmount += $totalPrice;
+                }
+
+                $vatAmount  = round($totalAmount * 0.15, 2);
+                $grandTotal = round($totalAmount + $vatAmount, 2);
+
+                // ── Create Order ───────────────────────────────────────────
+                $order = Order::create([
+                    'order_no'                => $this->generateOrderNo(),
+                    'quotation_request_id'    => $quotation->id,
+                    'quotation_version_id'    => $version->id,
+                    'client_id'               => Auth::id(),
+                    'project_id'              => $quotation->project_id,
+                    'status'                  => OrderStatusEnum::Open,
+                    'total_amount'            => $totalAmount,
+                    'vat_amount'              => $vatAmount,
+                    'grand_total'             => $grandTotal,
+                    'currency'                => 'SAR',
+                    'delivery_address_type'   => $this->deliveryAddressMode,
+                    'delivery_short_address'  => $this->deliveryAddressMode === 'national' ? strtoupper($this->deliveryShortAddress) : null,
+                    'delivery_building_no'    => $this->deliveryBuildingNo,
+                    'delivery_street'         => $this->deliveryStreet,
+                    'delivery_district'       => $this->deliveryDistrict,
+                    'delivery_city'           => $this->deliveryCity,
+                    'delivery_region'         => $this->deliveryRegion,
+                    'delivery_postal_code'    => $this->deliveryPostalCode,
+                    'delivery_additional_no'  => $this->deliveryAdditionalNo,
+                    'delivery_country'        => 'SA',
+                    'notes'                   => 'Payment: ' . $this->paymentMethod,
+                ]);
+
+                // ── Create OrderItems ──────────────────────────────────────
+                foreach ($quotationItems as $qi) {
+                    $unitPrice  = is_numeric($qi->unit_price) && $qi->unit_price > 0 ? (float) $qi->unit_price : 0;
+                    $quantity   = (float) $qi->quantity;
+                    $totalPrice = round($unitPrice * $quantity, 2);
+
+                    OrderItem::create([
+                        'order_id'    => $order->id,
+                        'product_id'  => $qi->product_id,
+                        'description' => (string) $qi->description,
+                        'quantity'    => $quantity,
+                        'unit_id'     => $qi->unit_id,
+                        'unit_price'  => $unitPrice,
+                        'total_price' => $totalPrice,
+                        'vat_rate'    => 15,
+                        'discount_pct' => 0,
+                    ]);
+                }
+
+                // ── Mark quotation as submitted ────────────────────────────
+                $quotation->update(['status' => QuotationRequestStatusEnum::UnderReview]);
+
+                return $order;
+            });
+
+            $this->orderUuid       = $order->uuid;
+            $this->orderNo         = $order->order_no;
+            $this->orderGrandTotal = (float) $order->grand_total;
+            $this->currentStep     = 5;
+
+            app(NotificationService::class)->sendToUserAndAdmins(
+                title: 'طلب جديد',
+                body: 'تم إنشاء طلب جديد رقم ' . $this->orderNo . ' من مشروع "' . $this->projectName . '".',
+                type: NotificationTypeEnum::BoqSubmitted,
+                userId: Auth::id(),
+                actionUrl: route('enduser.orders.show', $this->orderUuid),
+            );
+
+        } catch (\Throwable $e) {
+            Log::error('CreateBoq::placeOrder failed.', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            $this->dispatch('toast', message: 'Failed to place order. Please try again.', type: 'error');
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -699,6 +1109,26 @@ class CreateBoq extends Component
         do {
             $candidate = $prefix . strtoupper(Str::random(4));
         } while (Boq::where('boq_no', $candidate)->exists());
+
+        return $candidate;
+    }
+
+    private function generateQuotationNo(): string
+    {
+        $prefix = 'QR-' . now()->format('Ymd') . '-';
+        do {
+            $candidate = $prefix . strtoupper(Str::random(4));
+        } while (QuotationRequest::where('quotation_no', $candidate)->exists());
+
+        return $candidate;
+    }
+
+    private function generateOrderNo(): string
+    {
+        $prefix = 'ORD-' . now()->format('Ymd') . '-';
+        do {
+            $candidate = $prefix . strtoupper(Str::random(4));
+        } while (Order::where('order_no', $candidate)->exists());
 
         return $candidate;
     }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -11,7 +12,7 @@ class PricingService
     /**
      * Items per Gemini call. Multiple calls are made so ALL unpriced items get a price.
      */
-    private const GEMINI_CHUNK_SIZE = 50;
+    private const GEMINI_CHUNK_SIZE = 100;
 
     /**
      * Fetch unit prices for an array of quotation items.
@@ -48,9 +49,14 @@ class PricingService
         }
 
         if (! empty($unmatched)) {
-            // Process ALL unmatched items — chunk into batches so we never drop any
-            foreach (array_chunk($unmatched, self::GEMINI_CHUNK_SIZE) as $chunk) {
-                $items = $this->enrichWithGemini($items, $chunk);
+            $chunks = array_chunk($unmatched, self::GEMINI_CHUNK_SIZE);
+
+            if (count($chunks) === 1) {
+                // Single chunk — direct call (no pool overhead)
+                $items = $this->enrichWithGemini($items, $chunks[0]);
+            } else {
+                // Multiple chunks — send ALL in parallel to save time
+                $items = $this->enrichChunksParallel($items, $chunks);
             }
         }
 
@@ -105,6 +111,182 @@ class PricingService
     }
 
     // -------------------------------------------------------------------------
+    // Gemini fallback — helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Build the compact payload sent to Gemini for a set of item indices.
+     */
+    private function buildGeminiPayload(array $items, array $indices): array
+    {
+        $payload = [];
+        foreach ($indices as $idx) {
+            $payload[] = [
+                'i'    => $idx,
+                'd'    => mb_substr((string) ($items[$idx]['description'] ?? ''), 0, 80),
+                'cat'  => mb_substr((string) ($items[$idx]['category']    ?? ''), 0, 30),
+                'br'   => mb_substr((string) ($items[$idx]['brand']       ?? ''), 0, 30),
+                'unit' => mb_substr((string) ($items[$idx]['unit']        ?? ''), 0, 15),
+            ];
+        }
+        return $payload;
+    }
+
+    /**
+     * Build the Gemini prompt string for a given payload array.
+     */
+    private function buildGeminiPrompt(array $payload): string
+    {
+        return 'You are a procurement pricing expert for the Saudi Arabia construction and MEP materials market. '
+            . 'Estimate a realistic current unit price in SAR for each item below. '
+            . 'RULES: '
+            . '(1) Always return a positive non-zero price — use your best market estimate, never 0. '
+            . '(2) Base prices on typical Saudi supplier/contractor rates for 2024-2026. '
+            . '(3) Return ONLY a valid compact JSON array with NO whitespace or newlines between elements. '
+            . '(4) Each element must be exactly: {"i":<index>,"p":<price_number>} '
+            . '(5) No markdown, no explanation, no extra keys, no pretty-printing. '
+            . 'Example output: [{"i":0,"p":1500},{"i":1,"p":350}] '
+            . 'Items: ' . json_encode($payload, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Parse a Gemini text response and apply prices to $items.
+     */
+    private function applyGeminiText(string $text, array $items, string $model): array
+    {
+        $text = preg_replace('/^```json\s*/i', '', trim($text));
+        $text = preg_replace('/```\s*$/i', '', $text);
+
+        $priceData = json_decode($text, true);
+
+        if (! is_array($priceData)) {
+            preg_match_all('/\{\s*"i"\s*:\s*(\d+)\s*,\s*"p"\s*:\s*([\d.]+)\s*\}/', $text, $matches, PREG_SET_ORDER);
+            if (! empty($matches)) {
+                $priceData = array_map(fn($m) => ['i' => (int) $m[1], 'p' => (float) $m[2]], $matches);
+                Log::info('PricingService: Partial extraction recovered ' . count($priceData) . ' price(s).');
+            }
+        }
+
+        if (! is_array($priceData) || empty($priceData)) {
+            Log::warning('PricingService: Could not extract any prices from Gemini response.', [
+                'model'        => $model,
+                'text_preview' => mb_substr($text, 0, 300),
+            ]);
+            return $items;
+        }
+
+        foreach ($priceData as $entry) {
+            $idx   = $entry['i'] ?? null;
+            $price = $entry['p'] ?? null;
+
+            if ($idx === null || ! array_key_exists($idx, $items)) {
+                continue;
+            }
+
+            $price = is_numeric($price) ? (float) $price : 0.0;
+
+            if ($price > 0) {
+                $items[$idx]['unit_price']   = $price;
+                $items[$idx]['price_source'] = 'gemini';
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Send multiple chunks to Gemini in PARALLEL using Http::pool().
+     * Falls back to sequential per-chunk calls if pool fails.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @param  list<list<int>>  $chunks
+     * @return array<int, array<string, mixed>>
+     */
+    private function enrichChunksParallel(array $items, array $chunks): array
+    {
+        $apiKey       = (string) config('services.gemini.key', '');
+        $primaryModel = (string) config('services.gemini.model', 'gemini-2.0-flash-lite');
+        $modelChain   = array_unique(array_filter([$primaryModel, 'gemini-2.0-flash-lite', 'gemini-flash-lite-latest', 'gemini-flash-latest']));
+
+        if (empty($apiKey)) {
+            Log::warning('PricingService: GEMINI_API_KEY not configured; skipping AI pricing.');
+            return $items;
+        }
+
+        // Build payloads + request bodies once
+        $requestBodies = [];
+        foreach ($chunks as $ci => $chunkIndices) {
+            $payload             = $this->buildGeminiPayload($items, $chunkIndices);
+            $requestBodies[$ci]  = [
+                'contents' => [
+                    ['role' => 'user', 'parts' => [['text' => $this->buildGeminiPrompt($payload)]]],
+                ],
+                'generationConfig' => [
+                    'responseMimeType' => 'application/json',
+                    'temperature'      => 0.2,
+                    'maxOutputTokens'  => 8192,
+                ],
+            ];
+        }
+
+        // Track which chunks still need pricing
+        $failedChunks = array_keys($chunks);
+
+        foreach ($modelChain as $model) {
+            if (empty($failedChunks)) {
+                break;
+            }
+
+            $url            = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+            $pendingIndices = $failedChunks;
+            $failedChunks   = [];
+
+            try {
+                $responses = Http::pool(function (Pool $pool) use ($url, $requestBodies, $pendingIndices) {
+                    $reqs = [];
+                    foreach ($pendingIndices as $ci) {
+                        $reqs[] = $pool->as((string) $ci)->timeout(90)->post($url, $requestBodies[$ci]);
+                    }
+                    return $reqs;
+                });
+
+                foreach ($responses as $key => $response) {
+                    $ci = (int) $key;
+
+                    if (! $response->successful()) {
+                        Log::warning('PricingService: Parallel chunk failed, will retry.', [
+                            'model'  => $model,
+                            'chunk'  => $ci,
+                            'status' => $response->status(),
+                        ]);
+                        $failedChunks[] = $ci;
+                        continue;
+                    }
+
+                    $text  = $response->json('candidates.0.content.parts.0.text') ?? '';
+                    $items = $this->applyGeminiText($text, $items, $model);
+                }
+            } catch (\Throwable $e) {
+                Log::error('PricingService: Http::pool exception, falling back to serial.', [
+                    'model'   => $model,
+                    'message' => $e->getMessage(),
+                ]);
+                // Fall back: process remaining chunks one by one
+                foreach ($pendingIndices as $ci) {
+                    $items = $this->enrichWithGemini($items, $chunks[$ci]);
+                }
+                return $items;
+            }
+        }
+
+        if (! empty($failedChunks)) {
+            Log::error('PricingService: Some chunks failed all models.', ['chunks' => $failedChunks]);
+        }
+
+        return $items;
+    }
+
+    // -------------------------------------------------------------------------
     // Gemini fallback (single batched request)
     // -------------------------------------------------------------------------
 
@@ -119,51 +301,29 @@ class PricingService
      */
     private function enrichWithGemini(array $items, array $unmatchedIndices): array
     {
-        $apiKey       = (string) config('services.gemini.key', '');
-        $primaryModel = (string) config('services.gemini.model', 'gemini-2.0-flash-lite');
-        // Try models in order — all confirmed available for this API key
-        $modelChain   = array_unique(array_filter([$primaryModel, 'gemini-2.0-flash-lite', 'gemini-flash-lite-latest', 'gemini-flash-latest']));
+        $apiKey     = (string) config('services.gemini.key', '');
+        $modelChain = array_unique(array_filter([
+            (string) config('services.gemini.model', 'gemini-2.0-flash-lite'),
+            'gemini-2.0-flash-lite',
+            'gemini-flash-lite-latest',
+            'gemini-flash-latest',
+        ]));
 
         if (empty($apiKey)) {
             Log::warning('PricingService: GEMINI_API_KEY not configured; skipping AI pricing.');
             return $items;
         }
 
-        $batch = $unmatchedIndices;
-
-        // Compact payload — only essential fields to minimise input tokens
-        $payload = [];
-        foreach ($batch as $idx) {
-            $payload[] = [
-                'i'    => $idx,
-                'd'    => mb_substr((string) ($items[$idx]['description'] ?? ''), 0, 80),
-                'cat'  => mb_substr((string) ($items[$idx]['category']    ?? ''), 0, 30),
-                'br'   => mb_substr((string) ($items[$idx]['brand']       ?? ''), 0, 30),
-                'unit' => mb_substr((string) ($items[$idx]['unit']        ?? ''), 0, 15),
-            ];
-        }
-
-        $prompt = 'You are a procurement pricing expert for the Saudi Arabia construction and MEP materials market. '
-            . 'Estimate a realistic current unit price in SAR for each item below. '
-            . 'RULES: '
-            . '(1) Always return a positive non-zero price — use your best market estimate, never 0. '
-            . '(2) Base prices on typical Saudi supplier/contractor rates for 2024-2026. '
-            . '(3) Return ONLY a valid compact JSON array with NO whitespace or newlines between elements. '
-            . '(4) Each element must be exactly: {"i":<index>,"p":<price_number>} '
-            . '(5) No markdown, no explanation, no extra keys, no pretty-printing. '
-            . 'Example output: [{"i":0,"p":1500},{"i":1,"p":350}] '
-            . 'Items: ' . json_encode($payload, JSON_UNESCAPED_UNICODE);
-
+        $payload    = $this->buildGeminiPayload($items, $unmatchedIndices);
+        $prompt     = $this->buildGeminiPrompt($payload);
         $lastStatus = null;
 
         foreach ($modelChain as $model) {
             $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
             try {
-                $response = Http::timeout(60)->post($url, [
-                    'contents' => [
-                        ['role' => 'user', 'parts' => [['text' => $prompt]]],
-                    ],
+                $response = Http::timeout(90)->post($url, [
+                    'contents'         => [['role' => 'user', 'parts' => [['text' => $prompt]]]],
                     'generationConfig' => [
                         'responseMimeType' => 'application/json',
                         'temperature'      => 0.2,
@@ -173,64 +333,17 @@ class PricingService
 
                 if (! $response->successful()) {
                     $lastStatus = $response->status();
-                    Log::warning('PricingService: Gemini model failed, trying next.', [
-                        'model'  => $model,
-                        'status' => $lastStatus,
-                    ]);
-                    continue; // try next model
+                    Log::warning('PricingService: Gemini model failed, trying next.', ['model' => $model, 'status' => $lastStatus]);
+                    continue;
                 }
 
-                $text = $response->json('candidates.0.content.parts.0.text') ?? '';
-                $text = preg_replace('/^```json\s*/i', '', trim($text));
-                $text = preg_replace('/```\s*$/i',      '', $text);
+                $text  = $response->json('candidates.0.content.parts.0.text') ?? '';
+                $items = $this->applyGeminiText($text, $items, $model);
 
-                // First try full JSON decode
-                $priceData = json_decode($text, true);
-
-                // Fallback: extract individual objects via regex if truncated
-                if (! is_array($priceData)) {
-                    Log::warning('PricingService: Full JSON parse failed — attempting partial extraction.', [
-                        'model'        => $model,
-                        'text_preview' => mb_substr($text, 0, 200),
-                    ]);
-                    preg_match_all('/\{\s*"i"\s*:\s*(\d+)\s*,\s*"p"\s*:\s*([\d.]+)\s*\}/', $text, $matches, PREG_SET_ORDER);
-                    if (! empty($matches)) {
-                        $priceData = array_map(fn($m) => ['i' => (int) $m[1], 'p' => (float) $m[2]], $matches);
-                        Log::info('PricingService: Partial extraction recovered ' . count($priceData) . ' price(s).');
-                    }
-                }
-
-                if (! is_array($priceData) || empty($priceData)) {
-                    Log::warning('PricingService: Could not extract any prices from Gemini response.', [
-                        'model'        => $model,
-                        'text_preview' => mb_substr($text, 0, 300),
-                    ]);
-                    continue; // try next model
-                }
-
-                foreach ($priceData as $entry) {
-                    $idx   = $entry['i'] ?? null;
-                    $price = $entry['p'] ?? null;
-
-                    if ($idx === null || ! array_key_exists($idx, $items)) {
-                        continue;
-                    }
-
-                    $price = is_numeric($price) ? (float) $price : 0.0;
-
-                    if ($price > 0) {
-                        $items[$idx]['unit_price']   = $price;
-                        $items[$idx]['price_source'] = 'gemini';
-                    }
-                }
-
-                return $items; // success — no need to try further models
+                return $items;
 
             } catch (\Throwable $e) {
-                Log::error('PricingService: Exception calling Gemini.', [
-                    'model'   => $model,
-                    'message' => $e->getMessage(),
-                ]);
+                Log::error('PricingService: Exception calling Gemini.', ['model' => $model, 'message' => $e->getMessage()]);
             }
         }
 
