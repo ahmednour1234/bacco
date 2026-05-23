@@ -268,11 +268,11 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-slate-50/80 border-b border-slate-100">
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.quotation_id') }}</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.date') }}</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.items') }}</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.status') }}</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.action') }}</th>
+                        <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.quotation_id') }}</th>
+                        <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.date') }}</th>
+                        <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.items') }}</th>
+                        <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.status') }}</th>
+                        <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.action') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
@@ -413,11 +413,11 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="bg-slate-50/80 border-b border-slate-100">
-                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.order_no') }}</th>
-                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.date') }}</th>
-                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.total') }}</th>
-                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.status') }}</th>
-                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.action') }}</th>
+                    <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.order_no') }}</th>
+                    <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.date') }}</th>
+                    <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.total') }}</th>
+                    <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.status') }}</th>
+                    <th class="px-6 py-3 text-start text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('app.action') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">
