@@ -890,6 +890,7 @@ return [
 
     // Checkout page steps
     'checkout_step_items'           => 'مراجعة الأصناف',
+    'checkout_step_pricing'         => 'إنشاء عرض السعر',
     'checkout_step_address'         => 'عنوان التوصيل',
     'checkout_step_confirm'         => 'تأكيد الطلب',
     'checkout_continue_address'     => 'متابعة لعنوان التوصيل',

@@ -25,7 +25,7 @@
             }
             if (!valid) { this.addressError = true; return; }
             this.addressError = false;
-            this.step = 3;
+            this.step = 4;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }"
@@ -56,6 +56,11 @@
             </svg>
         </button>
     </div>
+
+    {{-- Background pricing poller: fires every 4s while job is running --}}
+    @if($pricingQueued)
+        <div wire:poll.4s="checkPricingStatus" class="sr-only" aria-hidden="true"></div>
+    @endif
 
     @if($quotation)
 
@@ -112,12 +117,12 @@
         @if(in_array($quotation->status->value ?? '', ['tender', 'draft'], true))
         <div class="relative flex items-center justify-between py-2">
             {{-- Connecting track --}}
-            <div class="absolute top-1/2 start-0 end-0 h-0.5 bg-slate-200 mx-16 -translate-y-1/2 hidden sm:block"></div>
+            <div class="absolute top-1/2 start-0 end-0 h-0.5 bg-slate-200 mx-12 -translate-y-1/2 hidden sm:block"></div>
             {{-- Animated fill --}}
-            <div class="absolute top-1/2 start-16 h-0.5 bg-emerald-400 transition-all duration-500 -translate-y-1/2 hidden sm:block"
-                 :style="'width: calc(' + ((step-1)/2) + ' * (100% - 8rem))'"></div>
+            <div class="absolute top-1/2 start-12 h-0.5 bg-emerald-400 transition-all duration-500 -translate-y-1/2 hidden sm:block"
+                 :style="'width: calc(' + ((step-1)/3) + ' * (100% - 6rem))'"></div>
 
-            <template x-for="s in [1,2,3]" :key="s">
+            <template x-for="s in [1,2,3,4]" :key="s">
                 <div class="relative z-10 flex flex-col items-center gap-2">
                     <div class="flex h-9 w-9 items-center justify-center rounded-full border-2 text-xs font-bold transition-all duration-300 bg-white"
                          :class="{
@@ -132,7 +137,7 @@
                     </div>
                     <span class="text-[11px] font-semibold transition-colors duration-300 text-center"
                           :class="step >= s ? 'text-emerald-600' : 'text-slate-400'"
-                          x-text="s === 1 ? '{{ __('app.checkout_step_items') }}' : (s === 2 ? '{{ __('app.checkout_step_address') }}' : '{{ __('app.checkout_step_confirm') }}')"
+                          x-text="s === 1 ? '{{ __('app.checkout_step_items') }}' : (s === 2 ? '{{ __('app.checkout_step_pricing') }}' : (s === 3 ? '{{ __('app.checkout_step_address') }}' : '{{ __('app.checkout_step_confirm') }}'  ))"
                     ></span>
                 </div>
             </template>
@@ -376,7 +381,7 @@
                         class="flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
                         style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);"
                     >
-                        <span>{{ __('app.checkout_continue_address') }}</span>
+                        <span>{{ __('app.checkout_step_pricing') }}</span>
                         <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -394,9 +399,134 @@
     </div>{{-- end step 1 --}}
 
     {{-- ═══════════════════════════════════════════════════════════════════════
-         STEP 2 — Shipping Address
+         STEP 2 — إنشاء عرض السعر (Create Quotation)
     ════════════════════════════════════════════════════════════════════════ --}}
     <div x-show="step === 2"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-4"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-cloak>
+
+        <div class="mx-auto max-w-lg space-y-5">
+
+            {{-- Heading --}}
+            <div class="mb-6 flex items-center gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-md shadow-emerald-100"
+                     style="background: linear-gradient(135deg, #10b981 0%, #059669 100%)">
+                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">{{ __('app.checkout_step_pricing') }}</h2>
+                    <p class="text-sm text-slate-500">
+                        {{ app()->getLocale() === 'ar' ? 'مراجعة الأسعار والإجمالي قبل المتابعة' : 'Review prices and totals before proceeding' }}
+                    </p>
+                </div>
+            </div>
+
+            {{-- Pricing status banner --}}
+            @if($pricingQueued)
+            <div class="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+                <svg class="h-5 w-5 animate-spin text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                <div>
+                    <p class="text-sm font-semibold text-amber-800">
+                        {{ app()->getLocale() === 'ar' ? 'جاري إنشاء عرض السعر…' : 'Generating quotation prices…' }}
+                    </p>
+                    <p class="mt-0.5 text-xs text-amber-600">
+                        {{ app()->getLocale() === 'ar' ? 'يتم تسعير الأصناف — ستصلك إشعار فور الاكتمال.' : 'Items are being priced — you will be notified when done.' }}
+                    </p>
+                </div>
+            </div>
+            @else
+            <div class="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                <svg class="h-5 w-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+                <p class="text-sm font-semibold text-emerald-700">
+                    {{ app()->getLocale() === 'ar' ? 'تم إنشاء عرض السعر بنجاح' : 'Quotation created successfully' }}
+                </p>
+            </div>
+            @endif
+
+            {{-- Financial Summary card --}}
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-slate-700">{{ __('app.financial_summary') }}</h3>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                        {{ $itemCount }} {{ __('app.items_selected') }}
+                    </span>
+                </div>
+                <div class="space-y-2.5">
+                    <div class="flex justify-between text-sm text-slate-600">
+                        <span>{{ __('app.subtotal') }}</span>
+                        <span class="font-mono font-medium">{{ number_format($subtotal, 2) }} {{ __('app.sar') }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-slate-600">
+                        <span>{{ __('app.tax_vat_15') }}</span>
+                        <span class="font-mono font-medium">{{ number_format($tax, 2) }} {{ __('app.sar') }}</span>
+                    </div>
+                    <div class="border-t border-slate-200 pt-3 flex justify-between">
+                        <span class="text-sm font-bold text-slate-800">
+                            {{ app()->getLocale() === 'ar' ? 'إجمالي عرض السعر' : 'Quotation Total' }}
+                        </span>
+                        <span class="font-mono text-lg font-bold text-emerald-600">{{ number_format($total, 2) }} {{ __('app.sar') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- PDF Export button --}}
+            <a href="{{ route('enduser.quotations.pdf', $quotation->uuid) }}" target="_blank"
+               class="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-white px-6 py-3.5 text-sm font-semibold text-slate-600 hover:border-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 transition">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                {{ __('app.export_pdf') }}
+            </a>
+
+            @if($subtotal <= 0)
+            <div class="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-700">
+                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+                {{ __('app.no_price_submit') }}
+            </div>
+            @endif
+
+            {{-- Navigation --}}
+            <div class="flex gap-3 pb-4">
+                <button type="button"
+                    @click="step = 1; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                    class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-800">
+                    <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    {{ __('app.back') }}
+                </button>
+                <button type="button"
+                    @click="step = 3; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                    @disabled($subtotal <= 0)
+                    class="flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
+                    style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                    <span>{{ __('app.checkout_step_address') }}</span>
+                    <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+
+        </div>
+    </div>{{-- end step 2 --}}
+
+    {{-- ═══════════════════════════════════════════════════════════════════════
+         STEP 3 — Shipping Address
+    ════════════════════════════════════════════════════════════════════════ --}}
+    <div x-show="step === 3"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 translate-y-4"
          x-transition:enter-end="opacity-100 translate-y-0"
@@ -600,7 +730,7 @@
             {{-- ── Navigation ───────────────────────────────────────────────── --}}
             <div class="mt-4 flex gap-3">
                 <button type="button"
-                    @click="step = 1; addressError = false; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                    @click="step = 2; addressError = false; window.scrollTo({ top: 0, behavior: 'smooth' })"
                     class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-800">
                     <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -618,12 +748,12 @@
             </div>
 
         </div>
-    </div>{{-- end step 2 --}}
+    </div>{{-- end step 3 --}}
 
-    {{-- ═══════════════════════════════════════════════════════════════════════
-         STEP 3 — Review & Place Order
-    ════════════════════════════════════════════════════════════════════════ --}}
-    <div x-show="step === 3"
+    {{-- ═══════════════════════════════════════════════════════════════════════════
+         STEP 4 — Review & Place Order
+    ═══════════════════════════════════════════════════════════════════════════ --}}
+    <div x-show="step === 4"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-x-3"
          x-transition:enter-end="opacity-100 translate-x-0"
@@ -775,7 +905,7 @@
 
             {{-- Navigation --}}
             <div class="flex gap-3 pb-8">
-                <button type="button" @click="step = 2; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                <button type="button" @click="step = 3; window.scrollTo({ top: 0, behavior: 'smooth' })"
                     class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
                     {{ __('app.back') }}
                 </button>
@@ -793,7 +923,7 @@
             </div>
 
         </div>
-    </div>{{-- end step 3 --}}
+    </div>{{-- end step 4 --}}
 
     @endif
 

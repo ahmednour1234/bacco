@@ -115,7 +115,7 @@
             <p class="mt-1 text-sm text-slate-500">{{ __('app.manage_monitor_bids') }}</p>
         </div>
         <a
-            href="{{ route('enduser.boqs.index') }}"
+            href="{{ route('enduser.quotations.create') }}"
             class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
         >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,6 +271,7 @@
     </div>
 
     {{-- ───── Quotation Cards ────────────────────────────────────────────────────── --}}
+    <div wire:loading.class="opacity-50 pointer-events-none" wire:loading.class.delay="transition-opacity duration-200">
     @if($quotations->isEmpty())
         <div class="rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
             <svg class="mx-auto mb-4 h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -360,7 +361,7 @@
                     }
                 @endphp
 
-                <div class="group flex flex-col gap-4 rounded-2xl border border-slate-200 border-l-4 {{ $leftBorder }} bg-white px-6 py-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
+                <div wire:key="quotation-{{ $quotation->id }}" class="group flex flex-col gap-4 rounded-2xl border border-slate-200 border-l-4 {{ $leftBorder }} bg-white px-6 py-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
 
                     {{-- Left: info --}}
                     <div class="flex-1 min-w-0">
@@ -510,6 +511,7 @@
             @endif
         </div>
     @endif
+    </div>{{-- end wire:loading wrapper --}}
 
     {{-- Address Modal --}}
     @include('livewire.enduser.quotations._address-modal', ['confirmMethod' => 'confirmConvertToOrder'])

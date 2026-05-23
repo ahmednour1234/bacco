@@ -3,6 +3,7 @@
 namespace App\Livewire\Enduser\Quotations;
 
 use App\Enums\QuotationRequestStatusEnum;
+use App\Jobs\FetchQuotationPricesJob;
 use App\Models\Product;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
@@ -11,6 +12,7 @@ use App\Enums\UserTypeEnum;
 use App\Services\Enduser\OrderService;
 use App\Services\NotificationService;
 use App\Services\PricingService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -28,6 +30,9 @@ class ShowQuotation extends Component
 
     /** True while a background pricing job has been dispatched for this session. */
     public bool $pricingQueued = false;
+
+    /** ISO-8601 timestamp of when the pricing job was dispatched (used by polling). */
+    public ?string $pricingJobStartedAt = null;
 
     /** True when the quotation's prices are older than the allowed validity period. */
     public bool $isExpired = false;
@@ -83,7 +88,7 @@ class ShowQuotation extends Component
     // -------------------------------------------------------------------------
 
     /**
-     * Called via wire:init after first render — runs pricing synchronously.
+     * Called via wire:init after first render — dispatches the pricing job asynchronously.
      */
     public function fetchPricesOnInit(): void
     {
@@ -91,7 +96,43 @@ class ShowQuotation extends Component
             return;
         }
 
-        $this->runPricingSync();
+        $this->pricingJobStartedAt = now()->toIso8601String();
+        FetchQuotationPricesJob::dispatch($this->quotation->id, Auth::id(), $this->uuid);
+    }
+
+    /**
+     * Called by wire:poll — checks if the background pricing job has finished.
+     */
+    public function checkPricingStatus(): void
+    {
+        if (! $this->pricingQueued || ! $this->pricingJobStartedAt || ! $this->quotation) {
+            return;
+        }
+
+        $fresh = QuotationRequest::find($this->quotation->id);
+        if (! $fresh) {
+            return;
+        }
+
+        $startedAt = Carbon::parse($this->pricingJobStartedAt);
+
+        // The job updates prices_fetched_at in its finally block when done
+        if ($fresh->prices_fetched_at && $fresh->prices_fetched_at->isAfter($startedAt)) {
+            $this->quotation           = $fresh;
+            $this->loadItems();
+            $this->isExpired           = false;
+            $this->pricingQueued       = false;
+            $this->pricingJobStartedAt = null;
+
+            $gotPrices = collect($this->items)->filter(fn($i) => ! empty($i['unit_price']))->count();
+            $total     = count($this->items);
+            $missing   = $total - $gotPrices;
+            $message   = $missing > 0
+                ? "تم تسعير {$gotPrices} عنصر. {$missing} عنصر لم يُسعَّر تلقائياً."
+                : "تم تسعير جميع {$gotPrices} عنصر بنجاح.";
+
+            $this->dispatch('toast', message: $message, type: 'success');
+        }
     }
 
     public function dismissPricingBanner(): void
@@ -249,8 +290,9 @@ class ShowQuotation extends Component
             $this->items[$index]['price_source'] = null;
         }
 
-        $this->pricingQueued = true;
-        $this->runPricingSync();
+        $this->pricingQueued       = true;
+        $this->pricingJobStartedAt = now()->toIso8601String();
+        FetchQuotationPricesJob::dispatch($this->quotation->id, Auth::id(), $this->uuid);
     }
 
     private function runPricingSync(): void

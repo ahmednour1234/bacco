@@ -954,6 +954,7 @@ return [
 
     // Checkout page steps
     'checkout_step_items'           => 'Review Items',
+    'checkout_step_pricing'         => 'Create Quotation',
     'checkout_step_address'         => 'Shipping Address',
     'checkout_step_confirm'         => 'Place Order',
     'checkout_continue_address'     => 'Continue to Shipping',
