@@ -325,6 +325,9 @@
             $tax      = $subtotal * $taxRate;
             $total    = $subtotal + $tax;
             $itemCount = $allItems->filter(fn($i) => !empty($i['selected']) && ($i['status'] ?? '') !== 'rejected')->count();
+            $missingPriceCount = $allItems
+                ->filter(fn($i) => !empty($i['selected']) && ($i['status'] ?? '') !== 'rejected' && (!is_numeric($i['unit_price'] ?? null) || (float) ($i['unit_price'] ?? 0) <= 0))
+                ->count();
         @endphp
 
         <div class="mt-6 flex justify-end">
@@ -371,6 +374,15 @@
                         <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                         {{ __('app.no_price_submit') }}
                     </div>
+                    @endif
+
+                    @if(!$pricingQueued && $missingPriceCount > 0)
+                    <button wire:click="refetchPrices" wire:loading.attr="disabled" wire:target="refetchPrices" type="button"
+                        class="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-6 py-3.5 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100 disabled:opacity-60">
+                        <svg wire:loading wire:target="refetchPrices" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <span wire:loading.remove wire:target="refetchPrices">{{ __('app.retry_missing_prices', ['count' => $missingPriceCount]) }}</span>
+                        <span wire:loading wire:target="refetchPrices">{{ __('app.refreshing_prices') }}</span>
+                    </button>
                     @endif
 
                     {{-- Continue to Step 2 --}}

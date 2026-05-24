@@ -358,6 +358,7 @@ return [
     'expired_banner_body'      => 'Prices are valid for 10 days only. Please refresh prices to continue.',
     'refresh_prices'           => 'Refresh Prices',
     'refreshing_prices'        => 'Refreshing prices…',
+    'retry_missing_prices'     => 'Price Again (:count missing)',
     'refresh_to_renew'         => 'Refresh Prices to Renew Quotation',
     'expired_block_msg'        => 'Quotation expired — please refresh prices first',
 

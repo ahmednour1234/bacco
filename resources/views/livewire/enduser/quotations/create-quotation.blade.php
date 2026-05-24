@@ -118,23 +118,55 @@
         </style>
     </div>
 
-    {{-- ───── Generic wire:loading overlay (non-submit actions) ──────────────── --}}
+    {{-- Generic loading overlay --}}
     <div
-        wire:loading.flex
+        wire:loading
         wire:loading.except.target="submit"
-        class="pointer-events-none z-[9999] px-4"
-        style="position: fixed; inset: 0; width: 100vw; height: 100dvh; align-items: center; justify-content: center;"
+        x-data="{
+            dismissed: false,
+            ar: ['جاري المعالجة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري الاستخراج...', 'تقريباً خلصنا...'],
+            en: ['Processing...', 'Updating data...', 'Just a moment ⚡', 'Extracting...', 'Almost done...'],
+            idx: 0,
+            isAr: document.documentElement.dir === 'rtl',
+            init() {
+                setInterval(() => { this.idx = (this.idx + 1) % this.ar.length; }, 1800);
+                new MutationObserver(() => {
+                    if (this.$el.style.display !== 'none') { this.dismissed = false; }
+                }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
+            }
+        }"
+        style="display: none; position: fixed; inset: 0; z-index: 99999; pointer-events: none;"
     >
-        <div class="w-full max-w-sm rounded-2xl border border-emerald-100 bg-white px-7 py-8 text-center shadow-2xl shadow-slate-900/15 ring-1 ring-slate-900/5">
-            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
-                <svg class="h-8 w-8 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        <div x-show="!dismissed" style="position:absolute;inset:0;background:rgba(15,23,42,0.60);backdrop-filter:blur(7px);"></div>
+        <div
+            x-show="!dismissed"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            style="pointer-events:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:28px;padding:40px 44px 36px;text-align:center;width:340px;max-width:calc(100vw - 40px);box-shadow:0 40px 100px rgba(0,0,0,.25);font-family:'Cairo',sans-serif;"
+            x-bind:dir="isAr ? 'rtl' : 'ltr'"
+        >
+            <button @click="dismissed=true" type="button" style="position:absolute;top:14px;left:14px;width:30px;height:30px;border-radius:50%;border:none;background:#f1f5f9;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#94a3b8;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div style="position:relative;width:88px;height:88px;margin:0 auto 32px;">
+                <svg style="position:absolute;inset:0;width:88px;height:88px;animation:gcw 1.4s linear infinite;" viewBox="0 0 88 88">
+                    <circle cx="44" cy="44" r="38" fill="none" stroke="#d1fae5" stroke-width="6"/>
+                    <circle cx="44" cy="44" r="38" fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round" stroke-dasharray="66 172"/>
                 </svg>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                    <div style="width:18px;height:18px;border-radius:50%;background:#10b981;animation:gpulse 1.4s ease-in-out infinite;box-shadow:0 0 0 0 #10b98140;"></div>
+                </div>
             </div>
-            <h3 class="text-base font-bold text-slate-900">{{ __('app.qimta_processing_title') }}</h3>
-            <p class="mt-2 text-sm leading-6 text-slate-500">{{ __('app.qimta_processing_body') }}</p>
+            <p x-text="isAr ? ar[idx] : en[idx]" style="font-size:1.3rem;font-weight:700;color:#0f172a;margin-bottom:10px;min-height:2.2rem;"></p>
+            <p x-text="isAr ? 'يتم تنفيذ العملية، الرجاء الانتظار' : 'Operation in progress, please wait…'" style="font-size:0.83rem;color:#94a3b8;font-weight:500;"></p>
+            <p @click="dismissed=true" style="font-size:0.75rem;color:#cbd5e1;margin-top:12px;cursor:pointer;text-decoration:underline;" x-text="isAr ? 'إخفاء ومتابعة التصفح ←' : 'Hide & keep browsing →'"></p>
         </div>
+        <template x-if="dismissed"><span x-init="$store.bgJob.active = true"></span></template>
+        <style>
+            @keyframes gcw { to { transform: rotate(360deg); } }
+            @keyframes gpulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 #10b98140;}50%{transform:scale(1.35);box-shadow:0 0 0 10px #10b9810;} }
+        </style>
     </div>
 
     <div class="space-y-6">

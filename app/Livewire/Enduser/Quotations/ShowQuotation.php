@@ -282,11 +282,24 @@ class ShowQuotation extends Component
             return;
         }
 
-        // Reset prices first so PricingService treats them as unpriced
-        $ids = array_column($this->items, 'id');
+        $ids = collect($this->items)
+            ->filter(fn($i) => ! empty($i['selected']) && ($i['status'] ?? '') !== 'rejected')
+            ->pluck('id')
+            ->filter()
+            ->map(fn($id) => (int) $id)
+            ->values()
+            ->all();
+
+        if (empty($ids)) {
+            $this->dispatch('toast', message: __('app.select_item_pricing_required'), type: 'error');
+            return;
+        }
+
+        // Reset selected prices first so PricingService treats them as unpriced.
         QuotationItem::whereIn('id', $ids)->update([
             'unit_price'   => null,
             'price_source' => null,
+            'price_status' => 'pending',
         ]);
 
         foreach ($this->items as $index => $item) {
