@@ -255,51 +255,48 @@
                                 @foreach($items as $item)
                                     @php
                                         $statusVal = $item['status'] ?? 'pending';
-                                        $badgeClass = match($statusVal) {
-                                            'sourcing' => 'bg-emerald-100 text-emerald-700',
-                                            'sourced'  => 'bg-blue-100 text-blue-700',
-                                            'rejected' => 'bg-red-100 text-red-700',
-                                            default    => 'bg-amber-100 text-amber-700',
-                                        };
-                                        $badgeLabel = match($statusVal) {
-                                            'sourcing' => __('app.item_status_sourcing'),
-                                            'sourced'  => __('app.item_status_sourced'),
-                                            'rejected' => __('app.item_status_rejected'),
-                                            default    => __('app.item_status_pending'),
-                                        };
+                                        $hasPrice = is_numeric($item['unit_price'] ?? null);
+                                        $lineTotal = $hasPrice ? (float) $item['unit_price'] * (float) ($item['quantity'] ?? 0) : null;
                                     @endphp
-                                    <tr class="transition-colors hover:bg-slate-50/60 @if($statusVal === 'rejected') opacity-50 @endif">
-                                        <td class="px-4 py-3 font-medium text-slate-800">{{ $item['description'] ?: '—' }}</td>
-                                        <td class="px-4 py-3 text-slate-600">{{ number_format((float)($item['quantity'] ?? 0)) }}</td>
-                                        <td class="px-4 py-3 text-slate-500">{{ $item['unit'] ?: '—' }}</td>
-                                        <td class="px-4 py-3 text-slate-500">{{ $item['category'] ?: '—' }}</td>
-                                        <td class="px-4 py-3 text-slate-500">{{ $item['brand'] ?: '—' }}</td>
-                                        <td class="px-4 py-3 text-center">
+                                    <tr class="align-top transition-colors hover:bg-slate-50/50 @if($statusVal === 'rejected') opacity-50 @endif">
+                                        <td class="px-5 py-5">
+                                            <p class="font-semibold leading-snug text-slate-800">{{ $item['description'] ?: '—' }}</p>
+                                        </td>
+                                        <td class="px-5 py-5">
+                                            <p class="font-bold text-slate-800">{{ number_format((float)($item['quantity'] ?? 0)) }}</p>
+                                            <p class="mt-0.5 text-xs uppercase text-slate-400">{{ $item['unit'] ?: '—' }}</p>
+                                        </td>
+                                        <td class="px-5 py-5">
+                                            @if($statusVal === 'sourced')
+                                                <div class="mb-2 flex items-center gap-1.5">
+                                                    <span class="h-2 w-2 shrink-0 rounded-full bg-emerald-500"></span>
+                                                    <span class="text-xs font-bold text-emerald-600">{{ __('app.item_status_sourced') }}</span>
+                                                </div>
+                                            @elseif($statusVal === 'sourcing' || $pricingQueued)
+                                                <div class="mb-2 flex items-center gap-1.5">
+                                                    <span class="h-2 w-2 shrink-0 rounded-full bg-amber-400"></span>
+                                                    <span class="text-xs font-bold text-amber-600">{{ __('app.item_status_sourcing') }}</span>
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-slate-300">{{ __('app.no_updates_yet') }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-5 py-5">
                                             @if(!empty($item['engineering_required']))
-                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded bg-emerald-100">
-                                                    <svg class="h-3 w-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                </span>
+                                                <div class="mb-2 flex items-center gap-1.5">
+                                                    <span class="h-2 w-2 shrink-0 rounded-full bg-blue-500"></span>
+                                                    <span class="text-xs font-bold text-blue-600">{{ __('app.engineering') }}</span>
+                                                </div>
                                             @else
-                                                <span class="inline-block h-5 w-5 rounded border border-slate-200 bg-slate-50"></span>
+                                                <span class="text-xs text-slate-300">{{ __('app.no_updates_yet') }}</span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 text-center">
-                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $badgeClass }}">{{ $badgeLabel }}</span>
-                                        </td>
-                                        <td class="px-4 py-3 text-end font-mono font-medium text-slate-800">
+                                        <td class="px-5 py-5 text-xs text-slate-600">{{ $item['brand'] ?: '—' }}</td>
+                                        <td class="px-5 py-5 text-end font-mono font-bold text-slate-800">
                                             @if($pricingQueued && empty($item['unit_price']))
                                                 <svg class="ms-auto h-4 w-4 animate-spin text-slate-300" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                                            @elseif(is_numeric($item['unit_price'] ?? null))
-                                                {{ number_format((float)$item['unit_price'], 2) }}
-                                            @else
-                                                <span class="text-xs italic text-slate-400">{{ __('app.not_priced') }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="px-4 py-3 text-end font-mono font-medium text-slate-800">
-                                            @if($pricingQueued && empty($item['unit_price']))
-                                                <svg class="ms-auto h-4 w-4 animate-spin text-slate-300" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                                            @elseif(is_numeric($item['unit_price'] ?? null))
-                                                {{ number_format((float)$item['unit_price'] * (float)($item['quantity'] ?? 0), 2) }}
+                                            @elseif($lineTotal !== null)
+                                                {{ number_format($lineTotal, 2) }}
                                             @else
                                                 <span class="text-xs italic text-slate-400">{{ __('app.not_priced') }}</span>
                                             @endif
