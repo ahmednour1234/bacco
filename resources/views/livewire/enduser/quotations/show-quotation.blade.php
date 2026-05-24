@@ -239,19 +239,16 @@
                         {{ __('app.no_items_quotation') }}
                     </div>
                 @else
-                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-slate-100 bg-slate-50">
-                                    <th class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">{{ __('app.description') }}</th>
-                                    <th class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
-                                    <th class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.unit') }}</th>
-                                    <th class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">{{ __('app.category') }}</th>
-                                    <th class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">{{ __('app.brand') }}</th>
-                                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.engineering') }}</th>
-                                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.status') }}</th>
-                                    <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.unit_price_sar') }}</th>
-                                    <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.total_sar') }}</th>
+                                    <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-400 min-w-[220px]">{{ __('app.item_description') }}</th>
+                                    <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-400 w-28">{{ __('app.quantity_unit') }}</th>
+                                    <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-400 w-44">{{ __('app.logistics_timeline') }}</th>
+                                    <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-400 w-44">{{ __('app.engineering_timeline') }}</th>
+                                    <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-400 w-32">{{ __('app.brand') }}</th>
+                                    <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-400 w-36">{{ __('app.price_sar') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
