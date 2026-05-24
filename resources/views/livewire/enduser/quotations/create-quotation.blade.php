@@ -122,7 +122,8 @@
     <div
         wire:loading.flex
         wire:loading.except.target="submit"
-        class="pointer-events-none fixed inset-0 z-40 flex items-center justify-center px-4"
+        class="pointer-events-none z-[9999] px-4"
+        style="position: fixed; inset: 0; width: 100vw; height: 100dvh; align-items: center; justify-content: center;"
     >
         <div class="w-full max-w-sm rounded-2xl border border-emerald-100 bg-white px-7 py-8 text-center shadow-2xl shadow-slate-900/15 ring-1 ring-slate-900/5">
             <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
