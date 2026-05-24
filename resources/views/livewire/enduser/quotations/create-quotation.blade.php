@@ -122,9 +122,9 @@
     <div
         wire:loading.flex
         wire:loading.except.target="submit"
-        class="fixed inset-0 z-40 items-center justify-center bg-slate-900/20 px-4 backdrop-blur-[2px]"
+        class="pointer-events-none fixed inset-0 z-40 flex items-center justify-center px-4"
     >
-        <div class="w-full max-w-sm rounded-2xl border border-emerald-100 bg-white px-7 py-8 text-center shadow-2xl shadow-slate-900/15">
+        <div class="w-full max-w-sm rounded-2xl border border-emerald-100 bg-white px-7 py-8 text-center shadow-2xl shadow-slate-900/15 ring-1 ring-slate-900/5">
             <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
                 <svg class="h-8 w-8 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -655,23 +655,30 @@
                 <button
                     type="button"
                     wire:loading.attr="disabled"
-                    wire:target="fetchPricing"
+                    wire:target="submit"
                     @if(empty($items)) disabled @endif
                     @click="
-                        $wire.fetchPricing().then(() => {
-                            step = 3;
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                        })
+                        submitting = true;
+                        progressPct = 0;
+                        let target = 92;
+                        let iv = setInterval(() => {
+                            if (progressPct < target) {
+                                progressPct = Math.min(progressPct + Math.random() * 8 + 2, target);
+                            } else {
+                                clearInterval(iv);
+                            }
+                        }, 250);
+                        $wire.submit();
                     "
                     class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
                 >
-                    <svg wire:loading wire:target="fetchPricing" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <svg wire:loading wire:target="submit" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                     </svg>
-                    <span wire:loading.remove wire:target="fetchPricing">{{ __('app.create_quote_continue_pricing') }}</span>
-                    <span wire:loading wire:target="fetchPricing">{{ __('app.processing') }}</span>
-                    <svg wire:loading.remove wire:target="fetchPricing" class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span wire:loading.remove wire:target="submit">{{ __('app.create_quote_continue_pricing') }}</span>
+                    <span wire:loading wire:target="submit">{{ __('app.processing') }}</span>
+                    <svg wire:loading.remove wire:target="submit" class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
                     </svg>
                 </button>

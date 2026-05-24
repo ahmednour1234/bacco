@@ -375,7 +375,7 @@ return [
     'ai_analyzing_rates'       => 'Our QIMTA engine is analyzing current market rates and supplier availability.',
     'processing'               => 'Processing…',
     'qimta_processing_title'   => 'Almost done',
-    'qimta_processing_body'    => 'We made it this far. QIMTA is happy with you, just a few moments left.',
+    'qimta_processing_body'    => 'We made it this far. QIMTA is happy with you. You can keep browsing, and we will notify you when it is done.',
     'section_quotation_info'   => 'Section 1: Quotation Information',
     'project_name'             => 'Project Name',
     'project_name_placeholder' => 'e.g., Al-Majd Tower Refurbishment',
