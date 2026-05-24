@@ -318,6 +318,8 @@ return [
     'processing_data'          => 'معالجة البيانات',
     'ai_analyzing_rates'       => 'محرك كيمتا يحلل أسعار السوق الحالية وتوفر الموردين.',
     'processing'               => 'جارٍ المعالجة…',
+    'qimta_processing_title'   => 'تقريباً خلصنا',
+    'qimta_processing_body'    => 'وصلنا وعملنا كده. كيمتا مبسوطة بكم، لحظات بسيطة ونكمل.',
     'section_quotation_info'   => 'القسم 1: معلومات عرض السعر',
     'project_name'             => 'اسم المشروع',
     'project_name_placeholder' => 'مثال: تجديد برج المجد',

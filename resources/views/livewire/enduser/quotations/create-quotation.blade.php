@@ -122,14 +122,17 @@
     <div
         wire:loading.flex
         wire:loading.except.target="submit"
-        class="fixed inset-0 z-40 flex items-center justify-center bg-white/60 backdrop-blur-sm"
+        class="fixed inset-0 z-40 items-center justify-center bg-slate-900/20 px-4 backdrop-blur-[2px]"
     >
-        <div class="flex flex-col items-center gap-3">
-            <svg class="h-8 w-8 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
-            <span class="text-sm font-medium text-slate-600">{{ __('app.processing') }}</span>
+        <div class="w-full max-w-sm rounded-2xl border border-emerald-100 bg-white px-7 py-8 text-center shadow-2xl shadow-slate-900/15">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
+                <svg class="h-8 w-8 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">{{ __('app.qimta_processing_title') }}</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-500">{{ __('app.qimta_processing_body') }}</p>
         </div>
     </div>
 
