@@ -86,8 +86,61 @@
         </div>
     </div>
 
-    {{-- BOQs Section hidden for enduser --}}
-    {{-- <div class="rounded-2xl border border-slate-200 bg-white shadow-sm"> ... </div> --}}
+    {{-- BOQs Section --}}
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
+            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </span>
+            <h2 class="text-sm font-semibold text-slate-800">{{ __('app.boq') }} ({{ $boqs->count() }})</h2>
+            <a href="{{ route('enduser.boqs.create.project', $project->uuid) }}"
+                class="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                {{ __('app.new_boq') }}
+            </a>
+        </div>
+
+        <div class="p-6">
+            @if($boqs->isEmpty())
+                <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-8 text-center text-sm text-slate-400">
+                    {{ __('app.no_boqs_project') }}
+                </div>
+            @else
+                <div class="space-y-3">
+                    @foreach($boqs as $boq)
+                        <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-3.5">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-semibold text-slate-700">{{ $boq->boq_no }}</span>
+                                    @php
+                                        $bStatusBadge = match($boq->status->value ?? 'draft') {
+                                            'submitted'  => 'bg-blue-100 text-blue-700',
+                                            'completed'  => 'bg-emerald-100 text-emerald-700',
+                                            'cancelled'  => 'bg-red-100 text-red-700',
+                                            default      => 'bg-amber-100 text-amber-700',
+                                        };
+                                    @endphp
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $bStatusBadge }}">
+                                        {{ $boq->status->label() }}
+                                    </span>
+                                </div>
+                                <p class="mt-0.5 text-xs text-slate-400">{{ $boq->items_count }} {{ __('app.items') }} &middot; {{ $boq->created_at->diffForHumans() }}</p>
+                            </div>
+                            <a href="{{ route('enduser.boqs.show', $boq->uuid) }}"
+                                class="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">
+                                {{ __('app.view_arrow') }}
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
 
     {{-- Quotations Section --}}
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">

@@ -54,15 +54,10 @@ class ReportController extends Controller
             ->toArray();
 
         // ── Monthly order trend (last 6 months) ─────────────────────────────
-        // Use strftime for SQLite, DATE_FORMAT for MySQL
-        $driver = DB::getDriverName();
-        $monthExpr = $driver === 'sqlite'
-            ? DB::raw("strftime('%Y-%m', created_at) as month")
-            : DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month");
         $monthlyOrders = Order::where('client_id', $clientId)
             ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
             ->select(
-                $monthExpr,
+                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
                 DB::raw('count(*) as count'),
                 DB::raw('COALESCE(sum(grand_total), 0) as total')
             )
