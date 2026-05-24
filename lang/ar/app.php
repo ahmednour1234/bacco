@@ -343,6 +343,9 @@ return [
     'create_quote_step_boq'    => 'جدول الكميات',
     'create_quote_step_pricing'=> 'مراجعة التسعير',
     'create_quote_step_submit' => 'التقديم',
+    'create_quote_continue_boq' => 'متابعة لجدول الكميات',
+    'create_quote_continue_pricing' => 'إنشاء عرض السعر',
+    'create_quote_continue_submit' => 'المراجعة والتقديم',
     'total_items'              => 'إجمالي العناصر',
     'boq_attachment'           => 'مرفق جدول الكميات',
 

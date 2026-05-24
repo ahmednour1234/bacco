@@ -1,5 +1,6 @@
 <div
     x-data="{
+        step: {{ $showPricing && ! empty($items) ? 4 : (! empty($items) ? 2 : 1) }},
         dragOver: false,
         deleteConfirm: null,
         toast: null,
@@ -161,7 +162,7 @@
                 <div class="absolute top-6 start-0 end-0 mx-12 hidden h-0.5 bg-slate-200 sm:block"></div>
                 <div
                     class="absolute top-6 start-12 hidden h-0.5 bg-emerald-400 transition-all duration-500 sm:block"
-                    style="width: calc({{ ($createStepCurrent - 1) / 3 }} * (100% - 6rem))"
+                    :style="'width: calc(' + ((step - 1) / 3) + ' * (100% - 6rem))'"
                 ></div>
 
                 @foreach($createSteps as $index => $label)
@@ -172,31 +173,43 @@
                     @endphp
                     <div class="relative z-10 flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
                         <div
-                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-all duration-300
-                                @if($isCompleted) border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-200
-                                @elseif($isCurrent) border-emerald-500 bg-white text-emerald-600 ring-4 ring-emerald-50
-                                @else border-slate-200 bg-white text-slate-400 @endif"
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-all duration-300"
+                            :class="{
+                                'border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-200': step > {{ $stepNumber }},
+                                'border-emerald-500 bg-white text-emerald-600 ring-4 ring-emerald-50': step === {{ $stepNumber }},
+                                'border-slate-200 bg-white text-slate-400': step < {{ $stepNumber }}
+                            }"
                         >
-                            @if($isCompleted)
+                            <span x-show="step <= {{ $stepNumber }}">{{ $stepNumber }}</span>
+                            <span x-show="step > {{ $stepNumber }}" x-cloak>
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                 </svg>
-                            @else
-                                {{ $stepNumber }}
-                            @endif
+                            </span>
                         </div>
-                        <span class="text-[11px] font-semibold leading-snug transition-colors duration-300 {{ $createStepCurrent >= $stepNumber ? 'text-emerald-600' : 'text-slate-400' }}">
+                        <span
+                            class="text-[11px] font-semibold leading-snug transition-colors duration-300"
+                            :class="step >= {{ $stepNumber }} ? 'text-emerald-600' : 'text-slate-400'"
+                        >
                             {{ $label }}
                         </span>
                     </div>
                 @endforeach
             </div>
+
         </div>
 
         {{-- ─────────────────────────────────────────────────────────────────── --}}
         {{-- Section 1: Quotation Information                                    --}}
         {{-- ─────────────────────────────────────────────────────────────────── --}}
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div
+            x-show="step === 1"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-x-3"
+            x-transition:enter-end="opacity-100 translate-x-0"
+            class="rounded-2xl border border-slate-200 bg-white shadow-sm"
+        >
 
             <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
                 <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
@@ -257,12 +270,33 @@
                 </div>
 
             </div>
-        </div>
+
+            <div class="flex justify-end border-t border-slate-100 px-6 py-4">
+                <button
+                    type="button"
+                    @click="step = 2; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                    class="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                >
+                    <span>{{ __('app.create_quote_continue_boq') }}</span>
+                    <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
 
         {{-- ─────────────────────────────────────────────────────────────────── --}}
+        </div>
+
         {{-- Section 2: BOQ Upload & Management                                  --}}
         {{-- ─────────────────────────────────────────────────────────────────── --}}
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div
+            x-show="step === 2"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-x-3"
+            x-transition:enter-end="opacity-100 translate-x-0"
+            class="rounded-2xl border border-slate-200 bg-white shadow-sm"
+        >
 
             <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
                 <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
@@ -597,13 +631,61 @@
                 </div>
 
             </div>
-        </div>
 
         {{-- ─────────────────────────────────────────────────────────────────── --}}
+            <div
+                x-show="step === 2"
+                x-cloak
+                class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+            >
+                <button
+                    type="button"
+                    @click="step = 1; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                    class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                    <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    {{ __('app.back') }}
+                </button>
+
+                <button
+                    type="button"
+                    wire:loading.attr="disabled"
+                    wire:target="fetchPricing"
+                    @if(empty($items)) disabled @endif
+                    @click="
+                        $wire.fetchPricing().then(() => {
+                            step = 3;
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        })
+                    "
+                    class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                >
+                    <svg wire:loading wire:target="fetchPricing" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    <span wire:loading.remove wire:target="fetchPricing">{{ __('app.create_quote_continue_pricing') }}</span>
+                    <span wire:loading wire:target="fetchPricing">{{ __('app.processing') }}</span>
+                    <svg wire:loading.remove wire:target="fetchPricing" class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
         {{-- Section 2b: Pricing Review (shown after "Get Pricing" is clicked)   --}}
         {{-- ─────────────────────────────────────────────────────────────────── --}}
         @if($showPricing && !empty($items))
-        <div class="rounded-2xl border border-indigo-200 bg-white shadow-sm">
+        <div
+            x-show="step === 3"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-x-3"
+            x-transition:enter-end="opacity-100 translate-x-0"
+            class="rounded-2xl border border-indigo-200 bg-white shadow-sm"
+        >
 
             <div class="flex items-center gap-3 border-b border-indigo-100 px-6 py-4">
                 <span class="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
@@ -779,13 +861,44 @@
                 </div>
 
             </div>
+
+            <div class="flex flex-col gap-3 border-t border-indigo-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                    type="button"
+                    @click="step = 2; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                    class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                    <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    {{ __('app.back') }}
+                </button>
+
+                <button
+                    type="button"
+                    @click="step = 4; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                    class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                >
+                    <span>{{ __('app.create_quote_continue_submit') }}</span>
+                    <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
         </div>
         @endif
 
         {{-- ─────────────────────────────────────────────────────────────────── --}}
         {{-- Section 3: Review & Submit                                          --}}
         {{-- ─────────────────────────────────────────────────────────────────── --}}
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div
+            x-show="step === 4"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-x-3"
+            x-transition:enter-end="opacity-100 translate-x-0"
+            class="rounded-2xl border border-slate-200 bg-white shadow-sm"
+        >
 
             <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
                 <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
@@ -834,6 +947,17 @@
 
                 {{-- Action buttons --}}
                 <div class="flex items-center gap-3">
+                    <button
+                        type="button"
+                        @click="step = 3; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                        class="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                    >
+                        <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        {{ __('app.back') }}
+                    </button>
+
                     <button
                         type="button"
                         wire:click="saveDraft"
