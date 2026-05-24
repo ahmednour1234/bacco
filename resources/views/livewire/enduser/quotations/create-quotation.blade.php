@@ -133,6 +133,65 @@
     </div>
 
     <div class="space-y-6">
+        @php
+            $createStepCurrent = 1;
+
+            if (trim($projectName) !== '' && trim($projectStatus) !== '') {
+                $createStepCurrent = 2;
+            }
+
+            if (! empty($items)) {
+                $createStepCurrent = 3;
+            }
+
+            if ($showPricing && ! empty($items)) {
+                $createStepCurrent = 4;
+            }
+
+            $createSteps = [
+                __('app.create_quote_step_info'),
+                __('app.create_quote_step_boq'),
+                __('app.create_quote_step_pricing'),
+                __('app.create_quote_step_submit'),
+            ];
+        @endphp
+
+        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+            <div class="relative flex items-start justify-between gap-3 py-2">
+                <div class="absolute top-6 start-0 end-0 mx-12 hidden h-0.5 bg-slate-200 sm:block"></div>
+                <div
+                    class="absolute top-6 start-12 hidden h-0.5 bg-emerald-400 transition-all duration-500 sm:block"
+                    style="width: calc({{ ($createStepCurrent - 1) / 3 }} * (100% - 6rem))"
+                ></div>
+
+                @foreach($createSteps as $index => $label)
+                    @php
+                        $stepNumber = $index + 1;
+                        $isCompleted = $createStepCurrent > $stepNumber;
+                        $isCurrent = $createStepCurrent === $stepNumber;
+                    @endphp
+                    <div class="relative z-10 flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+                        <div
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-all duration-300
+                                @if($isCompleted) border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-200
+                                @elseif($isCurrent) border-emerald-500 bg-white text-emerald-600 ring-4 ring-emerald-50
+                                @else border-slate-200 bg-white text-slate-400 @endif"
+                        >
+                            @if($isCompleted)
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            @else
+                                {{ $stepNumber }}
+                            @endif
+                        </div>
+                        <span class="text-[11px] font-semibold leading-snug transition-colors duration-300 {{ $createStepCurrent >= $stepNumber ? 'text-emerald-600' : 'text-slate-400' }}">
+                            {{ $label }}
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
 
         {{-- ─────────────────────────────────────────────────────────────────── --}}
         {{-- Section 1: Quotation Information                                    --}}

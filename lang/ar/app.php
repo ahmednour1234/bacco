@@ -339,6 +339,10 @@ return [
     'restore'                  => 'استعادة',
     'delete_this_item'         => 'حذف هذا العنصر؟',
     'section_review_submit'    => 'القسم 3: المراجعة والتقديم',
+    'create_quote_step_info'   => 'معلومات العرض',
+    'create_quote_step_boq'    => 'جدول الكميات',
+    'create_quote_step_pricing'=> 'مراجعة التسعير',
+    'create_quote_step_submit' => 'التقديم',
     'total_items'              => 'إجمالي العناصر',
     'boq_attachment'           => 'مرفق جدول الكميات',
 
