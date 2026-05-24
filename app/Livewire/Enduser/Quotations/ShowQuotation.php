@@ -465,7 +465,7 @@ class ShowQuotation extends Component
     private function validateAddress(): bool
     {
         if ($this->addressType === 'national') {
-            if (! $this->nationalBuildingNo || ! $this->nationalStreet || ! $this->nationalDistrict || ! $this->nationalCity || ! $this->nationalPostalCode) {
+            if (! $this->nationalBuildingNo || ! $this->nationalStreet || ! $this->nationalDistrict || ! $this->nationalCity) {
                 $this->dispatch('toast', message: __('app.address_fields_required'), type: 'error');
                 return false;
             }
