@@ -108,6 +108,7 @@ class CreateQuotation extends Component
                 'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
                 'price_source'         => $item->price_source,
                 'price_status'         => $item->price_status ?? 'pending',
+                'is_selected'          => (bool) $item->is_selected,
             ])
             ->toArray();
     }
@@ -205,6 +206,7 @@ class CreateQuotation extends Component
                         'unit_price'           => null,
                         'price_source'         => null,
                         'price_status'         => 'pending',
+                        'is_selected'          => false,
                     ], $aiItem);
                 }
 
@@ -296,12 +298,13 @@ class CreateQuotation extends Component
             'unit_price'           => null,
             'price_source'         => null,
             'price_status'         => 'pending',
+            'is_selected'          => true,
         ];
     }
 
     public function updateItem(int $index, string $field, mixed $value): void
     {
-        $allowed = ['description', 'quantity', 'unit', 'category', 'brand', 'engineering_required'];
+        $allowed = ['description', 'quantity', 'unit', 'category', 'brand', 'engineering_required', 'is_selected'];
 
         if (! array_key_exists($index, $this->items) || ! in_array($field, $allowed, true)) {
             return;
@@ -315,6 +318,10 @@ class CreateQuotation extends Component
             $value = (bool) $value;
         }
 
+        if ($field === 'is_selected') {
+            $value = (bool) $value;
+        }
+
         $this->items[$index][$field] = $value;
     }
 
@@ -325,10 +332,14 @@ class CreateQuotation extends Component
         }
 
         $this->items[$index]['status'] = QuotationItemStatusEnum::Sourcing->value;
+        $this->items[$index]['is_selected'] = true;
 
         if (! empty($this->items[$index]['id'])) {
             QuotationItem::where('id', $this->items[$index]['id'])
-                ->update(['status' => QuotationItemStatusEnum::Sourcing]);
+                ->update([
+                    'status' => QuotationItemStatusEnum::Sourcing,
+                    'is_selected' => true,
+                ]);
         }
     }
 
@@ -339,10 +350,76 @@ class CreateQuotation extends Component
         }
 
         $this->items[$index]['status'] = QuotationItemStatusEnum::Rejected->value;
+        $this->items[$index]['is_selected'] = false;
 
         if (! empty($this->items[$index]['id'])) {
             QuotationItem::where('id', $this->items[$index]['id'])
-                ->update(['status' => QuotationItemStatusEnum::Rejected]);
+                ->update([
+                    'status' => QuotationItemStatusEnum::Rejected,
+                    'is_selected' => false,
+                ]);
+        }
+    }
+
+    public function approveAllItems(): void
+    {
+        $ids = [];
+
+        foreach ($this->items as $index => $item) {
+            $this->items[$index]['status'] = QuotationItemStatusEnum::Sourcing->value;
+            $this->items[$index]['is_selected'] = true;
+
+            if (! empty($item['id'])) {
+                $ids[] = (int) $item['id'];
+            }
+        }
+
+        if (! empty($ids)) {
+            QuotationItem::whereIn('id', $ids)->update([
+                'status' => QuotationItemStatusEnum::Sourcing,
+                'is_selected' => true,
+            ]);
+        }
+
+        $this->dispatch('toast', message: __('app.all_items_approved'), type: 'success');
+    }
+
+    public function rejectAllItems(): void
+    {
+        $ids = [];
+
+        foreach ($this->items as $index => $item) {
+            $this->items[$index]['status'] = QuotationItemStatusEnum::Rejected->value;
+            $this->items[$index]['is_selected'] = false;
+
+            if (! empty($item['id'])) {
+                $ids[] = (int) $item['id'];
+            }
+        }
+
+        if (! empty($ids)) {
+            QuotationItem::whereIn('id', $ids)->update([
+                'status' => QuotationItemStatusEnum::Rejected,
+                'is_selected' => false,
+            ]);
+        }
+
+        $this->dispatch('toast', message: __('app.all_items_rejected'), type: 'warning');
+    }
+
+    public function selectAllPricingItems(): void
+    {
+        foreach ($this->items as $index => $item) {
+            if (($item['status'] ?? '') !== QuotationItemStatusEnum::Rejected->value) {
+                $this->items[$index]['is_selected'] = true;
+            }
+        }
+    }
+
+    public function clearPricingSelection(): void
+    {
+        foreach ($this->items as $index => $_) {
+            $this->items[$index]['is_selected'] = false;
         }
     }
 
@@ -403,6 +480,15 @@ class CreateQuotation extends Component
 
         if (empty($this->items)) {
             $this->dispatch('toast', message: 'Please add at least one item before submitting.', type: 'error');
+
+            return;
+        }
+
+        $selectedItems = collect($this->items)
+            ->filter(fn($i) => ($i['status'] ?? '') !== QuotationItemStatusEnum::Rejected->value && ! empty($i['is_selected']));
+
+        if ($selectedItems->isEmpty()) {
+            $this->dispatch('toast', message: __('app.select_item_pricing_required'), type: 'error');
 
             return;
         }
@@ -502,6 +588,7 @@ class CreateQuotation extends Component
                 'unit_price'           => is_numeric($row['unit_price'] ?? null) ? (float) $row['unit_price'] : null,
                 'price_source'         => $row['price_source'] ?? null,
                 'price_status'         => $row['price_status'] ?? 'pending',
+                'is_selected'          => (bool) ($row['is_selected'] ?? false),
             ];
 
             if (! empty($row['id'])) {

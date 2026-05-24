@@ -39,6 +39,8 @@ class FetchQuotationPricesJob implements ShouldQueue
         }
 
         $items = QuotationItem::where('quotation_request_id', $this->quotationId)
+            ->where('is_selected', true)
+            ->where('status', '!=', 'rejected')
             ->get()
             ->map(fn(QuotationItem $item) => [
                 'id'          => $item->id,

@@ -76,7 +76,9 @@ class ShowQuotation extends Component
         $this->isExpired = $this->quotation->isExpired();
 
         // Auto-trigger pricing if any items still lack a unit price (and not expired)
-        $needsPricing = ! $this->isExpired && collect($this->items)->contains(fn($i) => empty($i['unit_price']));
+        $needsPricing = ! $this->isExpired && collect($this->items)->contains(
+            fn($i) => ! empty($i['selected']) && ($i['status'] ?? '') !== 'rejected' && empty($i['unit_price'])
+        );
 
         if ($needsPricing) {
             $this->pricingQueued = true;
@@ -124,8 +126,10 @@ class ShowQuotation extends Component
             $this->pricingQueued       = false;
             $this->pricingJobStartedAt = null;
 
-            $gotPrices = collect($this->items)->filter(fn($i) => ! empty($i['unit_price']))->count();
-            $total     = count($this->items);
+            $pricedItems = collect($this->items)
+                ->filter(fn($i) => ! empty($i['selected']) && ($i['status'] ?? '') !== 'rejected');
+            $gotPrices = $pricedItems->filter(fn($i) => ! empty($i['unit_price']))->count();
+            $total     = $pricedItems->count();
             $missing   = $total - $gotPrices;
             $message   = $missing > 0
                 ? "تم تسعير {$gotPrices} عنصر. {$missing} عنصر لم يُسعَّر تلقائياً."
@@ -285,9 +289,11 @@ class ShowQuotation extends Component
             'price_source' => null,
         ]);
 
-        foreach ($this->items as $index => $_) {
-            $this->items[$index]['unit_price']   = null;
-            $this->items[$index]['price_source'] = null;
+        foreach ($this->items as $index => $item) {
+            if (! empty($item['selected']) && ($item['status'] ?? '') !== 'rejected') {
+                $this->items[$index]['unit_price']   = null;
+                $this->items[$index]['price_source'] = null;
+            }
         }
 
         $this->pricingQueued       = true;
@@ -300,6 +306,8 @@ class ShowQuotation extends Component
         set_time_limit(300); // Prevent 60-second fatal timeout during AI price fetching
         try {
             $dbItems = QuotationItem::where('quotation_request_id', $this->quotation->id)
+                ->where('is_selected', true)
+                ->where('status', '!=', 'rejected')
                 ->get()
                 ->map(fn(QuotationItem $item) => [
                     'id'           => $item->id,
@@ -371,7 +379,7 @@ class ShowQuotation extends Component
         }
 
         $subtotal = collect(array_values($this->items))
-            ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
+            ->filter(fn($i) => ! empty($i['selected']) && ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
             ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
 
         if ($subtotal <= 0) {
@@ -398,10 +406,13 @@ class ShowQuotation extends Component
         }
 
         try {
-            $selectedItems = array_values($this->items);
+            $selectedItems = collect($this->items)
+                ->filter(fn($i) => ! empty($i['selected']) && ($i['status'] ?? '') !== 'rejected')
+                ->values()
+                ->all();
 
             $subtotal = collect($selectedItems)
-                ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
+                ->filter(fn($i) => is_numeric($i['unit_price'] ?? null))
                 ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
 
             if ($subtotal <= 0) {
@@ -513,7 +524,7 @@ class ShowQuotation extends Component
                 'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
                 'price_source'         => $item->price_source,
                 'price_status'         => $item->price_status ?? 'pending',
-                'selected'             => true,
+                'selected'             => (bool) $item->is_selected,
                 'product_name'         => $item->product?->name ?? null,
             ])
             ->toArray();

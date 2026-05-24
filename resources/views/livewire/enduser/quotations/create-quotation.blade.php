@@ -411,8 +411,42 @@
                         <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
                             {{ __('app.subsection_add_manually') }}
                         </p>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
                             @if(!empty($items))
+                                <button
+                                    type="button"
+                                    wire:click="approveAllItems"
+                                    class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    {{ __('app.approve_all') }}
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="rejectAllItems"
+                                    class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                    {{ __('app.reject_all') }}
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="selectAllPricingItems"
+                                    class="inline-flex items-center gap-1.5 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                                >
+                                    {{ __('app.select_all_for_pricing') }}
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="clearPricingSelection"
+                                    class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                                >
+                                    {{ __('app.clear_selection') }}
+                                </button>
                                 <button
                                     type="button"
                                     wire:click="clearAllItems"
@@ -448,6 +482,7 @@
                             <table class="w-full text-sm">
                                 <thead>
                                     <tr class="border-b border-slate-100 bg-slate-50">
+                                        <th class="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-emerald-600 w-20">{{ __('app.for_pricing') }}</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[200px]">{{ __('app.description') }}</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.unit') }}</th>
@@ -462,6 +497,16 @@
                                     @foreach($items as $index => $item)
                                         <tr class="group transition-colors hover:bg-slate-50/60
                                             @if(($item['status'] ?? '') === 'rejected') opacity-60 @endif">
+
+                                            <td class="px-3 py-2.5 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    @checked(!empty($item['is_selected']))
+                                                    wire:change="updateItem({{ $index }}, 'is_selected', $event.target.checked)"
+                                                    class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 disabled:opacity-40"
+                                                    @if(($item['status'] ?? '') === 'rejected') disabled @endif
+                                                >
+                                            </td>
 
                                             {{-- Description --}}
                                             <td class="px-4 py-2.5">

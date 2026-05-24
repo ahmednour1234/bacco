@@ -320,11 +320,11 @@
         @php
             $taxRate  = 0.15;
             $allItems = collect($items);
-            $subtotal = $allItems->filter(fn($i) => ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
+            $subtotal = $allItems->filter(fn($i) => !empty($i['selected']) && ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
                                  ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
             $tax      = $subtotal * $taxRate;
             $total    = $subtotal + $tax;
-            $itemCount = $allItems->count();
+            $itemCount = $allItems->filter(fn($i) => !empty($i['selected']) && ($i['status'] ?? '') !== 'rejected')->count();
         @endphp
 
         <div class="mt-6 flex justify-end">
