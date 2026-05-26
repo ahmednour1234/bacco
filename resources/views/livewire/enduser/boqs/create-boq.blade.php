@@ -427,14 +427,14 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
             <div>
-                <h3 class="text-base font-bold text-blue-800">{{ app()->getLocale() === 'ar' ? 'جاري جلب الأسعار...' : 'Fetching prices...' }}</h3>
+                <h3 class="text-base font-bold text-blue-800">{{ app()->getLocale() === 'ar' ? 'جاري إنشاء عرض السعر...' : 'Creating quotation...' }}</h3>
                 <p class="mt-0.5 text-sm text-blue-600">{{ app()->getLocale() === 'ar' ? 'هذا قد يستغرق بضع دقائق. يمكنك الانتظار وستُحدَّث الصفحة تلقائياً.' : 'This may take a few minutes. The page will update automatically.' }}</p>
             </div>
         </div>
         @else
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h3 class="text-base font-bold text-emerald-800">{{ app()->getLocale() === 'ar' ? '✓ تم جلب الأسعار وإصدار عرض السعر' : '✓ Prices Fetched — Quotation Issued' }}</h3>
+                <h3 class="text-base font-bold text-emerald-800">{{ app()->getLocale() === 'ar' ? '✓ تم إنشاء عرض السعر' : '✓ Quotation Created' }}</h3>
                 <p class="mt-1 text-sm text-emerald-600">
                     {{ $pricedCount }} {{ app()->getLocale() === 'ar' ? 'عنصر بسعر' : 'priced' }} · {{ $unpricedCount }} {{ app()->getLocale() === 'ar' ? 'بدون سعر' : 'without price' }}
                 </p>
@@ -495,7 +495,7 @@
                 class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">
                 @if($pricesFetching)
                     <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    {{ app()->getLocale() === 'ar' ? 'جاري جلب الأسعار...' : 'Fetching prices...' }}
+                    {{ app()->getLocale() === 'ar' ? 'جاري إنشاء عرض السعر...' : 'Creating quotation...' }}
                 @else
                     {{ app()->getLocale() === 'ar' ? 'التالي: العنوان والدفع' : 'Next: Address & Payment' }}
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
