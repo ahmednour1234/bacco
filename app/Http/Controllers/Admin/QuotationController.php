@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\QuotationRequest;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Mpdf\Mpdf;
 
 class QuotationController extends Controller
 {
@@ -24,9 +24,11 @@ class QuotationController extends Controller
             ->where('uuid', $uuid)
             ->firstOrFail();
 
-        $pdf = Pdf::loadView('enduser.quotations.pdf', compact('quotation'))
-            ->setPaper('a4', 'portrait');
-
-        return $pdf->download('quotation-' . $quotation->quotation_no . '.pdf');
+        $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4', 'default_font' => 'dejavusans']);
+        $mpdf->WriteHTML(view('enduser.quotations.pdf', compact('quotation'))->render());
+        $filename = 'quotation-' . $quotation->quotation_no . '.pdf';
+        return response($mpdf->Output($filename, 'S'), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 }

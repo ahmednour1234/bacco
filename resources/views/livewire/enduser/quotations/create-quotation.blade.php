@@ -188,17 +188,18 @@
             $createSteps = [
                 __('app.create_quote_step_info'),
                 __('app.create_quote_step_boq'),
+                __('app.create_quote_step_review'),
                 __('app.create_quote_step_pricing'),
                 __('app.create_quote_step_submit'),
             ];
         @endphp
 
-        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+        <div class="px-6 py-5">
             <div class="relative flex items-start justify-between gap-3 py-2">
                 <div class="absolute top-6 start-0 end-0 mx-12 hidden h-0.5 bg-slate-200 sm:block"></div>
                 <div
                     class="absolute top-6 start-12 hidden h-0.5 bg-emerald-400 transition-all duration-500 sm:block"
-                    :style="'width: calc(' + ((step - 1) / 3) + ' * (100% - 6rem))'"
+                    :style="'width: calc(' + ((step - 1) / 4) + ' * (100% - 6rem))'"
                 ></div>
 
                 @foreach($createSteps as $index => $label)
@@ -746,7 +747,7 @@
                                 clearInterval(iv);
                             }
                         }, 250);
-                        $wire.submit();
+                        $wire.submit().then(() => { submitting = false; progressPct = 0; clearInterval(iv); }).catch(() => { submitting = false; progressPct = 0; clearInterval(iv); });
                     "
                     class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
                 >
@@ -1072,7 +1073,7 @@
                                     clearInterval(iv);
                                 }
                             }, 250);
-                            $wire.submit();
+                            $wire.submit().then(() => { submitting = false; progressPct = 0; clearInterval(iv); }).catch(() => { submitting = false; progressPct = 0; clearInterval(iv); });
                         "
                         @if($processing) disabled @endif
                         class="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"

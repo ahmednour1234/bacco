@@ -1,7 +1,7 @@
 <div
     wire:init="fetchPricesOnInit"
     x-data="{
-        step: 1,
+        step: {{ $initialStep }},
         toast: null,
         addressError: false,
         showToast(message, type = 'success') {
@@ -25,7 +25,7 @@
             }
             if (!valid) { this.addressError = true; return; }
             this.addressError = false;
-            this.step = 4;
+            this.step = 5;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }"
@@ -120,9 +120,9 @@
             <div class="absolute top-1/2 start-0 end-0 h-0.5 bg-slate-200 mx-12 -translate-y-1/2 hidden sm:block"></div>
             {{-- Animated fill --}}
             <div class="absolute top-1/2 start-12 h-0.5 bg-emerald-400 transition-all duration-500 -translate-y-1/2 hidden sm:block"
-                 :style="'width: calc(' + ((step-1)/3) + ' * (100% - 6rem))'"></div>
+                 :style="'width: calc(' + ((step-1)/4) + ' * (100% - 6rem))'"></div>
 
-            <template x-for="s in [1,2,3,4]" :key="s">
+            <template x-for="s in [1,2,3,4,5]" :key="s">
                 <div class="relative z-10 flex flex-col items-center gap-2">
                     <div class="flex h-9 w-9 items-center justify-center rounded-full border-2 text-xs font-bold transition-all duration-300 bg-white"
                          :class="{
@@ -137,7 +137,7 @@
                     </div>
                     <span class="text-[11px] font-semibold transition-colors duration-300 text-center"
                           :class="step >= s ? 'text-emerald-600' : 'text-slate-400'"
-                          x-text="s === 1 ? '{{ __('app.checkout_step_items') }}' : (s === 2 ? '{{ __('app.checkout_step_pricing') }}' : (s === 3 ? '{{ __('app.checkout_step_address') }}' : '{{ __('app.checkout_step_confirm') }}'  ))"
+                          x-text="s === 1 ? '{{ __('app.checkout_step_items') }}' : (s === 2 ? '{{ __('app.checkout_step_pricing') }}' : (s === 3 ? '{{ __('app.checkout_step_review') }}' : (s === 4 ? '{{ __('app.checkout_step_address') }}' : '{{ __('app.checkout_step_confirm') }}')))"
                     ></span>
                 </div>
             </template>
@@ -382,12 +382,12 @@
                     {{-- Continue to Step 2 --}}
                     <button
                         type="button"
-                        @click="step = 2; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                        @click="step = 3; window.scrollTo({ top: 0, behavior: 'smooth' })"
                         @disabled($subtotal <= 0)
                         class="flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
                         style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);"
                     >
-                        <span>{{ __('app.checkout_step_pricing') }}</span>
+                        <span>{{ __('app.checkout_step_review') }}</span>
                         <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -405,15 +405,15 @@
     </div>{{-- end step 1 --}}
 
     {{-- ═══════════════════════════════════════════════════════════════════════
-         STEP 2 — إنشاء عرض السعر (Create Quotation)
+         STEP 3 — عرض السعر (Price Quote Review)
     ════════════════════════════════════════════════════════════════════════ --}}
-    <div x-show="step === 2"
+    <div x-show="step === 3"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 translate-y-4"
          x-transition:enter-end="opacity-100 translate-y-0"
          x-cloak>
 
-        <div class="mx-auto max-w-lg space-y-5">
+        <div class="space-y-5">
 
             {{-- Heading --}}
             <div class="mb-6 flex items-center gap-4">
@@ -425,7 +425,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900">{{ __('app.checkout_step_pricing') }}</h2>
+                    <h2 class="text-lg font-bold text-slate-900">{{ __('app.checkout_step_review') }}</h2>
                     <p class="text-sm text-slate-500">
                         {{ app()->getLocale() === 'ar' ? 'مراجعة الأسعار والإجمالي قبل المتابعة' : 'Review prices and totals before proceeding' }}
                     </p>
@@ -458,6 +458,86 @@
                 </p>
             </div>
             @endif
+
+            {{-- Items Price Table --}}
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-5 py-3.5">
+                    <h3 class="text-sm font-semibold text-slate-700">
+                        {{ app()->getLocale() === 'ar' ? 'تفاصيل الأصناف والأسعار' : 'Items & Prices' }}
+                    </h3>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
+                        {{ $allItems->count() }} {{ app()->getLocale() === 'ar' ? 'صنف' : 'items' }}
+                    </span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-100 text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                <th class="px-4 py-3 text-start w-8">#</th>
+                                <th class="px-4 py-3 text-start">{{ app()->getLocale() === 'ar' ? 'وصف الصنف' : 'Item Description' }}</th>
+                                <th class="px-4 py-3 text-center w-20">{{ app()->getLocale() === 'ar' ? 'الكمية' : 'Qty' }}</th>
+                                <th class="px-4 py-3 text-center w-20">{{ app()->getLocale() === 'ar' ? 'الوحدة' : 'Unit' }}</th>
+                                <th class="px-4 py-3 text-end w-32">{{ app()->getLocale() === 'ar' ? 'سعر الوحدة' : 'Unit Price' }}</th>
+                                <th class="px-4 py-3 text-end w-32">{{ app()->getLocale() === 'ar' ? 'الإجمالي' : 'Total' }}</th>
+                                <th class="px-4 py-3 text-center w-24">{{ app()->getLocale() === 'ar' ? 'الحالة' : 'Status' }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @foreach($allItems as $idx => $item)
+                            @php
+                                $hasPrice  = is_numeric($item['unit_price'] ?? null) && (float)($item['unit_price'] ?? 0) > 0;
+                                $lineTotal = $hasPrice ? (float)$item['unit_price'] * (float)($item['quantity'] ?? 0) : null;
+                                $statusVal = $item['status'] ?? 'pending';
+                                $statusClasses = match($statusVal) {
+                                    'quoted'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                    'rejected' => 'bg-red-50 text-red-600 border-red-200',
+                                    default    => 'bg-amber-50 text-amber-700 border-amber-200',
+                                };
+                                $statusLabel = match($statusVal) {
+                                    'quoted'   => app()->getLocale() === 'ar' ? 'مسعّر' : 'Quoted',
+                                    'rejected' => app()->getLocale() === 'ar' ? 'مرفوض' : 'Rejected',
+                                    default    => app()->getLocale() === 'ar' ? 'قيد التسعير' : 'Pending',
+                                };
+                                $rowClass = empty($item['selected']) ? 'opacity-40' : '';
+                            @endphp
+                            <tr class="hover:bg-slate-50/60 transition {{ $rowClass }}">
+                                <td class="px-4 py-3 text-xs text-slate-400 font-mono">{{ $idx + 1 }}</td>
+                                <td class="px-4 py-3">
+                                    <div class="font-medium text-slate-800 leading-snug max-w-xs">{{ $item['description'] ?: '—' }}</div>
+                                    @if(!empty($item['product_name']))
+                                        <div class="mt-0.5 text-xs text-slateald-500 text-slate-400">{{ $item['product_name'] }}</div>
+                                    @endif
+                                    @if(!empty($item['brand']))
+                                        <div class="mt-0.5 text-xs text-slate-400">{{ $item['brand'] }}</div>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-center font-mono text-slate-700">{{ number_format((float)($item['quantity'] ?? 0), 0) }}</td>
+                                <td class="px-4 py-3 text-center text-slate-500 text-xs">{{ $item['unit'] ?: '—' }}</td>
+                                <td class="px-4 py-3 text-end font-mono text-slate-800">
+                                    @if($hasPrice)
+                                        {{ number_format((float)$item['unit_price'], 2) }}
+                                    @else
+                                        <span class="text-xs text-amber-500">{{ app()->getLocale() === 'ar' ? 'غير مسعّر' : 'N/A' }}</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-end font-mono font-semibold text-slate-900">
+                                    @if($lineTotal !== null)
+                                        {{ number_format($lineTotal, 2) }}
+                                    @else
+                                        <span class="text-slate-300">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <span class="inline-block rounded-full border px-2 py-0.5 text-xs font-semibold {{ $statusClasses }}">
+                                        {{ $statusLabel }}
+                                    </span>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
             {{-- Financial Summary card --}}
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -515,8 +595,7 @@
                     {{ __('app.back') }}
                 </button>
                 <button type="button"
-                    @click="step = 3; window.scrollTo({ top: 0, behavior: 'smooth' })"
-                    @disabled($subtotal <= 0)
+                    @click="step = 4; window.scrollTo({ top: 0, behavior: 'smooth' })"
                     class="flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
                     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                     <span>{{ __('app.checkout_step_address') }}</span>
@@ -527,12 +606,12 @@
             </div>
 
         </div>
-    </div>{{-- end step 2 --}}
+    </div>{{-- end step 3 --}}
 
     {{-- ═══════════════════════════════════════════════════════════════════════
-         STEP 3 — Shipping Address
+         STEP 4 — Shipping Address
     ════════════════════════════════════════════════════════════════════════ --}}
-    <div x-show="step === 3"
+    <div x-show="step === 4"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 translate-y-4"
          x-transition:enter-end="opacity-100 translate-y-0"
@@ -736,7 +815,7 @@
             {{-- ── Navigation ───────────────────────────────────────────────── --}}
             <div class="mt-4 flex gap-3">
                 <button type="button"
-                    @click="step = 2; addressError = false; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                    @click="step = 3; addressError = false; window.scrollTo({ top: 0, behavior: 'smooth' })"
                     class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-800">
                     <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -754,12 +833,12 @@
             </div>
 
         </div>
-    </div>{{-- end step 3 --}}
+    </div>{{-- end step 4 --}}
 
     {{-- ═══════════════════════════════════════════════════════════════════════════
-         STEP 4 — Review & Place Order
+         STEP 5 — Review & Place Order
     ═══════════════════════════════════════════════════════════════════════════ --}}
-    <div x-show="step === 4"
+    <div x-show="step === 5"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-x-3"
          x-transition:enter-end="opacity-100 translate-x-0"
@@ -911,7 +990,7 @@
 
             {{-- Navigation --}}
             <div class="flex gap-3 pb-8">
-                <button type="button" @click="step = 3; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                <button type="button" @click="step = 4; window.scrollTo({ top: 0, behavior: 'smooth' })"
                     class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
                     {{ __('app.back') }}
                 </button>

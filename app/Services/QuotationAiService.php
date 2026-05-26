@@ -502,6 +502,9 @@ class QuotationAiService
                 'status'  => $response->status(),
                 'message' => $message,
             ]);
+            if ($response->status() === 403) {
+                return $this->failure('مفتاح Gemini API غير صالح أو محظور. يرجى تحديث GEMINI_API_KEY في إعدادات النظام.', false);
+            }
             return $this->failure("Gemini API returned HTTP {$response->status()}: {$message}", in_array($response->status(), [429, 500, 503], true));
         }
 

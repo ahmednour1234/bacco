@@ -505,6 +505,7 @@ class CreateQuotation extends Component
             actionUrl: route('enduser.quotations.show', $quotation->uuid),
         );
 
+        session()->flash('quotation_initial_step', 3);
         $this->redirect(route('enduser.quotations.show', $quotation->uuid));
     }
 

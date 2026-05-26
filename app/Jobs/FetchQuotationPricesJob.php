@@ -72,6 +72,7 @@ class FetchQuotationPricesJob implements ShouldQueue
         try {
             $priced    = $pricingService->fetchPrices($guardedItems);
             $gotPrices = 0;
+            $removedIds = [];
 
             foreach ($priced as $row) {
                 if (! empty($row['id']) && isset($row['unit_price']) && $row['unit_price'] > 0) {
@@ -81,14 +82,25 @@ class FetchQuotationPricesJob implements ShouldQueue
                         'price_status' => 'pending',
                     ]);
                     $gotPrices++;
+                } elseif (! empty($row['id'])) {
+                    // No price found — delete the item automatically
+                    QuotationItem::where('id', $row['id'])->delete();
+                    $removedIds[] = $row['id'];
                 }
             }
 
-            $total   = count($priced);
-            $missing = $total - $gotPrices;
+            // Also delete any guarded-out items (filtered before pricing)
+            $guardedIds = array_column($guardedItems, 'id');
+            $pricedIds  = array_column($priced, 'id');
+            $skippedIds = array_diff(array_column($items, 'id'), $guardedIds);
+            if (! empty($skippedIds)) {
+                QuotationItem::whereIn('id', $skippedIds)->delete();
+                $removedIds = array_merge($removedIds, array_values($skippedIds));
+            }
 
-            $body = $missing > 0
-                ? "تم تسعير {$gotPrices} عنصر. {$missing} عنصر لم يُسعَّر تلقائياً."
+            $removed = count($removedIds);
+            $body    = $removed > 0
+                ? "تم تسعير {$gotPrices} عنصر وحذف {$removed} عنصر لم يُسعَّر تلقائياً."
                 : "تم تسعير جميع {$gotPrices} عنصر بنجاح.";
 
             $notificationService->send(

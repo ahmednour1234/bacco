@@ -6,7 +6,7 @@
     <title>Quotation #{{ $quotation->quotation_no }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; color: #1e293b; background: #fff; }
+        body { font-family: dejavusans, sans-serif; font-size: 11px; color: #1e293b; background: #fff; }
 
         /* ── Header ── */
         .header { padding: 28px 36px 18px; border-bottom: 2px solid #059669; }
@@ -196,7 +196,7 @@
             <tr>
                 <td class="item-no">{{ $i + 1 }}</td>
                 <td>
-                    <div class="item-desc">{{ $item->description ?: '—' }}</div>
+                    <div class="item-desc" dir="rtl">{{ $item->description ?: '—' }}</div>
                     @if($item->brand)
                         <div class="item-sub">{{ $item->brand }}</div>
                     @endif

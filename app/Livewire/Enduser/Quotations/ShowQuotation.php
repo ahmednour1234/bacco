@@ -28,6 +28,8 @@ class ShowQuotation extends Component
 
     public bool $fetchingPrices = false;
 
+    public int $initialStep = 3;
+
     /** True while a background pricing job has been dispatched for this session. */
     public bool $pricingQueued = false;
 
@@ -74,6 +76,9 @@ class ShowQuotation extends Component
         $this->loadItems();
 
         $this->isExpired = $this->quotation->isExpired();
+
+        // Restore the step the user should land on (flashed by create/submit flow)
+        $this->initialStep = (int) session('quotation_initial_step', 3);
 
         // Auto-trigger pricing if any items still lack a unit price (and not expired)
         $needsPricing = ! $this->isExpired && collect($this->items)->contains(
