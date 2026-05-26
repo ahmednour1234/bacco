@@ -43,7 +43,7 @@
             @php
                 $steps = [
                     1 => app()->getLocale()==='ar' ? 'مراجعة العناصر'  : 'Review Items',
-                    2 => app()->getLocale()==='ar' ? 'جلب الأسعار'     : 'Fetch Prices',
+                    2 => app()->getLocale()==='ar' ? 'إنشاء عرض السعر' : 'Create Quotation',
                     3 => app()->getLocale()==='ar' ? 'العنوان والدفع'  : 'Address & Payment',
                 ];
             @endphp
@@ -301,7 +301,7 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                         </svg>
-                        {{ app()->getLocale()==='ar' ? 'التالي: جلب الأسعار' : 'Next: Fetch Prices' }} ({{ $selectedCount }} {{ __('app.items') }}) &rarr;
+                        {{ app()->getLocale()==='ar' ? 'التالي: إنشاء عرض السعر' : 'Next: Create Quotation' }} ({{ $selectedCount }} {{ __('app.items') }}) &rarr;
                     </button>
                 </div>
             </div>

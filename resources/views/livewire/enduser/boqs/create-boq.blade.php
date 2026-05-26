@@ -118,7 +118,7 @@
             $steps = [
                 1 => ['ar' => 'الاستخراج',    'en' => 'Extraction',    'icon' => 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'],
                 2 => ['ar' => 'التأكيد',       'en' => 'Confirm Items', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
-                3 => ['ar' => 'جلب الأسعار',  'en' => 'Fetch Prices',  'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                3 => ['ar' => 'إنشاء عرض السعر',  'en' => 'Create Quotation',  'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 4 => ['ar' => 'العنوان والدفع','en' => 'Address & Pay', 'icon' => 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z'],
             ];
             $isRtl = app()->getLocale() === 'ar';
@@ -403,7 +403,7 @@
                     <button type="button" wire:click="confirmItems" wire:loading.attr="disabled"
                         class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60">
                         <svg wire:loading wire:target="confirmItems" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                        <span wire:loading.remove wire:target="confirmItems">{{ app()->getLocale() === 'ar' ? 'التالي: جلب الأسعار' : 'Next: Fetch Prices' }}</span>
+                        <span wire:loading.remove wire:target="confirmItems">{{ app()->getLocale() === 'ar' ? 'التالي: إنشاء عرض السعر' : 'Next: Create Quotation' }}</span>
                         <span wire:loading wire:target="confirmItems">{{ app()->getLocale() === 'ar' ? 'جاري المعالجة...' : 'Processing...' }}</span>
                         <svg wire:loading.remove wire:target="confirmItems" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </button>
