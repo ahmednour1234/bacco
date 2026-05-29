@@ -86,7 +86,7 @@
 
                             {{-- Phone --}}
                             <td class="px-5 py-4 text-sm text-slate-700">
-                                {{ $user->phone ?: '—' }}
+                                {{ $user->clientProfile?->phone ?: ($user->phone ?: '—') }}
                             </td>
 
                             {{-- Type --}}

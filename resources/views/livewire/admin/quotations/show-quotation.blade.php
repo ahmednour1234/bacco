@@ -58,6 +58,13 @@
                         {{ $quotation->client?->clientProfile?->company_name ?? '—' }}
                     </dd>
                 </div>
+
+                <div>
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.phone') }}</dt>
+                    <dd class="mt-0.5 text-sm text-slate-700">
+                        {{ $quotation->client?->clientProfile?->phone ?? $quotation->client?->phone ?? '—' }}
+                    </dd>
+                </div>
             </dl>
         </div>
 

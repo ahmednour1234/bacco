@@ -50,6 +50,7 @@ class IndexTable extends Component
     public function render()
     {
         $query = User::query()
+            ->with('clientProfile')
             ->where('user_type', UserTypeEnum::Client->value)
             ->orderByDesc('created_at');
 
