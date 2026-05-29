@@ -368,7 +368,7 @@ class CreateBoq extends Component
                     'boq_id'               => $boq->id,
                     'description'          => (string) ($item['description'] ?? ''),
                     'quantity'             => is_numeric($item['quantity']) ? (float) $item['quantity'] : 1,
-                    'unit_id'              => $item['unit_id'] ?? null,
+                    'unit_id'              => $this->resolveUnitId($item['unit_id'] ?? null, $item['unit'] ?? null),
                     'category'             => (string) ($item['category'] ?? ''),
                     'brand'                => (string) ($item['brand'] ?? ''),
                     'status'               => $item['status'] ?? 'pending',
@@ -1131,5 +1131,22 @@ class CreateBoq extends Component
         } while (Order::where('order_no', $candidate)->exists());
 
         return $candidate;
+    }
+
+    private function resolveUnitId(?int $unitId, mixed $unitText): ?int
+    {
+        if ($unitId !== null) {
+            return $unitId;
+        }
+
+        $label = trim((string) ($unitText ?? ''));
+        if ($label === '') {
+            return null;
+        }
+
+        return Unit::firstOrCreate(
+            ['name' => $label],
+            ['symbol' => mb_strtolower(mb_substr($label, 0, 20))]
+        )->id;
     }
 }

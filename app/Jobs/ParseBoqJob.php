@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Boq;
 use App\Models\BoqItem;
+use App\Models\Unit;
 use App\Services\QuotationAiService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -79,7 +80,7 @@ class ParseBoqJob implements ShouldQueue
                             'boq_id'               => $this->boqId,
                             'description'          => (string) ($rejItem['description'] ?? ''),
                             'quantity'             => is_numeric($rejItem['quantity'] ?? null) ? (float) $rejItem['quantity'] : 1,
-                            'unit_id'              => $rejItem['unit_id'] ?? null,
+                            'unit_id'              => $this->resolveUnitId($rejItem['unit_id'] ?? null, $rejItem['unit'] ?? null),
                             'category'             => (string) ($rejItem['category'] ?? ''),
                             'brand'                => (string) ($rejItem['brand'] ?? ''),
                             'status'               => 'rejected',
@@ -126,7 +127,7 @@ class ParseBoqJob implements ShouldQueue
                     'boq_id'               => $this->boqId,
                     'description'          => (string) ($item['description'] ?? ''),
                     'quantity'             => is_numeric($item['quantity']) ? (float) $item['quantity'] : 1,
-                    'unit_id'              => $item['unit_id'] ?? null,
+                    'unit_id'              => $this->resolveUnitId($item['unit_id'] ?? null, $item['unit'] ?? null),
                     'category'             => (string) ($item['category'] ?? ''),
                     'brand'                => (string) ($item['brand'] ?? ''),
                     'status'               => $item['status'] ?? 'pending',
@@ -137,7 +138,7 @@ class ParseBoqJob implements ShouldQueue
                     'ai_extracted'         => true,
                     'is_selected'          => false,
                 ]);
-                $count++;
+                $count++
             }
 
             // Persist rejected items so users can see what was filtered and why.
@@ -148,7 +149,7 @@ class ParseBoqJob implements ShouldQueue
                     'boq_id'               => $this->boqId,
                     'description'          => (string) ($rejItem['description'] ?? ''),
                     'quantity'             => is_numeric($rejItem['quantity'] ?? null) ? (float) $rejItem['quantity'] : 1,
-                    'unit_id'              => $rejItem['unit_id'] ?? null,
+                    'unit_id'              => $this->resolveUnitId($rejItem['unit_id'] ?? null, $rejItem['unit'] ?? null),
                     'category'             => (string) ($rejItem['category'] ?? ''),
                     'brand'                => (string) ($rejItem['brand'] ?? ''),
                     'status'               => 'rejected',
@@ -179,5 +180,25 @@ class ParseBoqJob implements ShouldQueue
                 'trace'   => $e->getTraceAsString(),
             ]);
         }
+    }
+
+    /**
+     * Resolve a unit text label to a unit_id, creating the Unit record if needed.
+     */
+    private function resolveUnitId(?int $unitId, mixed $unitText): ?int
+    {
+        if ($unitId !== null) {
+            return $unitId;
+        }
+
+        $label = trim((string) ($unitText ?? ''));
+        if ($label === '') {
+            return null;
+        }
+
+        return Unit::firstOrCreate(
+            ['name' => $label],
+            ['symbol' => mb_strtolower(mb_substr($label, 0, 20))]
+        )->id;
     }
 }
