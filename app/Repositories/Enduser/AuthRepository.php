@@ -22,6 +22,7 @@ class AuthRepository
                 'name'      => $data['name'],
                 'email'     => $data['email'],
                 'password'  => $data['password'],
+                'phone'     => $data['phone'],
                 'user_type' => UserTypeEnum::Client,
                 'active'    => true,
             ]);
