@@ -13,8 +13,8 @@
 
 @section('content')
 
-{{-- BOQ Promo Banner (full width, horizontal) --}}
-<a href="{{ route('enduser.boqs.create') }}"
+{{-- Quotation Promo Banner (full width, horizontal) --}}
+<a href="{{ route('enduser.quotations.create') }}"
    class="group relative flex items-center mb-6 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
    style="background: linear-gradient(130deg, #f0f4ff 0%, #e8f0fe 35%, #eef2ff 65%, #f3f0ff 100%); border: 1px solid #e0e7ff; min-height: 130px;">
 
@@ -60,7 +60,7 @@
             <rect x="104" y="6" width="32" height="18" rx="5" fill="#a5b4fc"/>
             <rect x="109" y="3" width="22" height="13" rx="4" fill="#818cf8"/>
             {{-- BOQ label --}}
-            <text x="120" y="41" text-anchor="middle" font-size="13" font-weight="900" fill="#312e81" font-family="Arial,sans-serif" letter-spacing="1">BOQ</text>
+            <text x="120" y="41" text-anchor="middle" font-size="11" font-weight="900" fill="#312e81" font-family="Arial,sans-serif" letter-spacing="1">QR</text>
             {{-- Divider --}}
             <rect x="74" y="49" width="92" height="1.5" rx="1" fill="#e0e7ff"/>
             {{-- Lines --}}
