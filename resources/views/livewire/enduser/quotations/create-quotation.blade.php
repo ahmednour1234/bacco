@@ -411,7 +411,7 @@
                             id="boq-upload"
                             type="file"
                             @change="startUpload($event)"
-                            accept=".pdf,.xlsx,.xls,.csv"
+                            accept=".pdf,.xlsx,.xlsm,.xlsb,.xls,.csv,.jpg,.jpeg,.png,.gif,.bmp,.webp,.tiff,.tif,.heic,.heif"
                             class="hidden"
                         >
                     </label>
@@ -872,7 +872,7 @@
                                     <td class="px-4 py-3 text-center">
                                         @if($priceSource === 'products')
                                             <span title="{{ __('app.price_from_products') }}" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold">P</span>
-                                        @elseif($priceSource === 'gemini')
+                                        @elseif($priceSource === 'deepseek')
                                             <span title="{{ __('app.price_estimated_ai') }}" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-600 text-xs font-bold">AI</span>
                                         @else
                                             <span class="text-slate-300">—</span>

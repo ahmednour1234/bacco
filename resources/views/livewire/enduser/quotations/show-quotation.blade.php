@@ -59,7 +59,7 @@
 
     {{-- Background pricing poller: fires every 4s while job is running --}}
     @if($pricingQueued)
-        <div wire:poll.4s="checkPricingStatus" class="sr-only" aria-hidden="true"></div>
+        <div wire:poll.2s="checkPricingStatus" class="sr-only" aria-hidden="true"></div>
     @endif
 
     @if($quotation)
@@ -479,7 +479,6 @@
                                 <th class="px-4 py-3 text-center w-20">{{ app()->getLocale() === 'ar' ? 'الوحدة' : 'Unit' }}</th>
                                 <th class="px-4 py-3 text-end w-32">{{ app()->getLocale() === 'ar' ? 'سعر الوحدة' : 'Unit Price' }}</th>
                                 <th class="px-4 py-3 text-end w-32">{{ app()->getLocale() === 'ar' ? 'الإجمالي' : 'Total' }}</th>
-                                <th class="px-4 py-3 text-center w-24">{{ app()->getLocale() === 'ar' ? 'الحالة' : 'Status' }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
@@ -487,17 +486,6 @@
                             @php
                                 $hasPrice  = is_numeric($item['unit_price'] ?? null) && (float)($item['unit_price'] ?? 0) > 0;
                                 $lineTotal = $hasPrice ? (float)$item['unit_price'] * (float)($item['quantity'] ?? 0) : null;
-                                $statusVal = $item['status'] ?? 'pending';
-                                $statusClasses = match($statusVal) {
-                                    'quoted'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                    'rejected' => 'bg-red-50 text-red-600 border-red-200',
-                                    default    => 'bg-amber-50 text-amber-700 border-amber-200',
-                                };
-                                $statusLabel = match($statusVal) {
-                                    'quoted'   => app()->getLocale() === 'ar' ? 'مسعّر' : 'Quoted',
-                                    'rejected' => app()->getLocale() === 'ar' ? 'مرفوض' : 'Rejected',
-                                    default    => app()->getLocale() === 'ar' ? 'قيد التسعير' : 'Pending',
-                                };
                                 $rowClass = empty($item['selected']) ? 'opacity-40' : '';
                             @endphp
                             <tr class="hover:bg-slate-50/60 transition {{ $rowClass }}">
@@ -526,11 +514,6 @@
                                     @else
                                         <span class="text-slate-300">—</span>
                                     @endif
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    <span class="inline-block rounded-full border px-2 py-0.5 text-xs font-semibold {{ $statusClasses }}">
-                                        {{ $statusLabel }}
-                                    </span>
                                 </td>
                             </tr>
                             @endforeach

@@ -25,7 +25,7 @@ class QuotationAiService
         $this->baseUrl = rtrim((string) config('services.ai_quotation.base_url', ''), '/');
         $this->parseEndpoint = ltrim((string) config('services.ai_quotation.parse_endpoint', 'parse'), '/');
         $this->apiKey = (string) config('services.ai_quotation.api_key', '');
-        $this->timeout = (int) config('services.ai_quotation.timeout', 90);
+        $this->timeout = (int) config('services.ai_quotation.timeout', 300);
         $this->testMode = (bool) config('services.ai_quotation.test_mode', false);
     }
 
@@ -55,21 +55,21 @@ class QuotationAiService
         }
 
         if (in_array($ext, ['xlsx', 'xlsm', 'xlsb', 'xls', 'csv'], true)) {
-            // Read Excel locally first. Fallback to Gemini if local parse failed or found 0 items.
+            // Read Excel locally first. Fallback to DeepSeek if local parse failed or found 0 items.
             $result = $this->parseSpreadsheetDirect($absPath);
 
             if (! $result['success'] || empty($result['items'])) {
-                $geminiResult = $this->parseBoqWithGemini($file, $context);
-                // Only use Gemini result if it actually found items
-                if ($geminiResult['success'] && ! empty($geminiResult['items'])) {
-                    $result = $geminiResult;
+                $deepSeekResult = $this->parseBoqWithDeepSeek($file, $context);
+                // Only use DeepSeek result if it actually found items
+                if ($deepSeekResult['success'] && ! empty($deepSeekResult['items'])) {
+                    $result = $deepSeekResult;
                 } elseif (! $result['success']) {
-                    $result = $geminiResult;
+                    $result = $deepSeekResult;
                 }
-                // else: keep local result (even with 0 items) if Gemini also failed
+                // else: keep local result (even with 0 items) if DeepSeek also failed
             }
         } elseif (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif'], true)) {
-            $result = $this->parseBoqWithGemini($file, $context);
+            $result = $this->parseBoqWithDeepSeek($file, $context);
         } else {
             return $this->failure('Unsupported file type. Please upload Excel, CSV, PDF, or image file.');
         }
@@ -80,7 +80,8 @@ class QuotationAiService
             $result['rejected'] = array_merge($result['rejected'] ?? [], $cleaning['rejected'] ?? []);
         }
 
-        if ($result['success']) {
+        // Only cache when we actually extracted items; empty results should be re-tried.
+        if ($result['success'] && ! empty($result['items'])) {
             Cache::put($cacheKey, $result, now()->addDays(30));
         }
 
@@ -248,7 +249,7 @@ class QuotationAiService
             $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
 
             // BOQ data is normally in first 8-20 columns.
-            // Files with heavy formatting/images can report 300+ columns — limit to 30.
+            // Files with heavy formatting/images can report 300+ columns â€” limit to 30.
             $maxColumnIndex = min($highestColumnIndex, 30);
 
             $grid = [];
@@ -288,12 +289,12 @@ class QuotationAiService
     private function detectHeader(array $grid): ?array
     {
         $keywords = [
-            'item_code'   => ['رقم البند', 'item no', 'item number', 'ref.', 'ref', 'item', 'no.', 'no', '#', 'كود'],
-            'description' => ['وصف البند', 'scope of works', 'scope of work', 'scope', 'item description', 'description of works', 'description', 'بالعربية', 'الوصف', 'البند', 'بيان'],
-            'unit'        => ['الوحدة', 'unit', 'uom', 'u/m'],
-            'quantity'    => ['الكمية', 'qty', 'quantity', 'q.ty'],
-            'unit_price'  => ['سعر الوحدة', 'u/price', 'unit price', 'unit rate', 'rate', 'price'],
-            'total_price' => ['السعر الإجمالي', 'total amount', 'total price', 'amount', 'الإجمالي'],
+            'item_code'   => ['Ø±Ù‚Ù… Ø§Ù„Ø¨Ù†Ø¯', 'item no', 'item number', 'ref.', 'ref', 'item', 'no.', 'no', '#', 'ÙƒÙˆØ¯'],
+            'description' => ['ÙˆØµÙ Ø§Ù„Ø¨Ù†Ø¯', 'scope of works', 'scope of work', 'scope', 'item description', 'description of works', 'description', 'Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©', 'Ø§Ù„ÙˆØµÙ', 'Ø§Ù„Ø¨Ù†Ø¯', 'Ø¨ÙŠØ§Ù†'],
+            'unit'        => ['Ø§Ù„ÙˆØ­Ø¯Ø©', 'unit', 'uom', 'u/m'],
+            'quantity'    => ['Ø§Ù„ÙƒÙ…ÙŠØ©', 'qty', 'quantity', 'q.ty'],
+            'unit_price'  => ['Ø³Ø¹Ø± Ø§Ù„ÙˆØ­Ø¯Ø©', 'u/price', 'unit price', 'unit rate', 'rate', 'price'],
+            'total_price' => ['Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ', 'total amount', 'total price', 'amount', 'Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ'],
         ];
 
         $best      = null;
@@ -341,7 +342,7 @@ class QuotationAiService
 
     private function number(string $value): ?float
     {
-        $value = trim(str_replace([',', 'SAR', 'ر.س'], '', $value));
+        $value = trim(str_replace([',', 'SAR', 'Ø±.Ø³'], '', $value));
         if ($value === '' || ! is_numeric($value)) {
             return null;
         }
@@ -365,7 +366,7 @@ class QuotationAiService
         }
 
         // Section totals / summaries
-        if (preg_match('/(اجمالي|إجمالي|المجموع|grand\s*total|sub\s*total|total\s*amount|total\s*price)/iu', $d)) {
+        if (preg_match('/(Ø§Ø¬Ù…Ø§Ù„ÙŠ|Ø¥Ø¬Ù…Ø§Ù„ÙŠ|Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹|grand\s*total|sub\s*total|total\s*amount|total\s*price)/iu', $d)) {
             return true;
         }
 
@@ -420,97 +421,196 @@ class QuotationAiService
         ];
     }
 
-    private function parseBoqWithGemini(UploadedFile|string $file, array $context = []): array
+    private function parseBoqWithDeepSeek(UploadedFile|string $file, array $context = []): array
     {
-        $geminiKey = (string) config('services.gemini.key', '');
-        if ($geminiKey === '') {
-            return $this->failure('AI service is not configured. Please set GEMINI_API_KEY in .env file.');
+        $apiKey = (string) config('services.deepseek.key', '');
+        if ($apiKey === '') {
+            return $this->failure('AI service is not configured. Please set DEEPSEEK_API_KEY in .env file.');
         }
 
         [$absPath, $ext] = $this->resolveFile($file);
-        $filename = basename($absPath);
-        $mime     = $this->mimeForExtension($ext);
+        $mime = $this->mimeForExtension($ext);
 
         try {
+            // â”€â”€ Spreadsheets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if (in_array($ext, ['xlsx', 'xlsm', 'xlsb', 'xls', 'csv'], true)) {
                 $text = $this->spreadsheetToCompactCsvText($absPath);
                 if ($text === null || trim($text) === '') {
                     return $this->failure('Could not convert spreadsheet to readable text.');
                 }
-
-                $text = mb_substr($text, 0, 180000);
-                return $this->callGeminiGenerateContent([
-                    ['text' => "BOQ spreadsheet converted to CSV:\n\n" . $text],
-                    ['text' => $this->buildGeminiPrompt($context, 'text/plain')],
-                ], $geminiKey, $this->geminiModel());
+                $text        = $this->sanitizeUtf8(mb_substr($text, 0, 180000));
+                $userContent = "BOQ spreadsheet converted to CSV:\n\n" . $text . "\n\n" . $this->buildDeepSeekPrompt($context, 'text/plain');
+                return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
             }
 
-            $bytes = file_get_contents($absPath);
-            if ($bytes === false || $bytes === '') {
-                return $this->failure('Could not read uploaded file for AI processing.');
+            // â”€â”€ PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            if ($ext === 'pdf') {
+                $extracted = $this->extractPdfText($absPath);
+                if ($extracted !== null && mb_strlen(trim($extracted)) > 50) {
+                    $extracted   = $this->sanitizeUtf8(mb_substr($extracted, 0, 180000));
+                    $userContent = "BOQ PDF extracted text:\n\n" . $extracted . "\n\n" . $this->buildDeepSeekPrompt($context, 'application/pdf');
+                    return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
+                }
+                return $this->failure('Could not extract text from the PDF. Please make sure it is a text-based PDF (not a scanned image), or convert it to Excel or CSV.');
             }
 
-            $prompt = $this->buildGeminiPrompt($context, $mime);
-
-            if (strlen($bytes) > 20 * 1024 * 1024) {
-                return $this->geminiViaFilesApi($bytes, $mime, $filename, $prompt, $geminiKey, $this->geminiModel());
+            // â”€â”€ Images â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // Send image directly to DeepSeek vision model as base64.
+            $imageExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif', 'heic', 'heif'];
+            if (in_array($ext, $imageExts, true)) {
+                $bytes = (string) file_get_contents($absPath);
+                return $this->callDeepSeekVision($bytes, $mime, $context, $apiKey, $this->deepSeekVisionModel());
             }
 
-            return $this->callGeminiGenerateContent([
-                ['inline_data' => ['mime_type' => $mime, 'data' => base64_encode($bytes)]],
-                ['text' => $prompt],
-            ], $geminiKey, $this->geminiModel());
+            return $this->failure('Unsupported file type. Please upload an Excel, CSV, PDF, or image file.');
         } catch (\Throwable $e) {
-            Log::error('QuotationAiService: Gemini fallback failed.', ['message' => $e->getMessage()]);
-            return $this->failure('An error occurred while processing file with AI: ' . $e->getMessage());
+            Log::error('QuotationAiService: DeepSeek fallback failed.', ['message' => $e->getMessage()]);
+            return $this->failure('An error occurred while processing the file with AI: ' . $e->getMessage());
         }
     }
 
-    private function geminiModel(): string
+    private function deepSeekModel(): string
     {
-        return (string) config('services.gemini.model', 'gemini-2.5-flash');
+        return (string) config('services.deepseek.model', 'deepseek-chat');
     }
 
-    private function callGeminiGenerateContent(array $parts, string $key, string $model): array
+    private function deepSeekVisionModel(): string
+    {
+        return (string) config('services.deepseek.vision_model', 'deepseek-chat');
+    }
+
+    /**
+     * Remove or replace any non-UTF-8 / malformed byte sequences so json_encode never fails.
+     */
+    private function sanitizeUtf8(string $text): string
+    {
+        // Replace invalid byte sequences with the UTF-8 replacement character
+        $clean = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        // Strip any remaining non-printable control characters (except tab/newline/CR)
+        $clean = (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $clean);
+        return $clean;
+    }
+
+    /**
+     * Extract plain text from a PDF using smalot/pdfparser (pure PHP, no binary required).
+     */
+    private function extractPdfText(string $absPath): ?string
     {
         try {
+            $parser = new \Smalot\PdfParser\Parser();
+            $pdf    = $parser->parseFile($absPath);
+            $text   = $pdf->getText();
+            $text   = (string) preg_replace('/[ \t]{2,}/', ' ', $text);
+            $text   = (string) preg_replace('/\n{3,}/', "\n\n", $text);
+            $text   = trim($text);
+            return $text !== '' ? $text : null;
+        } catch (\Throwable $e) {
+            Log::warning('QuotationAiService: PDF parsing failed.', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    /**
+     * Send a vision request to a DeepSeek vision-capable model.
+     */
+    private function callDeepSeekVision(string $bytes, string $mime, array $context, string $key, string $model): array
+    {
+        $dataUrl     = "data:{$mime};base64," . base64_encode($bytes);
+        $prompt      = $this->buildDeepSeekPrompt($context, $mime);
+        $userContent = [
+            ['type' => 'image_url', 'image_url' => ['url' => $dataUrl]],
+            ['type' => 'text',      'text'       => $prompt],
+        ];
+
+        try {
             $response = Http::timeout($this->timeout)
-                ->connectTimeout(15)
+                ->connectTimeout(30)
                 ->withoutVerifying()
+                ->withHeaders(['Authorization' => 'Bearer ' . $key])
                 ->withOptions([
                     'curl' => [
                         CURLOPT_SSLVERSION   => CURL_SSLVERSION_TLSv1_2,
                         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                     ],
                 ])
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}", [
-                    'system_instruction' => ['parts' => [['text' => $this->buildSystemInstruction()]]],
-                    'contents'           => [['parts' => $parts]],
-                    'generationConfig'   => [
-                        'maxOutputTokens' => 65536,
-                        'temperature'     => 0.1,
+                ->post('https://api.deepseek.com/chat/completions', [
+                    'model'       => $model,
+                    'messages'    => [
+                        ['role' => 'system', 'content' => $this->buildSystemInstruction()],
+                        ['role' => 'user',   'content' => $userContent],
                     ],
+                    'max_tokens'  => 65536,
+                    'temperature' => 0.1,
+                    'user'        => 'Qimta_Platform',
                 ]);
         } catch (ConnectionException $e) {
-            return $this->failure('Gemini connection timeout or unavailable.', true);
+            return $this->failure('DeepSeek connection timeout or unavailable.', true);
         }
 
         if (! $response->successful()) {
             $message = (string) data_get($response->json(), 'error.message', $response->body());
-            Log::error('QuotationAiService: Gemini HTTP error.', [
+            Log::error('QuotationAiService: DeepSeek vision HTTP error.', [
                 'model'   => $model,
                 'status'  => $response->status(),
                 'message' => $message,
             ]);
-            if ($response->status() === 403) {
-                return $this->failure('مفتاح Gemini API غير صالح أو محظور. يرجى تحديث GEMINI_API_KEY في إعدادات النظام.', false);
-            }
-            return $this->failure("Gemini API returned HTTP {$response->status()}: {$message}", in_array($response->status(), [429, 500, 503], true));
+            return $this->failure("DeepSeek vision API returned HTTP {$response->status()}: {$message}", in_array($response->status(), [429, 500, 503], true));
         }
 
-        $text = (string) $response->json('candidates.0.content.parts.0.text');
+        return $this->parseDeepSeekJsonResponse((string) $response->json('choices.0.message.content'));
+    }
+
+    private function callDeepSeekChat(string $userContent, string $key, string $model): array
+    {
+        try {
+            $response = Http::timeout($this->timeout)
+                ->connectTimeout(30)
+                ->withoutVerifying()
+                ->withHeaders(['Authorization' => 'Bearer ' . $key])
+                ->withOptions([
+                    'curl' => [
+                        CURLOPT_SSLVERSION   => CURL_SSLVERSION_TLSv1_2,
+                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    ],
+                ])
+                ->post('https://api.deepseek.com/chat/completions', [
+                    'model'       => $model,
+                    'messages'    => [
+                        ['role' => 'system', 'content' => $this->buildSystemInstruction()],
+                        ['role' => 'user',   'content' => $userContent],
+                    ],
+                    'max_tokens'  => 65536,
+                    'temperature' => 0.1,
+                    'user'        => 'Qimta_Platform',
+                ]);
+        } catch (ConnectionException $e) {
+            return $this->failure('DeepSeek connection timeout or unavailable.', true);
+        }
+
+        if (! $response->successful()) {
+            $message = (string) data_get($response->json(), 'error.message', $response->body());
+            Log::error('QuotationAiService: DeepSeek HTTP error.', [
+                'model'   => $model,
+                'status'  => $response->status(),
+                'message' => $message,
+            ]);
+            if ($response->status() === 401) {
+                return $this->failure('DeepSeek API key is invalid or unauthorised. Please update DEEPSEEK_API_KEY in .env.', false);
+            }
+            return $this->failure("DeepSeek API returned HTTP {$response->status()}: {$message}", in_array($response->status(), [429, 500, 503], true));
+        }
+
+        $text = (string) $response->json('choices.0.message.content');
+        return $this->parseDeepSeekJsonResponse($text);
+    }
+
+    /**
+     * Shared JSON response parser used by both chat and vision paths.
+     */
+    private function parseDeepSeekJsonResponse(string $text): array
+    {
         if ($text === '') {
-            return $this->failure('Gemini returned an empty response.');
+            return $this->failure('DeepSeek returned an empty response.');
         }
 
         if (preg_match('/```(?:json)?\s*([\s\S]*?)\s*```/i', $text, $m)) {
@@ -522,8 +622,8 @@ class QuotationAiService
 
         $decoded = json_decode($text, true);
         if (! is_array($decoded)) {
-            Log::error('QuotationAiService: Gemini non JSON response.', ['text' => mb_substr($text, 0, 1000)]);
-            return $this->failure('Gemini returned a non-JSON response.');
+            Log::error('QuotationAiService: DeepSeek non-JSON response.', ['text' => mb_substr($text, 0, 1000)]);
+            return $this->failure('DeepSeek returned a non-JSON response.');
         }
 
         $rawItems = $decoded['items'] ?? (array_is_list($decoded) ? $decoded : []);
@@ -534,7 +634,7 @@ class QuotationAiService
             if (! is_array($raw)) {
                 continue;
             }
-            $item = $this->normaliseGeminiItem($raw);
+            $item = $this->normaliseAiItem($raw);
             if ($item === null) {
                 continue;
             }
@@ -542,54 +642,21 @@ class QuotationAiService
             if ($check['keep'] ?? false) {
                 $items[] = $item;
             } else {
-                $item['status']                          = 'rejected';
-                $item['raw_data']['rejection_reason']    = $check['rejection_reason'] ?? 'Rejected by cleaner';
-                $rejected[]                              = $item;
+                $item['status']                       = 'rejected';
+                $item['raw_data']['rejection_reason'] = $check['rejection_reason'] ?? 'Rejected by cleaner';
+                $rejected[]                           = $item;
             }
         }
 
+        if (empty($items)) {
+            Log::info('QuotationAiService: DeepSeek returned 0 accepted items.', [
+                'raw_items_count' => count($rawItems),
+                'rejected_count'  => count($rejected),
+                'first_rejected'  => ! empty($rejected) ? ($rejected[0]['description'] ?? '') : '',
+            ]);
+        }
+
         return ['success' => true, 'items' => $items, 'rejected' => $rejected, 'error' => null];
-    }
-
-    private function geminiViaFilesApi(string $bytes, string $mime, string $filename, string $prompt, string $key, string $model): array
-    {
-        $boundary = 'GeminiBoundary' . bin2hex(random_bytes(8));
-        $metadata = json_encode(['file' => ['display_name' => $filename]], JSON_THROW_ON_ERROR);
-
-        $body  = "--{$boundary}\r\n";
-        $body .= "Content-Type: application/json; charset=utf-8\r\n\r\n";
-        $body .= $metadata . "\r\n";
-        $body .= "--{$boundary}\r\n";
-        $body .= "Content-Type: {$mime}\r\n\r\n";
-        $body .= $bytes . "\r\n";
-        $body .= "--{$boundary}--";
-
-        $upload = Http::timeout(120)
-            ->connectTimeout(15)
-            ->withoutVerifying()
-            ->withOptions([
-                'curl' => [
-                    CURLOPT_SSLVERSION   => CURL_SSLVERSION_TLSv1_2,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                ],
-            ])
-            ->withHeaders(['X-Goog-Upload-Protocol' => 'multipart'])
-            ->withBody($body, "multipart/related; boundary={$boundary}")
-            ->post("https://generativelanguage.googleapis.com/upload/v1beta/files?key={$key}");
-
-        if (! $upload->successful()) {
-            return $this->failure('Gemini Files API upload failed with HTTP ' . $upload->status());
-        }
-
-        $fileUri = (string) $upload->json('file.uri');
-        if ($fileUri === '') {
-            return $this->failure('Gemini Files API did not return file URI.');
-        }
-
-        return $this->callGeminiGenerateContent([
-            ['file_data' => ['mime_type' => $mime, 'file_uri' => $fileUri]],
-            ['text' => $prompt],
-        ], $key, $model);
     }
 
     private function spreadsheetToCompactCsvText(string $absPath): ?string
@@ -623,7 +690,7 @@ class QuotationAiService
             : $value;
     }
 
-    private function normaliseGeminiItem(array $raw): ?array
+    private function normaliseAiItem(array $raw): ?array
     {
         if (! empty($raw['rejected'])) {
             return null;
@@ -678,7 +745,7 @@ Return only valid JSON: {"items":[{"source_item_no":null,"original_description":
 TXT;
     }
 
-    private function buildGeminiPrompt(array $context = [], string $mime = ''): string
+    private function buildDeepSeekPrompt(array $context = [], string $mime = ''): string
     {
         $projectName   = (string) ($context['project_name'] ?? '');
         $projectStatus = (string) ($context['project_status'] ?? '');
@@ -695,7 +762,7 @@ You are a procurement specialist. Your task is to extract ONLY tangible, physica
 {$contextLine}
 {$sourceHint}
 
-STRICT RULES — include ONLY items that are ALL of the following:
+STRICT RULES â€” include ONLY items that are ALL of the following:
 1. A physical, tangible product that can be ordered from a supplier and delivered to site.
 2. Has a real quantity (not 0 or "varies" with no meaning).
 3. Has enough description to identify what the product is.
@@ -707,8 +774,8 @@ EXCLUDE all of the following (do NOT include them):
 - Shop drawings, as-built drawings, method statements, documentation
 - Preliminary items, mobilisation, demobilisation, provisional sums
 - Housekeeping, site clearance, waste removal
-- Floor/level labels (e.g. "GF Floor", "Level 3") — these are headers, not products
-- Pure dimension specs without a product noun (e.g. "Dia 32 mm", "25 mm") — reject unless a product name is present
+- Floor/level labels (e.g. "GF Floor", "Level 3") â€” these are headers, not products
+- Pure dimension specs without a product noun (e.g. "Dia 32 mm", "25 mm") â€” reject unless a product name is present
 - Security services, night shifts, rentals, payments
 - Any item whose description is too vague or fragmentary to identify a specific product
 

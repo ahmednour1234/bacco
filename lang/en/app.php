@@ -384,7 +384,7 @@ return [
     'select_status'            => 'Select status…',
     'section_boq_upload'       => 'Section 2: BOQ Upload & Management',
     'subsection_upload_boq'    => 'Sub-Section A: Upload BOQ File',
-    'file_formats_supported'   => 'Excel (.xlsx), CSV, and PDF supported. Max: 50MB',
+    'file_formats_supported'   => 'Excel (.xlsx/.xls/.csv), PDF, and images (JPG, PNG, etc.) supported. Max: 50MB',
     'previously_uploaded'      => 'Previously uploaded. Select a new file to re-extract.',
     'extract_items_ai'         => 'Extract Items via QIMTA',
     'extracting'               => 'Extracting…',

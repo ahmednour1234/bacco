@@ -43,9 +43,14 @@ return [
         'test_mode'       => env('AI_QUOTATION_TEST_MODE', false),
     ],
 
-    'gemini' => [
-        'key'   => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    'deepseek' => [
+        'key'          => env('DEEPSEEK_API_KEY'),
+        'model'        => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+        'vision_model' => env('DEEPSEEK_VISION_MODEL', 'deepseek-chat'),
+    ],
+
+    'ocrspace' => [
+        'key' => env('OCRSPACE_API_KEY', 'helloworld'),
     ],
 
 ];

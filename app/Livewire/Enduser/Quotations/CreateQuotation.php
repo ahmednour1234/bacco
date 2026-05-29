@@ -135,10 +135,10 @@ class CreateQuotation extends Component
             return;
         }
 
-        $allowedExtensions = ['pdf', 'xlsx', 'xls', 'csv'];
+        $allowedExtensions = ['pdf', 'xlsx', 'xlsm', 'xlsb', 'xls', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif', 'heic', 'heif'];
         $extension         = strtolower($this->boqFile->getClientOriginalExtension());
         if (! in_array($extension, $allowedExtensions, true)) {
-            $this->addError('boqFile', 'The file must be of type: pdf, xlsx, xls, or csv.');
+            $this->addError('boqFile', 'The file must be of type: pdf, xlsx, xls, csv, or an image.');
             return;
         }
 
@@ -185,7 +185,11 @@ class CreateQuotation extends Component
             if (! $result['success']) {
                 $this->dispatch('toast', message: $result['error'] ?? 'AI extraction failed.', type: 'error');
             } elseif (empty($result['items'])) {
-                $this->dispatch('toast', message: 'The AI service could not extract any items from the uploaded file. Please add items manually.', type: 'warning');
+                $rejectedCount = count($result['rejected'] ?? []);
+                $msg = $rejectedCount > 0
+                    ? "AI extracted {$rejectedCount} rows but all were rejected as non-supply items (labor, headings, etc.). Please verify the file contains actual supply products with quantities."
+                    : 'The AI service could not find any BOQ items in this file. Please check the file has supply products with quantities and units.';
+                $this->dispatch('toast', message: $msg, type: 'warning');
             } else {
                 // Replace current table rows with the latest AI response.
                 QuotationItem::where('quotation_request_id', $quotation->id)->delete();

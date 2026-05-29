@@ -21,8 +21,9 @@ class FetchQuotationPricesJob implements ShouldQueue
 
     /**
      * Maximum seconds before the job times out.
+     * Generous timeout to allow parallel DeepSeek chunks to all complete.
      */
-    public int $timeout = 300;
+    public int $timeout = 180;
 
     public function __construct(
         private readonly int    $quotationId,

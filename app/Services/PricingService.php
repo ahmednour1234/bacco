@@ -10,16 +10,17 @@ use Illuminate\Support\Facades\Log;
 class PricingService
 {
     /**
-     * Items per Gemini call. Multiple calls are made so ALL unpriced items get a price.
+     * Items per DeepSeek call. Multiple calls are made in PARALLEL so ALL unpriced items get a price faster.
+     * Smaller = more parallel requests = faster overall. 10 items per request is optimal.
      */
-    private const GEMINI_CHUNK_SIZE = 100;
+    private const DEEPSEEK_CHUNK_SIZE = 10;
 
     /**
      * Fetch unit prices for an array of quotation items.
      *
      * Strategy:
      *   1. Try the products table first (keyword match on name + optional category match).
-     *   2. Collect all unmatched items and send them in ONE batched Gemini call.
+     *   2. Collect all unmatched items and send them in ONE batched DeepSeek call.
      *
      * @param  array<int, array<string, mixed>>  $items
      * @return array<int, array<string, mixed>>  Items enriched with unit_price, price_source, price_status
@@ -49,11 +50,11 @@ class PricingService
         }
 
         if (! empty($unmatched)) {
-            $chunks = array_chunk($unmatched, self::GEMINI_CHUNK_SIZE);
+            $chunks = array_chunk($unmatched, self::DEEPSEEK_CHUNK_SIZE);
 
             if (count($chunks) === 1) {
                 // Single chunk — direct call (no pool overhead)
-                $items = $this->enrichWithGemini($items, $chunks[0]);
+                $items = $this->enrichWithDeepSeek($items, $chunks[0]);
             } else {
                 // Multiple chunks — send ALL in parallel to save time
                 $items = $this->enrichChunksParallel($items, $chunks);
@@ -111,13 +112,13 @@ class PricingService
     }
 
     // -------------------------------------------------------------------------
-    // Gemini fallback — helpers
+    // DeepSeek fallback — helpers
     // -------------------------------------------------------------------------
 
     /**
-     * Build the compact payload sent to Gemini for a set of item indices.
+     * Build the compact payload sent to DeepSeek for a set of item indices.
      */
-    private function buildGeminiPayload(array $items, array $indices): array
+    private function buildDeepSeekPayload(array $items, array $indices): array
     {
         $payload = [];
         foreach ($indices as $idx) {
@@ -133,9 +134,9 @@ class PricingService
     }
 
     /**
-     * Build the Gemini prompt string for a given payload array.
+     * Build the DeepSeek prompt string for a given payload array.
      */
-    private function buildGeminiPrompt(array $payload): string
+    private function buildPricingPrompt(array $payload): string
     {
         return 'You are a procurement pricing expert for the Saudi Arabia construction and MEP materials market. '
             . 'Estimate a realistic current unit price in SAR for each item below. '
@@ -150,9 +151,9 @@ class PricingService
     }
 
     /**
-     * Parse a Gemini text response and apply prices to $items.
+     * Parse a DeepSeek text response and apply prices to $items.
      */
-    private function applyGeminiText(string $text, array $items, string $model): array
+    private function applyDeepSeekText(string $text, array $items, string $model): array
     {
         $text = preg_replace('/^```json\s*/i', '', trim($text));
         $text = preg_replace('/```\s*$/i', '', $text);
@@ -168,7 +169,7 @@ class PricingService
         }
 
         if (! is_array($priceData) || empty($priceData)) {
-            Log::warning('PricingService: Could not extract any prices from Gemini response.', [
+            Log::warning('PricingService: Could not extract any prices from DeepSeek response.', [
                 'model'        => $model,
                 'text_preview' => mb_substr($text, 0, 300),
             ]);
@@ -187,7 +188,7 @@ class PricingService
 
             if ($price > 0) {
                 $items[$idx]['unit_price']   = $price;
-                $items[$idx]['price_source'] = 'gemini';
+                $items[$idx]['price_source'] = 'deepseek';
             }
         }
 
@@ -195,7 +196,7 @@ class PricingService
     }
 
     /**
-     * Send multiple chunks to Gemini in PARALLEL using Http::pool().
+     * Send multiple chunks to DeepSeek in PARALLEL using Http::pool().
      * Falls back to sequential per-chunk calls if pool fails.
      *
      * @param  array<int, array<string, mixed>>  $items
@@ -204,48 +205,46 @@ class PricingService
      */
     private function enrichChunksParallel(array $items, array $chunks): array
     {
-        $apiKey       = (string) config('services.gemini.key', '');
-        $primaryModel = (string) config('services.gemini.model', 'gemini-2.0-flash-lite');
-        $modelChain   = array_unique(array_filter([$primaryModel, 'gemini-2.0-flash-lite', 'gemini-flash-lite-latest', 'gemini-flash-latest']));
+        $apiKey = (string) config('services.deepseek.key', '');
+        $model  = (string) config('services.deepseek.model', 'deepseek-chat');
 
         if (empty($apiKey)) {
-            Log::warning('PricingService: GEMINI_API_KEY not configured; skipping AI pricing.');
+            Log::warning('PricingService: DEEPSEEK_API_KEY not configured; skipping AI pricing.');
             return $items;
         }
 
-        // Build payloads + request bodies once
+        $url = 'https://api.deepseek.com/chat/completions';
+
+        // Build request bodies once
         $requestBodies = [];
         foreach ($chunks as $ci => $chunkIndices) {
-            $payload             = $this->buildGeminiPayload($items, $chunkIndices);
+            $payload             = $this->buildDeepSeekPayload($items, $chunkIndices);
             $requestBodies[$ci]  = [
-                'contents' => [
-                    ['role' => 'user', 'parts' => [['text' => $this->buildGeminiPrompt($payload)]]],
+                'model'       => $model,
+                'messages'    => [
+                    ['role' => 'user', 'content' => $this->buildPricingPrompt($payload)],
                 ],
-                'generationConfig' => [
-                    'responseMimeType' => 'application/json',
-                    'temperature'      => 0.2,
-                    'maxOutputTokens'  => 8192,
-                ],
+                'temperature' => 0.2,
+                'max_tokens'  => 8192,
+                'user'        => 'Qimta_Platform',
             ];
         }
 
-        // Track which chunks still need pricing
         $failedChunks = array_keys($chunks);
 
-        foreach ($modelChain as $model) {
-            if (empty($failedChunks)) {
-                break;
-            }
-
-            $url            = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+        // Single attempt with the configured model
+        if (! empty($failedChunks)) {
             $pendingIndices = $failedChunks;
             $failedChunks   = [];
 
             try {
-                $responses = Http::pool(function (Pool $pool) use ($url, $requestBodies, $pendingIndices) {
+                $responses = Http::pool(function (Pool $pool) use ($url, $apiKey, $requestBodies, $pendingIndices) {
                     $reqs = [];
                     foreach ($pendingIndices as $ci) {
-                        $reqs[] = $pool->as((string) $ci)->timeout(90)->post($url, $requestBodies[$ci]);
+                        $reqs[] = $pool->as((string) $ci)
+                            ->timeout(90)
+                            ->withHeaders(['Authorization' => 'Bearer ' . $apiKey])
+                            ->post($url, $requestBodies[$ci]);
                     }
                     return $reqs;
                 });
@@ -254,7 +253,7 @@ class PricingService
                     $ci = (int) $key;
 
                     if (! $response->successful()) {
-                        Log::warning('PricingService: Parallel chunk failed, will retry.', [
+                        Log::warning('PricingService: Parallel chunk failed, will retry sequentially.', [
                             'model'  => $model,
                             'chunk'  => $ci,
                             'status' => $response->status(),
@@ -263,91 +262,83 @@ class PricingService
                         continue;
                     }
 
-                    $text  = $response->json('candidates.0.content.parts.0.text') ?? '';
-                    $items = $this->applyGeminiText($text, $items, $model);
+                    $text  = $response->json('choices.0.message.content') ?? '';
+                    $items = $this->applyDeepSeekText($text, $items, $model);
                 }
             } catch (\Throwable $e) {
                 Log::error('PricingService: Http::pool exception, falling back to serial.', [
                     'model'   => $model,
                     'message' => $e->getMessage(),
                 ]);
-                // Fall back: process remaining chunks one by one
                 foreach ($pendingIndices as $ci) {
-                    $items = $this->enrichWithGemini($items, $chunks[$ci]);
+                    $items = $this->enrichWithDeepSeek($items, $chunks[$ci]);
                 }
                 return $items;
             }
         }
 
         if (! empty($failedChunks)) {
-            Log::error('PricingService: Some chunks failed all models.', ['chunks' => $failedChunks]);
+            foreach ($failedChunks as $ci) {
+                $items = $this->enrichWithDeepSeek($items, $chunks[$ci]);
+            }
         }
 
         return $items;
     }
 
     // -------------------------------------------------------------------------
-    // Gemini fallback (single batched request)
+    // DeepSeek fallback (single batched request)
     // -------------------------------------------------------------------------
 
     /**
-     * Send all unmatched items to Gemini in ONE request to minimise token consumption.
-     * Only the fields Gemini actually needs are sent (description, category, brand, unit).
-     * Output tokens are capped via maxOutputTokens to protect against runaway usage.
+     * Send all unmatched items to DeepSeek in ONE request to minimise token consumption.
+     * Only the fields DeepSeek actually needs are sent (description, category, brand, unit).
+     * Output tokens are capped via max_tokens to protect against runaway usage.
      *
      * @param  array<int, array<string, mixed>>  $items
      * @param  list<int>  $unmatchedIndices
      * @return array<int, array<string, mixed>>
      */
-    private function enrichWithGemini(array $items, array $unmatchedIndices): array
+    private function enrichWithDeepSeek(array $items, array $unmatchedIndices): array
     {
-        $apiKey     = (string) config('services.gemini.key', '');
-        $modelChain = array_unique(array_filter([
-            (string) config('services.gemini.model', 'gemini-2.0-flash-lite'),
-            'gemini-2.0-flash-lite',
-            'gemini-flash-lite-latest',
-            'gemini-flash-latest',
-        ]));
+        $apiKey = (string) config('services.deepseek.key', '');
+        $model  = (string) config('services.deepseek.model', 'deepseek-chat');
 
         if (empty($apiKey)) {
-            Log::warning('PricingService: GEMINI_API_KEY not configured; skipping AI pricing.');
+            Log::warning('PricingService: DEEPSEEK_API_KEY not configured; skipping AI pricing.');
             return $items;
         }
 
-        $payload    = $this->buildGeminiPayload($items, $unmatchedIndices);
-        $prompt     = $this->buildGeminiPrompt($payload);
+        $payload    = $this->buildDeepSeekPayload($items, $unmatchedIndices);
+        $prompt     = $this->buildPricingPrompt($payload);
         $lastStatus = null;
 
-        foreach ($modelChain as $model) {
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-
-            try {
-                $response = Http::timeout(90)->post($url, [
-                    'contents'         => [['role' => 'user', 'parts' => [['text' => $prompt]]]],
-                    'generationConfig' => [
-                        'responseMimeType' => 'application/json',
-                        'temperature'      => 0.2,
-                        'maxOutputTokens'  => 8192,
+        try {
+            $response = Http::timeout(90)
+                ->withHeaders(['Authorization' => 'Bearer ' . $apiKey])
+                ->post('https://api.deepseek.com/chat/completions', [
+                    'model'       => $model,
+                    'messages'    => [
+                        ['role' => 'user', 'content' => $prompt],
                     ],
+                    'temperature' => 0.2,
+                    'max_tokens'  => 8192,
+                    'user'        => 'Qimta_Platform',
                 ]);
 
-                if (! $response->successful()) {
-                    $lastStatus = $response->status();
-                    Log::warning('PricingService: Gemini model failed, trying next.', ['model' => $model, 'status' => $lastStatus]);
-                    continue;
-                }
-
-                $text  = $response->json('candidates.0.content.parts.0.text') ?? '';
-                $items = $this->applyGeminiText($text, $items, $model);
-
+            if (! $response->successful()) {
+                $lastStatus = $response->status();
+                Log::warning('PricingService: DeepSeek request failed.', ['model' => $model, 'status' => $lastStatus]);
+            } else {
+                $text  = $response->json('choices.0.message.content') ?? '';
+                $items = $this->applyDeepSeekText($text, $items, $model);
                 return $items;
-
-            } catch (\Throwable $e) {
-                Log::error('PricingService: Exception calling Gemini.', ['model' => $model, 'message' => $e->getMessage()]);
             }
+        } catch (\Throwable $e) {
+            Log::error('PricingService: Exception calling DeepSeek.', ['model' => $model, 'message' => $e->getMessage()]);
         }
 
-        Log::error('PricingService: All Gemini models failed.', ['last_status' => $lastStatus]);
+        Log::error('PricingService: DeepSeek request failed.', ['last_status' => $lastStatus]);
 
         return $items;
     }

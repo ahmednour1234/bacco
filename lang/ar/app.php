@@ -332,7 +332,7 @@ return [
     'select_status'            => 'اختر الحالة…',
     'section_boq_upload'       => 'القسم 2: رفع وإدارة جدول الكميات',
     'subsection_upload_boq'    => 'القسم الفرعي أ: رفع ملف جدول الكميات',
-    'file_formats_supported'   => 'يدعم Excel (.xlsx), CSV, PDF. الحد الأقصى: 50 ميجابايت',
+    'file_formats_supported'   => 'يدعم Excel (.xlsx/.xls/.csv) و PDF والصور (JPG, PNG...). الحد الأقصى: 50 ميجابايت',
     'previously_uploaded'      => 'تم الرفع مسبقاً. اختر ملفاً جديداً لإعادة الاستخراج.',
     'extract_items_ai'         => 'استخراج العناصر بكيمتا',
     'extracting'               => 'جارٍ الاستخراج…',

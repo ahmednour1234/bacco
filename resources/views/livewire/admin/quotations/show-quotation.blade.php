@@ -171,8 +171,8 @@
                                     <td class="px-4 py-3 text-center">
                                         @if(($item['price_source'] ?? null) === 'products')
                                             <span title="Matched from Products catalogue" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">P</span>
-                                        @elseif(($item['price_source'] ?? null) === 'gemini')
-                                            <span title="Estimated by Gemini AI" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 text-xs font-bold">AI</span>
+                                        @elseif(($item['price_source'] ?? null) === 'deepseek')
+                                            <span title="Estimated by DeepSeek AI" class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 text-xs font-bold">AI</span>
                                         @else
                                             <span class="text-slate-300 text-xs">—</span>
                                         @endif
