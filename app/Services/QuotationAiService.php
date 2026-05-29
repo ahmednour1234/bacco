@@ -454,12 +454,12 @@ class QuotationAiService
                 return $this->failure('Could not extract text from the PDF. Please make sure it is a text-based PDF (not a scanned image), or convert it to Excel or CSV.');
             }
 
-            // â”€â”€ Images â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            // Send image directly to DeepSeek vision model as base64.
+            // ── Images ──────────────────────────────────────────────────────────────
+            // Send image directly to a vision-capable AI (configured via VISION_API_KEY in .env).
             $imageExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif', 'heic', 'heif'];
             if (in_array($ext, $imageExts, true)) {
                 $bytes = (string) file_get_contents($absPath);
-                return $this->callDeepSeekVision($bytes, $mime, $context, $apiKey, $this->deepSeekVisionModel());
+                return $this->callDeepSeekVision($bytes, $mime, $context);
             }
 
             return $this->failure('Unsupported file type. Please upload an Excel, CSV, PDF, or image file.');
@@ -472,11 +472,6 @@ class QuotationAiService
     private function deepSeekModel(): string
     {
         return (string) config('services.deepseek.model', 'deepseek-chat');
-    }
-
-    private function deepSeekVisionModel(): string
-    {
-        return (string) config('services.deepseek.vision_model', 'deepseek-chat');
     }
 
     /**
@@ -511,10 +506,23 @@ class QuotationAiService
     }
 
     /**
-     * Send a vision request to a DeepSeek vision-capable model.
+     * Send a vision request to a configurable vision-capable model (OpenAI-compatible endpoint).
+     * DeepSeek does NOT support image inputs — configure VISION_API_KEY / VISION_BASE_URL / VISION_MODEL
+     * in .env to point to any vision-capable service (OpenRouter, OpenAI, Gemini, etc.).
      */
-    private function callDeepSeekVision(string $bytes, string $mime, array $context, string $key, string $model): array
+    private function callDeepSeekVision(string $bytes, string $mime, array $context): array
     {
+        $visionKey      = (string) config('services.vision.key', '');
+        $visionBaseUrl  = rtrim((string) config('services.vision.base_url', 'https://openrouter.ai/api/v1'), '/');
+        $visionModel    = (string) config('services.vision.model', 'google/gemini-flash-1.5-8b');
+
+        if ($visionKey === '') {
+            return $this->failure(
+                'Image processing requires a vision-capable AI. Please set VISION_API_KEY (and optionally VISION_BASE_URL / VISION_MODEL) in your .env file. ' .
+                'Free option: sign up at https://openrouter.ai and use model google/gemini-flash-1.5-8b.'
+            );
+        }
+
         $dataUrl     = "data:{$mime};base64," . base64_encode($bytes);
         $prompt      = $this->buildDeepSeekPrompt($context, $mime);
         $userContent = [
@@ -526,35 +534,39 @@ class QuotationAiService
             $response = Http::timeout($this->timeout)
                 ->connectTimeout(30)
                 ->withoutVerifying()
-                ->withHeaders(['Authorization' => 'Bearer ' . $key])
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . $visionKey,
+                    'HTTP-Referer'  => config('app.url', 'https://qimta.sa'),
+                    'X-Title'       => 'Qimta Platform',
+                ])
                 ->withOptions([
                     'curl' => [
                         CURLOPT_SSLVERSION   => CURL_SSLVERSION_TLSv1_2,
                         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                     ],
                 ])
-                ->post('https://api.deepseek.com/chat/completions', [
-                    'model'       => $model,
+                ->post($visionBaseUrl . '/chat/completions', [
+                    'model'       => $visionModel,
                     'messages'    => [
                         ['role' => 'system', 'content' => $this->buildSystemInstruction()],
                         ['role' => 'user',   'content' => $userContent],
                     ],
                     'max_tokens'  => 65536,
                     'temperature' => 0.1,
-                    'user'        => 'Qimta_Platform',
                 ]);
         } catch (ConnectionException $e) {
-            return $this->failure('DeepSeek connection timeout or unavailable.', true);
+            return $this->failure('Vision API connection timeout or unavailable.', true);
         }
 
         if (! $response->successful()) {
             $message = (string) data_get($response->json(), 'error.message', $response->body());
-            Log::error('QuotationAiService: DeepSeek vision HTTP error.', [
-                'model'   => $model,
-                'status'  => $response->status(),
-                'message' => $message,
+            Log::error('QuotationAiService: Vision API HTTP error.', [
+                'model'    => $visionModel,
+                'base_url' => $visionBaseUrl,
+                'status'   => $response->status(),
+                'message'  => $message,
             ]);
-            return $this->failure("DeepSeek vision API returned HTTP {$response->status()}: {$message}", in_array($response->status(), [429, 500, 503], true));
+            return $this->failure("Vision API returned HTTP {$response->status()}: {$message}", in_array($response->status(), [429, 500, 503], true));
         }
 
         return $this->parseDeepSeekJsonResponse((string) $response->json('choices.0.message.content'));

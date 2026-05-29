@@ -44,9 +44,18 @@ return [
     ],
 
     'deepseek' => [
-        'key'          => env('DEEPSEEK_API_KEY'),
-        'model'        => env('DEEPSEEK_MODEL', 'deepseek-chat'),
-        'vision_model' => env('DEEPSEEK_VISION_MODEL', 'deepseek-chat'),
+        'key'   => env('DEEPSEEK_API_KEY'),
+        'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+    ],
+
+    // Vision-capable model (any OpenAI-compatible endpoint: OpenAI, OpenRouter, Gemini, etc.)
+    // DeepSeek does NOT support image inputs — use a vision API here.
+    // Free option: OpenRouter (https://openrouter.ai) with google/gemini-flash-1.5-8b
+    // Cheap option: OpenAI gpt-4o-mini  |  Google Gemini Flash (https://ai.google.dev)
+    'vision' => [
+        'key'      => env('VISION_API_KEY', ''),
+        'base_url' => env('VISION_BASE_URL', 'https://openrouter.ai/api/v1'),
+        'model'    => env('VISION_MODEL', 'google/gemini-flash-1.5-8b'),
     ],
 
     'ocrspace' => [
