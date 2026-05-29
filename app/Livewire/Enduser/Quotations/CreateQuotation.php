@@ -39,7 +39,7 @@ class CreateQuotation extends Component
     public string $projectName = '';
 
     #[Validate('required|string')]
-    public string $projectStatus = QuotationProjectStatusEnum::Pending->value;
+    public string $projectStatus = QuotationProjectStatusEnum::Tender->value;
 
     /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
     public $boqFile = null;
@@ -66,7 +66,7 @@ class CreateQuotation extends Component
     {
         if ($quotationId === null) {
             $this->isEditMode = false;
-            $this->projectStatus = QuotationProjectStatusEnum::Pending->value;
+            $this->projectStatus = QuotationProjectStatusEnum::Tender->value;
             return;
         }
 
@@ -532,7 +532,7 @@ class CreateQuotation extends Component
     private function persistQuotation(QuotationRequestStatusEnum $status): QuotationRequest
     {
         if (! $this->isEditMode) {
-            $this->projectStatus = QuotationProjectStatusEnum::Pending->value;
+            $this->projectStatus = QuotationProjectStatusEnum::Tender->value;
         }
 
         $attributes = [
