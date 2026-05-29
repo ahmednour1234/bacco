@@ -506,20 +506,30 @@ class QuotationAiService
     }
 
     /**
-     * Send a vision request to a configurable vision-capable model (OpenAI-compatible endpoint).
-     * DeepSeek does NOT support image inputs — configure VISION_API_KEY / VISION_BASE_URL / VISION_MODEL
-     * in .env to point to any vision-capable service (OpenRouter, OpenAI, Gemini, etc.).
+     * Send a vision request to a vision-capable AI model.
+     * Priority: 1) GEMINI_API_KEY → Google Gemini (free tier, native endpoint)
+     *           2) VISION_API_KEY → any OpenAI-compatible endpoint (OpenRouter, OpenAI, etc.)
+     * DeepSeek does NOT support image inputs.
      */
     private function callDeepSeekVision(string $bytes, string $mime, array $context): array
     {
-        $visionKey      = (string) config('services.vision.key', '');
-        $visionBaseUrl  = rtrim((string) config('services.vision.base_url', 'https://openrouter.ai/api/v1'), '/');
-        $visionModel    = (string) config('services.vision.model', 'google/gemini-flash-1.5-8b');
+        // ── Prefer Google Gemini when GEMINI_API_KEY is configured ──────────────
+        $geminiKey = (string) config('services.gemini.key', '');
+        if ($geminiKey !== '') {
+            $visionKey     = $geminiKey;
+            $visionBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
+            $visionModel   = (string) config('services.gemini.model', 'gemini-2.0-flash');
+        } else {
+            // ── Fall back to generic VISION_API_KEY config ───────────────────────
+            $visionKey     = (string) config('services.vision.key', '');
+            $visionBaseUrl = rtrim((string) config('services.vision.base_url', 'https://openrouter.ai/api/v1'), '/');
+            $visionModel   = (string) config('services.vision.model', 'google/gemini-flash-1.5-8b');
+        }
 
         if ($visionKey === '') {
             return $this->failure(
-                'Image processing requires a vision-capable AI. Please set VISION_API_KEY (and optionally VISION_BASE_URL / VISION_MODEL) in your .env file. ' .
-                'Free option: sign up at https://openrouter.ai and use model google/gemini-flash-1.5-8b.'
+                'Image processing requires a vision-capable AI. ' .
+                'Set GEMINI_API_KEY in your .env (free at https://ai.google.dev), or set VISION_API_KEY with a compatible provider.'
             );
         }
 
