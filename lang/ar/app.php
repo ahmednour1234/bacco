@@ -108,6 +108,7 @@ return [
     'status_draft'      => 'مسودة',
     'status_submitted'  => 'مقدّم',
     'status_tender'     => 'مناقصة',
+    'status_awarded'    => 'مُسند',
     'status_in_review'  => 'قيد المراجعة',
     'status_quoted'     => 'مسعّر',
     'status_accepted'   => 'مقبول',

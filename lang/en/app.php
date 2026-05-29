@@ -141,6 +141,7 @@ return [
     'status_draft'      => 'Draft',
     'status_submitted'  => 'Submitted',
     'status_tender'     => 'Tender',
+    'status_awarded'    => 'Awarded',
     'status_in_review'  => 'In Review',
     'status_quoted'     => 'Quoted',
     'status_accepted'   => 'Accepted',
