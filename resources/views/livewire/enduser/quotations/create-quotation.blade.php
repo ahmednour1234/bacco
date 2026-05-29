@@ -282,28 +282,22 @@
                         {{ __('app.project_status') }}
                     </label>
 
-                    @if($isEditMode)
-                        <select
-                            wire:model="projectStatus"
-                            class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition
-                                @error('projectStatus') border-red-400 focus:ring-2 focus:ring-red-100
-                                @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"
-                        >
-                            <option value="">{{ __('app.select_status') }}</option>
-                            @foreach($projectStatuses as $ps)
-                                <option value="{{ $ps->value }}" @selected($projectStatus === $ps->value)>
-                                    {{ $ps->label() }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('projectStatus')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                        @enderror
-                    @else
-                        <div class="h-11 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700">
-                            {{ __('app.status_pending') }}
-                        </div>
-                    @endif
+                    <select
+                        wire:model="projectStatus"
+                        class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition
+                            @error('projectStatus') border-red-400 focus:ring-2 focus:ring-red-100
+                            @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"
+                    >
+                        <option value="">{{ __('app.select_status') }}</option>
+                        @foreach($projectStatuses as $ps)
+                            <option value="{{ $ps->value }}" @selected($projectStatus === $ps->value)>
+                                {{ $ps->label() }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('projectStatus')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
                 </div>
 
             </div>
