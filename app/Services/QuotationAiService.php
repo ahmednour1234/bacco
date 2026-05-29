@@ -507,20 +507,29 @@ class QuotationAiService
 
     /**
      * Send a vision request to a vision-capable AI model.
-     * Priority: 1) GEMINI_API_KEY → Google Gemini (free tier, native endpoint)
-     *           2) VISION_API_KEY → any OpenAI-compatible endpoint (OpenRouter, OpenAI, etc.)
+     * Priority order (first configured key wins):
+     *   1. GEMINI_API_KEY  → Google Gemini  (free: https://aistudio.google.com/apikey)
+     *   2. GROQ_API_KEY    → Groq           (free: https://console.groq.com)
+     *   3. VISION_API_KEY  → any OpenAI-compatible endpoint (OpenAI, OpenRouter …)
      * DeepSeek does NOT support image inputs.
      */
     private function callDeepSeekVision(string $bytes, string $mime, array $context): array
     {
-        // ── Prefer Google Gemini when GEMINI_API_KEY is configured ──────────────
+        // ── 1. Google Gemini ─────────────────────────────────────────────────────
         $geminiKey = (string) config('services.gemini.key', '');
         if ($geminiKey !== '') {
             $visionKey     = $geminiKey;
             $visionBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
             $visionModel   = (string) config('services.gemini.model', 'gemini-2.0-flash');
-        } else {
-            // ── Fall back to generic VISION_API_KEY config ───────────────────────
+        }
+        // ── 2. Groq (free tier) ──────────────────────────────────────────────────
+        elseif ((string) config('services.groq.key', '') !== '') {
+            $visionKey     = (string) config('services.groq.key');
+            $visionBaseUrl = 'https://api.groq.com/openai/v1';
+            $visionModel   = (string) config('services.groq.model', 'meta-llama/llama-4-scout-17b-16e-instruct');
+        }
+        // ── 3. Generic VISION_API_KEY (OpenAI, OpenRouter, …) ───────────────────
+        else {
             $visionKey     = (string) config('services.vision.key', '');
             $visionBaseUrl = rtrim((string) config('services.vision.base_url', 'https://openrouter.ai/api/v1'), '/');
             $visionModel   = (string) config('services.vision.model', 'google/gemini-flash-1.5-8b');
@@ -528,8 +537,9 @@ class QuotationAiService
 
         if ($visionKey === '') {
             return $this->failure(
-                'Image processing requires a vision-capable AI. ' .
-                'Set GEMINI_API_KEY in your .env (free at https://ai.google.dev), or set VISION_API_KEY with a compatible provider.'
+                'Image processing requires a vision-capable AI. Add one of the following to your .env: ' .
+                'GEMINI_API_KEY (free at https://aistudio.google.com/apikey) or ' .
+                'GROQ_API_KEY (free at https://console.groq.com).'
             );
         }
 

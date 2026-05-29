@@ -48,15 +48,19 @@ return [
         'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
     ],
 
-    // Google Gemini (recommended — free tier available at https://ai.google.dev)
-    // Set GEMINI_API_KEY in .env and image processing will use Gemini automatically.
+    // Google Gemini — free tier at https://aistudio.google.com/apikey
     'gemini' => [
         'key'   => env('GEMINI_API_KEY', ''),
         'model' => env('GEMINI_VISION_MODEL', 'gemini-2.0-flash'),
     ],
 
+    // Groq — free tier at https://console.groq.com  (vision: llama-4 / llama-3.2)
+    'groq' => [
+        'key'   => env('GROQ_API_KEY', ''),
+        'model' => env('GROQ_VISION_MODEL', 'meta-llama/llama-4-scout-17b-16e-instruct'),
+    ],
+
     // Generic vision fallback (any OpenAI-compatible endpoint: OpenAI, OpenRouter, etc.)
-    // Only used when GEMINI_API_KEY is not set.
     'vision' => [
         'key'      => env('VISION_API_KEY', ''),
         'base_url' => env('VISION_BASE_URL', 'https://openrouter.ai/api/v1'),
