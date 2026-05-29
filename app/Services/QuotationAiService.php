@@ -508,20 +508,19 @@ class QuotationAiService
 
     /**
      * Send a vision request to a vision-capable AI model.
+     * DeepSeek's commercial API (api.deepseek.com) does NOT support image inputs — any model.
      * Priority order (first configured key wins):
-     *   1. DEEPSEEK_API_KEY → DeepSeek deepseek-vl2 (https://api.deepseek.com)
-     *   2. GEMINI_API_KEY   → Google Gemini  (free: https://aistudio.google.com/apikey)
-     *   3. GROQ_API_KEY     → Groq           (free: https://console.groq.com)
-     *   4. VISION_API_KEY   → any OpenAI-compatible endpoint
+     *   1. GROQ_API_KEY    → Groq llama-4-scout  (free: https://console.groq.com)
+     *   2. GEMINI_API_KEY  → Google Gemini Flash  (free: https://aistudio.google.com/apikey)
+     *   3. VISION_API_KEY  → any OpenAI-compatible endpoint (OpenAI, OpenRouter …)
      */
     private function callDeepSeekVision(string $bytes, string $mime, array $context): array
     {
-        // ── 1. DeepSeek deepseek-vl2 (uses existing DEEPSEEK_API_KEY) ────────────────
-        $deepseekKey = (string) config('services.deepseek.key', '');
-        if ($deepseekKey !== '') {
-            $visionKey     = $deepseekKey;
-            $visionBaseUrl = 'https://api.deepseek.com';
-            $visionModel   = (string) config('services.deepseek.vision_model', 'deepseek-vl2');
+        // ── 1. Groq (free, reliable vision) ─────────────────────────────────────
+        if ((string) config('services.groq.key', '') !== '') {
+            $visionKey     = (string) config('services.groq.key');
+            $visionBaseUrl = 'https://api.groq.com/openai/v1';
+            $visionModel   = (string) config('services.groq.model', 'meta-llama/llama-4-scout-17b-16e-instruct');
         }
         // ── 2. Google Gemini ─────────────────────────────────────────────────────
         elseif ((string) config('services.gemini.key', '') !== '') {
@@ -529,33 +528,25 @@ class QuotationAiService
             $visionBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
             $visionModel   = (string) config('services.gemini.model', 'gemini-2.0-flash');
         }
-        // ── 3. Groq (free tier) ──────────────────────────────────────────────────
-        elseif ((string) config('services.groq.key', '') !== '') {
-            $visionKey     = (string) config('services.groq.key');
-            $visionBaseUrl = 'https://api.groq.com/openai/v1';
-            $visionModel   = (string) config('services.groq.model', 'meta-llama/llama-4-scout-17b-16e-instruct');
-        }
-        // ── 4. Generic VISION_API_KEY (OpenAI, OpenRouter, …) ───────────────────
-        else {
-            $visionKey     = (string) config('services.vision.key', '');
+        // ── 3. Generic VISION_API_KEY (OpenAI, OpenRouter, …) ───────────────────
+        elseif ((string) config('services.vision.key', '') !== '') {
+            $visionKey     = (string) config('services.vision.key');
             $visionBaseUrl = rtrim((string) config('services.vision.base_url', 'https://openrouter.ai/api/v1'), '/');
             $visionModel   = (string) config('services.vision.model', 'google/gemini-flash-1.5-8b');
         }
-
-        if ($visionKey === '') {
+        else {
             return $this->failure(
-                'Image processing requires a vision-capable AI. ' .
-                'Set DEEPSEEK_API_KEY (uses deepseek-vl2), or GROQ_API_KEY (free at https://console.groq.com).'
+                'Image processing is not available. DeepSeek\'s API does not support images. ' .
+                'Get a free key at https://console.groq.com and add GROQ_API_KEY to your .env file.'
             );
         }
 
         $dataUrl = "data:{$mime};base64," . base64_encode($bytes);
         $prompt  = $this->buildDeepSeekPrompt($context, $mime);
 
-        // Text MUST come before image_url for deepseek-vl2 compatibility
         $userContent = [
-            ['type' => 'text',      'text'       => $prompt],
-            ['type' => 'image_url', 'image_url'  => ['url' => $dataUrl]],
+            ['type' => 'text',      'text'      => $prompt],
+            ['type' => 'image_url', 'image_url' => ['url' => $dataUrl]],
         ];
 
         try {
