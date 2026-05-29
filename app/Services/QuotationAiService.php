@@ -509,27 +509,33 @@ class QuotationAiService
     /**
      * Send a vision request to a vision-capable AI model.
      * Priority order (first configured key wins):
-     *   1. GEMINI_API_KEY  → Google Gemini  (free: https://aistudio.google.com/apikey)
-     *   2. GROQ_API_KEY    → Groq           (free: https://console.groq.com)
-     *   3. VISION_API_KEY  → any OpenAI-compatible endpoint (OpenAI, OpenRouter …)
-     * DeepSeek does NOT support image inputs.
+     *   1. DEEPSEEK_API_KEY → DeepSeek deepseek-vl2 (https://api.deepseek.com)
+     *   2. GEMINI_API_KEY   → Google Gemini  (free: https://aistudio.google.com/apikey)
+     *   3. GROQ_API_KEY     → Groq           (free: https://console.groq.com)
+     *   4. VISION_API_KEY   → any OpenAI-compatible endpoint
      */
     private function callDeepSeekVision(string $bytes, string $mime, array $context): array
     {
-        // ── 1. Google Gemini ─────────────────────────────────────────────────────
-        $geminiKey = (string) config('services.gemini.key', '');
-        if ($geminiKey !== '') {
-            $visionKey     = $geminiKey;
+        // ── 1. DeepSeek deepseek-vl2 (uses existing DEEPSEEK_API_KEY) ────────────────
+        $deepseekKey = (string) config('services.deepseek.key', '');
+        if ($deepseekKey !== '') {
+            $visionKey     = $deepseekKey;
+            $visionBaseUrl = 'https://api.deepseek.com';
+            $visionModel   = (string) config('services.deepseek.vision_model', 'deepseek-vl2');
+        }
+        // ── 2. Google Gemini ─────────────────────────────────────────────────────
+        elseif ((string) config('services.gemini.key', '') !== '') {
+            $visionKey     = (string) config('services.gemini.key');
             $visionBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
             $visionModel   = (string) config('services.gemini.model', 'gemini-2.0-flash');
         }
-        // ── 2. Groq (free tier) ──────────────────────────────────────────────────
+        // ── 3. Groq (free tier) ──────────────────────────────────────────────────
         elseif ((string) config('services.groq.key', '') !== '') {
             $visionKey     = (string) config('services.groq.key');
             $visionBaseUrl = 'https://api.groq.com/openai/v1';
             $visionModel   = (string) config('services.groq.model', 'meta-llama/llama-4-scout-17b-16e-instruct');
         }
-        // ── 3. Generic VISION_API_KEY (OpenAI, OpenRouter, …) ───────────────────
+        // ── 4. Generic VISION_API_KEY (OpenAI, OpenRouter, …) ───────────────────
         else {
             $visionKey     = (string) config('services.vision.key', '');
             $visionBaseUrl = rtrim((string) config('services.vision.base_url', 'https://openrouter.ai/api/v1'), '/');
@@ -538,17 +544,18 @@ class QuotationAiService
 
         if ($visionKey === '') {
             return $this->failure(
-                'Image processing requires a vision-capable AI. Add one of the following to your .env: ' .
-                'GEMINI_API_KEY (free at https://aistudio.google.com/apikey) or ' .
-                'GROQ_API_KEY (free at https://console.groq.com).'
+                'Image processing requires a vision-capable AI. ' .
+                'Set DEEPSEEK_API_KEY (uses deepseek-vl2), or GROQ_API_KEY (free at https://console.groq.com).'
             );
         }
 
-        $dataUrl     = "data:{$mime};base64," . base64_encode($bytes);
-        $prompt      = $this->buildDeepSeekPrompt($context, $mime);
+        $dataUrl = "data:{$mime};base64," . base64_encode($bytes);
+        $prompt  = $this->buildDeepSeekPrompt($context, $mime);
+
+        // Text MUST come before image_url for deepseek-vl2 compatibility
         $userContent = [
-            ['type' => 'image_url', 'image_url' => ['url' => $dataUrl]],
             ['type' => 'text',      'text'       => $prompt],
+            ['type' => 'image_url', 'image_url'  => ['url' => $dataUrl]],
         ];
 
         try {
@@ -572,8 +579,8 @@ class QuotationAiService
                         ['role' => 'system', 'content' => $this->buildSystemInstruction()],
                         ['role' => 'user',   'content' => $userContent],
                     ],
-                    'max_tokens'  => 65536,
-                    'temperature' => 0.1,
+                    'max_tokens'  => 4096,
+                    'temperature' => 0.2,
                 ]);
         } catch (ConnectionException $e) {
             return $this->failure('Vision API connection timeout or unavailable.', true);
