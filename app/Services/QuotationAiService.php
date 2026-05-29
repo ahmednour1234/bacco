@@ -455,7 +455,8 @@ class QuotationAiService
             }
 
             // ── Images ──────────────────────────────────────────────────────────────
-            // Send image directly to a vision-capable AI (configured via VISION_API_KEY in .env).
+            // DeepSeek cannot receive images. A vision-capable AI processes the image
+            // directly (no OCR) — configure GROQ_API_KEY or GEMINI_API_KEY in .env.
             $imageExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif', 'heic', 'heif'];
             if (in_array($ext, $imageExts, true)) {
                 $bytes = (string) file_get_contents($absPath);
