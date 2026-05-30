@@ -9,6 +9,13 @@ class Article extends BaseModel
 {
     use HasFactory;
 
+    protected $fillable = [
+        'uuid', 'slug', 'name_en', 'name_ar',
+        'title_en', 'title_ar',
+        'desc_en', 'desc_ar',
+        'image', 'tag', 'sort_order', 'active',
+    ];
+
     protected static function booted(): void
     {
         static::creating(function (self $article) {

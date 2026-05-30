@@ -893,45 +893,25 @@ $_faqSchema = json_encode([
                 <a href="{{ route('news') }}" class="news-link">{{ __('welcome.news.view_all') }} &#8599;</a>
             </div>
             <div class="news-grid">
+                @foreach($news as $article)
                 <div class="news-card">
+                    @if($article->image)
                     <div class="news-img-placeholder">
-                        <img src="{{ asset('images/news/construction-materials.jpg') }}"
+                        <img src="{{ asset('storage/' . $article->image) }}"
                              width="800" height="534"
-                             alt="{{ $isAr ? 'أسعار مواد البناء في السعودية - مشروع إنشائي بالسعودية' : 'Construction materials pricing in Saudi Arabia - local building project' }}"
+                             alt="{{ $isAr ? $article->title_ar : $article->title_en }}"
                              loading="lazy">
                     </div>
+                    @endif
                     <div class="news-body">
-                        <p class="news-tag market">{{ __('welcome.news.tag_market') }}</p>
-                        <p class="news-title">{{ __('welcome.news.n1_title') }}</p>
-                        <p class="news-desc">{{ __('welcome.news.n1_desc') }}</p>
+                        @if($article->tag)
+                        <p class="news-tag {{ $article->tag }}">{{ $isAr ? $article->name_ar : $article->name_en }}</p>
+                        @endif
+                        <p class="news-title">{{ $isAr ? $article->title_ar : $article->title_en }}</p>
+                        <p class="news-desc">{{ $isAr ? $article->desc_ar : $article->desc_en }}</p>
                     </div>
                 </div>
-                <div class="news-card">
-                    <div class="news-img-placeholder">
-                        <img src="{{ asset('images/news/smart-pricing-tech.jpg') }}"
-                             width="800" height="534"
-                             alt="{{ $isAr ? 'تقنية التسعير الذكي لمواد البناء - منصة كيمتا للإنشاء' : 'Smart construction pricing technology powered by QIMTA platform' }}"
-                             loading="lazy">
-                    </div>
-                    <div class="news-body">
-                        <p class="news-tag tech">{{ __('welcome.news.tag_tech') }}</p>
-                        <p class="news-title">{{ __('welcome.news.n2_title') }}</p>
-                        <p class="news-desc">{{ __('welcome.news.n2_desc') }}</p>
-                    </div>
-                </div>
-                <div class="news-card">
-                    <div class="news-img-placeholder">
-                        <img src="{{ asset('images/news/business-meeting.jpg') }}"
-                             width="800" height="534"
-                             alt="{{ $isAr ? 'نجاح عملاء كيمتا - مقاول يوفر تكاليف المشاريع الإنشائية' : 'QIMTA client success - contractor reducing construction project costs' }}"
-                             loading="lazy">
-                    </div>
-                    <div class="news-body">
-                        <p class="news-tag case">{{ __('welcome.news.tag_case') }}</p>
-                        <p class="news-title">{{ __('welcome.news.n3_title') }}</p>
-                        <p class="news-desc">{{ __('welcome.news.n3_desc') }}</p>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </section>

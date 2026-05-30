@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -33,7 +34,13 @@ class CatalogController extends Controller
             // catalog DB unavailable — welcome page still renders, cards are hidden
         }
 
-        return view('welcome', compact('divisions'));
+        $news = Article::where('active', true)
+            ->orderBy('sort_order')
+            ->orderByDesc('id')
+            ->limit(3)
+            ->get();
+
+        return view('welcome', compact('divisions', 'news'));
     }
 
     public function index()
