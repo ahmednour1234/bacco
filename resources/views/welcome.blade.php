@@ -908,7 +908,8 @@ $_faqSchema = json_encode([
                         <p class="news-tag {{ $article->tag }}">{{ $isAr ? $article->name_ar : $article->name_en }}</p>
                         @endif
                         <p class="news-title">{{ $isAr ? $article->title_ar : $article->title_en }}</p>
-                        <p class="news-desc">{{ $isAr ? $article->desc_ar : $article->desc_en }}</p>
+                        @php $rawDesc = $isAr ? $article->desc_ar : $article->desc_en; @endphp
+                        <p class="news-desc">{{ \Illuminate\Support\Str::limit(strip_tags($rawDesc), 120) }}</p>
                     </div>
                 </div>
                 @endforeach
