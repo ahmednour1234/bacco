@@ -114,7 +114,7 @@ return [
         'brand_qimta'   => 'Global Catalog',
         'brand_trad'    => 'Local Distributors Only',
         'data_label'    => 'Data Accuracy',
-        'data_qimta'    => '99.9% RAG Verified',
+        'data_qimta'    => '100% RAG Verified',
         'data_trad'     => 'Variable (Human Error)',
         'buy_label'     => 'Purchase Platform',
         'buy_qimta'     => 'Integrated Checkout',
@@ -136,7 +136,7 @@ return [
         'latency'       => 'Latency',
         'm1_title'      => '',
         'm1_desc'       => 'Verified Products',
-        'm2_title'      => '99.9%',
+        'm2_title'      => '100%',
         'm2_desc'       => 'Match Rate',
         'm3_title'      => '<60s',
         'm3_desc'       => 'Matching Speed',
@@ -151,7 +151,7 @@ return [
 
     // ── NEWS ─────────────────────────────────────────────────────────────────
     'news' => [
-        'title'         => 'Industry Intelligence',
+        'title'         => 'Qimta News',
         'view_all'      => 'View all news',
         'tag_market'    => 'Market Report',
         'tag_tech'      => 'Tech Update',
@@ -191,7 +191,7 @@ return [
     'faq' => [
         'title'  => 'BOQ Pricing FAQs — Construction Products, Matching & Integration',
         'q1'     => 'How accurate is the RAG matching engine?',
-        'a1'     => 'Our RAG engine achieves 99.9% accuracy by cross-referencing 1B+ technical specs against manufacturer databases, with continuous real-time updates to maintain precision.',
+        'a1'     => 'Our RAG engine achieves 100% accuracy by cross-referencing 1B+ technical specs against manufacturer databases, with continuous real-time updates to maintain precision.',
         'q2'     => 'Is my data secure?',
         'a2'     => 'Yes. All BOQ data is encrypted in transit and at rest. We never share your project data with third parties, and you retain full ownership of your uploaded documents.',
         'q3'     => 'What formats of BOQ do you support?',
