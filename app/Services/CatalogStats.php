@@ -33,10 +33,8 @@ class CatalogStats
                 $db = DB::connection('catalog');
 
                 return [
-                    'products'   => $db->table('catalog_products')
-                        ->where('status', 'active')
-                        ->whereNull('deleted_at')
-                        ->count(),
+                    'products'   => (int) $db->table('catalog_products')
+                        ->max('id'),
                     'categories' => $db->table('catalog_categories')
                         ->where('status', 'active')
                         ->whereNull('deleted_at')
