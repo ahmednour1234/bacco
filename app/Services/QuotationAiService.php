@@ -454,6 +454,17 @@ class QuotationAiService
                 return $this->failure('Could not extract text from the PDF. Please make sure it is a text-based PDF (not a scanned image), or convert it to Excel or CSV.');
             }
 
+            // -- Word documents (docx) ---------------------------------------------------
+            if (in_array($ext, ['docx', 'doc'], true)) {
+                $text = $this->extractDocxText($absPath);
+                if ($text === null || trim($text) === '') {
+                    return $this->failure('Could not extract text from the Word document. Please convert it to Excel, CSV, or PDF.');
+                }
+                $text        = $this->sanitizeUtf8(mb_substr($text, 0, 180000));
+                $userContent = "BOQ Word document extracted text:\n\n" . $text . "\n\n" . $this->buildDeepSeekPrompt($context, 'text/plain');
+                return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
+            }
+
             // ── Images ──────────────────────────────────────────────────────────────
             // DeepSeek cannot receive images. A vision-capable AI processes the image
             // directly (no OCR) — configure GROQ_API_KEY or GEMINI_API_KEY in .env.
@@ -485,6 +496,40 @@ class QuotationAiService
         // Strip any remaining non-printable control characters (except tab/newline/CR)
         $clean = (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $clean);
         return $clean;
+    }
+
+    /**
+     * Extract plain text from a Word docx file using ZipArchive (no external library needed).
+     * Reads word/document.xml and strips XML tags, preserving paragraph and table structure.
+     */
+    private function extractDocxText(string $absPath): ?string
+    {
+        try {
+            $zip = new \ZipArchive();
+            if ($zip->open($absPath) !== true) {
+                return null;
+            }
+
+            $xml = $zip->getFromName('word/document.xml');
+            $zip->close();
+
+            if ($xml === false || $xml === '') {
+                return null;
+            }
+
+            // Add newlines before paragraph/table-row/table-cell tags so structure is preserved
+            $xml = preg_replace('/<w:p[ >]/', "\n<w:p>", $xml) ?? $xml;
+            $xml = preg_replace('/<w:tr[ >]/', "\n<w:tr>", $xml) ?? $xml;
+            $xml = preg_replace('/<\/w:tc>/', "\t", $xml) ?? $xml;
+
+            $text = strip_tags($xml);
+            $text = (string) preg_replace('/[ \t]{2,}/', ' ', $text);
+            $text = (string) preg_replace('/\n{3,}/', "\n\n", $text);
+            return trim($text) !== '' ? trim($text) : null;
+        } catch (\Throwable $e) {
+            Log::warning('QuotationAiService: DOCX parsing failed.', ['error' => $e->getMessage()]);
+            return null;
+        }
     }
 
     /**
@@ -784,7 +829,7 @@ TXT;
             ? "Project: {$projectName}" . ($projectStatus !== '' ? " ({$projectStatus})" : '')
             : '';
         $sourceHint = str_starts_with($mime, 'image/')
-            ? 'The input is an image of a BOQ. OCR carefully.'
+            ? 'The input is an image of a BOQ table. OCR every cell carefully — read the quantity/count column (العدد, الكمية, Qty) and extract the EXACT numeric value from each row.'
             : 'The input is a BOQ document/spreadsheet.';
 
         return trim(<<<PROMPT
@@ -812,7 +857,7 @@ EXCLUDE all of the following (do NOT include them):
 
 For each valid physical product return JSON with:
 - description: clean product name only (strip "supply and install", "supply and fix", installation clauses, floor/spec suffixes)
-- quantity: numeric value (use 1 if unclear but product is real)
+- quantity: the EXACT numeric value from the quantity/count column (العدد, الكمية, Qty, Quantity, No.). NEVER default to 1 unless the quantity column is truly absent or empty.
 - unit: unit of measure (pcs, m, m2, m3, set, no, kg, etc.)
 - category: product category
 - brand: brand/manufacturer if mentioned, else ""
@@ -870,6 +915,8 @@ PROMPT);
             'bmp'         => 'image/bmp',
             'webp'        => 'image/webp',
             'tiff', 'tif' => 'image/tiff',
+            'docx'        => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'doc'         => 'application/msword',
             default       => 'application/octet-stream',
         };
     }
