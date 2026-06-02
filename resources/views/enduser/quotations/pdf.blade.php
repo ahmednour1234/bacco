@@ -147,12 +147,6 @@
                     <div class="meta-label">Date</div>
                     <div class="meta-value">{{ $quotation->created_at->format('M d, Y') }}</div>
                 </td>
-                <td>
-                    <div class="meta-label">Status</div>
-                    <div class="meta-value">
-                        <span class="status-badge status-{{ $sv }}">{{ $statusLabel }}</span>
-                    </div>
-                </td>
             </tr>
         </table>
     </div>
@@ -181,7 +175,6 @@
                 <th style="width:60px;">Qty</th>
                 <th style="width:50px;">Unit</th>
                 <th style="width:70px;">Category</th>
-                <th style="width:60px;" class="center">Status</th>
                 <th style="width:90px;" class="right">Unit Price (SAR)</th>
                 <th style="width:100px;" class="right">Total (SAR)</th>
             </tr>
@@ -204,9 +197,6 @@
                 <td class="item-qty">{{ number_format((float)$item->quantity, 0) }}</td>
                 <td style="color:#64748b;">{{ $item->unit?->name ?: '—' }}</td>
                 <td style="color:#64748b; font-size:10px;">{{ $item->category ?: '—' }}</td>
-                <td class="center">
-                    <span class="status-{{ $statusVal }}">{{ strtoupper($statusVal) }}</span>
-                </td>
                 <td class="right">
                     @if($hasPrice)
                         <span class="price">{{ number_format((float)$item->unit_price, 2) }}</span>
@@ -250,13 +240,19 @@
         <div class="terms-title">4. Terms &amp; Conditions</div>
         <div class="terms-line"></div>
         <ol class="terms-list">
-            <li>Prices are quoted in Saudi Riyals (SAR) and are exclusive of VAT unless stated otherwise.</li>
+            <li>Prices are quoted in Saudi Riyals (SAR) and are inclusive of 15% VAT unless stated otherwise.</li>
             <li>This quotation is valid for <strong>10 days</strong> from the date of issue.</li>
-            <li>Payment terms: 50% advance, 50% upon delivery, unless otherwise agreed.</li>
-            <li>Delivery schedule is subject to confirmation upon receipt of purchase order.</li>
-            <li>All materials comply with project specifications and Saudi building codes.</li>
-            <li>Warranty as per manufacturer standards unless otherwise specified.</li>
-            <li>Qimta reserves the right to revise pricing if project scope changes.</li>
+            <li>This quotation is official and binding. Upon receipt of 100% advance payment, the order shall be considered confirmed and will be processed for execution.</li>
+            <li>Payment terms: 100% advance payment upon order confirmation.</li>
+            <li>Delivery schedule: Maximum 60 days from receipt of advance payment for all supply items. Engineering-related items shall be delivered within a maximum of 90 days from receipt of advance payment.</li>
+            <li>This quotation is strictly for supply only. It does not include installation, testing, commissioning, site works, supervision, or any engineering execution at site, even if any wording elsewhere in the quotation may imply otherwise, unless expressly agreed in writing by Qimta.</li>
+            <li>All materials shall comply with project specifications and applicable Saudi Building Code requirements.</li>
+            <li>Warranty shall be as per manufacturer standards unless otherwise specified.</li>
+            <li>Qimta reserves the right to revise pricing in case of any change in project scope, specifications, quantities, delivery location, or market conditions.</li>
+            <li>Delivery period is subject to the availability of materials, manufacturer lead time, and timely approval of all required technical submittals, drawings, or documents.</li>
+            <li>The quoted prices are based on the quantities and specifications provided at the time of quotation. Any variation in quantity or specification may require price adjustment.</li>
+            <li>Order cancellation after payment or procurement confirmation shall be subject to supplier/manufacturer cancellation policy and any incurred costs.</li>
+            <li>Qimta shall not be liable for delays caused by force majeure events, customs clearance delays, supplier/manufacturer delays, government procedures, or circumstances beyond its control.</li>
         </ol>
     </div>
 
