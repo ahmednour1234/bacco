@@ -10,9 +10,6 @@ class GuestBoqController extends Controller
 {
     public function create(Request $request): View
     {
-        // Force Arabic for the /try page
-        app()->setLocale('ar');
-
         $guestToken = $request->session()->get('guest_boq_token');
 
         if (! $guestToken) {

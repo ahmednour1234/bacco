@@ -1,33 +1,31 @@
 @extends('layouts.app')
 
-@php $isAr = true; /* forced Arabic on /try */ @endphp
+@php $isAr = app()->getLocale() === 'ar'; @endphp
 
-@section('title', 'سعّر جدول الكميات مجاناً — كيمتا')
-@section('description', 'ارفع جدول الكميات واحصل على تسعيرة فورية مجانية — بدون تسجيل مسبق.')
-
-@section('no_ar_hreflang', true)
+@section('title', $isAr ? 'سعّر جدول الكميات مجاناً — كيمتا' : 'Price Your BOQ Free — Qimta')
+@section('description', $isAr ? 'ارفع جدول الكميات واحصل على تسعيرة فورية مجانية — بدون تسجيل مسبق.' : 'Upload your BOQ and get instant AI-powered pricing — no account required.')
 
 @section('nav-cta')
     @auth
         <a href="{{ route('enduser.boqs.create') }}" class="btn-nav-cta">
-            إنشاء BOQ جديد
+            {{ $isAr ? 'إنشاء BOQ جديد' : 'New BOQ' }}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
     @else
-        <a href="{{ route('enduser.login') }}" class="btn-nav-cta">تسجيل الدخول</a>
+        <a href="{{ route('enduser.login') }}" class="btn-nav-cta">{{ $isAr ? 'تسجيل الدخول' : 'Sign In' }}</a>
     @endauth
 @endsection
 
 @section('mobile-cta')
     @guest
-        <a href="{{ route('enduser.login') }}" class="btn btn-primary">تسجيل الدخول</a>
+        <a href="{{ route('enduser.login') }}" class="btn btn-primary">{{ $isAr ? 'تسجيل الدخول' : 'Sign In' }}</a>
     @endguest
 @endsection
 
 @section('styles')
 <style>
-/* ── Force RTL ── */
-body { direction: rtl; text-align: right; }
+/* ── RTL when Arabic ── */
+body[dir='rtl'] { text-align: right; }
 
 /* ──────────────────────────────────
    HERO
