@@ -20,6 +20,7 @@ class Project extends BaseModel
             'expected_end_date'   => 'date',
             'actual_end_date'     => 'date',
             'deleted_at'          => 'datetime',
+            'is_guest'            => 'boolean',
         ]);
     }
 

@@ -28,7 +28,11 @@ use App\Http\Controllers\Supplier\AuthController as SupplierAuthController;
 use App\Http\Controllers\Supplier\DashboardController as SupplierDashboardController;
 use App\Http\Controllers\Supplier\ProductController as SupplierProductController;
 use App\Http\Controllers\Supplier\ProfileController as SupplierProfileController;
+use App\Http\Controllers\GuestBoqController;
 use Illuminate\Support\Facades\Route;
+
+// ─── Guest BOQ Teaser (no auth required) ─────────────────────────────────────
+Route::get('/try', [GuestBoqController::class, 'create'])->name('guest.boq.create');
 
 Route::get('/', [\App\Http\Controllers\CatalogController::class, 'home']);
 

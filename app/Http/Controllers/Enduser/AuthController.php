@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Enduser;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Enduser\RegisterRequest;
+use App\Models\Boq;
+use App\Models\User;
 use App\Services\Enduser\AuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +28,15 @@ class AuthController extends Controller
 
     public function store(RegisterRequest $request): RedirectResponse
     {
-        $this->authService->register($request);
+        $user = $this->authService->register($request);
+
+        $boq = $this->claimGuestBoq($request, $user);
+
+        if ($boq) {
+            return redirect()
+                ->route('enduser.boqs.show', ['uuid' => $boq->uuid])
+                ->with('success', 'Welcome! Your BOQ has been linked to your new account.');
+        }
 
         return redirect()
             ->route('enduser.dashboard')
@@ -63,6 +73,12 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        $boq = $this->claimGuestBoq($request, auth()->user());
+
+        if ($boq) {
+            return redirect()->route('enduser.boqs.show', ['uuid' => $boq->uuid]);
+        }
+
         return redirect()->intended(route('enduser.dashboard'));
     }
 
@@ -71,6 +87,57 @@ class AuthController extends Controller
         $this->authService->logout();
 
         return redirect()->route('enduser.login');
+    }
+
+    // =========================================================================
+    // Guest BOQ Claim
+    // =========================================================================
+
+    /**
+     * If the session contains a pending guest BOQ, transfer ownership to the
+     * newly authenticated user. Returns the claimed Boq or null.
+     */
+    private function claimGuestBoq(Request $request, ?User $user): ?Boq
+    {
+        if (! $user) {
+            return null;
+        }
+
+        $uuid  = $request->session()->get('pending_guest_boq_uuid');
+        $token = $request->session()->get('pending_guest_boq_token');
+
+        if (! $uuid || ! $token) {
+            return null;
+        }
+
+        $boq = Boq::where('uuid', $uuid)
+            ->where('guest_token', $token)
+            ->whereNull('client_id')
+            ->first();
+
+        if (! $boq) {
+            return null;
+        }
+
+        // Claim the BOQ
+        $boq->update(['client_id' => $user->id, 'guest_token' => null]);
+
+        // Claim the linked guest project
+        if ($boq->project_id) {
+            $boq->project()
+                ->where('is_guest', true)
+                ->whereNull('client_id')
+                ->update(['client_id' => $user->id, 'is_guest' => false]);
+        }
+
+        // Claim any quotation requests linked to this BOQ
+        $boq->quotationRequests()
+            ->whereNull('client_id')
+            ->update(['client_id' => $user->id]);
+
+        $request->session()->forget(['pending_guest_boq_uuid', 'pending_guest_boq_token']);
+
+        return $boq->fresh();
     }
 
     // =========================================================================

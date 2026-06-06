@@ -52,6 +52,11 @@ class CreateBoq extends Component
 
     public bool $isEditMode = false;
 
+    // ── Guest mode (unauthenticated try flow) ─────────────────────────────
+    public bool    $guestMode              = false;
+    public ?string $guestToken             = null;
+    public bool    $showGuestLoginOverlay  = false;
+
     #[Validate('required|string|max:255')]
     public string $projectName = '';
 
@@ -106,6 +111,14 @@ class CreateBoq extends Component
 
     public function mount(?string $projectUuid = null): void
     {
+        // ── Guest mode: skip all auth-dependent resume logic ──────────────────
+        if ($this->guestMode) {
+            if (empty($this->guestToken)) {
+                $this->guestToken = (string) \Illuminate\Support\Str::uuid();
+            }
+            return;
+        }
+
         // ── Load a specific draft by UUID (legacy / direct link) ──────────────
         $draftUuid = request()->query('draft');
         if ($draftUuid) {
@@ -213,8 +226,15 @@ class CreateBoq extends Component
     /** Returns true if the AI job started > 5 minutes ago (i.e. it timed out). */
     private function isJobTimedOut(): bool
     {
-        $startedAt = Cache::get('boq_ai_started_at_' . Auth::id());
+        $startedAt = Cache::get($this->cacheKeyFor('boq_ai_started_at'));
         return $startedAt !== null && (now()->timestamp - $startedAt) > 300;
+    }
+
+    /** Build a per-user (or per-guest) cache key. */
+    private function cacheKeyFor(string $type): string
+    {
+        $suffix = $this->guestMode ? $this->guestToken : Auth::id();
+        return $type . '_' . $suffix;
     }
 
     private function loadFromBoq(Boq $boq): void
@@ -312,7 +332,7 @@ class CreateBoq extends Component
                 UploadedDocument::create([
                     'boq_id'      => $boq->id,
                     'project_id'  => $project->id,
-                    'uploaded_by' => Auth::id(),
+                    'uploaded_by' => $this->guestMode ? null : Auth::id(),
                     'file_name'   => $fileName,
                     'file_path'   => $storedPath,
                     'file_type'   => 'boq',
@@ -414,17 +434,17 @@ class CreateBoq extends Component
         }
 
         // ── Auto-fail if the job has been running for more than 5 minutes ────
-        $startedAt = Cache::get('boq_ai_started_at_' . Auth::id());
+        $startedAt = Cache::get($this->cacheKeyFor('boq_ai_started_at'));
         if ($startedAt && (now()->timestamp - $startedAt) > 300) {
-            Cache::put('boq_ai_status_' . Auth::id(), 'failed', now()->addMinutes(30));
-            Cache::put('boq_ai_message_' . Auth::id(),
+            Cache::put($this->cacheKeyFor('boq_ai_status'), 'failed', now()->addMinutes(30));
+            Cache::put($this->cacheKeyFor('boq_ai_message'),
                 'Processing timed out after 5 minutes. The file may be too large, or the background worker may not be running. Please try again.',
                 now()->addMinutes(30)
             );
         }
 
-        $status  = Cache::get('boq_ai_status_' . Auth::id());
-        $message = (string) Cache::get('boq_ai_message_' . Auth::id(), '');
+        $status  = Cache::get($this->cacheKeyFor('boq_ai_status'));
+        $message = (string) Cache::get($this->cacheKeyFor('boq_ai_message'), '');
 
         if ($status === 'done') {
             $boq = Boq::where('id', $this->boqId)->with(['items.unit'])->first();
@@ -734,7 +754,7 @@ class CreateBoq extends Component
             $this->unpricedCount  = count($this->pricedItems);
 
             // ── Dispatch pricing job (async) ─────────────────────────────────
-            FetchQuotationPricesJob::dispatch($this->quotationId, Auth::id(), $this->quotationUuid);
+            FetchQuotationPricesJob::dispatch($this->quotationId, $this->guestMode ? null : Auth::id(), $this->quotationUuid);
             $this->pricesFetching = true;
 
             $this->currentStep = 3;
@@ -789,6 +809,28 @@ class CreateBoq extends Component
         $this->pricedCount    = $pricedCount;
         $this->unpricedCount  = $unpricedCount;
         $this->pricesFetching = false;
+
+        // ── Guest mode: store intent in session and show login overlay ──────
+        if ($this->guestMode) {
+            session([
+                'pending_guest_boq_uuid'  => $this->draftBoqUuid,
+                'pending_guest_boq_token' => $this->guestToken,
+            ]);
+            $this->showGuestLoginOverlay = true;
+        }
+    }
+
+    /**
+     * Called by the guest login CTA button.
+     * Commits session intent and redirects to the login page.
+     */
+    public function redirectToLogin(): void
+    {
+        session([
+            'pending_guest_boq_uuid'  => $this->draftBoqUuid,
+            'pending_guest_boq_token' => $this->guestToken,
+        ]);
+        $this->redirect(route('enduser.login'));
     }
 
     /** Step 3 → 4: go to address & payment. */
@@ -995,8 +1037,11 @@ class CreateBoq extends Component
     private function persistProject(): Project
     {
         if ($this->projectId !== null) {
-            $project = Project::where('client_id', Auth::id())
-                ->findOrFail($this->projectId);
+            if ($this->guestMode) {
+                $project = Project::where('is_guest', true)->findOrFail($this->projectId);
+            } else {
+                $project = Project::where('client_id', Auth::id())->findOrFail($this->projectId);
+            }
 
             $project->update([
                 'name'        => $this->projectName,
@@ -1007,11 +1052,12 @@ class CreateBoq extends Component
         }
 
         $project = Project::create([
-            'client_id'   => Auth::id(),
+            'client_id'   => $this->guestMode ? null : Auth::id(),
             'project_no'  => $this->generateProjectNo(),
             'name'        => $this->projectName,
             'description' => $this->projectDescription,
             'status'      => ProjectStatusEnum::Pending,
+            'is_guest'    => $this->guestMode,
         ]);
 
         $this->projectId = $project->id;
@@ -1022,8 +1068,11 @@ class CreateBoq extends Component
     private function persistBoq(Project $project, ?BoqStatusEnum $status = null): Boq
     {
         if ($this->boqId !== null) {
-            $boq = Boq::where('client_id', Auth::id())
-                ->findOrFail($this->boqId);
+            if ($this->guestMode) {
+                $boq = Boq::where('guest_token', $this->guestToken)->findOrFail($this->boqId);
+            } else {
+                $boq = Boq::where('client_id', Auth::id())->findOrFail($this->boqId);
+            }
 
             $attrs = [];
             if ($status !== null) {
@@ -1039,11 +1088,12 @@ class CreateBoq extends Component
         }
 
         $boq = Boq::create([
-            'project_id' => $project->id,
-            'client_id'  => Auth::id(),
-            'boq_no'     => $this->generateBoqNo(),
-            'status'     => $status ?? BoqStatusEnum::Draft,
-            'type'       => $this->boqType,
+            'project_id'  => $project->id,
+            'client_id'   => $this->guestMode ? null : Auth::id(),
+            'guest_token' => $this->guestMode ? $this->guestToken : null,
+            'boq_no'      => $this->generateBoqNo(),
+            'status'      => $status ?? BoqStatusEnum::Draft,
+            'type'        => $this->boqType,
         ]);
 
         $this->boqId        = $boq->id;

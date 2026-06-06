@@ -11,7 +11,7 @@
     : 'Qimta prices every BOQ line across every brand in seconds. Access ' . number_format($catalogStats['products']) . ' verified products and 1B technical specs. The construction pricing platform for Saudi Arabia & GCC.')
 
 @section('nav-cta')
-    <a href="{{ route('enduser.login') }}" class="btn-nav-cta">
+    <a href="{{ route('guest.boq.create') }}" class="btn-nav-cta">
         {{ __('welcome.nav.price_boq') }}
         <span class="cta-badge">{{ $isAr ? 'مجاني' : 'FREE' }}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -19,7 +19,7 @@
 @endsection
 
 @section('mobile-cta')
-    <a href="{{ route('enduser.login') }}" class="btn btn-primary">{{ __('welcome.nav.price_boq') }}</a>
+    <a href="{{ route('guest.boq.create') }}" class="btn btn-primary">{{ __('welcome.nav.price_boq') }}</a>
 @endsection
 
 @section('styles')

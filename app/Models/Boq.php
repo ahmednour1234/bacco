@@ -24,6 +24,11 @@ class Boq extends BaseModel
         ]);
     }
 
+    public function isGuest(): bool
+    {
+        return $this->client_id === null && $this->guest_token !== null;
+    }
+
     // -------------------------------------------------------------------------
     // Relationships
     // -------------------------------------------------------------------------

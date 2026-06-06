@@ -447,42 +447,76 @@
         </div>
         @endif
 
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
-                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </span>
-                <h2 class="text-sm font-semibold text-slate-800">{{ app()->getLocale() === 'ar' ? 'تفاصيل عرض السعر' : 'Quotation Details' }}</h2>
+        {{-- ── Guest login overlay wrapper ─────────────────────────────────── --}}
+        <div class="relative">
+            {{-- Price table (always rendered so guest sees items) --}}
+            <div class="{{ $guestMode && $showGuestLoginOverlay ? 'select-none pointer-events-none' : '' }}">
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden {{ $guestMode && $showGuestLoginOverlay ? 'blur-sm' : '' }}">
+                    <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </span>
+                        <h2 class="text-sm font-semibold text-slate-800">{{ app()->getLocale() === 'ar' ? 'تفاصيل عرض السعر' : 'Quotation Details' }}</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="border-b border-slate-100 bg-slate-50">
+                                <th class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[220px]">{{ __('app.description') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.unit') }}</th>
+                                <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ app()->getLocale() === 'ar' ? 'سعر الوحدة' : 'Unit Price' }}</th>
+                                <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ app()->getLocale() === 'ar' ? 'الإجمالي' : 'Total' }}</th>
+                            </tr></thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach($pricedItems as $pi)
+                                    <tr class="hover:bg-slate-50/60">
+                                        <td class="px-4 py-3 text-slate-700">{{ $pi['description'] }}</td>
+                                        <td class="px-4 py-3 text-center text-slate-600">{{ number_format($pi['quantity'], 2) }}</td>
+                                        <td class="px-4 py-3 text-center text-slate-500">{{ $pi['unit'] ?: '—' }}</td>
+                                        <td class="px-4 py-3 text-end font-medium {{ $pi['unit_price'] ? 'text-slate-800' : 'text-red-400' }}">
+                                            {{ $pi['unit_price'] ? number_format($pi['unit_price'], 2).' SAR' : (app()->getLocale()==='ar'?'لم يُسعَّر':'Not priced') }}
+                                        </td>
+                                        <td class="px-4 py-3 text-end font-semibold text-slate-800">{{ $pi['line_total'] > 0 ? number_format($pi['line_total'], 2).' SAR' : '—' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr class="border-t-2 border-slate-200 bg-slate-50"><td colspan="4" class="px-4 py-3 text-end text-sm font-semibold text-slate-600">{{ app()->getLocale()==='ar'?'المجموع':'Subtotal' }}</td><td class="px-4 py-3 text-end font-bold text-slate-800">{{ number_format($quotationTotal, 2) }} SAR</td></tr>
+                                <tr class="bg-slate-50"><td colspan="4" class="px-4 py-2 text-end text-xs text-slate-500">{{ app()->getLocale()==='ar'?'ضريبة القيمة المضافة (15%)':'VAT (15%)' }}</td><td class="px-4 py-2 text-end text-sm text-slate-600">{{ number_format($quotationTotal * 0.15, 2) }} SAR</td></tr>
+                                <tr class="bg-emerald-50"><td colspan="4" class="px-4 py-3 text-end text-sm font-bold text-emerald-700">{{ app()->getLocale()==='ar'?'الإجمالي شامل الضريبة':'Grand Total incl. VAT' }}</td><td class="px-4 py-3 text-end text-lg font-bold text-emerald-700">{{ number_format($quotationTotal * 1.15, 2) }} SAR</td></tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead><tr class="border-b border-slate-100 bg-slate-50">
-                        <th class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[220px]">{{ __('app.description') }}</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.unit') }}</th>
-                        <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ app()->getLocale() === 'ar' ? 'سعر الوحدة' : 'Unit Price' }}</th>
-                        <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ app()->getLocale() === 'ar' ? 'الإجمالي' : 'Total' }}</th>
-                    </tr></thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @foreach($pricedItems as $pi)
-                            <tr class="hover:bg-slate-50/60">
-                                <td class="px-4 py-3 text-slate-700">{{ $pi['description'] }}</td>
-                                <td class="px-4 py-3 text-center text-slate-600">{{ number_format($pi['quantity'], 2) }}</td>
-                                <td class="px-4 py-3 text-center text-slate-500">{{ $pi['unit'] ?: '—' }}</td>
-                                <td class="px-4 py-3 text-end font-medium {{ $pi['unit_price'] ? 'text-slate-800' : 'text-red-400' }}">
-                                    {{ $pi['unit_price'] ? number_format($pi['unit_price'], 2).' SAR' : (app()->getLocale()==='ar'?'لم يُسعَّر':'Not priced') }}
-                                </td>
-                                <td class="px-4 py-3 text-end font-semibold text-slate-800">{{ $pi['line_total'] > 0 ? number_format($pi['line_total'], 2).' SAR' : '—' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr class="border-t-2 border-slate-200 bg-slate-50"><td colspan="4" class="px-4 py-3 text-end text-sm font-semibold text-slate-600">{{ app()->getLocale()==='ar'?'المجموع':'Subtotal' }}</td><td class="px-4 py-3 text-end font-bold text-slate-800">{{ number_format($quotationTotal, 2) }} SAR</td></tr>
-                        <tr class="bg-slate-50"><td colspan="4" class="px-4 py-2 text-end text-xs text-slate-500">{{ app()->getLocale()==='ar'?'ضريبة القيمة المضافة (15%)':'VAT (15%)' }}</td><td class="px-4 py-2 text-end text-sm text-slate-600">{{ number_format($quotationTotal * 0.15, 2) }} SAR</td></tr>
-                        <tr class="bg-emerald-50"><td colspan="4" class="px-4 py-3 text-end text-sm font-bold text-emerald-700">{{ app()->getLocale()==='ar'?'الإجمالي شامل الضريبة':'Grand Total incl. VAT' }}</td><td class="px-4 py-3 text-end text-lg font-bold text-emerald-700">{{ number_format($quotationTotal * 1.15, 2) }} SAR</td></tr>
-                    </tfoot>
-                </table>
+
+            {{-- Guest login overlay (shown after prices are fetched) --}}
+            @if($guestMode && $showGuestLoginOverlay)
+            <div class="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm px-6 py-10 text-center">
+                <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 mb-5">
+                    <svg class="h-8 w-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">
+                    {{ app()->getLocale() === 'ar' ? 'سجّل الدخول لاستعراض الأسعار وتحميل PDF' : 'Sign in to Reveal Prices & Download PDF' }}
+                </h3>
+                <p class="text-sm text-slate-500 max-w-sm mb-6">
+                    {{ app()->getLocale() === 'ar'
+                        ? 'جدول الكميات جاهز وسيتم ربطه بحسابك فور تسجيل الدخول.'
+                        : 'Your BOQ is ready and will be linked to your account the moment you sign in.' }}
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button type="button" wire:click="redirectToLogin"
+                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                        {{ app()->getLocale() === 'ar' ? 'تسجيل الدخول' : 'Sign In' }}
+                    </button>
+                    <a href="{{ route('enduser.register') }}"
+                        class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+                        {{ app()->getLocale() === 'ar' ? 'إنشاء حساب مجاني' : 'Create Free Account' }}
+                    </a>
+                </div>
             </div>
+            @endif
         </div>
 
         <div class="flex justify-between">
@@ -491,6 +525,7 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 {{ app()->getLocale() === 'ar' ? 'السابق' : 'Back' }}
             </button>
+            @if(! ($guestMode && $showGuestLoginOverlay))
             <button type="button" wire:click="proceedToAddress" @if($pricesFetching) disabled @endif
                 class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">
                 @if($pricesFetching)
@@ -501,6 +536,7 @@
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 @endif
             </button>
+            @endif
         </div>
     </div>
     @endif

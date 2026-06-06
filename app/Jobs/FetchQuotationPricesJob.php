@@ -27,7 +27,7 @@ class FetchQuotationPricesJob implements ShouldQueue
 
     public function __construct(
         private readonly int    $quotationId,
-        private readonly int    $userId,
+        private readonly ?int   $userId,
         private readonly string $quotationUuid,
     ) {}
 
@@ -108,7 +108,7 @@ class FetchQuotationPricesJob implements ShouldQueue
                 title: 'عرض السعر جاهز للمراجعة',
                 body: $body,
                 type: NotificationTypeEnum::PricingComplete,
-                recipientIds: [$this->userId],
+                recipientIds: $this->userId ? [$this->userId] : [],
                 actionUrl: route('enduser.quotations.show', $this->quotationUuid),
             );
 
@@ -122,7 +122,7 @@ class FetchQuotationPricesJob implements ShouldQueue
                 title: 'فشل جلب الأسعار',
                 body: 'حدث خطأ أثناء تسعير عرض السعر. يرجى المحاولة مرة أخرى.',
                 type: NotificationTypeEnum::General,
-                recipientIds: [$this->userId],
+                recipientIds: $this->userId ? [$this->userId] : [],
                 actionUrl: route('enduser.quotations.show', $this->quotationUuid),
             );
         } finally {
