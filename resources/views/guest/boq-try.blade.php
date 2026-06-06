@@ -29,451 +29,342 @@
 
 @section('styles')
 <style>
-body {
-    background: #f6faf8 !important;
-}
-
 .try-page {
-    min-height: 100vh;
-    background:
-        radial-gradient(circle at top left, rgba(16, 185, 129, .10), transparent 360px),
-        linear-gradient(180deg, #f8fffb 0%, #f7fafc 100%);
+    background: #f8fafc;
     font-family: 'Cairo', sans-serif;
-    padding: 48px 16px 90px;
 }
 
-.try-shell {
-    max-width: 1180px;
+.try-hero {
+    padding: 90px 0 76px;
+    background: linear-gradient(155deg, #f0fdf8 0%, #f8fdf9 55%, #ecfdf5 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.try-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(#bbf7d0 1.3px, transparent 1.3px);
+    background-size: 30px 30px;
+    opacity: .4;
+}
+
+.try-glow-tr,
+.try-glow-bl {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.try-glow-tr {
+    top: -160px;
+    left: -200px;
+    width: 580px;
+    height: 580px;
+    background: radial-gradient(circle, #6ee7b730 0%, transparent 68%);
+}
+
+.try-glow-bl {
+    bottom: -120px;
+    right: -150px;
+    width: 460px;
+    height: 460px;
+    background: radial-gradient(circle, #a7f3d020 0%, transparent 68%);
+}
+
+.try-hero-inner {
+    max-width: 860px;
     margin: 0 auto;
-}
-
-.try-header {
     text-align: center;
-    margin-bottom: 34px;
+    padding: 0 28px;
+    position: relative;
+    z-index: 2;
 }
 
 .try-badge {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
-    padding: 9px 18px;
-    border-radius: 999px;
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    color: #047857;
-    font-size: 13px;
+    gap: 10px;
+    background: #fff;
+    border: 1.5px solid #6ee7b7;
+    color: #059669;
+    font-size: 13.5px;
     font-weight: 800;
-    margin-bottom: 18px;
+    border-radius: 50px;
+    padding: 8px 22px;
+    margin-bottom: 32px;
+    box-shadow: 0 8px 24px #10b98117;
 }
 
-.try-badge span {
-    width: 9px;
-    height: 9px;
+.try-badge-dot {
+    width: 8px;
+    height: 8px;
     background: #10b981;
     border-radius: 50%;
-    box-shadow: 0 0 0 6px rgba(16, 185, 129, .12);
+    animation: tbpulse 2.2s ease-in-out infinite;
 }
 
-.try-title {
-    margin: 0;
-    color: #0f172a;
-    font-size: clamp(30px, 4vw, 52px);
+@keyframes tbpulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: .5; }
+}
+
+.try-hero h1 {
+    font-size: clamp(38px, 6vw, 74px);
     font-weight: 950;
-    line-height: 1.18;
+    line-height: 1.15;
+    color: #0f172a;
+    margin: 0 0 24px;
 }
 
-.try-title strong {
-    color: #047857;
+.try-highlight {
+    color: #059669;
+    position: relative;
+    display: inline-block;
 }
 
-.try-desc {
-    max-width: 690px;
-    margin: 18px auto 0;
-    color: #64748b;
-    font-size: 16px;
+.try-highlight::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 2px;
+    inset-inline-end: 2px;
+    bottom: -4px;
+    height: 6px;
+    background: linear-gradient(90deg, #34d399, #059669);
+    border-radius: 4px;
+    opacity: .75;
+}
+
+.try-sub {
+    font-size: 18px;
+    color: #475569;
+    max-width: 640px;
+    margin: 0 auto 42px;
     line-height: 1.9;
-    font-weight: 500;
 }
 
-.try-card {
+.try-trust {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+}
+
+.try-trust-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.try-trust-item svg {
+    color: #10b981;
+    flex-shrink: 0;
+}
+
+.try-trust-sep {
+    color: #cbd5e1;
+}
+
+.try-steps-wrap {
     background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 34px;
-    box-shadow: 0 22px 70px rgba(15, 23, 42, .09);
-    padding: 54px 64px 58px;
-    overflow: hidden;
-}
-
-.try-card-top {
-    margin-bottom: 44px;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 36px 28px;
 }
 
 .try-steps {
+    max-width: 960px;
+    margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 34px;
-    position: relative;
-}
-
-.try-steps::before {
-    content: '';
-    position: absolute;
-    top: 27px;
-    inset-inline: 80px;
-    height: 2px;
-    background: #e2e8f0;
-    z-index: 1;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
 }
 
 .try-step {
-    position: relative;
-    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
+    gap: 12px;
 }
 
 .try-step-num {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 12px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
-    background: #fff;
-    border: 2px solid #dbe5ef;
-    color: #94a3b8;
+    background: #ecfdf5;
+    border: 2px solid #a7f3d0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 15px;
+    font-size: 19px;
     font-weight: 900;
+    color: #059669;
 }
 
-.try-step.active .try-step-num {
-    background: linear-gradient(135deg, #059669, #10b981);
-    border-color: #a7f3d0;
-    color: #fff;
-    box-shadow: 0 10px 24px rgba(16, 185, 129, .28);
-}
-
-.try-step-title {
-    color: #94a3b8;
-    font-size: 13px;
+.try-step-label {
+    font-size: 13.5px;
     font-weight: 800;
+    color: #334155;
+    line-height: 1.5;
 }
 
-.try-step.active .try-step-title {
-    color: #047857;
+.try-step-sublabel {
+    font-size: 11.5px;
+    color: #94a3b8;
+    margin-top: 3px;
 }
 
-.try-form-area {
-    position: relative;
+.try-step-arrow {
+    color: #cbd5e1;
+    font-size: 24px;
+    margin-bottom: 34px;
 }
 
-/* ===============================
-   Livewire Form Design Override
-================================ */
-
-.try-form-area form {
-    width: 100%;
+.try-wizard-wrap {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 66px 28px 105px;
 }
 
-.try-form-area fieldset,
-.try-form-area .section,
-.try-form-area [class*="section"] {
-    border-radius: 22px !important;
+.try-wizard-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 30px;
+    box-shadow: 0 18px 55px rgba(15, 23, 42, .09);
+    padding: 54px;
+    overflow: hidden;
 }
 
-.try-form-area label,
-.try-form-area .form-label {
-    display: block !important;
-    margin-bottom: 10px !important;
-    color: #0f172a !important;
-    font-size: 13px !important;
-    font-weight: 900 !important;
-    text-transform: uppercase;
-    letter-spacing: .02em;
-}
-
-.try-form-area .row {
-    margin-left: -12px !important;
-    margin-right: -12px !important;
+/* مهم جداً: تنسيق الفورم اللي داخل Livewire */
+.try-wizard-card form,
+.try-wizard-card .form,
+.try-wizard-card .row {
     row-gap: 24px !important;
 }
 
-.try-form-area .row > [class*="col"] {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-    margin-bottom: 0 !important;
-}
-
-.try-form-area .form-group,
-.try-form-area .mb-3,
-.try-form-area .mb-4,
-.try-form-area [class*="form-group"],
-.try-form-area [class*="field"],
-.try-form-area [class*="input"] {
-    margin-bottom: 26px !important;
-}
-
-.try-form-area input,
-.try-form-area select,
-.try-form-area textarea {
-    width: 100% !important;
-    min-height: 58px !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 16px !important;
-    background: #fff !important;
-    color: #0f172a !important;
-    padding: 15px 18px !important;
-    font-size: 15px !important;
-    font-weight: 500 !important;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, .04) !important;
-    transition: all .2s ease !important;
-}
-
-.try-form-area textarea {
-    min-height: 150px !important;
-    line-height: 1.8 !important;
-    resize: vertical;
-}
-
-.try-form-area input::placeholder,
-.try-form-area textarea::placeholder {
-    color: #94a3b8 !important;
-}
-
-.try-form-area input:focus,
-.try-form-area select:focus,
-.try-form-area textarea:focus {
-    outline: none !important;
-    border-color: #10b981 !important;
-    box-shadow: 0 0 0 5px rgba(16, 185, 129, .14) !important;
-}
-
-.try-form-area .optional,
-.try-form-area small {
-    color: #94a3b8 !important;
-    font-weight: 600;
-    text-transform: none;
-}
-
-/* Upload box */
-.try-form-area input[type="file"],
-.try-form-area [class*="upload"],
-.try-form-area [class*="drop"],
-.try-form-area [class*="dropzone"] {
-    border-radius: 22px !important;
-}
-
-.try-form-area input[type="file"] {
-    min-height: 74px !important;
-    padding: 22px !important;
-    background: #f8fafc !important;
-    border: 2px dashed #cbd5e1 !important;
-}
-
-.try-form-area input[type="file"]:hover,
-.try-form-area [class*="dropzone"]:hover {
-    border-color: #10b981 !important;
-    background: #f0fdf4 !important;
-}
-
-/* Section titles */
-.try-form-area h1,
-.try-form-area h2,
-.try-form-area h3,
-.try-form-area h4,
-.try-form-area h5,
-.try-form-area legend,
-.try-form-area .section-title {
-    color: #0f172a !important;
-    font-weight: 950 !important;
-    margin-bottom: 18px !important;
-}
-
-/* BOQ items area */
-.try-form-area table {
-    width: 100%;
-    border-collapse: separate !important;
-    border-spacing: 0 12px !important;
-}
-
-.try-form-area table th {
-    color: #64748b !important;
-    font-size: 12px !important;
-    font-weight: 900 !important;
-    padding: 10px 12px !important;
-}
-
-.try-form-area table td {
-    background: #f8fafc !important;
-    border-top: 1px solid #e2e8f0 !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-    padding: 12px !important;
-}
-
-.try-form-area table td:first-child {
-    border-inline-start: 1px solid #e2e8f0 !important;
-    border-radius: 14px 0 0 14px !important;
-}
-
-.try-form-area table td:last-child {
-    border-inline-end: 1px solid #e2e8f0 !important;
-    border-radius: 0 14px 14px 0 !important;
-}
-
-.try-form-area table input,
-.try-form-area table select {
-    min-height: 48px !important;
-    margin-bottom: 0 !important;
-    background: #fff !important;
-}
-
-/* Buttons */
-.try-form-area button,
-.try-form-area .btn {
-    min-height: 50px !important;
-    border-radius: 15px !important;
-    padding: 12px 22px !important;
-    font-size: 14px !important;
-    font-weight: 900 !important;
-    transition: all .2s ease !important;
-}
-
-.try-form-area button:hover,
-.try-form-area .btn:hover {
-    transform: translateY(-1px);
-}
-
-.try-form-area .btn-primary,
-.try-form-area button[type="submit"] {
-    background: linear-gradient(135deg, #047857, #10b981) !important;
-    border-color: transparent !important;
-    color: #fff !important;
-    box-shadow: 0 12px 24px rgba(16, 185, 129, .22) !important;
-}
-
-.try-form-area .btn-outline-primary,
-.try-form-area .btn-success,
-.try-form-area button:not([type]),
-.try-form-area button[type="button"] {
-    border: 1px solid #86efac !important;
-    background: #ecfdf5 !important;
-    color: #047857 !important;
-}
-
-/* Save Draft button */
-.try-form-area button:contains("Save Draft") {
-    margin-top: 18px;
-}
-
-/* Alerts / errors */
-.try-form-area .alert {
-    border-radius: 18px !important;
-    padding: 16px 18px !important;
+.try-wizard-card .form-group,
+.try-wizard-card .mb-3,
+.try-wizard-card .mb-4,
+.try-wizard-card [class*="form-field"],
+.try-wizard-card [class*="field"],
+.try-wizard-card .input-group {
     margin-bottom: 24px !important;
 }
 
-.try-form-area .text-danger,
-.try-form-area .invalid-feedback {
-    display: block !important;
-    margin-top: 8px !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
+.try-wizard-card label {
+    display: block;
+    margin-bottom: 9px !important;
+    font-size: 14px;
+    font-weight: 800;
+    color: #334155;
 }
 
-/* Remove ugly tight borders */
-.try-form-area * {
-    box-sizing: border-box;
+.try-wizard-card input,
+.try-wizard-card select,
+.try-wizard-card textarea {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 14px !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 13px 16px !important;
+    font-size: 14px;
+    color: #0f172a;
+    background: #fff;
+    transition: .2s ease;
 }
 
-@media (max-width: 992px) {
-    .try-card {
-        padding: 38px 28px 42px;
-        border-radius: 28px;
-    }
+.try-wizard-card textarea {
+    min-height: 120px;
+    resize: vertical;
+}
 
-    .try-steps {
-        gap: 18px;
-    }
+.try-wizard-card input:focus,
+.try-wizard-card select:focus,
+.try-wizard-card textarea:focus {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, .14) !important;
+    outline: none !important;
+}
 
-    .try-steps::before {
-        inset-inline: 50px;
-    }
+.try-wizard-card button,
+.try-wizard-card .btn {
+    min-height: 48px;
+    border-radius: 14px;
+    font-weight: 800;
+}
+
+.try-wizard-card .row > [class*="col"] {
+    margin-bottom: 18px;
+}
+
+.try-wizard-card table input,
+.try-wizard-card table select {
+    min-height: 44px;
+    margin-bottom: 8px;
+}
+
+.try-wizard-card .alert {
+    border-radius: 16px;
+    margin-bottom: 24px;
 }
 
 @media (max-width: 768px) {
-    .try-page {
-        padding: 30px 12px 60px;
+    .try-hero {
+        padding: 64px 0 54px;
     }
 
-    .try-card {
-        padding: 26px 16px 32px;
-        border-radius: 22px;
+    .try-sub {
+        font-size: 16px;
     }
 
-    .try-header {
-        margin-bottom: 24px;
-    }
-
-    .try-title {
-        font-size: 30px;
-    }
-
-    .try-desc {
-        font-size: 14px;
+    .try-trust-sep {
+        display: none;
     }
 
     .try-steps {
         grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .try-steps::before {
-        display: none;
+        gap: 20px;
     }
 
     .try-step {
-        display: flex;
-        align-items: center;
-        gap: 14px;
+        flex-direction: row;
         text-align: start;
-        padding: 12px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 18px;
+        justify-content: flex-start;
+        align-items: center;
     }
 
-    .try-step-num {
-        margin: 0;
-        width: 46px;
-        height: 46px;
+    .try-step-arrow {
+        display: none;
     }
 
-    .try-card-top {
-        margin-bottom: 28px;
+    .try-wizard-wrap {
+        padding: 34px 14px 70px;
     }
 
-    .try-form-area .row {
-        row-gap: 18px !important;
+    .try-wizard-card {
+        padding: 26px 18px 30px;
+        border-radius: 22px;
     }
 
-    .try-form-area .form-group,
-    .try-form-area .mb-3,
-    .try-form-area .mb-4,
-    .try-form-area [class*="form-group"],
-    .try-form-area [class*="field"],
-    .try-form-area [class*="input"] {
+    .try-wizard-card .form-group,
+    .try-wizard-card .mb-3,
+    .try-wizard-card .mb-4,
+    .try-wizard-card [class*="form-field"],
+    .try-wizard-card [class*="field"],
+    .try-wizard-card .input-group {
         margin-bottom: 20px !important;
     }
 
-    .try-form-area input,
-    .try-form-area select,
-    .try-form-area textarea {
-        min-height: 52px !important;
-        font-size: 14px !important;
-    }
-
-    .try-form-area textarea {
-        min-height: 125px !important;
+    .try-wizard-card input,
+    .try-wizard-card select,
+    .try-wizard-card textarea {
+        min-height: 50px;
     }
 }
 </style>
@@ -481,63 +372,111 @@ body {
 
 @section('content')
 
-<div class="try-page" @if($isAr) dir="rtl" @endif>
-    <div class="try-shell">
+<div class="try-page">
 
-        <div class="try-header">
+    <section class="try-hero" @if($isAr) dir="rtl" @endif>
+        <div class="try-glow-tr"></div>
+        <div class="try-glow-bl"></div>
+
+        <div class="try-hero-inner">
             <div class="try-badge">
-                <span></span>
-                {{ $isAr ? 'تجربة مجانية بدون تسجيل' : 'Free trial without registration' }}
+                <span class="try-badge-dot"></span>
+                {{ $isAr ? 'مجاناً — بدون تسجيل حساب' : 'Free — No account required' }}
             </div>
 
-            <h1 class="try-title">
+            <h1>
                 @if($isAr)
-                    سعّر <strong>جدول الكميات</strong> بسهولة
+                    سعّر <span class="try-highlight">جدول الكميات</span><br>في ثوانٍ معدودة
                 @else
-                    Price Your <strong>BOQ</strong> Easily
+                    Price Your <span class="try-highlight">BOQ</span><br>in Seconds
                 @endif
             </h1>
 
-            <p class="try-desc">
+            <p class="try-sub">
                 {{ $isAr
-                    ? 'ارفع ملف جدول الكميات، وسيقوم النظام باستخراج البنود وتسعيرها تلقائياً بطريقة سهلة وسريعة.'
-                    : 'Upload your BOQ file, extract items automatically, and get a clean quotation in a few simple steps.' }}
+                    ? 'ارفع ملف جدول الكميات وسيقوم الذكاء الاصطناعي بتحليله وإحضار الأسعار تلقائياً — من أكثر من 131,000 منتج موثّق في السوق السعودي.'
+                    : 'Upload any BOQ file and our AI extracts line items and fetches live market prices automatically — across 131,000+ verified products.' }}
             </p>
+
+            <div class="try-trust">
+                <span class="try-trust-item">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {{ $isAr ? '131,000+ منتج موثّق' : '131,000+ verified products' }}
+                </span>
+
+                <span class="try-trust-sep">·</span>
+
+                <span class="try-trust-item">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/>
+                    </svg>
+                    {{ $isAr ? 'نتيجة في أقل من 60 ثانية' : 'Results in under 60 seconds' }}
+                </span>
+
+                <span class="try-trust-sep">·</span>
+
+                <span class="try-trust-item">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    {{ $isAr ? 'آمن وسري تماماً' : 'Secure & private' }}
+                </span>
+
+                <span class="try-trust-sep">·</span>
+
+                <span class="try-trust-item">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.87L12 17.77l-6.18 3.24L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    {{ $isAr ? 'مجاني للمشترين دائماً' : 'Free for buyers forever' }}
+                </span>
+            </div>
         </div>
+    </section>
 
-        <div class="try-card">
+    <div class="try-steps-wrap" @if($isAr) dir="rtl" @endif>
+        <div class="try-steps">
+            @php
+                $steps = $isAr
+                    ? [
+                        ['١', 'ارفع ملف BOQ', 'Excel أو PDF أو صورة'],
+                        ['٢', 'AI يستخرج البنود', 'تلقائياً بدون تدخل'],
+                        ['٣', 'تسعير فوري من السوق', 'أسعار حقيقية ومحدّثة'],
+                        ['٤', 'سجّل دخول وحمّل PDF', 'احفظ وشارك عرض السعر'],
+                    ]
+                    : [
+                        ['1', 'Upload BOQ file', 'Excel, PDF or image'],
+                        ['2', 'AI extracts items', 'Automatic, zero effort'],
+                        ['3', 'Live market pricing', 'Real, up-to-date prices'],
+                        ['4', 'Sign in & download PDF', 'Save & share your quote'],
+                    ];
+            @endphp
 
-            <div class="try-card-top">
-                <div class="try-steps">
-                    <div class="try-step active">
-                        <div class="try-step-num">1</div>
-                        <div class="try-step-title">{{ $isAr ? 'استخراج البيانات' : 'Extraction' }}</div>
-                    </div>
-
-                    <div class="try-step">
-                        <div class="try-step-num">2</div>
-                        <div class="try-step-title">{{ $isAr ? 'التأكيد' : 'Confirm' }}</div>
-                    </div>
-
-                    <div class="try-step">
-                        <div class="try-step-num">3</div>
-                        <div class="try-step-title">{{ $isAr ? 'عرض السعر' : 'Quotation' }}</div>
-                    </div>
-
-                    <div class="try-step">
-                        <div class="try-step-num">4</div>
-                        <div class="try-step-title">{{ $isAr ? 'العنوان والدفع' : 'Address & Pay' }}</div>
+            @foreach($steps as $index => $step)
+                <div class="try-step">
+                    <div class="try-step-num">{{ $step[0] }}</div>
+                    <div>
+                        <div class="try-step-label">{{ $step[1] }}</div>
+                        <div class="try-step-sublabel">{{ $step[2] }}</div>
                     </div>
                 </div>
-            </div>
 
-            <div class="try-form-area">
-                <livewire:enduser.boqs.create-boq :guestMode="true" :guestToken="$guestToken" />
-            </div>
-
+                @if($index < count($steps) - 1)
+                    <div class="try-step-arrow" @if($isAr) style="transform:scaleX(-1)" @endif>→</div>
+                @endif
+            @endforeach
         </div>
-
     </div>
+
+    <div class="try-wizard-wrap" @if($isAr) dir="rtl" @endif>
+        <div class="try-wizard-card" @if($isAr) dir="rtl" @endif>
+            <livewire:enduser.boqs.create-boq :guestMode="true" :guestToken="$guestToken" />
+        </div>
+    </div>
+
 </div>
 
 @endsection
