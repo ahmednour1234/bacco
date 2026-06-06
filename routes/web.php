@@ -119,6 +119,7 @@ Route::prefix('ar')->name('ar.')->group(function () {
     Route::get('/catalog/category/{slug}', [\App\Http\Controllers\CatalogController::class, 'showCategory'])->name('catalog.category');
     Route::get('/catalog/{divisionSlug}/{itemSlug}', [\App\Http\Controllers\CatalogController::class, 'showItem'])->name('catalog.item');
     Route::get('/catalog/{slug}', [\App\Http\Controllers\CatalogController::class, 'show'])->name('catalog.division');
+    Route::get('/try', [GuestBoqController::class, 'create'])->name('guest.boq.create');
 });
 
 // ─── Language Switch ──────────────────────────────────────────────────────────
