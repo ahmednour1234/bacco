@@ -261,19 +261,8 @@ body { direction: rtl; text-align: right; }
 
 @endsection
 
-/* dot-grid */
-.try-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(#d1fae5 1.2px, transparent 1.2px);
-    background-size: 28px 28px;
-    opacity: .5;
-    pointer-events: none;
-}
-
-/* top-right glow */
-.try-hero::after {
+/* REMOVED DUPLICATE SECTIONS */
+{{-- end of file --}}
     content: '';
     position: absolute;
     top: -140px;
