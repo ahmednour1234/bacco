@@ -10,9 +10,9 @@ class GuestBoqController extends Controller
 {
     public function create(Request $request): View
     {
-        // Generate (or retrieve) a persistent guest token for this browser session.
-        // The token links the guest BOQ records back to this session so they can
-        // be claimed when the guest eventually registers or logs in.
+        // Force Arabic for the /try page
+        app()->setLocale('ar');
+
         $guestToken = $request->session()->get('guest_boq_token');
 
         if (! $guestToken) {

@@ -304,7 +304,7 @@
                 @auth
                     <a href="{{ route('enduser.dashboard') }}" class="btn btn-ghost">{{ __('welcome.nav.dashboard') }}</a>
                 @else
-                    <a href="{{ route('enduser.register') }}" class="btn btn-ghost">Join</a>
+                    <a href="{{ route('guest.boq.create') }}" class="btn btn-ghost">{{ $isAr ? 'ابدأ مجاناً' : 'Try Free' }}</a>
                 @endauth
                 @yield('nav-cta')
             </div>
@@ -326,7 +326,7 @@
             @auth
                 <a href="{{ route('enduser.dashboard') }}" class="btn btn-outline">{{ __('welcome.nav.dashboard') }}</a>
             @else
-                <a href="{{ route('enduser.register') }}" class="btn btn-outline">Join</a>
+                <a href="{{ route('guest.boq.create') }}" class="btn btn-outline">{{ $isAr ? 'ابدأ مجاناً' : 'Try Free' }}</a>
             @endauth
             @yield('mobile-cta')
         </div>

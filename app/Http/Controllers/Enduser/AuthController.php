@@ -34,8 +34,8 @@ class AuthController extends Controller
 
         if ($boq) {
             return redirect()
-                ->route('enduser.boqs.show', ['uuid' => $boq->uuid])
-                ->with('success', 'Welcome! Your BOQ has been linked to your new account.');
+                ->route('enduser.quotations.show', ['uuid' => $boq->quotationRequests()->latest()->first()?->uuid ?? $boq->uuid])
+                ->with('success', 'مرحباً! تم ربط جدول الكميات بحسابك.');
         }
 
         return redirect()
@@ -76,7 +76,9 @@ class AuthController extends Controller
         $boq = $this->claimGuestBoq($request, auth()->user());
 
         if ($boq) {
-            return redirect()->route('enduser.boqs.show', ['uuid' => $boq->uuid]);
+            $quotation = $boq->quotationRequests()->latest()->first();
+            return redirect()->route('enduser.quotations.show', ['uuid' => $quotation?->uuid ?? $boq->uuid])
+                ->with('success', 'مرحباً! تم ربط جدول الكميات بحسابك.');
         }
 
         return redirect()->intended(route('enduser.dashboard'));
