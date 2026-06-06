@@ -411,124 +411,168 @@
          STEP 3 – جلب الأسعار  (Prices / Quotation Review)
     ══════════════════════════════════════════════════════ --}}
     @if($currentStep === 3)
-    <div class="space-y-6">
+    @php $isAr = app()->getLocale() === 'ar'; @endphp
+    <div class="space-y-5">
 
-        {{-- Fetching banner (shown while job is running) --}}
+        {{-- ── Still fetching (fallback poll state) ─────────────────────── --}}
         @if($pricesFetching)
-        <div class="flex items-center gap-4 rounded-2xl border border-blue-200 bg-blue-50 px-6 py-5">
-            <svg class="h-8 w-8 animate-spin flex-shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
+        <div style="display:flex;align-items:center;gap:20px;border-radius:20px;border:1px solid #bfdbfe;background:#eff6ff;padding:24px 28px;">
+            <div style="flex-shrink:0;width:52px;height:52px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;">
+                <svg width="26" height="26" style="animation:gcw 1.2s linear infinite;" fill="none" stroke="#3b82f6" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </div>
             <div>
-                <h3 class="text-base font-bold text-blue-800">{{ app()->getLocale() === 'ar' ? 'جاري إنشاء عرض السعر...' : 'Creating quotation...' }}</h3>
-                <p class="mt-0.5 text-sm text-blue-600">{{ app()->getLocale() === 'ar' ? 'هذا قد يستغرق بضع دقائق. يمكنك الانتظار وستُحدَّث الصفحة تلقائياً.' : 'This may take a few minutes. The page will update automatically.' }}</p>
+                <p style="font-size:15px;font-weight:700;color:#1e40af;margin:0 0 4px;">{{ $isAr ? 'جاري جلب أسعار السوق...' : 'Fetching live market prices…' }}</p>
+                <p style="font-size:13px;color:#3b82f6;margin:0;">{{ $isAr ? 'الصفحة ستتحدث تلقائياً عند الانتهاء.' : 'The page will refresh automatically when done.' }}</p>
             </div>
         </div>
-        @else
-        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h3 class="text-base font-bold text-emerald-800">{{ app()->getLocale() === 'ar' ? '✓ تم إنشاء عرض السعر' : '✓ Quotation Created' }}</h3>
-                <p class="mt-1 text-sm text-emerald-600">
-                    {{ $pricedCount }} {{ app()->getLocale() === 'ar' ? 'عنصر بسعر' : 'priced' }} · {{ $unpricedCount }} {{ app()->getLocale() === 'ar' ? 'بدون سعر' : 'without price' }}
-                </p>
-            </div>
-            <div class="text-end">
-                <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">{{ app()->getLocale() === 'ar' ? 'المجموع التقديري' : 'Estimated Total' }}</p>
-                <p class="text-2xl font-bold text-emerald-800">{{ number_format($quotationTotal, 2) }} <span class="text-base font-medium">SAR</span></p>
-                <p class="text-xs text-emerald-500 mt-0.5">{{ app()->getLocale() === 'ar' ? '+ ضريبة القيمة المضافة 15%' : '+ 15% VAT' }}</p>
-            </div>
-        </div>
-        @endif
 
-        {{-- ── Guest login overlay wrapper ─────────────────────────────────── --}}
+        @elseif(empty($pricedItems))
+        {{-- ── No items returned (all filtered out by pricing engine) ────── --}}
+        <div style="text-align:center;padding:48px 24px;border-radius:20px;border:2px dashed #e2e8f0;background:#f8fafc;">
+            <div style="width:64px;height:64px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                <svg width="28" height="28" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 style="font-size:16px;font-weight:700;color:#334155;margin:0 0 8px;">{{ $isAr ? 'لم نتمكن من تسعير العناصر' : 'Pricing unavailable for these items' }}</h3>
+            <p style="font-size:13px;color:#94a3b8;max-width:360px;margin:0 auto 24px;">{{ $isAr ? 'لم يتم العثور على أسعار للعناصر المحددة. يرجى المراجعة أو إضافة عناصر مختلفة.' : 'No prices were found for the selected items. Please go back and adjust your items.' }}</p>
+            <button type="button" wire:click="goBack"
+                style="display:inline-flex;align-items:center;gap:8px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;padding:10px 22px;font-size:13px;font-weight:600;color:#475569;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                {{ $isAr ? 'العودة وتعديل العناصر' : 'Back to adjust items' }}
+            </button>
+        </div>
+
+        @else
+        {{-- ── Summary stats strip ─────────────────────────────────────────── --}}
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+            <div style="border-radius:16px;border:1px solid #d1fae5;background:linear-gradient(135deg,#ecfdf5,#f0fdf4);padding:18px 20px;">
+                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#059669;margin:0 0 6px;">{{ $isAr ? 'عناصر مسعّرة' : 'Priced Items' }}</p>
+                <p style="font-size:26px;font-weight:800;color:#064e3b;margin:0;line-height:1;">{{ $pricedCount }}</p>
+            </div>
+            <div style="border-radius:16px;border:1px solid #fee2e2;background:linear-gradient(135deg,#fef2f2,#fff5f5);padding:18px 20px;">
+                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#dc2626;margin:0 0 6px;">{{ $isAr ? 'بدون سعر' : 'Unpriced' }}</p>
+                <p style="font-size:26px;font-weight:800;color:#7f1d1d;margin:0;line-height:1;">{{ $unpricedCount }}</p>
+            </div>
+            <div style="border-radius:16px;border:1px solid #d1fae5;background:linear-gradient(135deg,#059669,#047857);padding:18px 20px;">
+                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#a7f3d0;margin:0 0 4px;">{{ $isAr ? 'الإجمالي التقديري' : 'Est. Total' }}</p>
+                <p style="font-size:20px;font-weight:800;color:#fff;margin:0;line-height:1;">{{ number_format($quotationTotal, 0) }} <span style="font-size:13px;font-weight:500;opacity:.8;">SAR</span></p>
+                <p style="font-size:10px;color:#6ee7b7;margin:4px 0 0;">{{ $isAr ? 'شامل 15% ضريبة: '.number_format($quotationTotal*1.15,0).' SAR' : 'incl. 15% VAT: '.number_format($quotationTotal*1.15,0).' SAR' }}</p>
+            </div>
+        </div>
+
+        {{-- ── Guest login overlay wrapper ──────────────────────────────── --}}
         <div class="relative">
-            {{-- Price table (always rendered so guest sees items) --}}
             <div class="{{ $guestMode && $showGuestLoginOverlay ? 'select-none pointer-events-none' : '' }}">
-                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden {{ $guestMode && $showGuestLoginOverlay ? 'blur-sm' : '' }}">
-                    <div class="border-b border-slate-100 px-6 py-4">
-                        <h2 class="text-sm font-semibold text-slate-800">{{ app()->getLocale() === 'ar' ? 'تفاصيل عرض السعر' : 'Quotation Details' }}</h2>
+
+                {{-- Table card --}}
+                <div style="border-radius:20px;border:1px solid #e2e8f0;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;{{ $guestMode && $showGuestLoginOverlay ? 'filter:blur(3px);' : '' }}">
+
+                    {{-- Table header --}}
+                    <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:16px 24px;background:#fafafa;">
+                        <h2 style="font-size:13px;font-weight:700;color:#1e293b;margin:0;">{{ $isAr ? 'تفاصيل التسعير' : 'Pricing Breakdown' }}</h2>
+                        <span style="font-size:11px;color:#94a3b8;font-weight:500;">{{ count($pricedItems) }} {{ $isAr ? 'عنصر' : 'items' }}</span>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead><tr class="border-b border-slate-100 bg-slate-50">
-                                <th class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[220px]">{{ __('app.description') }}</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.unit') }}</th>
-                                <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ app()->getLocale() === 'ar' ? 'سعر الوحدة' : 'Unit Price' }}</th>
-                                <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ app()->getLocale() === 'ar' ? 'الإجمالي' : 'Total' }}</th>
-                            </tr></thead>
-                            <tbody class="divide-y divide-slate-100">
-                                @foreach($pricedItems as $pi)
-                                    <tr class="hover:bg-slate-50/60">
-                                        <td class="px-4 py-3 text-slate-700">{{ $pi['description'] }}</td>
-                                        <td class="px-4 py-3 text-center text-slate-600">{{ number_format($pi['quantity'], 2) }}</td>
-                                        <td class="px-4 py-3 text-center text-slate-500">{{ $pi['unit'] ?: '—' }}</td>
-                                        <td class="px-4 py-3 text-end font-medium {{ $pi['unit_price'] ? 'text-slate-800' : 'text-red-400' }}">
-                                            {{ $pi['unit_price'] ? number_format($pi['unit_price'], 2).' SAR' : (app()->getLocale()==='ar'?'لم يُسعَّر':'Not priced') }}
-                                        </td>
-                                        <td class="px-4 py-3 text-end font-semibold text-slate-800">{{ $pi['line_total'] > 0 ? number_format($pi['line_total'], 2).' SAR' : '—' }}</td>
-                                    </tr>
+
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <thead>
+                                <tr style="background:#f8fafc;border-bottom:1px solid #f1f5f9;">
+                                    <th style="padding:10px 20px;text-align:start;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;min-width:220px;">{{ $isAr ? 'الوصف' : 'Description' }}</th>
+                                    <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;width:70px;">{{ $isAr ? 'الكمية' : 'Qty' }}</th>
+                                    <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;width:70px;">{{ $isAr ? 'الوحدة' : 'Unit' }}</th>
+                                    <th style="padding:10px 20px;text-align:end;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;width:120px;">{{ $isAr ? 'سعر الوحدة' : 'Unit Price' }}</th>
+                                    <th style="padding:10px 20px;text-align:end;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;width:120px;">{{ $isAr ? 'الإجمالي' : 'Total' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($pricedItems as $i => $pi)
+                                <tr style="border-bottom:1px solid #f8fafc;transition:background .15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                                    <td style="padding:14px 20px;color:#334155;font-weight:500;line-height:1.4;">{{ $pi['description'] }}</td>
+                                    <td style="padding:14px 16px;text-align:center;color:#64748b;">{{ number_format($pi['quantity'], 2) }}</td>
+                                    <td style="padding:14px 16px;text-align:center;color:#94a3b8;font-size:12px;">{{ $pi['unit'] ?: '—' }}</td>
+                                    <td style="padding:14px 20px;text-align:end;">
+                                        @if($pi['unit_price'])
+                                            <span style="font-weight:600;color:#1e293b;">{{ number_format($pi['unit_price'], 2) }}</span>
+                                            <span style="font-size:11px;color:#94a3b8;margin-{{ $isAr ? 'right' : 'left' }}:3px;">SAR</span>
+                                        @else
+                                            <span style="display:inline-flex;align-items:center;gap:4px;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;border:1px solid #fecaca;">
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                                                {{ $isAr ? 'لم يُسعَّر' : 'No price' }}
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td style="padding:14px 20px;text-align:end;font-weight:700;color:{{ $pi['line_total'] > 0 ? '#1e293b' : '#cbd5e1' }};">
+                                        {{ $pi['line_total'] > 0 ? number_format($pi['line_total'], 2).' SAR' : '—' }}
+                                    </td>
+                                </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
-                                <tr class="border-t-2 border-slate-200 bg-slate-50"><td colspan="4" class="px-4 py-3 text-end text-sm font-semibold text-slate-600">{{ app()->getLocale()==='ar'?'المجموع':'Subtotal' }}</td><td class="px-4 py-3 text-end font-bold text-slate-800">{{ number_format($quotationTotal, 2) }} SAR</td></tr>
-                                <tr class="bg-slate-50"><td colspan="4" class="px-4 py-2 text-end text-xs text-slate-500">{{ app()->getLocale()==='ar'?'ضريبة القيمة المضافة (15%)':'VAT (15%)' }}</td><td class="px-4 py-2 text-end text-sm text-slate-600">{{ number_format($quotationTotal * 0.15, 2) }} SAR</td></tr>
-                                <tr class="bg-emerald-50"><td colspan="4" class="px-4 py-3 text-end text-sm font-bold text-emerald-700">{{ app()->getLocale()==='ar'?'الإجمالي شامل الضريبة':'Grand Total incl. VAT' }}</td><td class="px-4 py-3 text-end text-lg font-bold text-emerald-700">{{ number_format($quotationTotal * 1.15, 2) }} SAR</td></tr>
+                                <tr style="border-top:2px solid #e2e8f0;background:#fafafa;">
+                                    <td colspan="4" style="padding:12px 20px;text-align:end;font-size:13px;font-weight:600;color:#64748b;">{{ $isAr ? 'المجموع' : 'Subtotal' }}</td>
+                                    <td style="padding:12px 20px;text-align:end;font-weight:700;color:#1e293b;">{{ number_format($quotationTotal, 2) }} SAR</td>
+                                </tr>
+                                <tr style="background:#fafafa;">
+                                    <td colspan="4" style="padding:8px 20px;text-align:end;font-size:12px;color:#94a3b8;">{{ $isAr ? 'ضريبة القيمة المضافة (15%)' : 'VAT (15%)' }}</td>
+                                    <td style="padding:8px 20px;text-align:end;font-size:13px;color:#64748b;">{{ number_format($quotationTotal * 0.15, 2) }} SAR</td>
+                                </tr>
+                                <tr style="background:linear-gradient(135deg,#ecfdf5,#f0fdf4);border-top:1px solid #d1fae5;">
+                                    <td colspan="4" style="padding:16px 20px;text-align:end;font-size:13px;font-weight:700;color:#065f46;">{{ $isAr ? 'الإجمالي شامل الضريبة' : 'Grand Total incl. VAT' }}</td>
+                                    <td style="padding:16px 20px;text-align:end;font-size:18px;font-weight:800;color:#065f46;">{{ number_format($quotationTotal * 1.15, 2) }} <span style="font-size:13px;font-weight:500;">SAR</span></td>
+                                </tr>
                             </tfoot>
                         </table>
                     </div>
                 </div>
             </div>
 
-            {{-- Guest login overlay (shown after prices are fetched) --}}
+            {{-- ── Guest login overlay ───────────────────────────────────── --}}
             @if($guestMode && $showGuestLoginOverlay)
-            <div class="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm px-6 py-10 text-center">
-                <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 mb-5">
-                    <svg class="h-8 w-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <div style="position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:20px;background:rgba(255,255,255,0.88);backdrop-filter:blur(8px);padding:40px 24px;text-align:center;">
+                {{-- Lock icon --}}
+                <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#059669,#047857);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(5,150,105,.3);">
+                    <svg width="30" height="30" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
-                <h3 class="text-xl font-bold text-slate-900 mb-2">
-                    {{ app()->getLocale() === 'ar' ? 'سجّل الدخول لاستعراض الأسعار وتحميل PDF' : 'Sign in to Reveal Prices & Download PDF' }}
+                <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 10px;">
+                    {{ $isAr ? 'سجّل الدخول لكشف الأسعار' : 'Sign in to Reveal Prices' }}
                 </h3>
-                <p class="text-sm text-slate-500 max-w-sm mb-6">
-                    {{ app()->getLocale() === 'ar'
-                        ? 'جدول الكميات جاهز وسيتم ربطه بحسابك فور تسجيل الدخول.'
-                        : 'Your BOQ is ready and will be linked to your account the moment you sign in.' }}
+                <p style="font-size:13px;color:#64748b;max-width:340px;margin:0 auto 28px;line-height:1.6;">
+                    {{ $isAr ? 'جدول كميات BOQ الخاص بك جاهز. سيتم ربطه بحسابك فور تسجيل الدخول لتتمكن من تحميل PDF.' : 'Your BOQ is ready. Sign in to unlock full prices and download your PDF quotation.' }}
                 </p>
-                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;">
                     <button type="button" wire:click="redirectToLogin"
-                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                        {{ app()->getLocale() === 'ar' ? 'تسجيل الدخول' : 'Sign In' }}
+                        style="display:inline-flex;align-items:center;gap:8px;border-radius:12px;background:#059669;color:#fff;padding:12px 28px;font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(5,150,105,.3);transition:all .2s;"
+                        onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                        {{ $isAr ? 'تسجيل الدخول' : 'Sign In' }}
                     </button>
                     <a href="{{ route('enduser.register') }}"
-                        class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
-                        {{ app()->getLocale() === 'ar' ? 'إنشاء حساب مجاني' : 'Create Free Account' }}
+                        style="display:inline-flex;align-items:center;gap:8px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;color:#334155;padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s;"
+                        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+                        {{ $isAr ? 'إنشاء حساب مجاني' : 'Create Free Account' }}
                     </a>
                 </div>
             </div>
             @endif
         </div>
+        @endif
 
-        <div class="flex justify-between">
+        {{-- ── Actions row ──────────────────────────────────────────────── --}}
+        @if(!$pricesFetching)
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;">
             <button type="button" wire:click="goBack"
-                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                {{ app()->getLocale() === 'ar' ? 'السابق' : 'Back' }}
+                style="display:inline-flex;align-items:center;gap:8px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;padding:11px 22px;font-size:13px;font-weight:600;color:#475569;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                {{ $isAr ? 'السابق' : 'Back' }}
             </button>
-            @if(! ($guestMode && $showGuestLoginOverlay))
-            <button type="button" wire:click="proceedToAddress" @if($pricesFetching) disabled @endif
-                class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                @if($pricesFetching)
-                    <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    {{ app()->getLocale() === 'ar' ? 'جاري إنشاء عرض السعر...' : 'Creating quotation...' }}
-                @else
-                    {{ app()->getLocale() === 'ar' ? 'التالي: العنوان والدفع' : 'Next: Address & Payment' }}
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                @endif
+            @if(!($guestMode && $showGuestLoginOverlay) && !empty($pricedItems))
+            <button type="button" wire:click="proceedToAddress"
+                style="display:inline-flex;align-items:center;gap:8px;border-radius:12px;background:#059669;color:#fff;padding:11px 26px;font-size:13px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(5,150,105,.25);">
+                {{ $isAr ? 'التالي: العنوان والدفع' : 'Next: Address & Payment' }}
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
             @endif
         </div>
+        @endif
     </div>
     @endif
 

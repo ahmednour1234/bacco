@@ -753,11 +753,18 @@ class CreateBoq extends Component
             $this->pricedCount    = 0;
             $this->unpricedCount  = count($this->pricedItems);
 
-            // ── Dispatch pricing job (async) ─────────────────────────────────
-            FetchQuotationPricesJob::dispatch($this->quotationId, $this->guestMode ? null : Auth::id(), $this->quotationUuid);
+            // ── Run pricing synchronously so prices appear immediately ────────
             $this->pricesFetching = true;
-
             $this->currentStep = 3;
+
+            try {
+                FetchQuotationPricesJob::dispatchSync($this->quotationId, $this->guestMode ? null : Auth::id(), $this->quotationUuid);
+            } catch (\Throwable $jobEx) {
+                Log::error('CreateBoq: pricing job failed synchronously.', ['message' => $jobEx->getMessage()]);
+            }
+
+            // Load results immediately so step 3 renders with real data
+            $this->pollPriceStatus();
 
         } catch (\Throwable $e) {
             Log::error('CreateBoq::confirmItems failed.', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
