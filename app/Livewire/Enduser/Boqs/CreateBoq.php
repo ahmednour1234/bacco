@@ -416,10 +416,14 @@ class CreateBoq extends Component
         } catch (\Throwable $e) {
             Log::error('CreateBoq::uploadBoq failed.', [
                 'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
             ]);
             $this->dispatch('boq-upload-done');
-            $this->dispatch('toast', message: 'Upload failed. Please try again.', type: 'error');
+            $msg = app()->isProduction()
+                ? 'Upload failed. Please try again.'
+                : 'Upload failed: ' . $e->getMessage();
+            $this->dispatch('toast', message: $msg, type: 'error');
         }
     }
 
@@ -692,7 +696,7 @@ class CreateBoq extends Component
 
                 // ── Create QuotationRequest ────────────────────────────────
                 $quotation = QuotationRequest::create([
-                    'client_id'    => Auth::id(),
+                    'client_id'    => $this->guestMode ? null : Auth::id(),
                     'project_id'   => $project->id,
                     'boq_id'       => $boq->id,
                     'quotation_no' => $this->generateQuotationNo(),
