@@ -123,7 +123,7 @@ $_lpSchema = json_encode([
             ? 'ارفع جدول كمياتك — كيمتا تُطابق كل بند مع ' . $_p . ' منتج إنشائي معتمد وتُرجع أسعاراً موثّقة من المصنّعين مباشرةً. مجاناً للمقاولين وفرق المشتريات.'
             : 'Upload your BOQ — Qimta matches every line item against ' . $_p . ' verified construction products and returns prices verified directly from manufacturers. Free for contractors and procurement teams.' }}</p>
         <div class="lp-cta">
-            <a href="{{ route('enduser.register') }}" class="btn-primary">{{ $isAr ? 'سعّر جدول كمياتي' : 'Price My BOQ' }}</a>
+            <a href="{{ route('guest.boq.create') }}" class="btn-primary">{{ $isAr ? 'سعّر جدول كمياتي' : 'Price My BOQ' }}</a>
             <a href="{{ route($__rp . 'catalog.index') }}" class="btn-outline">{{ $isAr ? 'تصفح الكتالوج' : 'Browse Catalog' }}</a>
         </div>
     </div>
@@ -231,7 +231,7 @@ $_lpSchema = json_encode([
     <div class="container">
         <h2>{{ $isAr ? 'سعّر جدول كمياتك الآن — مجاناً' : 'Price Your BOQ Now — Free' }}</h2>
         <p>{{ $isAr ? 'بلا تسجيل مطوّل، بلا حد للبنود، نتائج فورية' : 'No lengthy signup, no line item limits, instant results' }}</p>
-        <a href="{{ route('enduser.register') }}">{{ $isAr ? 'ابدأ مجاناً' : 'Get Started Free' }}</a>
+        <a href="{{ route('guest.boq.create') }}">{{ $isAr ? 'ابدأ مجاناً' : 'Get Started Free' }}</a>
     </div>
 </section>
 

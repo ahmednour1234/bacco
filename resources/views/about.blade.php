@@ -352,7 +352,7 @@ $_aboutSchema = json_encode([
                 <h2>{{ __('about.cta.h2') }}</h2>
                 <p>{{ __('about.cta.sub') }}</p>
                 <div class="cta-btns">
-                    <a href="{{ route('enduser.register') }}" class="btn-cta-primary">{{ __('about.cta.btn_free') }}</a>
+                    <a href="{{ route('guest.boq.create') }}" class="btn-cta-primary">{{ __('about.cta.btn_free') }}</a>
                     <a href="{{ route('contact') }}" class="btn-cta-outline">{{ __('about.cta.btn_contact') }}</a>
                 </div>
             </div>
