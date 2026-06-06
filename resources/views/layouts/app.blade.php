@@ -64,6 +64,7 @@
     {{-- Self-hosted Cairo variable font: eliminates 2 external DNS lookups (FCP fix) --}}
     <link rel="preload" href="/fonts/cairo/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/cairo/cairo-latin.woff2" as="font" type="font/woff2" crossorigin>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         /* ── Self-hosted Cairo variable font (no external DNS, no render-block) ── */
         @font-face {

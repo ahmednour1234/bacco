@@ -110,47 +110,50 @@
     </div>
 
     {{-- ══════════════════════════════════════════════════════
-         STEP PROGRESS BAR  (Amazon-style)
+         STEP PROGRESS BAR
     ══════════════════════════════════════════════════════ --}}
     @if($currentStep < 5)
-    <div class="mb-8">
-        @php
-            $steps = [
-                1 => ['ar' => 'الاستخراج',    'en' => 'Extraction',    'icon' => 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'],
-                2 => ['ar' => 'التأكيد',       'en' => 'Confirm Items', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
-                3 => ['ar' => 'إنشاء عرض السعر',  'en' => 'Create Quotation',  'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-                4 => ['ar' => 'العنوان والدفع','en' => 'Address & Pay', 'icon' => 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z'],
-            ];
-            $isRtl = app()->getLocale() === 'ar';
-        @endphp
-        <div class="flex items-center">
-            @foreach($steps as $num => $step)
-                @php
-                    $isDone   = $currentStep > $num;
-                    $isActive = $currentStep === $num;
-                    $isLast   = $num === count($steps);
-                @endphp
-                <div class="flex flex-col items-center {{ $isLast ? '' : 'flex-1' }}">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300
-                        {{ $isDone   ? 'bg-emerald-500 text-white' : '' }}
-                        {{ $isActive ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 ring-4 ring-emerald-100' : '' }}
-                        {{ !$isDone && !$isActive ? 'bg-white border-2 border-slate-200 text-slate-400' : '' }}">
-                        @if($isDone)
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        @else
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $step['icon'] }}"/></svg>
-                        @endif
-                    </div>
-                    <span class="mt-2 text-[11px] font-semibold whitespace-nowrap
-                        {{ $isActive ? 'text-emerald-700' : ($isDone ? 'text-emerald-500' : 'text-slate-400') }}">
-                        {{ $isRtl ? $step['ar'] : $step['en'] }}
-                    </span>
+    @php
+        $steps = [
+            1 => ['ar' => 'الاستخراج',       'en' => 'Extraction'],
+            2 => ['ar' => 'التأكيد',          'en' => 'Confirm'],
+            3 => ['ar' => 'عرض السعر',        'en' => 'Quotation'],
+            4 => ['ar' => 'العنوان والدفع',   'en' => 'Address & Pay'],
+        ];
+        $isRtl = app()->getLocale() === 'ar';
+    @endphp
+    <div style="display:flex;align-items:center;margin-bottom:2rem;">
+        @foreach($steps as $num => $step)
+            @php
+                $isDone   = $currentStep > $num;
+                $isActive = $currentStep === $num;
+                $isLast   = $num === count($steps);
+            @endphp
+            <div style="display:flex;flex-direction:column;align-items:center;{{ $isLast ? '' : 'flex:1;' }}">
+                <div style="
+                    width:40px;height:40px;border-radius:50%;
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:15px;font-weight:700;font-family:'Cairo',sans-serif;
+                    transition:all .3s;
+                    {{ $isDone   ? 'background:#10b981;color:#fff;' : '' }}
+                    {{ $isActive ? 'background:#059669;color:#fff;box-shadow:0 0 0 4px #d1fae5;' : '' }}
+                    {{ !$isDone && !$isActive ? 'background:#fff;border:2px solid #e2e8f0;color:#94a3b8;' : '' }}
+                ">
+                    @if($isDone)
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                    @else
+                        {{ $num }}
+                    @endif
                 </div>
-                @if(!$isLast)
-                    <div class="mb-4 flex-1 h-0.5 mx-1 transition-all duration-500 {{ $currentStep > $num ? 'bg-emerald-400' : 'bg-slate-200' }}"></div>
-                @endif
-            @endforeach
-        </div>
+                <span style="
+                    margin-top:8px;font-size:11px;font-weight:600;white-space:nowrap;font-family:'Cairo',sans-serif;
+                    {{ $isActive ? 'color:#047857;' : ($isDone ? 'color:#10b981;' : 'color:#94a3b8;') }}
+                ">{{ $isRtl ? $step['ar'] : $step['en'] }}</span>
+            </div>
+            @if(!$isLast)
+                <div style="flex:1;height:2px;margin:0 4px;margin-bottom:24px;background:{{ $currentStep > $num ? '#6ee7b7' : '#e2e8f0' }};transition:background .5s;"></div>
+            @endif
+        @endforeach
     </div>
     @endif
 
@@ -161,11 +164,8 @@
     <div class="space-y-6">
 
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
-                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/></svg>
-                </span>
-                <h2 class="text-sm font-semibold text-slate-800">{{ __('app.section_project_info') }}</h2>
+            <div class="border-b border-slate-100 px-6 py-4">
+                <h2 style="font-size:13px;font-weight:700;color:#1e293b;margin:0;padding:0;">{{ __('app.section_project_info') }}</h2>
             </div>
             <div class="space-y-5 p-6">
                 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -194,11 +194,8 @@
         </div>
 
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
-                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                </span>
-                <h2 class="text-sm font-semibold text-slate-800">{{ __('app.section_boq_items') }}</h2>
+            <div class="border-b border-slate-100 px-6 py-4">
+                <h2 style="font-size:13px;font-weight:700;color:#1e293b;margin:0;padding:0;">{{ __('app.section_boq_items') }}</h2>
             </div>
             <div class="p-6 space-y-5">
                 <label
@@ -210,8 +207,8 @@
                     class="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition"
                 >
                     <div class="relative">
-                        <svg x-show="!tempUploading" class="h-10 w-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                        <svg x-show="tempUploading" x-cloak class="h-10 w-10 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <svg x-show="!tempUploading" width="40" height="40" style="width:40px;height:40px;color:#34d399;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        <svg x-show="tempUploading" x-cloak width="40" height="40" style="width:40px;height:40px;color:#10b981;" class="animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                     </div>
                     <template x-if="selectedFileName">
                         <span class="text-sm font-medium text-emerald-600"><span x-text="selectedFileName"></span><span class="text-slate-400" x-text="' (' + selectedFileSize + ' KB)'"></span></span>
@@ -290,9 +287,6 @@
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
                 <div class="flex items-center gap-3">
-                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                    </span>
                     <div>
                         <h2 class="text-sm font-semibold text-slate-800">{{ app()->getLocale() === 'ar' ? 'تأكيد العناصر' : 'Confirm Items' }}</h2>
                         <p class="text-xs text-slate-400">{{ app()->getLocale() === 'ar' ? 'راجع واعتمد العناصر قبل جلب الأسعار' : 'Review and approve items before fetching prices' }}</p>
@@ -452,10 +446,7 @@
             {{-- Price table (always rendered so guest sees items) --}}
             <div class="{{ $guestMode && $showGuestLoginOverlay ? 'select-none pointer-events-none' : '' }}">
                 <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden {{ $guestMode && $showGuestLoginOverlay ? 'blur-sm' : '' }}">
-                    <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
-                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </span>
+                    <div class="border-b border-slate-100 px-6 py-4">
                         <h2 class="text-sm font-semibold text-slate-800">{{ app()->getLocale() === 'ar' ? 'تفاصيل عرض السعر' : 'Quotation Details' }}</h2>
                     </div>
                     <div class="overflow-x-auto">
@@ -555,14 +546,9 @@
                 <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
 
                     {{-- Header --}}
-                    <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
-                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </span>
-                        <div>
-                            <h2 class="text-sm font-semibold text-slate-800">{{ app()->getLocale() === 'ar' ? 'عنوان التوصيل' : 'Delivery Address' }}</h2>
-                            <p class="text-xs text-slate-400">{{ app()->getLocale() === 'ar' ? 'اختر كيف تريد إدخال عنوان التوصيل' : 'Choose how to enter the delivery address' }}</p>
-                        </div>
+                    <div class="border-b border-slate-100 px-6 py-4">
+                        <h2 class="text-sm font-semibold text-slate-800">{{ app()->getLocale() === 'ar' ? 'عنوان التوصيل' : 'Delivery Address' }}</h2>
+                        <p class="text-xs text-slate-400">{{ app()->getLocale() === 'ar' ? 'اختر كيف تريد إدخال عنوان التوصيل' : 'Choose how to enter the delivery address' }}</p>
                     </div>
 
                     {{-- ── Address type selector ─────────────────────────────── --}}
