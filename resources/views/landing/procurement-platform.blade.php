@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@php 
-    $isAr   = app()->getLocale() === 'ar'; 
+@php
+    $isAr   = app()->getLocale() === 'ar';
     $__rp   = $isAr ? 'ar.' : '';
     $_p     = number_format($catalogStats['products']);
     $_cats  = $catalogStats['categories'];
