@@ -229,89 +229,16 @@
 .try-wizard-wrap {
     max-width: 1060px;
     margin: 0 auto;
-    padding: 66px 28px 105px;
+    padding: 48px 24px 80px;
 }
 
 .try-wizard-card {
     background: #fff;
     border: 1px solid #e2e8f0;
-    border-radius: 30px;
-    box-shadow: 0 18px 55px rgba(15, 23, 42, .09);
-    padding: 54px;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(15, 23, 42, .08);
+    padding: 0;
     overflow: hidden;
-}
-
-/* مهم جداً: تنسيق الفورم اللي داخل Livewire */
-.try-wizard-card form,
-.try-wizard-card .form,
-.try-wizard-card .row {
-    row-gap: 24px !important;
-}
-
-.try-wizard-card .form-group,
-.try-wizard-card .mb-3,
-.try-wizard-card .mb-4,
-.try-wizard-card [class*="form-field"],
-.try-wizard-card [class*="field"],
-.try-wizard-card .input-group {
-    margin-bottom: 24px !important;
-}
-
-.try-wizard-card label {
-    display: block;
-    margin-bottom: 9px !important;
-    font-size: 14px;
-    font-weight: 800;
-    color: #334155;
-}
-
-.try-wizard-card input,
-.try-wizard-card select,
-.try-wizard-card textarea {
-    width: 100%;
-    min-height: 52px;
-    border-radius: 14px !important;
-    border: 1px solid #cbd5e1 !important;
-    padding: 13px 16px !important;
-    font-size: 14px;
-    color: #0f172a;
-    background: #fff;
-    transition: .2s ease;
-}
-
-.try-wizard-card textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-.try-wizard-card input:focus,
-.try-wizard-card select:focus,
-.try-wizard-card textarea:focus {
-    border-color: #10b981 !important;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, .14) !important;
-    outline: none !important;
-}
-
-.try-wizard-card button,
-.try-wizard-card .btn {
-    min-height: 48px;
-    border-radius: 14px;
-    font-weight: 800;
-}
-
-.try-wizard-card .row > [class*="col"] {
-    margin-bottom: 18px;
-}
-
-.try-wizard-card table input,
-.try-wizard-card table select {
-    min-height: 44px;
-    margin-bottom: 8px;
-}
-
-.try-wizard-card .alert {
-    border-radius: 16px;
-    margin-bottom: 24px;
 }
 
 @media (max-width: 768px) {
@@ -344,27 +271,7 @@
     }
 
     .try-wizard-wrap {
-        padding: 34px 14px 70px;
-    }
-
-    .try-wizard-card {
-        padding: 26px 18px 30px;
-        border-radius: 22px;
-    }
-
-    .try-wizard-card .form-group,
-    .try-wizard-card .mb-3,
-    .try-wizard-card .mb-4,
-    .try-wizard-card [class*="form-field"],
-    .try-wizard-card [class*="field"],
-    .try-wizard-card .input-group {
-        margin-bottom: 20px !important;
-    }
-
-    .try-wizard-card input,
-    .try-wizard-card select,
-    .try-wizard-card textarea {
-        min-height: 50px;
+        padding: 24px 12px 60px;
     }
 }
 </style>
