@@ -196,7 +196,7 @@ $_articleSchema = json_encode([
             <div class="ns-cta-card">
                 <p class="ns-cta-heading">{{ $isAr ? 'هل أنت مستعد للأتمتة؟' : 'Ready to automate?' }}</p>
                 <p class="ns-cta-sub">{{ $isAr ? 'اختبر مستقبل المشتريات الإنشائية مع محرك الذكاء الاصطناعي لدينا.' : 'Experience the future of construction procurement with our AI-driven engine.' }}</p>
-                <a href="{{ route('enduser.register') }}" class="ns-cta-btn">
+                <a href="{{ route('guest.boq.create') }}" class="ns-cta-btn">
                     {{ $isAr ? 'جرّب محرك التسعير' : 'Try the pricing engine' }}
                 </a>
             </div>

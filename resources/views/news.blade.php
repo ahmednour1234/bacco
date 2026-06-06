@@ -263,7 +263,7 @@ $_newsBreadcrumb = json_encode([
                     ? 'ارفع جدول الكميات وتلقّ عروض أسعار حقيقية خلال دقائق من موردين معتمدين.'
                     : 'Upload your BOQ and get real supplier quotes in minutes � powered by Qimta.' }}
             </p>
-            <a href="{{ url('/') }}"
+            <a href="{{ route('guest.boq.create') }}"
                style="display:inline-flex; align-items:center; gap:8px; background:#006A3B; color:#fff; padding:14px 36px; border-radius:50px; font-size:15px; font-weight:700; text-decoration:none; transition:background .15s;"
                onmouseenter="this.style.background='#005a31'"
                onmouseleave="this.style.background='#006A3B'">
