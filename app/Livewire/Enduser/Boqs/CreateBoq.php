@@ -116,6 +116,17 @@ class CreateBoq extends Component
             if (empty($this->guestToken)) {
                 $this->guestToken = (string) \Illuminate\Support\Str::uuid();
             }
+
+            // Restore boqId/projectId from DB in case Livewire state was lost on refresh
+            if ($this->guestToken && $this->boqId === null) {
+                $existingBoq = Boq::where('guest_token', $this->guestToken)->first();
+                if ($existingBoq) {
+                    $this->boqId        = $existingBoq->id;
+                    $this->draftBoqUuid = $existingBoq->uuid;
+                    $this->projectId    = $existingBoq->project_id;
+                    $this->boqType      = $existingBoq->type->value ?? $this->boqType;
+                }
+            }
             return;
         }
 
@@ -1062,6 +1073,22 @@ class CreateBoq extends Component
             return $project;
         }
 
+        // ── Guest mode: recover existing project via its BOQ's guest_token ──
+        if ($this->guestMode && $this->guestToken) {
+            $existingBoq = Boq::where('guest_token', $this->guestToken)->first();
+            if ($existingBoq && $existingBoq->project_id) {
+                $project = Project::find($existingBoq->project_id);
+                if ($project) {
+                    $this->projectId = $project->id;
+                    $project->update([
+                        'name'        => $this->projectName,
+                        'description' => $this->projectDescription,
+                    ]);
+                    return $project;
+                }
+            }
+        }
+
         $project = Project::create([
             'client_id'   => $this->guestMode ? null : Auth::id(),
             'project_no'  => $this->generateProjectNo(),
@@ -1096,6 +1123,19 @@ class CreateBoq extends Component
             $this->draftBoqUuid = $boq->uuid;
 
             return $boq;
+        }
+
+        // ── Guest mode: recover existing BOQ by guest_token on page refresh ─
+        if ($this->guestMode && $this->guestToken) {
+            $existing = Boq::where('guest_token', $this->guestToken)->first();
+            if ($existing) {
+                $this->boqId        = $existing->id;
+                $this->draftBoqUuid = $existing->uuid;
+                $attrs = ['project_id' => $project->id];
+                if ($status !== null) { $attrs['status'] = $status; }
+                $existing->update($attrs);
+                return $existing;
+            }
         }
 
         $boq = Boq::create([
