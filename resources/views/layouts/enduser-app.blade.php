@@ -94,6 +94,31 @@
                 <span>{{ __('app.orders') }}</span>
             </a>
 
+            {{-- Payments --}}
+            @php
+                $pendingPaymentsCount = auth()->check()
+                    ? \App\Models\Payment::where('client_id', auth()->id())
+                        ->whereIn('status', ['pending','submitted'])
+                        ->count()
+                    : 0;
+            @endphp
+            <a href="{{ route('enduser.payments.index') }}" wire:navigate
+               class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                      {{ request()->routeIs('enduser.payments*')
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span>{{ app()->getLocale() === 'ar' ? 'المدفوعات' : 'Payments' }}</span>
+                @if($pendingPaymentsCount > 0)
+                    <span class="{{ request()->routeIs('enduser.payments*') ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-700' }} ms-auto text-xs font-bold rounded-full px-2 py-0.5">
+                        {{ $pendingPaymentsCount }}
+                    </span>
+                @endif
+            </a>
+
             {{-- Projects --}}
             <a href="{{ route('enduser.projects.index') }}" wire:navigate
                class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150

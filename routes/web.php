@@ -220,6 +220,9 @@ Route::prefix('enduser')->name('enduser.')->group(function () {
         Route::get('/orders',        [EnduserOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{uuid}', [EnduserOrderController::class, 'show'])->name('orders.show');
 
+        // Payments
+        Route::get('/payments', fn() => view('enduser.payments.index'))->name('payments.index');
+
         // Reports
         Route::get('/reports', [EnduserReportController::class, 'index'])->name('reports.index');
     });
@@ -267,6 +270,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Orders
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');        Route::get('/orders/{uuid}/pdf', [AdminOrderController::class, 'pdf'])->name('orders.pdf');        Route::get('/orders/{uuid}', [AdminOrderController::class, 'show'])->name('orders.show');
+
+        // Payments
+        Route::get('/payments', fn() => view('admin.payments.index'))->name('payments.index');
 
         // BOQs
         Route::get('/boqs', [AdminBoqController::class, 'index'])->name('boqs.index');

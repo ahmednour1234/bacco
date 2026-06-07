@@ -16,6 +16,9 @@ enum NotificationTypeEnum: string
     case ProductRejected     = 'product_rejected';
     case General             = 'general';
     case PricingComplete     = 'pricing_complete';
+    case PaymentSubmitted    = 'payment_submitted';
+    case PaymentApproved     = 'payment_approved';
+    case PaymentRejected     = 'payment_rejected';
 
     public function label(): string
     {
@@ -32,6 +35,9 @@ enum NotificationTypeEnum: string
             self::ProductRejected     => 'Product Rejected',
             self::General             => 'General',
             self::PricingComplete     => 'Pricing Complete',
+            self::PaymentSubmitted    => 'Payment Submitted',
+            self::PaymentApproved     => 'Payment Approved',
+            self::PaymentRejected     => 'Payment Rejected',
         };
     }
 
@@ -50,6 +56,9 @@ enum NotificationTypeEnum: string
             self::ProductRejected     => 'warning',
             self::General             => 'info',
             self::PricingComplete     => 'success',
+            self::PaymentSubmitted    => 'info',
+            self::PaymentApproved     => 'success',
+            self::PaymentRejected     => 'warning',
         };
     }
 

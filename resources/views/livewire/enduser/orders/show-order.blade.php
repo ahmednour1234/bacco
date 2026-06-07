@@ -340,4 +340,20 @@
 
     @endif
 
+    {{-- ───── Bank Transfer Payment Section ───────────────────────────── --}}
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="border-b border-slate-100 px-6 py-4 flex items-center gap-3" style="background:#fafbfc;">
+            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="18" height="18" fill="none" stroke="#1d4ed8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            </div>
+            <div>
+                <h2 class="text-sm font-bold text-slate-900">{{ app()->getLocale() === 'ar' ? 'الدفع بالتحويل البنكي' : 'Bank Transfer Payment' }}</h2>
+                <p class="text-xs text-slate-400">{{ app()->getLocale() === 'ar' ? 'حوّل المبلغ وارفع الإيصال لتأكيد طلبك' : 'Transfer the amount and upload your receipt to confirm your order' }}</p>
+            </div>
+        </div>
+        <div class="p-6">
+            <livewire:enduser.payments.submit-payment :order="$order" />
+        </div>
+    </div>
+
 </div>
