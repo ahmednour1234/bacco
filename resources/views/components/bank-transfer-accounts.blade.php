@@ -1,4 +1,4 @@
-@props(['compact' => false])
+@props(['compact' => false, 'showHeader' => true])
 
 @php
     $isAr = app()->getLocale() === 'ar';
@@ -39,38 +39,40 @@
     x-data="{ open: true, activeTab: 'sab' }"
     {{ $attributes->merge(['class' => 'rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden']) }}
 >
-    <button
-        type="button"
-        class="flex w-full items-center justify-between gap-4 border-b border-slate-100 px-6 py-4 text-start transition hover:bg-slate-50"
-        style="background:#fafbfc;"
-        @click="open = !open"
-        :aria-expanded="open.toString()"
-    >
-        <span class="flex items-center gap-3">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+    @if($showHeader)
+        <button
+            type="button"
+            class="flex w-full items-center justify-between gap-4 border-b border-slate-100 px-6 py-4 text-start transition hover:bg-slate-50"
+            style="background:#fafbfc;"
+            @click="open = !open"
+            :aria-expanded="open.toString()"
+        >
+            <span class="flex items-center gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="block text-sm font-bold text-slate-900">
+                        {{ $isAr ? 'الدفع بالتحويل البنكي' : 'Bank Transfer Payment' }}
+                    </span>
+                    <span class="mt-1 block text-xs text-slate-500">
+                        {{ $isAr ? 'حوّل المبلغ وارفع الإيصال لتأكيد طلبك' : 'Transfer the amount and upload the receipt to confirm your order' }}
+                    </span>
+                </span>
+            </span>
+
+            <span class="flex items-center gap-3">
+                <span class="hidden rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 sm:inline-flex">
+                    SABBSARI
+                </span>
+                <svg class="h-5 w-5 text-slate-400 transition" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
                 </svg>
             </span>
-            <span>
-                <span class="block text-sm font-bold text-slate-900">
-                    {{ $isAr ? 'الدفع بالتحويل البنكي' : 'Bank Transfer Payment' }}
-                </span>
-                <span class="mt-1 block text-xs text-slate-500">
-                    {{ $isAr ? 'حوّل المبلغ وارفع الإيصال لتأكيد طلبك' : 'Transfer the amount and upload the receipt to confirm your order' }}
-                </span>
-            </span>
-        </span>
-
-        <span class="flex items-center gap-3">
-            <span class="hidden rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 sm:inline-flex">
-                SABBSARI
-            </span>
-            <svg class="h-5 w-5 text-slate-400 transition" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-            </svg>
-        </span>
-    </button>
+        </button>
+    @endif
 
     <div
         x-show="open"

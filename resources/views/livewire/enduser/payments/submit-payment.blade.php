@@ -83,7 +83,7 @@
         {{-- Bank Transfer Form --}}
         <div style="display:flex;flex-direction:column;gap:24px;">
 
-            <x-bank-transfer-accounts compact />
+            <x-bank-transfer-accounts compact :show-header="false" />
 
             <div style="background:#fefce8;border:1px solid #fde68a;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:8px;">
                 <svg width="16" height="16" fill="none" stroke="#92400e" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
