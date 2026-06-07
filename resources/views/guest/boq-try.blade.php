@@ -278,6 +278,7 @@
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
+.h-13 { height: 3.25rem; }
 @media (max-width: 768px) {
     .try-hero {
         padding: 72px 0 60px;

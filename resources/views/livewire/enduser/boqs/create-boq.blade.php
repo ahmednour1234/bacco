@@ -176,27 +176,27 @@
             </div>
 
             <div class="space-y-7">
-                <div class="grid grid-cols-1 gap-7 md:grid-cols-2">
-                    <div class="flex flex-col gap-2">
+                <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+                    <div class="flex flex-col gap-3">
                         <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('app.project_name') }}</label>
                         <input type="text" wire:model.blur="projectName" placeholder="{{ __('app.project_name_placeholder') }}"
-                            class="h-12 w-full rounded-xl border bg-white px-4 text-sm text-slate-800 shadow-sm outline-none transition @error('projectName') border-red-400 focus:ring-2 focus:ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                        @error('projectName')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            class="h-13 w-full rounded-xl border bg-white px-4 py-3.5 text-sm text-slate-800 shadow-sm outline-none transition @error('projectName') border-red-400 focus:ring-2 focus:ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
+                        @error('projectName')<p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>@enderror
                     </div>
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-3">
                         <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('app.boq_type') }}</label>
-                        <select wire:model.blur="boqType" class="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
+                        <select wire:model.blur="boqType" class="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-800 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
                             @foreach($boqTypes as $type)<option value="{{ $type->value }}">{{ $type->label() }}</option>@endforeach
                         </select>
                     </div>
                 </div>
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-3 mt-2">
                     <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">
                         {{ __('app.project_description_label') }} <span class="normal-case font-normal text-slate-300 ms-1">{{ __('app.optional') }}</span>
                     </label>
-                    <textarea wire:model.blur="projectDescription" rows="3" placeholder="{{ __('app.describe_project_scope') }}"
-                        class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition resize-none @error('projectDescription') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"></textarea>
-                    @error('projectDescription')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                    <textarea wire:model.blur="projectDescription" rows="4" placeholder="{{ __('app.describe_project_scope') }}"
+                        class="w-full rounded-xl border bg-white px-4 py-3.5 text-sm text-slate-800 shadow-sm outline-none transition resize-none @error('projectDescription') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"></textarea>
+                    @error('projectDescription')<p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>@enderror
                 </div>
             </div>
         </div>
