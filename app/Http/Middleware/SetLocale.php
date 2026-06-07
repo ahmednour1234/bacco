@@ -16,7 +16,8 @@ class SetLocale
         // Use session locale so users can switch language without a URL change.
         $isPortal = str_starts_with($path, '/admin')
                  || str_starts_with($path, '/enduser')
-                 || str_starts_with($path, '/supplier');
+                 || str_starts_with($path, '/supplier')
+                 || $path === '/try';
 
         if ($isPortal) {
             $locale = session('locale', 'ar');

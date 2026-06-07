@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
@@ -29,14 +29,17 @@
 
 @section('styles')
 <style>
+/* ── Base ─────────────────────────────────────────────────────────────── */
 .try-page {
-    background: #f8fafc;
+    background: #f0f4f8;
     font-family: 'Cairo', sans-serif;
+    min-height: 100vh;
 }
 
+/* ── Hero ─────────────────────────────────────────────────────────────── */
 .try-hero {
-    padding: 90px 0 76px;
-    background: linear-gradient(155deg, #f0fdf8 0%, #f8fdf9 55%, #ecfdf5 100%);
+    padding: 110px 0 90px;
+    background: linear-gradient(150deg, #e8fdf3 0%, #f5fffe 45%, #edfaf4 100%);
     position: relative;
     overflow: hidden;
 }
@@ -45,9 +48,9 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(#bbf7d0 1.3px, transparent 1.3px);
-    background-size: 30px 30px;
-    opacity: .4;
+    background-image: radial-gradient(#a7f3d0 1.2px, transparent 1.2px);
+    background-size: 28px 28px;
+    opacity: .35;
 }
 
 .try-glow-tr,
@@ -58,43 +61,46 @@
 }
 
 .try-glow-tr {
-    top: -160px;
-    left: -200px;
-    width: 580px;
-    height: 580px;
-    background: radial-gradient(circle, #6ee7b730 0%, transparent 68%);
+    top: -180px;
+    left: -220px;
+    width: 640px;
+    height: 640px;
+    background: radial-gradient(circle, #6ee7b740 0%, transparent 68%);
 }
 
 .try-glow-bl {
-    bottom: -120px;
-    right: -150px;
-    width: 460px;
-    height: 460px;
-    background: radial-gradient(circle, #a7f3d020 0%, transparent 68%);
+    bottom: -140px;
+    right: -160px;
+    width: 520px;
+    height: 520px;
+    background: radial-gradient(circle, #34d39930 0%, transparent 68%);
 }
 
 .try-hero-inner {
-    max-width: 860px;
+    max-width: 880px;
     margin: 0 auto;
     text-align: center;
-    padding: 0 28px;
+    padding: 0 32px;
     position: relative;
     z-index: 2;
 }
 
+/* ── Badge ────────────────────────────────────────────────────────────── */
 .try-badge {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    background: #fff;
+    background: rgba(255,255,255,.9);
+    backdrop-filter: blur(8px);
     border: 1.5px solid #6ee7b7;
     color: #059669;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 800;
     border-radius: 50px;
-    padding: 8px 22px;
-    margin-bottom: 32px;
-    box-shadow: 0 8px 24px #10b98117;
+    padding: 9px 24px;
+    margin-bottom: 36px;
+    box-shadow: 0 6px 24px #10b98120, 0 1px 0 #fff inset;
+    letter-spacing: .3px;
 }
 
 .try-badge-dot {
@@ -102,62 +108,74 @@
     height: 8px;
     background: #10b981;
     border-radius: 50%;
+    flex-shrink: 0;
     animation: tbpulse 2.2s ease-in-out infinite;
 }
 
 @keyframes tbpulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.4); opacity: .5; }
+    0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 #10b98160; }
+    50%       { transform: scale(1.35); opacity: .6; box-shadow: 0 0 0 5px #10b98100; }
 }
 
+/* ── Heading ──────────────────────────────────────────────────────────── */
 .try-hero h1 {
-    font-size: clamp(38px, 6vw, 74px);
+    font-size: clamp(36px, 5.5vw, 72px);
     font-weight: 950;
-    line-height: 1.15;
-    color: #0f172a;
-    margin: 0 0 24px;
+    line-height: 1.18;
+    color: #0a1628;
+    margin: 0 0 26px;
+    letter-spacing: -1px;
 }
 
 .try-highlight {
     color: #059669;
     position: relative;
     display: inline-block;
+    white-space: nowrap;
 }
 
 .try-highlight::after {
     content: '';
     position: absolute;
-    inset-inline-start: 2px;
-    inset-inline-end: 2px;
-    bottom: -4px;
-    height: 6px;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    bottom: -6px;
+    height: 7px;
     background: linear-gradient(90deg, #34d399, #059669);
     border-radius: 4px;
-    opacity: .75;
+    opacity: .7;
 }
 
+/* ── Subtitle ─────────────────────────────────────────────────────────── */
 .try-sub {
-    font-size: 18px;
-    color: #475569;
-    max-width: 640px;
-    margin: 0 auto 42px;
-    line-height: 1.9;
+    font-size: 17.5px;
+    color: #4b5f78;
+    max-width: 660px;
+    margin: 0 auto 48px;
+    line-height: 2;
 }
 
+/* ── Trust Pills ──────────────────────────────────────────────────────── */
 .try-trust {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 14px 24px;
+    gap: 10px 20px;
+    margin-top: 4px;
 }
 
 .try-trust-item {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
     color: #64748b;
+    background: rgba(255,255,255,.75);
+    border: 1px solid #e2e8f0;
+    border-radius: 30px;
+    padding: 6px 16px;
+    backdrop-filter: blur(4px);
 }
 
 .try-trust-item svg {
@@ -165,24 +183,24 @@
     flex-shrink: 0;
 }
 
-.try-trust-sep {
-    color: #cbd5e1;
-}
+.try-trust-sep { display: none; }
 
+/* ── Steps Bar ────────────────────────────────────────────────────────── */
 .try-steps-wrap {
     background: #fff;
-    border-top: 1px solid #e2e8f0;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 36px 28px;
+    border-top: 1px solid #dde4ee;
+    border-bottom: 1px solid #dde4ee;
+    padding: 40px 32px;
+    box-shadow: 0 2px 12px rgba(15,23,42,.05);
 }
 
 .try-steps {
-    max-width: 960px;
+    max-width: 980px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
 }
 
 .try-step {
@@ -190,88 +208,98 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 12px;
+    gap: 14px;
+    padding: 4px 8px;
 }
 
 .try-step-num {
-    width: 54px;
-    height: 54px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
-    background: #ecfdf5;
-    border: 2px solid #a7f3d0;
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border: 2px solid #6ee7b7;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 900;
     color: #059669;
+    box-shadow: 0 4px 12px #10b98120;
+    flex-shrink: 0;
 }
 
 .try-step-label {
     font-size: 13.5px;
     font-weight: 800;
-    color: #334155;
+    color: #1e293b;
     line-height: 1.5;
 }
 
 .try-step-sublabel {
     font-size: 11.5px;
     color: #94a3b8;
-    margin-top: 3px;
+    margin-top: 2px;
+    font-weight: 600;
 }
 
 .try-step-arrow {
     color: #cbd5e1;
-    font-size: 24px;
-    margin-bottom: 34px;
+    font-size: 22px;
+    margin-bottom: 38px;
+    flex-shrink: 0;
 }
 
+/* ── Wizard ───────────────────────────────────────────────────────────── */
 .try-wizard-wrap {
-    max-width: 1060px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 48px 24px 80px;
+    padding: 56px 28px 96px;
 }
 
 .try-wizard-card {
     background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 24px;
-    box-shadow: 0 8px 40px rgba(15, 23, 42, .08);
-    padding: 0;
+    border: 1px solid #dde4ee;
+    border-radius: 28px;
+    box-shadow:
+        0 4px 6px rgba(15,23,42,.04),
+        0 16px 48px rgba(15,23,42,.09),
+        0 0 0 1px rgba(255,255,255,.6) inset;
     overflow: hidden;
 }
 
+/* ── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .try-hero {
-        padding: 64px 0 54px;
+        padding: 72px 0 60px;
     }
-
+    .try-hero h1 {
+        letter-spacing: -.5px;
+    }
     .try-sub {
-        font-size: 16px;
+        font-size: 15.5px;
+        margin-bottom: 36px;
     }
-
-    .try-trust-sep {
-        display: none;
+    .try-steps-wrap {
+        padding: 28px 20px;
     }
-
     .try-steps {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 16px;
     }
-
     .try-step {
         flex-direction: row;
         text-align: start;
         justify-content: flex-start;
         align-items: center;
     }
-
     .try-step-arrow {
         display: none;
     }
-
     .try-wizard-wrap {
-        padding: 24px 12px 60px;
+        padding: 28px 14px 64px;
+    }
+    .try-wizard-card {
+        border-radius: 20px;
     }
 }
 </style>
