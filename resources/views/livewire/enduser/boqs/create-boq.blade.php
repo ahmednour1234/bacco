@@ -167,27 +167,27 @@
             <div class="border-b border-slate-100 px-6 py-4">
                 <h2 style="font-size:13px;font-weight:700;color:#1e293b;margin:0;padding:0;">{{ __('app.section_project_info') }}</h2>
             </div>
-            <div class="space-y-5 p-6">
-                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    <div>
-                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.project_name') }}</label>
+            <div class="space-y-7 p-7">
+                <div class="grid grid-cols-1 gap-7 md:grid-cols-2">
+                    <div class="flex flex-col gap-2">
+                        <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('app.project_name') }}</label>
                         <input type="text" wire:model.blur="projectName" placeholder="{{ __('app.project_name_placeholder') }}"
-                            class="h-11 w-full rounded-xl border bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition @error('projectName') border-red-400 focus:ring-2 focus:ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
+                            class="h-12 w-full rounded-xl border bg-white px-4 text-sm text-slate-800 shadow-sm outline-none transition @error('projectName') border-red-400 focus:ring-2 focus:ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
                         @error('projectName')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
                     </div>
-                    <div>
-                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.boq_type') }}</label>
-                        <select wire:model.blur="boqType" class="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
+                    <div class="flex flex-col gap-2">
+                        <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('app.boq_type') }}</label>
+                        <select wire:model.blur="boqType" class="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
                             @foreach($boqTypes as $type)<option value="{{ $type->value }}">{{ $type->label() }}</option>@endforeach
                         </select>
                     </div>
                 </div>
-                <div>
-                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        {{ __('app.project_description_label') }} <span class="normal-case font-normal text-slate-400">{{ __('app.optional') }}</span>
+                <div class="flex flex-col gap-2">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">
+                        {{ __('app.project_description_label') }} <span class="normal-case font-normal text-slate-300 ms-1">{{ __('app.optional') }}</span>
                     </label>
                     <textarea wire:model.blur="projectDescription" rows="3" placeholder="{{ __('app.describe_project_scope') }}"
-                        class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition resize-none @error('projectDescription') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"></textarea>
+                        class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition resize-none @error('projectDescription') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"></textarea>
                     @error('projectDescription')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
                 </div>
             </div>
@@ -230,8 +230,9 @@
 
                 <div x-show="uploadReady || {{ $boqFileName ? 'true' : 'false' }}" x-cloak class="flex justify-end">
                     <button type="button" wire:click="uploadBoq" wire:loading.attr="disabled" wire:target="uploadBoq" @if($processing) disabled @endif
-                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60">
+                        class="inline-flex items-center gap-2.5 rounded-xl bg-emerald-600 px-7 py-3 text-sm font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:opacity-60" style="box-shadow:0 4px 14px #10b98140;">
                         <svg wire:loading wire:target="uploadBoq" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <svg wire:loading.remove wire:target="uploadBoq" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <span wire:loading.remove wire:target="uploadBoq">{{ __('app.extract_items_ai') }}</span>
                         <span wire:loading wire:target="uploadBoq">{{ __('app.extracting') }}</span>
                     </button>
@@ -254,14 +255,14 @@
                         <div class="flex gap-2">
                             @if(!empty($items))
                                 <button type="button" wire:click="clearAllItems" wire:confirm="{{ __('app.remove_all_items_confirm') }}"
-                                    class="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100">
+                                    class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-100 transition active:scale-95">
                                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     {{ __('app.remove_all_rows') }}
                                 </button>
                             @endif
                             <button type="button" wire:click="addManualItem"
-                                class="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100">
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition active:scale-95">
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                                 {{ __('app.add_new_row') }}
                             </button>
                         </div>
@@ -272,7 +273,8 @@
 
         <div class="flex justify-start">
             <button type="button" wire:click="saveDraft" wire:loading.attr="disabled"
-                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50">
+                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition active:scale-95">
+                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                 {{ __('app.save_draft') }}
             </button>
         </div>
