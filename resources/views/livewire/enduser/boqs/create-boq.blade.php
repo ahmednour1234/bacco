@@ -161,13 +161,21 @@
          STEP 1 – الاستخراج  (Project Info + Upload)
     ══════════════════════════════════════════════════════ --}}
     @if($currentStep === 1)
-    <div class="space-y-6">
+    <div class="space-y-10" id="step1-sections">
 
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div class="border-b border-slate-100 px-6 py-4">
-                <h2 style="font-size:13px;font-weight:700;color:#1e293b;margin:0;padding:0;">{{ __('app.section_project_info') }}</h2>
+        {{-- Section 1: Project Info --}}
+        <div class="gsap-section" id="gsap-sec-1">
+            <div class="flex items-center gap-3 mb-6">
+                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="18" height="18" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div>
+                    <h2 style="font-size:15px;font-weight:800;color:#0f172a;margin:0;line-height:1.3;">{{ __('app.section_project_info') }}</h2>
+                    <p style="font-size:12px;color:#94a3b8;margin:0;font-weight:500;">{{ app()->getLocale() === 'ar' ? 'أدخل بيانات المشروع الأساسية' : 'Enter basic project details' }}</p>
+                </div>
             </div>
-            <div class="space-y-7 p-7">
+
+            <div class="space-y-7">
                 <div class="grid grid-cols-1 gap-7 md:grid-cols-2">
                     <div class="flex flex-col gap-2">
                         <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('app.project_name') }}</label>
@@ -193,11 +201,26 @@
             </div>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div class="border-b border-slate-100 px-6 py-4">
-                <h2 style="font-size:13px;font-weight:700;color:#1e293b;margin:0;padding:0;">{{ __('app.section_boq_items') }}</h2>
+        {{-- Divider --}}
+        <div class="gsap-divider" style="display:flex;align-items:center;gap:16px;">
+            <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,#e2e8f0);"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:#d1fae5;border:2px solid #6ee7b7;"></div>
+            <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,#e2e8f0);"></div>
+        </div>
+
+        {{-- Section 2: Upload --}}
+        <div class="gsap-section" id="gsap-sec-2">
+            <div class="flex items-center gap-3 mb-6">
+                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                </div>
+                <div>
+                    <h2 style="font-size:15px;font-weight:800;color:#0f172a;margin:0;line-height:1.3;">{{ __('app.section_boq_items') }}</h2>
+                    <p style="font-size:12px;color:#94a3b8;margin:0;font-weight:500;">{{ app()->getLocale() === 'ar' ? 'ارفع ملف جدول الكميات أو أضف العناصر يدوياً' : 'Upload your BOQ file or add items manually' }}</p>
+                </div>
             </div>
-            <div class="p-6 space-y-5">
+
+            <div class="space-y-6">
                 <label
                     for="boq-upload"
                     @dragover.prevent="dragOver = true"
@@ -271,7 +294,7 @@
             </div>
         </div>
 
-        <div class="flex justify-start">
+        <div class="gsap-section flex justify-start" id="gsap-sec-3">
             <button type="button" wire:click="saveDraft" wire:loading.attr="disabled"
                 class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition active:scale-95">
                 <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
@@ -279,6 +302,28 @@
             </button>
         </div>
     </div>
+
+    <script>
+    (function initStep1GSAP() {
+        function run() {
+            if (typeof gsap === 'undefined') {
+                setTimeout(run, 80);
+                return;
+            }
+            const sections = document.querySelectorAll('#step1-sections .gsap-section, #step1-sections .gsap-divider');
+            gsap.set(sections, { opacity: 0, y: 32 });
+            gsap.to(sections, {
+                opacity: 1,
+                y: 0,
+                duration: 0.55,
+                ease: 'power3.out',
+                stagger: 0.13,
+                clearProps: 'transform',
+            });
+        }
+        run();
+    })();
+    </script>
     @endif
 
     {{-- ══════════════════════════════════════════════════════
