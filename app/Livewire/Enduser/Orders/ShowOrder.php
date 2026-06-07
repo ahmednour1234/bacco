@@ -23,6 +23,8 @@ class ShowOrder extends Component
             'client.clientProfile',
             'logisticsUpdates',
             'engineeringUpdates',
+            'payments',
+            'latestPayment',
         ])
             ->where('uuid', $uuid)
             ->where('client_id', Auth::id())

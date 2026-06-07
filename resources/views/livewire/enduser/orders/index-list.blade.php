@@ -47,39 +47,39 @@
     {{-- ───── Stat Cards ────────────────────────────────────────────────────────── --}}
     <div class="mb-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-        <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+        <div class="flex items-center justify-between rounded-2xl border border-amber-100 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">{{ __('app.total_orders') }}</p>
-                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['total'] }}</p>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.open_unpaid_orders') }}</p>
+                <p class="mt-2 text-3xl font-extrabold text-amber-500">{{ $stats['open_unpaid'] }}</p>
             </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
-                <svg class="h-6 w-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50">
+                <svg class="h-6 w-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-            </div>
-        </div>
-
-        <div class="flex items-center justify-between rounded-2xl border border-emerald-100 bg-white px-6 py-5 shadow-sm">
-            <div>
-                <p class="text-xs font-medium text-slate-400">{{ __('app.active_orders') }}</p>
-                <p class="mt-2 text-3xl font-extrabold text-emerald-500">{{ $stats['active'] }}</p>
-            </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
-                <svg class="h-6 w-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                        d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
                 </svg>
             </div>
         </div>
 
         <div class="flex items-center justify-between rounded-2xl border border-blue-100 bg-white px-6 py-5 shadow-sm">
             <div>
-                <p class="text-xs font-medium text-slate-400">{{ __('app.completed_orders') }}</p>
-                <p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $stats['completed'] }}</p>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.receipts_under_review') }}</p>
+                <p class="mt-2 text-3xl font-extrabold text-blue-500">{{ $stats['under_review'] }}</p>
             </div>
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
                 <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between rounded-2xl border border-emerald-100 bg-white px-6 py-5 shadow-sm">
+            <div>
+                <p class="text-xs font-medium text-slate-400">{{ __('app.payment_confirmed_orders') }}</p>
+                <p class="mt-2 text-3xl font-extrabold text-emerald-500">{{ $stats['confirmed'] }}</p>
+            </div>
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
+                <svg class="h-6 w-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
@@ -216,31 +216,12 @@
         <div class="space-y-6">
             @foreach($orders as $order)
                 @php
-                    $sv = $order->status->value ?? 'open';
-
-                    $badgeClass = match($sv) {
-                        'open'   => 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200',
-                        'closed' => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
-                        default  => 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
-                    };
-
-                    $leftBorder = match($sv) {
-                        'open'   => 'border-l-emerald-400',
-                        'closed' => 'border-l-slate-300',
-                        default  => 'border-l-slate-300',
-                    };
-
-                    $statusMsg = match($sv) {
-                        'open'   => __('app.order_open_msg'),
-                        'closed' => __('app.order_closed_msg'),
-                        default  => __('app.status_update_pending'),
-                    };
-
-                    $msgIconClass = match($sv) {
-                        'closed' => 'text-slate-400',
-                        default  => 'text-emerald-500',
-                    };
-
+                    $enduserStatus = $order->enduserStatus();
+                    $sv = $enduserStatus->value;
+                    $badgeClass = $enduserStatus->badgeClass();
+                    $leftBorder = $enduserStatus->leftBorderClass();
+                    $statusMsg = $enduserStatus->message();
+                    $msgIconClass = $enduserStatus->iconClass();
                     $itemsTotal = $order->items->sum(fn($i) => (float) ($i->total_price ?? 0));
                 @endphp
 
@@ -252,7 +233,7 @@
                         {{-- Badge + Order No --}}
                         <div class="mb-2 flex flex-wrap items-center gap-2">
                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide {{ $badgeClass }}">
-                                {{ $order->status->label() }}
+                                {{ $enduserStatus->label() }}
                             </span>
                             <span class="text-xs text-slate-400 font-mono">ORDER: #{{ $order->order_no }}</span>
                         </div>
@@ -275,13 +256,17 @@
 
                         {{-- Status message --}}
                         <p class="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
-                            @if(in_array($sv, ['cancelled', 'refunded']))
+                            @if($sv === 'closed')
                                 <svg class="h-4 w-4 shrink-0 {{ $msgIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                            @elseif(in_array($sv, ['completed', 'delivered']))
+                            @elseif($sv === 'open_payment_confirmed')
                                 <svg class="h-4 w-4 shrink-0 {{ $msgIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            @elseif($sv === 'open_receipt_under_review')
+                                <svg class="h-4 w-4 shrink-0 {{ $msgIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/>
                                 </svg>
                             @else
                                 <svg class="h-4 w-4 shrink-0 {{ $msgIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">

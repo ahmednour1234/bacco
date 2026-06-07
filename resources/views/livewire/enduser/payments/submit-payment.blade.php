@@ -2,10 +2,27 @@
     x-data="{ uploading: false, fileName: null }"
     x-on:toast.window="null"
 >
-    @php $isAr = app()->getLocale() === 'ar'; @endphp
+    @php
+        $isAr = app()->getLocale() === 'ar';
+        $isClosed = ($order->status->value ?? $order->status) === \App\Enums\OrderStatusEnum::Closed->value;
+    @endphp
 
     {{-- Already submitted --}}
-    @if($submitted && $latestPayment)
+    @if($isClosed)
+        <div style="border-radius:16px;border:1.5px solid #e2e8f0;background:#f8fafc;padding:20px 24px;display:flex;align-items:flex-start;gap:14px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="20" height="20" fill="none" stroke="#64748b" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            </div>
+            <div style="flex:1;">
+                <p style="font-size:15px;font-weight:800;color:#0f172a;margin:0 0 4px;">
+                    {{ $isAr ? 'الطلب مغلق' : 'Order Closed' }}
+                </p>
+                <p style="font-size:13px;color:#64748b;margin:0;">
+                    {{ $isAr ? 'لا يمكن رفع إيصال دفع جديد لهذا الطلب.' : 'A new payment receipt cannot be uploaded for this order.' }}
+                </p>
+            </div>
+        </div>
+    @elseif($submitted && $latestPayment)
         @php
             $status = $latestPayment->status;
             $statusColors = [

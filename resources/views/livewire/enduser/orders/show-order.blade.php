@@ -36,12 +36,7 @@
 
     @if($order)
     @php
-        $statusColors = [
-            'open'   => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'bg' => 'bg-emerald-50 border-emerald-200'],
-            'closed' => ['dot' => 'bg-slate-400',   'text' => 'text-slate-600',   'bg' => 'bg-slate-100 border-slate-200'],
-        ];
-        $sv     = $order->status->value ?? 'open';
-        $sc     = $statusColors[$sv] ?? $statusColors['open'];
+        $enduserStatus = $order->enduserStatus();
     @endphp
 
     {{-- ───── Top action bar ──────────────────────────────────────────────────── --}}
@@ -87,8 +82,8 @@
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.status') }}</p>
             <p class="mt-1 flex items-center gap-1.5">
-                <span class="h-2 w-2 rounded-full {{ $sc['dot'] }}"></span>
-                <span class="text-sm font-semibold {{ $sc['text'] }}">{{ $order->status->label() }}</span>
+                <span class="h-2 w-2 rounded-full {{ $enduserStatus->dotClass() }}"></span>
+                <span class="text-sm font-semibold {{ $enduserStatus->textClass() }}">{{ $enduserStatus->label() }}</span>
             </p>
         </div>
     </div>

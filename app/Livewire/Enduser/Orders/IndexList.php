@@ -2,7 +2,8 @@
 
 namespace App\Livewire\Enduser\Orders;
 
-use App\Enums\OrderStatusEnum;
+use App\Enums\EnduserOrderStatusEnum;
+use App\Enums\PaymentStatusEnum;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -44,16 +45,19 @@ class IndexList extends Component
         $allOrders = Order::query()->where('client_id', $clientId);
 
         $stats = [
-            'total'     => (clone $allOrders)->count(),
-            'active'    => (clone $allOrders)->where('status', 'open')->count(),
-            'completed' => 0,
-            'closed'    => (clone $allOrders)->where('status', 'closed')->count(),
+            'total'        => (clone $allOrders)->count(),
+            'open_unpaid'  => $this->applyEnduserStatusFilter((clone $allOrders), EnduserOrderStatusEnum::OpenUnpaid->value)->count(),
+            'under_review' => $this->applyEnduserStatusFilter((clone $allOrders), EnduserOrderStatusEnum::OpenReceiptUnderReview->value)->count(),
+            'confirmed'    => $this->applyEnduserStatusFilter((clone $allOrders), EnduserOrderStatusEnum::OpenPaymentConfirmed->value)->count(),
+            'closed'       => $this->applyEnduserStatusFilter((clone $allOrders), EnduserOrderStatusEnum::Closed->value)->count(),
         ];
 
         $query = Order::with([
             'quotationRequest',
             'client.clientProfile',
             'items',
+            'payments',
+            'latestPayment',
         ])
             ->where('client_id', $clientId)
             ->latest();
@@ -67,7 +71,7 @@ class IndexList extends Component
         }
 
         if ($this->status !== '') {
-            $query->where('status', $this->status);
+            $this->applyEnduserStatusFilter($query, $this->status);
         }
 
         if ($this->created_from !== '') {
@@ -79,7 +83,7 @@ class IndexList extends Component
         }
 
         $orders   = $query->paginate($this->perPage);
-        $statuses = OrderStatusEnum::cases();
+        $statuses = EnduserOrderStatusEnum::cases();
 
         $hasActiveFilters = $this->search !== ''
             || $this->status !== ''
@@ -87,5 +91,31 @@ class IndexList extends Component
             || $this->created_to !== '';
 
         return view('livewire.enduser.orders.index-list', compact('orders', 'stats', 'statuses', 'hasActiveFilters'));
+    }
+
+    private function applyEnduserStatusFilter($query, string $status)
+    {
+        return match (EnduserOrderStatusEnum::tryFrom($status)) {
+            EnduserOrderStatusEnum::OpenUnpaid => $query
+                ->where('status', 'open')
+                ->whereDoesntHave('payments', fn ($q) => $q->where('status', PaymentStatusEnum::Approved->value))
+                ->where(function ($q): void {
+                    $q->whereDoesntHave('latestPayment')
+                        ->orWhereHas('latestPayment', fn ($q2) => $q2->where('status', '!=', PaymentStatusEnum::Submitted->value));
+                }),
+
+            EnduserOrderStatusEnum::OpenReceiptUnderReview => $query
+                ->where('status', 'open')
+                ->whereDoesntHave('payments', fn ($q) => $q->where('status', PaymentStatusEnum::Approved->value))
+                ->whereHas('latestPayment', fn ($q) => $q->where('status', PaymentStatusEnum::Submitted->value)),
+
+            EnduserOrderStatusEnum::OpenPaymentConfirmed => $query
+                ->where('status', 'open')
+                ->whereHas('payments', fn ($q) => $q->where('status', PaymentStatusEnum::Approved->value)),
+
+            EnduserOrderStatusEnum::Closed => $query->where('status', 'closed'),
+
+            default => $query,
+        };
     }
 }

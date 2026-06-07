@@ -3,6 +3,7 @@
 namespace App\Livewire\Enduser\Payments;
 
 use App\Enums\NotificationTypeEnum;
+use App\Enums\OrderStatusEnum;
 use App\Enums\PaymentStatusEnum;
 use App\Enums\UserTypeEnum;
 use App\Models\Order;
@@ -69,6 +70,13 @@ class SubmitPayment extends Component
 
     public function submit(): void
     {
+        if (($this->order->status->value ?? $this->order->status) === OrderStatusEnum::Closed->value) {
+            $this->dispatch('toast', message: app()->getLocale() === 'ar'
+                ? 'لا يمكن رفع إيصال دفع لطلب مغلق'
+                : 'You cannot upload a receipt for a closed order.', type: 'error');
+            return;
+        }
+
         $this->validate();
 
         DB::transaction(function () {

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\EnduserOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
+use App\Enums\PaymentStatusEnum;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends BaseModel
@@ -83,6 +86,36 @@ class Order extends BaseModel
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function latestPayment(): HasOne
+    {
+        return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
+    public function enduserStatus(): EnduserOrderStatusEnum
+    {
+        if (($this->status->value ?? $this->status) === OrderStatusEnum::Closed->value) {
+            return EnduserOrderStatusEnum::Closed;
+        }
+
+        $payments = $this->relationLoaded('payments') ? $this->payments : null;
+
+        $hasApprovedPayment = $payments
+            ? $payments->contains(fn (Payment $payment) => $payment->status === PaymentStatusEnum::Approved)
+            : $this->payments()->where('status', PaymentStatusEnum::Approved->value)->exists();
+
+        if ($hasApprovedPayment) {
+            return EnduserOrderStatusEnum::OpenPaymentConfirmed;
+        }
+
+        $latestPayment = $this->relationLoaded('latestPayment')
+            ? $this->latestPayment
+            : $this->latestPayment()->first();
+
+        return $latestPayment?->status === PaymentStatusEnum::Submitted
+            ? EnduserOrderStatusEnum::OpenReceiptUnderReview
+            : EnduserOrderStatusEnum::OpenUnpaid;
     }
 
     public function uploadedDocuments(): HasMany
