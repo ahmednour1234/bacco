@@ -89,6 +89,8 @@
     </div>
 
     {{-- ───── Delivery Address ─────────────────────────────────────────────────── --}}
+    <x-bank-transfer-accounts class="mb-5" />
+
     @if($order->delivery_address_type)
     <div class="mb-5 rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center gap-2.5 border-b border-slate-100 px-6 py-4">

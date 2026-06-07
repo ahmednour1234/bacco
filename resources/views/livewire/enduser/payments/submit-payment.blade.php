@@ -83,6 +83,18 @@
         {{-- Bank Transfer Form --}}
         <div style="display:flex;flex-direction:column;gap:24px;">
 
+            <x-bank-transfer-accounts compact />
+
+            <div style="background:#fefce8;border:1px solid #fde68a;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:8px;">
+                <svg width="16" height="16" fill="none" stroke="#92400e" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p style="font-size:12.5px;color:#78350f;margin:0;font-weight:600;">
+                    {{ $isAr
+                        ? 'بعد إتمام التحويل على الحساب المناسب للعملة، أدخل رقم العملية وارفع صورة الإيصال أدناه.'
+                        : 'After completing the transfer to the account that matches the currency, enter the transaction number and upload the receipt below.' }}
+                </p>
+            </div>
+
+            @if(false)
             {{-- Bank Account Card --}}
             <div style="border-radius:16px;border:1.5px solid #e2e8f0;overflow:hidden;">
                 <div style="background:linear-gradient(135deg,#0f2d5e,#1e40af);padding:18px 24px;display:flex;align-items:center;gap:12px;">
@@ -118,6 +130,8 @@
                     </p>
                 </div>
             </div>
+
+            @endif
 
             {{-- Order Amount Summary --}}
             <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #bbf7d0;border-radius:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
