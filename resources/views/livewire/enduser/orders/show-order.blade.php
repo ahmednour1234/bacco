@@ -66,6 +66,8 @@
     </div>
 
     {{-- ───── Meta strip ──────────────────────────────────────────────────────── --}}
+    <x-bank-transfer-accounts class="mb-5" />
+
     <div class="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-4 rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.project_name') }}</p>
@@ -89,8 +91,6 @@
     </div>
 
     {{-- ───── Delivery Address ─────────────────────────────────────────────────── --}}
-    <x-bank-transfer-accounts class="mb-5" />
-
     @if($order->delivery_address_type)
     <div class="mb-5 rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center gap-2.5 border-b border-slate-100 px-6 py-4">
