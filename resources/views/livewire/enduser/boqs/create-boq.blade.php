@@ -161,165 +161,440 @@
          STEP 1 – الاستخراج  (Project Info + Upload)
     ══════════════════════════════════════════════════════ --}}
     @if($currentStep === 1)
-    <div class="space-y-10" id="step1-sections">
+    @php $isAr = app()->getLocale() === 'ar'; @endphp
 
-        {{-- Section 1: Project Info --}}
-        <div class="gsap-section" id="gsap-sec-1">
-            <div class="flex items-center gap-3 mb-6">
-                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <svg width="18" height="18" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    <style>
+    /* ── Premium Step 1 ────────────────────────────────────────────── */
+    .s1-card {
+        background: #fff;
+        border: 1px solid #e8edf4;
+        border-radius: 20px;
+        box-shadow: 0 1px 3px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.06);
+        overflow: hidden;
+    }
+    .s1-card-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 22px 28px;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fafbfc;
+    }
+    .s1-icon-wrap {
+        width: 42px; height: 42px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .s1-icon-wrap.green  { background: linear-gradient(135deg,#d1fae5,#a7f3d0); }
+    .s1-icon-wrap.blue   { background: linear-gradient(135deg,#dbeafe,#bfdbfe); }
+    .s1-card-title { font-size: 15px; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.3; }
+    .s1-card-sub   { font-size: 12px; color: #94a3b8; margin: 3px 0 0; font-weight: 500; }
+    .s1-card-body  { padding: 28px; }
+
+    /* inputs */
+    .s1-field { display: flex; flex-direction: column; gap: 8px; }
+    .s1-label {
+        font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
+        text-transform: uppercase; color: #64748b;
+    }
+    .s1-input-wrap { position: relative; }
+    .s1-input-icon {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        color: #94a3b8; pointer-events: none;
+        display: flex; align-items: center;
+    }
+    [dir="rtl"] .s1-input-icon { right: 14px; }
+    [dir="ltr"] .s1-input-icon { left: 14px; }
+    [dir="rtl"] .s1-input, [dir="rtl"] .s1-select { padding-right: 42px; }
+    [dir="ltr"] .s1-input, [dir="ltr"] .s1-select { padding-left: 42px; }
+    .s1-input, .s1-select, .s1-textarea {
+        width: 100%; height: 52px;
+        border-radius: 14px;
+        border: 1.5px solid #e2e8f0;
+        background: #f8fafc;
+        font-size: 14px; color: #0f172a;
+        font-family: 'Cairo', sans-serif;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s, background .2s;
+        padding-inline-end: 16px;
+    }
+    .s1-textarea {
+        height: auto; padding: 14px 42px 14px 16px; resize: none;
+        line-height: 1.7;
+    }
+    [dir="rtl"] .s1-textarea { padding-right: 42px; padding-left: 16px; }
+    [dir="ltr"] .s1-textarea { padding-left: 42px; padding-right: 16px; }
+    .s1-input:focus, .s1-select:focus, .s1-textarea:focus {
+        border-color: #22c55e;
+        background: #fff;
+        box-shadow: 0 0 0 4px #22c55e18;
+    }
+    .s1-input.err, .s1-textarea.err { border-color: #f87171; }
+    .s1-input.err:focus { box-shadow: 0 0 0 4px #f8717118; }
+
+    /* upload zone */
+    .s1-upload-zone {
+        border: 2px dashed #d1d5db;
+        border-radius: 18px;
+        background: #fafbff;
+        padding: 48px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color .25s, background .25s, transform .2s;
+        display: flex; flex-direction: column; align-items: center; gap: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+    .s1-upload-zone::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 50% 0%, #22c55e0a 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .s1-upload-zone:hover, .s1-upload-zone.drag { border-color: #22c55e; background: #f0fdf4; }
+    .s1-upload-zone.drag { transform: scale(1.01); }
+
+    .s1-upload-icon-ring {
+        width: 72px; height: 72px; border-radius: 50%;
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 0 10px #22c55e10;
+        animation: s1ring 3s ease-in-out infinite;
+    }
+    @keyframes s1ring {
+        0%,100% { box-shadow: 0 0 0 10px #22c55e10; }
+        50%      { box-shadow: 0 0 0 18px #22c55e06; }
+    }
+    .s1-upload-title   { font-size: 16px; font-weight: 700; color: #0f172a; }
+    .s1-upload-sub     { font-size: 13px; color: #64748b; line-height: 1.7; }
+    .s1-format-badges  { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
+    .s1-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: #fff; border: 1px solid #e2e8f0;
+        border-radius: 8px; padding: 4px 10px;
+        font-size: 11.5px; font-weight: 700; color: #475569;
+    }
+    .s1-badge.xl   { border-color: #bbf7d0; color: #15803d; background: #f0fdf4; }
+    .s1-badge.pdf  { border-color: #fecaca; color: #b91c1c; background: #fff5f5; }
+    .s1-badge.csv  { border-color: #bfdbfe; color: #1d4ed8; background: #eff6ff; }
+    .s1-badge.img  { border-color: #e9d5ff; color: #7c3aed; background: #faf5ff; }
+
+    /* progress bar */
+    .s1-progress { width: 100%; height: 5px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+    .s1-progress-bar { height: 100%; background: linear-gradient(90deg,#22c55e,#16a34a); border-radius: 99px; transition: width .4s ease; }
+
+    /* trust strip */
+    .s1-trust {
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px;
+        padding: 18px 24px;
+        border-top: 1px solid #f1f5f9;
+        background: #fafbfc;
+    }
+    .s1-trust-item { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: #64748b; }
+    .s1-trust-dot  { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+
+    /* action buttons */
+    .s1-btn-primary {
+        display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #fff; border: none; border-radius: 14px;
+        padding: 14px 28px; font-size: 15px; font-weight: 800;
+        cursor: pointer; font-family: 'Cairo', sans-serif;
+        box-shadow: 0 4px 16px #22c55e40;
+        transition: opacity .2s, transform .15s, box-shadow .2s;
+        width: 100%;
+    }
+    .s1-btn-primary:hover  { opacity: .93; box-shadow: 0 6px 24px #22c55e50; transform: translateY(-1px); }
+    .s1-btn-primary:active { transform: scale(.98); }
+    .s1-btn-primary:disabled { opacity: .55; pointer-events: none; }
+
+    .s1-btn-secondary {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        background: #fff; color: #475569;
+        border: 1.5px solid #e2e8f0; border-radius: 14px;
+        padding: 13px 24px; font-size: 14px; font-weight: 700;
+        cursor: pointer; font-family: 'Cairo', sans-serif;
+        transition: background .2s, border-color .2s;
+        width: 100%;
+    }
+    .s1-btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+    /* items toolbar */
+    .s1-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .s1-toolbar-label { font-size: 13px; font-weight: 700; color: #334155; }
+    .s1-toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .s1-chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        border-radius: 10px; padding: 7px 14px;
+        font-size: 12.5px; font-weight: 700; cursor: pointer;
+        font-family: 'Cairo', sans-serif; border: 1.5px solid;
+        transition: background .15s, transform .1s;
+    }
+    .s1-chip:active { transform: scale(.97); }
+    .s1-chip.green  { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
+    .s1-chip.green:hover { background: #dcfce7; }
+    .s1-chip.red    { border-color: #fecaca; background: #fff5f5; color: #b91c1c; }
+    .s1-chip.red:hover  { background: #fee2e2; }
+
+    /* section divider */
+    .s1-sep { display: flex; align-items: center; gap: 14px; }
+    .s1-sep-line { flex: 1; height: 1px; background: linear-gradient(to var(--dir, right), transparent, #e2e8f0, transparent); }
+    [dir="rtl"] .s1-sep-line:first-child { --dir: left; }
+    [dir="rtl"] .s1-sep-line:last-child  { --dir: right; }
+    .s1-sep-dot { width: 6px; height: 6px; border-radius: 50%; background: #d1fae5; border: 2px solid #6ee7b7; flex-shrink: 0; }
+
+    @media (max-width: 640px) {
+        .s1-card-body { padding: 20px 16px; }
+        .s1-card-header { padding: 16px 20px; }
+        .s1-upload-zone { padding: 36px 16px; }
+        .s1-btn-primary, .s1-btn-secondary { font-size: 14px; padding: 12px 20px; }
+    }
+    </style>
+
+    <div style="display:flex;flex-direction:column;gap:28px;" id="step1-sections">
+
+        {{-- ── CARD 1: Project Info ─────────────────────────────── --}}
+        <div class="s1-card gsap-section" id="gsap-sec-1">
+            <div class="s1-card-header">
+                <div class="s1-icon-wrap green">
+                    <svg width="20" height="20" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
                 <div>
-                    <h2 style="font-size:15px;font-weight:800;color:#0f172a;margin:0;line-height:1.3;">{{ __('app.section_project_info') }}</h2>
-                    <p style="font-size:12px;color:#94a3b8;margin:0;font-weight:500;">{{ app()->getLocale() === 'ar' ? 'أدخل بيانات المشروع الأساسية' : 'Enter basic project details' }}</p>
+                    <p class="s1-card-title">{{ __('app.section_project_info') }}</p>
+                    <p class="s1-card-sub">{{ $isAr ? 'أدخل بيانات المشروع الأساسية' : 'Enter basic project details' }}</p>
                 </div>
             </div>
+            <div class="s1-card-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" class="s1-grid">
 
-            <div class="space-y-7">
-                <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-                    <div class="flex flex-col gap-3">
-                        <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('app.project_name') }}</label>
-                        <input type="text" wire:model.blur="projectName" placeholder="{{ __('app.project_name_placeholder') }}"
-                            class="h-13 w-full rounded-xl border bg-white px-4 py-3.5 text-sm text-slate-800 shadow-sm outline-none transition @error('projectName') border-red-400 focus:ring-2 focus:ring-red-100 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror">
-                        @error('projectName')<p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>@enderror
+                    {{-- Project Name --}}
+                    <div class="s1-field" style="grid-column:1/-1;" id="field-name-full">
+                        <label class="s1-label">{{ __('app.project_name') }}</label>
+                        <div class="s1-input-wrap">
+                            <span class="s1-input-icon">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V7l7-5 7 5v12a2 2 0 01-2 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 21V12h6v9"/></svg>
+                            </span>
+                            <input type="text" wire:model.blur="projectName" placeholder="{{ __('app.project_name_placeholder') }}"
+                                class="s1-input @error('projectName') err @enderror">
+                        </div>
+                        @error('projectName')<p style="font-size:12px;color:#ef4444;margin-top:4px;">{{ $message }}</p>@enderror
                     </div>
-                    <div class="flex flex-col gap-3">
-                        <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">{{ __('app.boq_type') }}</label>
-                        <select wire:model.blur="boqType" class="h-13 w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-800 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100">
-                            @foreach($boqTypes as $type)<option value="{{ $type->value }}">{{ $type->label() }}</option>@endforeach
-                        </select>
+
+                    {{-- BOQ Type --}}
+                    <div class="s1-field">
+                        <label class="s1-label">{{ __('app.boq_type') }}</label>
+                        <div class="s1-input-wrap">
+                            <span class="s1-input-icon">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+                            </span>
+                            <select wire:model.blur="boqType" class="s1-select">
+                                @foreach($boqTypes as $type)<option value="{{ $type->value }}">{{ $type->label() }}</option>@endforeach
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="flex flex-col gap-3 mt-2">
-                    <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">
-                        {{ __('app.project_description_label') }} <span class="normal-case font-normal text-slate-300 ms-1">{{ __('app.optional') }}</span>
-                    </label>
-                    <textarea wire:model.blur="projectDescription" rows="4" placeholder="{{ __('app.describe_project_scope') }}"
-                        class="w-full rounded-xl border bg-white px-4 py-3.5 text-sm text-slate-800 shadow-sm outline-none transition resize-none @error('projectDescription') border-red-400 @else border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 @enderror"></textarea>
-                    @error('projectDescription')<p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>@enderror
+
+                    {{-- Description --}}
+                    <div class="s1-field">
+                        <label class="s1-label">
+                            {{ __('app.project_description_label') }}
+                            <span style="font-size:10.5px;font-weight:500;color:#cbd5e1;text-transform:none;letter-spacing:0;">{{ __('app.optional') }}</span>
+                        </label>
+                        <div class="s1-input-wrap">
+                            <span class="s1-input-icon" style="top:16px;transform:none;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            </span>
+                            <textarea wire:model.blur="projectDescription" rows="3" placeholder="{{ __('app.describe_project_scope') }}"
+                                class="s1-textarea @error('projectDescription') err @enderror"></textarea>
+                        </div>
+                        @error('projectDescription')<p style="font-size:12px;color:#ef4444;margin-top:4px;">{{ $message }}</p>@enderror
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        {{-- Divider --}}
-        <div class="gsap-divider" style="display:flex;align-items:center;gap:16px;">
-            <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,#e2e8f0);"></div>
-            <div style="width:8px;height:8px;border-radius:50%;background:#d1fae5;border:2px solid #6ee7b7;"></div>
-            <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,#e2e8f0);"></div>
+        {{-- ── Divider ──────────────────────────────────────────── --}}
+        <div class="s1-sep gsap-divider">
+            <div class="s1-sep-line"></div>
+            <div class="s1-sep-dot"></div>
+            <div class="s1-sep-line"></div>
         </div>
 
-        {{-- Section 2: Upload --}}
-        <div class="gsap-section" id="gsap-sec-2">
-            <div class="flex items-center gap-3 mb-6">
-                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        {{-- ── CARD 2: Upload ───────────────────────────────────── --}}
+        <div class="s1-card gsap-section" id="gsap-sec-2">
+            <div class="s1-card-header">
+                <div class="s1-icon-wrap blue">
+                    <svg width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                 </div>
                 <div>
-                    <h2 style="font-size:15px;font-weight:800;color:#0f172a;margin:0;line-height:1.3;">{{ __('app.section_boq_items') }}</h2>
-                    <p style="font-size:12px;color:#94a3b8;margin:0;font-weight:500;">{{ app()->getLocale() === 'ar' ? 'ارفع ملف جدول الكميات أو أضف العناصر يدوياً' : 'Upload your BOQ file or add items manually' }}</p>
+                    <p class="s1-card-title">{{ __('app.section_boq_items') }}</p>
+                    <p class="s1-card-sub">{{ $isAr ? 'ارفع ملف جدول الكميات أو أضف العناصر يدوياً' : 'Upload your BOQ file or add items manually' }}</p>
                 </div>
             </div>
 
-            <div class="space-y-6">
+            <div class="s1-card-body" style="display:flex;flex-direction:column;gap:20px;">
+
+                {{-- Drop Zone --}}
                 <label
                     for="boq-upload"
+                    class="s1-upload-zone"
+                    :class="dragOver ? 'drag' : ''"
                     @dragover.prevent="dragOver = true"
                     @dragleave.prevent="dragOver = false"
                     @drop.prevent="dragOver=false; if($event.dataTransfer.files.length){const dt=new DataTransfer();dt.items.add($event.dataTransfer.files[0]);const inp=document.getElementById('boq-upload');inp.files=dt.files;startUpload({target:inp});}"
-                    :class="dragOver ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-emerald-300 hover:bg-emerald-50/40'"
-                    class="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition"
                 >
-                    <div class="relative">
-                        <svg x-show="!tempUploading" width="40" height="40" style="width:40px;height:40px;color:#34d399;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                        <svg x-show="tempUploading" x-cloak width="40" height="40" style="width:40px;height:40px;color:#10b981;" class="animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    {{-- Cloud icon --}}
+                    <div class="s1-upload-icon-ring" x-show="!tempUploading">
+                        <svg width="32" height="32" fill="none" stroke="#16a34a" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
                     </div>
+                    <div x-show="tempUploading" x-cloak style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#dcfce7,#bbf7d0);display:flex;align-items:center;justify-content:center;">
+                        <svg style="width:32px;height:32px;color:#16a34a;" class="animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    </div>
+
                     <template x-if="selectedFileName">
-                        <span class="text-sm font-medium text-emerald-600"><span x-text="selectedFileName"></span><span class="text-slate-400" x-text="' (' + selectedFileSize + ' KB)'"></span></span>
+                        <div style="text-align:center;">
+                            <p class="s1-upload-title" style="color:#16a34a;" x-text="selectedFileName"></p>
+                            <p class="s1-upload-sub" x-text="selectedFileSize + ' KB'"></p>
+                        </div>
                     </template>
+
                     <template x-if="!selectedFileName">
-                        <div class="space-y-1">
+                        <div style="text-align:center;">
                             @if($boqFileName)
-                                <span class="block text-sm font-medium text-slate-600">{{ $boqFileName }}</span>
-                                <span class="block text-xs text-slate-400">{{ __('app.previously_uploaded') }}</span>
+                                <p class="s1-upload-title">{{ $boqFileName }}</p>
+                                <p class="s1-upload-sub">{{ __('app.previously_uploaded') }}</p>
                             @else
-                                <span class="block text-sm font-medium text-slate-700">{{ __('app.click_upload_drag') }}</span>
-                                <span class="block text-xs text-slate-400">{{ __('app.file_formats_boq') }}</span>
+                                <p class="s1-upload-title">{{ $isAr ? 'اسحب الملف هنا أو اضغط للرفع' : 'Drop your file here or click to upload' }}</p>
+                                <p class="s1-upload-sub">{{ $isAr ? 'يدعم ملفات Excel وPDF وCSV والصور — الحد الأقصى 50 ميجابايت' : 'Excel, PDF, CSV or images — max 50 MB' }}</p>
                             @endif
                         </div>
                     </template>
+
+                    {{-- Format badges --}}
+                    <div class="s1-format-badges" x-show="!selectedFileName">
+                        <span class="s1-badge xl">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#15803d"><rect x="3" y="3" width="18" height="18" rx="2"/><path fill="#fff" d="M8 8l3 4-3 4h2l2-2.5L15 16h2l-3-4 3-4h-2l-2 2.5L10 8z"/></svg>
+                            Excel
+                        </span>
+                        <span class="s1-badge pdf">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#b91c1c"><rect x="3" y="3" width="18" height="18" rx="2"/><text x="4" y="17" font-size="9" fill="#fff" font-weight="700">PDF</text></svg>
+                            PDF
+                        </span>
+                        <span class="s1-badge csv">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><path d="M9 17H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2h-2M9 17v2a2 2 0 002 2h2a2 2 0 002-2v-2M9 17h6"/></svg>
+                            CSV
+                        </span>
+                        <span class="s1-badge img">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21"/></svg>
+                            {{ $isAr ? 'صورة' : 'Image' }}
+                        </span>
+                    </div>
+
                     <input id="boq-upload" type="file" @change="startUpload($event)" accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png" class="hidden">
                 </label>
-                @error('boqFile')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                @error('boqFile')<p style="font-size:12px;color:#ef4444;margin-top:-8px;">{{ $message }}</p>@enderror
 
-                <div x-show="uploadReady || {{ $boqFileName ? 'true' : 'false' }}" x-cloak class="flex justify-end">
-                    <button type="button" wire:click="uploadBoq" wire:loading.attr="disabled" wire:target="uploadBoq" @if($processing) disabled @endif
-                        class="inline-flex items-center gap-2.5 rounded-xl bg-emerald-600 px-7 py-3 text-sm font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:opacity-60" style="box-shadow:0 4px 14px #10b98140;">
-                        <svg wire:loading wire:target="uploadBoq" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                        <svg wire:loading.remove wire:target="uploadBoq" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span wire:loading.remove wire:target="uploadBoq">{{ __('app.extract_items_ai') }}</span>
-                        <span wire:loading wire:target="uploadBoq">{{ __('app.extracting') }}</span>
-                    </button>
+                {{-- Upload progress --}}
+                <div x-show="tempUploading" x-cloak>
+                    <div class="s1-progress">
+                        <div class="s1-progress-bar" style="width:70%;animation:indeterminate 1.4s ease-in-out infinite alternate;"></div>
+                    </div>
+                    <style>@keyframes indeterminate{0%{width:20%}100%{width:90%}}</style>
                 </div>
 
+                {{-- Extracted items banner --}}
                 @if(!empty($items))
-                <div class="flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
-                    <span class="text-sm font-medium text-emerald-700">✓ {{ count($items) }} {{ app()->getLocale() === 'ar' ? 'عنصر مستخرج' : 'items extracted' }}</span>
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;padding:14px 18px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:32px;height:32px;border-radius:8px;background:#dcfce7;display:flex;align-items:center;justify-content:center;">
+                            <svg width="16" height="16" fill="none" stroke="#16a34a" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <div>
+                            <p style="font-size:14px;font-weight:700;color:#15803d;margin:0;">{{ count($items) }} {{ $isAr ? 'عنصر مستخرج بنجاح' : 'items extracted successfully' }}</p>
+                            <p style="font-size:12px;color:#86efac;margin:0;">{{ $isAr ? 'جاهز للمراجعة والتسعير' : 'Ready for review & pricing' }}</p>
+                        </div>
+                    </div>
                     <button type="button" wire:click="$set('currentStep', 2)"
-                        class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700">
-                        {{ app()->getLocale() === 'ar' ? 'التالي: مراجعة العناصر' : 'Next: Review Items' }}
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        style="display:inline-flex;align-items:center;gap:8px;background:#16a34a;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;transition:opacity .2s;">
+                        {{ $isAr ? 'مراجعة العناصر' : 'Review Items' }}
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $isAr ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7' }}"/></svg>
                     </button>
                 </div>
                 @endif
 
-                <div>
-                    <div class="flex items-center justify-between">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.boq_items') }}</p>
-                        <div class="flex gap-2">
-                            @if(!empty($items))
-                                <button type="button" wire:click="clearAllItems" wire:confirm="{{ __('app.remove_all_items_confirm') }}"
-                                    class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-100 transition active:scale-95">
-                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    {{ __('app.remove_all_rows') }}
-                                </button>
-                            @endif
-                            <button type="button" wire:click="addManualItem"
-                                class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition active:scale-95">
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                {{ __('app.add_new_row') }}
+                {{-- Toolbar --}}
+                <div class="s1-toolbar">
+                    <span class="s1-toolbar-label">
+                        {{ __('app.boq_items') }}
+                        @if(!empty($items))
+                        <span style="display:inline-flex;align-items:center;justify-content:center;background:#f0fdf4;color:#16a34a;border-radius:99px;font-size:11px;font-weight:700;padding:2px 10px;margin-inline-start:8px;">{{ count($items) }}</span>
+                        @endif
+                    </span>
+                    <div class="s1-toolbar-actions">
+                        @if(!empty($items))
+                            <button type="button" wire:click="clearAllItems" wire:confirm="{{ __('app.remove_all_items_confirm') }}" class="s1-chip red">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a1 1 0 011-1h6a1 1 0 011 1v2"/></svg>
+                                {{ __('app.remove_all_rows') }}
                             </button>
-                        </div>
+                        @endif
+                        <button type="button" wire:click="addManualItem" class="s1-chip green">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            {{ __('app.add_new_row') }}
+                        </button>
                     </div>
                 </div>
             </div>
+
+            {{-- ── Action Buttons ──────────────────────────────── --}}
+            <div style="padding:20px 28px;display:flex;flex-direction:column;gap:12px;border-top:1px solid #f1f5f9;">
+                <div x-show="uploadReady || {{ $boqFileName ? 'true' : 'false' }}" x-cloak>
+                    <button type="button" wire:click="uploadBoq" wire:loading.attr="disabled" wire:target="uploadBoq" @if($processing) disabled @endif class="s1-btn-primary">
+                        <svg wire:loading wire:target="uploadBoq" class="animate-spin" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <svg wire:loading.remove wire:target="uploadBoq" style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <span wire:loading.remove wire:target="uploadBoq">{{ $isAr ? 'تحليل وتسعير جدول الكميات' : 'Analyse & Price BOQ' }}</span>
+                        <span wire:loading wire:target="uploadBoq">{{ __('app.extracting') }}</span>
+                    </button>
+                </div>
+                <button type="button" wire:click="saveDraft" wire:loading.attr="disabled" class="s1-btn-secondary">
+                    <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                    {{ $isAr ? 'حفظ كمسودة' : 'Save as Draft' }}
+                </button>
+            </div>
+
+            {{-- ── Trust Strip ─────────────────────────────────── --}}
+            <div class="s1-trust">
+                @foreach([
+                    $isAr ? 'بياناتك محمية بالكامل' : 'Your data is fully protected',
+                    $isAr ? 'معالجة بالذكاء الاصطناعي' : 'AI-powered processing',
+                    $isAr ? 'تسعير خلال دقائق' : 'Pricing in minutes',
+                    $isAr ? 'لا حاجة لبطاقة ائتمانية' : 'No credit card needed',
+                ] as $t)
+                    <span class="s1-trust-item">
+                        <span class="s1-trust-dot"></span>
+                        {{ $t }}
+                    </span>
+                @endforeach
+            </div>
         </div>
 
-        <div class="gsap-section flex justify-start" id="gsap-sec-3">
-            <button type="button" wire:click="saveDraft" wire:loading.attr="disabled"
-                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition active:scale-95">
-                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                {{ __('app.save_draft') }}
-            </button>
-        </div>
     </div>
+
+    <style>
+    @media (max-width: 640px) {
+        .s1-grid { grid-template-columns: 1fr !important; }
+        #field-name-full { grid-column: auto !important; }
+    }
+    </style>
 
     <script>
     (function initStep1GSAP() {
         function run() {
-            if (typeof gsap === 'undefined') {
-                setTimeout(run, 80);
-                return;
-            }
-            const sections = document.querySelectorAll('#step1-sections .gsap-section, #step1-sections .gsap-divider');
-            gsap.set(sections, { opacity: 0, y: 32 });
-            gsap.to(sections, {
-                opacity: 1,
-                y: 0,
-                duration: 0.55,
-                ease: 'power3.out',
-                stagger: 0.13,
-                clearProps: 'transform',
-            });
+            if (typeof gsap === 'undefined') { setTimeout(run, 80); return; }
+            const els = document.querySelectorAll('#step1-sections .gsap-section, #step1-sections .gsap-divider');
+            gsap.set(els, { opacity: 0, y: 28 });
+            gsap.to(els, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.14, clearProps: 'transform' });
         }
         run();
     })();
