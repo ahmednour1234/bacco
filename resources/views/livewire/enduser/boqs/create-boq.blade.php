@@ -122,7 +122,7 @@
         ];
         $isRtl = app()->getLocale() === 'ar';
     @endphp
-    <div style="display:flex;align-items:center;margin-bottom:2rem;">
+    <div style="display:flex;align-items:center;margin-bottom:2.5rem;padding-bottom:1.75rem;border-bottom:1px solid #e2e8f0;">
         @foreach($steps as $num => $step)
             @php
                 $isDone   = $currentStep > $num;

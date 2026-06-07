@@ -267,6 +267,16 @@
     overflow: hidden;
 }
 
+.try-wizard-inner {
+    padding: 36px 40px 40px;
+}
+
+@media (max-width: 768px) {
+    .try-wizard-inner {
+        padding: 24px 18px 32px;
+    }
+}
+
 /* ── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .try-hero {
@@ -408,7 +418,9 @@
 
     <div class="try-wizard-wrap" @if($isAr) dir="rtl" @endif>
         <div class="try-wizard-card" @if($isAr) dir="rtl" @endif>
-            <livewire:enduser.boqs.create-boq :guestMode="true" :guestToken="$guestToken" />
+            <div class="try-wizard-inner">
+                <livewire:enduser.boqs.create-boq :guestMode="true" :guestToken="$guestToken" />
+            </div>
         </div>
     </div>
 
