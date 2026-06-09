@@ -410,6 +410,13 @@
                             </svg>
                             {{ __('app.tax_certificate') }}
                         </a>
+                        <a href="{{ asset(rawurlencode('WhatsApp Image 2026-06-08 at 13.07.26.jpeg')) }}" download target="_blank"
+                           class="flex items-center gap-2 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition">
+                            <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                            </svg>
+                            {{ __('app.national_address') }}
+                        </a>
                     </div>
                 </div>
                 <span class="text-slate-300 text-xs">|</span>

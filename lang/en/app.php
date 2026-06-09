@@ -21,6 +21,7 @@ return [
     'company_docs'        => 'Company Documents',
     'commercial_register' => 'Commercial Register',
     'tax_certificate'     => 'Tax Certificate',
+    'national_address'    => 'National Address',
     'suppliers'       => 'Suppliers',
     'brands'          => 'Brands',
     'categories'      => 'Categories',

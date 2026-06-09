@@ -21,6 +21,7 @@ return [
     'company_docs'        => 'أوراق الشركة',
     'commercial_register' => 'السجل التجاري',
     'tax_certificate'     => 'الشهادة الضريبية',
+    'national_address'    => 'العنوان الوطني',
     'suppliers'       => 'الموردون',
     'brands'          => 'العلامات التجارية',
     'categories'      => 'التصنيفات',
