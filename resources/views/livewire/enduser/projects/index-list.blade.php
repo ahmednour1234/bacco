@@ -39,7 +39,7 @@
                         <polyline points="0,30 12,20 24,25 36,10 48,18 64,8" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-slate-400">{{ __('app.total_projects') }}</p>
+                <p class="pb-3 ps-4 text-[11px] font-bold uppercase tracking-wide text-slate-400">{{ __('app.total_projects') }}</p>
             </div>
 
             {{-- Active --}}
@@ -59,7 +59,7 @@
                         <polyline points="0,32 10,28 22,20 32,24 44,10 64,14" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide" style="color:#059669;">{{ __('app.active') }}</p>
+                <p class="pb-3 ps-4 text-[11px] font-bold uppercase tracking-wide" style="color:#059669;">{{ __('app.active') }}</p>
             </div>
 
             {{-- Completed --}}
@@ -79,7 +79,7 @@
                         <polyline points="0,20 14,26 26,16 38,22 50,12 64,18" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-blue-500">{{ __('app.completed') }}</p>
+                <p class="pb-3 ps-4 text-[11px] font-bold uppercase tracking-wide text-blue-500">{{ __('app.completed') }}</p>
             </div>
 
             {{-- Pending --}}
@@ -99,7 +99,7 @@
                         <polyline points="0,15 10,22 20,18 30,28 44,20 56,26 64,18" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide" style="color:#d97706;">{{ __('app.pending') }}</p>
+                <p class="pb-3 ps-4 text-[11px] font-bold uppercase tracking-wide" style="color:#d97706;">{{ __('app.pending') }}</p>
             </div>
 
             {{-- Cancelled --}}
@@ -119,7 +119,7 @@
                         <polyline points="0,10 12,18 24,14 36,24 48,20 64,30" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <p class="pb-3 pl-4 text-[11px] font-bold uppercase tracking-wide text-red-400">{{ __('app.status_cancelled') }}</p>
+                <p class="pb-3 ps-4 text-[11px] font-bold uppercase tracking-wide text-red-400">{{ __('app.status_cancelled') }}</p>
             </div>
 
         </div>
@@ -127,13 +127,13 @@
         {{-- Filters --}}
         <div class="flex flex-wrap items-center gap-3">
             <div class="relative min-w-0 flex-1">
-                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                <span class="pointer-events-none absolute inset-y-0 start-3 flex items-center text-slate-400">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
                     </svg>
                 </span>
                 <input type="text" wire:model.live.debounce.300ms="search" placeholder="{{ __('app.search_projects') }}"
-                    class="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100">
+                    class="h-10 w-full rounded-xl border border-slate-200 bg-white ps-9 pe-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100">
             </div>
             <select wire:model.live="status"
                 class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100">
@@ -185,14 +185,14 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                            <th class="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 w-8"></th>
-                            <th class="px-3 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.project') }}</th>
+                            <th class="px-5 py-4 text-start text-[11px] font-bold uppercase tracking-wider text-slate-400 w-8"></th>
+                            <th class="px-3 py-4 text-start text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.project') }}</th>
                             <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden sm:table-cell">{{ __('app.boq_count') }}</th>
                             <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden md:table-cell">{{ __('app.quotation_count') }}</th>
                             <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden md:table-cell">{{ __('app.order_count') }}</th>
                             <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden lg:table-cell">{{ __('app.created') }}</th>
                             <th class="px-3 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.status') }}</th>
-                            <th class="px-5 py-4 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.actions') }}</th>
+                            <th class="px-5 py-4 text-end text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('app.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -209,7 +209,7 @@
                             <tr class="transition hover:bg-slate-50">
 
                                 {{-- Icon --}}
-                                <td class="pl-5 pr-2 py-5">
+                                <td class="ps-5 pe-2 py-5">
                                     <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
                                          style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 4px 10px rgba(99,102,241,0.25);">
                                         <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,7 +266,7 @@
                                 </td>
 
                                 {{-- Actions --}}
-                                <td class="pl-3 pr-5 py-5 text-right">
+                                <td class="ps-3 pe-5 py-5 text-end">
                                     <div class="inline-flex items-center gap-1.5">
                                         <a href="{{ route('enduser.boqs.create.project', $project->uuid) }}"
                                             class="flex h-9 w-9 items-center justify-center rounded-xl text-white transition hover:opacity-90"

@@ -14,10 +14,12 @@ class SetLocale
 
         // Portal paths (/admin, /enduser, /supplier) don't use URL-based locale.
         // Use session locale so users can switch language without a URL change.
+        // NOTE: /try is a PUBLIC landing page, not a portal — it must follow the
+        // /ar/ URL-prefix scheme (/try = EN, /ar/try = AR) so the language switch
+        // works. Do NOT add it here.
         $isPortal = str_starts_with($path, '/admin')
                  || str_starts_with($path, '/enduser')
-                 || str_starts_with($path, '/supplier')
-                 || $path === '/try';
+                 || str_starts_with($path, '/supplier');
 
         if ($isPortal) {
             $locale = session('locale', 'ar');
