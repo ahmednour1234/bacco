@@ -6,6 +6,7 @@ use App\Services\CatalogStats;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,42 @@ class AppServiceProvider extends ServiceProvider
         // Share real catalog stats with every view.
         // Cached 6 hours; falls back to last-known values if DB is down.
         View::share('catalogStats', CatalogStats::get());
+
+        // Scrub invalid UTF-8 from every Livewire response payload before it is
+        // JSON-encoded. Without this, a single malformed byte anywhere in a
+        // component snapshot or its rendered effects (e.g. coming from the DB)
+        // makes json_encode() fail with:
+        //   "Malformed UTF-8 characters, possibly incorrectly encoded".
+        Livewire::listen('response', function ($payload) {
+            // Return a "finisher": Livewire calls it with the payload and
+            // replaces the payload with whatever we return.
+            return function ($payload) {
+                return $this->scrubUtf8($payload);
+            };
+        });
+    }
+
+    /**
+     * Recursively convert every string in a structure to valid UTF-8,
+     * dropping any invalid byte sequences.
+     */
+    protected function scrubUtf8(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            foreach ($value as $k => $v) {
+                $value[$k] = $this->scrubUtf8($v);
+            }
+
+            return $value;
+        }
+
+        if (is_string($value) && ! mb_check_encoding($value, 'UTF-8')) {
+            $clean = @iconv('UTF-8', 'UTF-8//IGNORE', $value);
+
+            return $clean !== false ? $clean : '';
+        }
+
+        return $value;
     }
 }
 
