@@ -382,6 +382,37 @@
                         flex flex-wrap items-center justify-between gap-2">
             <span class="text-xs text-slate-400">© {{ date('Y') }} Qimta. {{ __('app.all_rights') }}</span>
             <div class="flex items-center gap-4">
+                {{-- ── أوراق الشركة (للتحميل) ───────────────────── --}}
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open" @click.outside="open = false" type="button"
+                            class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500
+                                   hover:text-emerald-600 transition">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                        <span>{{ __('app.company_docs') }}</span>
+                    </button>
+                    <div x-show="open" x-cloak x-transition
+                         class="absolute bottom-full mb-2 ltr:left-0 rtl:right-0 w-56 rounded-lg border border-slate-200
+                                bg-white shadow-lg py-1 z-50">
+                        <a href="{{ asset('CrCertificate English.pdf') }}" download target="_blank"
+                           class="flex items-center gap-2 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition">
+                            <svg class="w-4 h-4 text-rose-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                            </svg>
+                            {{ __('app.commercial_register') }}
+                        </a>
+                        <a href="{{ asset('100261166377823.pdf') }}" download target="_blank"
+                           class="flex items-center gap-2 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition">
+                            <svg class="w-4 h-4 text-rose-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                            </svg>
+                            {{ __('app.tax_certificate') }}
+                        </a>
+                    </div>
+                </div>
+                <span class="text-slate-300 text-xs">|</span>
                 <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">{{ __('app.privacy_policy') }}</a>
                 <span class="text-slate-300 text-xs">|</span>
                 <a href="#" class="text-xs text-slate-400 hover:text-emerald-600 transition">{{ __('app.terms') }}</a>
