@@ -259,9 +259,7 @@ class QuotationAiService
 
                 for ($col = 1; $col <= $maxColumnIndex; $col++) {
                     $value = $sheet->getCell([$col, $row])->getValue();
-                    $value = ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText)
-                        ? $value->getPlainText()
-                        : (string) ($value ?? '');
+                    $value = $this->cellValueToString($value);
                     $value = trim($value);
                     if ($value !== null && $value !== '') {
                         $hasValue = true;
@@ -758,9 +756,39 @@ class QuotationAiService
         return $output;
     }
 
+    /**
+     * Safely convert a PhpSpreadsheet cell value to a string.
+     *
+     * Cells may contain RichText or, in malformed/heavily-formatted files,
+     * embedded objects such as Worksheet\Drawing that have no __toString().
+     * Casting those directly throws "Object ... could not be converted to string".
+     */
+    private function cellValueToString(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        if ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
+            return $value->getPlainText();
+        }
+
+        if (is_object($value)) {
+            // Only stringify objects that explicitly support it; ignore the rest
+            // (e.g. Worksheet\Drawing) instead of crashing.
+            return method_exists($value, '__toString') ? (string) $value : '';
+        }
+
+        if (is_array($value)) {
+            return '';
+        }
+
+        return (string) $value;
+    }
+
     private function csvEscape(mixed $value): string
     {
-        $value = (string) $value;
+        $value = $this->cellValueToString($value);
         return str_contains($value, ',') || str_contains($value, '"') || str_contains($value, "\n")
             ? '"' . str_replace('"', '""', $value) . '"'
             : $value;
