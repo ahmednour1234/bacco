@@ -29,6 +29,21 @@ class QuotationAiService
         $this->testMode = (bool) config('services.ai_quotation.test_mode', false);
     }
 
+    /**
+     * Give the running script enough head-room to outlast the AI HTTP call.
+     *
+     * The web request / queue worker must not be killed before the HTTP timeout
+     * completes, otherwise the user sees a generic "timeout or unavailable"
+     * error even though the AI may have responded. We allow the HTTP timeout
+     * plus a 120s margin for connecting, response parsing and DB writes.
+     */
+    private function extendExecutionTime(): void
+    {
+        // Ignored on some SAPIs (e.g. when running under fastcgi with a hard
+        // limit), but harmless to attempt.
+        @set_time_limit($this->timeout + 120);
+    }
+
     public function parseBoq(UploadedFile|string $file, array $context = []): array
     {
         if ($this->testMode) {
@@ -592,6 +607,8 @@ class QuotationAiService
             ['type' => 'image_url', 'image_url' => ['url' => $dataUrl]],
         ];
 
+        $this->extendExecutionTime();
+
         try {
             $response = Http::timeout($this->timeout)
                 ->connectTimeout(30)
@@ -636,6 +653,11 @@ class QuotationAiService
 
     private function callDeepSeekChat(string $userContent, string $key, string $model): array
     {
+        // Ensure the PHP script outlives the HTTP call (+ a margin for parsing the
+        // response and writing to the DB) so the worker/web request is not killed
+        // mid-flight, which surfaces to users as a generic "timeout or unavailable".
+        $this->extendExecutionTime();
+
         try {
             $response = Http::timeout($this->timeout)
                 ->connectTimeout(30)
@@ -653,7 +675,7 @@ class QuotationAiService
                         ['role' => 'system', 'content' => $this->buildSystemInstruction()],
                         ['role' => 'user',   'content' => $userContent],
                     ],
-                    'max_tokens'  => 65536,
+                    'max_tokens'  => 8192,
                     'temperature' => 0.1,
                     'user'        => 'Qimta_Platform',
                 ]);

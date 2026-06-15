@@ -292,7 +292,7 @@ class CreateBoq extends Component
 
     public function uploadBoq(): void
     {
-        set_time_limit(300);
+        @set_time_limit(480);
 
         $this->validate([
             'projectName'        => 'required|string|max:255',

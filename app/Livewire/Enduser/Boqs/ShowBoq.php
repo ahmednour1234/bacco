@@ -187,6 +187,7 @@ class ShowBoq extends Component
 
     public function reparseBoq(): void
     {
+        @set_time_limit(480);
         $this->reprocessing = true;
 
         try {

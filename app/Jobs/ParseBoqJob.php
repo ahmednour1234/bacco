@@ -19,8 +19,10 @@ class ParseBoqJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /** Seconds before the job is considered timed out. */
-    public int $timeout = 300;
+    /** Seconds before the job is considered timed out. Must exceed the AI HTTP
+     *  timeout (default 300s) plus a margin so the worker is not killed while the
+     *  AI request is still in flight. */
+    public int $timeout = 480;
 
     /** Do not retry on failure — user can re-upload. */
     public int $tries = 1;
@@ -138,7 +140,7 @@ class ParseBoqJob implements ShouldQueue
                     'ai_extracted'         => true,
                     'is_selected'          => false,
                 ]);
-                $count++
+                $count++;
             }
 
             // Persist rejected items so users can see what was filtered and why.
