@@ -630,7 +630,7 @@ class QuotationAiService
                         ['role' => 'system', 'content' => $this->buildSystemInstruction()],
                         ['role' => 'user',   'content' => $userContent],
                     ],
-                    'max_tokens'  => 4096,
+                    'max_tokens'  => 16384,
                     'temperature' => 0.2,
                 ]);
         } catch (ConnectionException $e) {
@@ -675,9 +675,10 @@ class QuotationAiService
                         ['role' => 'system', 'content' => $this->buildSystemInstruction()],
                         ['role' => 'user',   'content' => $userContent],
                     ],
-                    'max_tokens'  => 8192,
-                    'temperature' => 0.1,
-                    'user'        => 'Qimta_Platform',
+                    'max_tokens'      => 32768,
+                    'temperature'     => 0.1,
+                    'response_format' => ['type' => 'json_object'],
+                    'user'            => 'Qimta_Platform',
                 ]);
         } catch (ConnectionException $e) {
             return $this->failure('DeepSeek connection timeout or unavailable.', true);
@@ -709,17 +710,31 @@ class QuotationAiService
             return $this->failure('DeepSeek returned an empty response.');
         }
 
+        // Strip markdown code fences if the model wrapped the JSON.
         if (preg_match('/```(?:json)?\s*([\s\S]*?)\s*```/i', $text, $m)) {
             $text = $m[1];
         }
-        if (preg_match('/\{[\s\S]*\}/s', $text, $m)) {
+        // Narrow to the outermost JSON object/array.
+        if (preg_match('/[\{\[][\s\S]*[\}\]]/s', $text, $m)) {
             $text = $m[0];
         }
+        $text = trim($text);
 
         $decoded = json_decode($text, true);
+
+        // The response can be truncated when the model hits the token limit,
+        // leaving an unterminated JSON string/object. Try to repair it before
+        // giving up so we can still salvage the items extracted so far.
+        if (! is_array($decoded)) {
+            $repaired = $this->repairTruncatedJson($text);
+            if ($repaired !== null) {
+                $decoded = json_decode($repaired, true);
+            }
+        }
+
         if (! is_array($decoded)) {
             Log::error('QuotationAiService: DeepSeek non-JSON response.', ['text' => mb_substr($text, 0, 1000)]);
-            return $this->failure('DeepSeek returned a non-JSON response.');
+            return $this->failure('DeepSeek returned a non-JSON response. The file may be too large — try splitting it into smaller files.');
         }
 
         $rawItems = $decoded['items'] ?? (array_is_list($decoded) ? $decoded : []);
@@ -753,6 +768,103 @@ class QuotationAiService
         }
 
         return ['success' => true, 'items' => $items, 'rejected' => $rejected, 'error' => null];
+    }
+
+    /**
+     * Best-effort repair of a truncated JSON string produced when the model hits
+     * its token limit mid-output. Drops any incomplete trailing object, then
+     * closes the open string/array/object brackets so the result is valid JSON.
+     *
+     * Returns the repaired JSON string, or null if it cannot be salvaged.
+     */
+    private function repairTruncatedJson(string $text): ?string
+    {
+        if ($text === '') {
+            return null;
+        }
+
+        // Walk the string tracking structural state, ignoring everything inside
+        // string literals (and their escapes). Remember the last position where
+        // we were back at the top of the "items" array between complete elements,
+        // so we can cut a half-written trailing object.
+        $stack          = [];
+        $inString       = false;
+        $escaped        = false;
+        $len            = strlen($text);
+        $lastSafeCut    = null; // index just after a completed array element
+
+        for ($i = 0; $i < $len; $i++) {
+            $ch = $text[$i];
+
+            if ($inString) {
+                if ($escaped) {
+                    $escaped = false;
+                } elseif ($ch === '\\') {
+                    $escaped = true;
+                } elseif ($ch === '"') {
+                    $inString = false;
+                }
+                continue;
+            }
+
+            if ($ch === '"') {
+                $inString = true;
+            } elseif ($ch === '{' || $ch === '[') {
+                $stack[] = $ch;
+            } elseif ($ch === '}' || $ch === ']') {
+                array_pop($stack);
+            } elseif ($ch === ',' && ! empty($stack) && end($stack) === '[') {
+                // Separator directly inside an array: a clean boundary between
+                // elements (the items array, whatever its nesting depth).
+                $lastSafeCut = $i;
+            }
+        }
+
+        // If we are still inside a string, the last element is incomplete — fall
+        // back to the last clean array boundary if we have one.
+        $candidate = $text;
+        if ($inString && $lastSafeCut !== null) {
+            $candidate = substr($text, 0, $lastSafeCut);
+        } else {
+            // Drop a dangling partial object after the last completed element.
+            $candidate = rtrim($candidate);
+            if ($lastSafeCut !== null && substr(rtrim($candidate), -1) !== '}' && substr(rtrim($candidate), -1) !== ']') {
+                $candidate = substr($text, 0, $lastSafeCut);
+            }
+        }
+
+        // Recompute the open brackets for the (possibly trimmed) candidate and
+        // append the matching closers in reverse order.
+        $stack    = [];
+        $inString = false;
+        $escaped  = false;
+        $len      = strlen($candidate);
+        for ($i = 0; $i < $len; $i++) {
+            $ch = $candidate[$i];
+            if ($inString) {
+                if ($escaped)            { $escaped = false; }
+                elseif ($ch === '\\')    { $escaped = true; }
+                elseif ($ch === '"')     { $inString = false; }
+                continue;
+            }
+            if ($ch === '"')                       { $inString = true; }
+            elseif ($ch === '{' || $ch === '[')    { $stack[] = $ch; }
+            elseif ($ch === '}' || $ch === ']')    { array_pop($stack); }
+        }
+
+        $candidate = rtrim($candidate);
+        // Remove a trailing comma left after cutting an element.
+        $candidate = rtrim($candidate, ',');
+
+        $closers = '';
+        for ($i = count($stack) - 1; $i >= 0; $i--) {
+            $closers .= ($stack[$i] === '{') ? '}' : ']';
+        }
+
+        $repaired = $candidate . $closers;
+
+        // Validate before returning.
+        return is_array(json_decode($repaired, true)) ? $repaired : null;
     }
 
     private function spreadsheetToCompactCsvText(string $absPath): ?string
