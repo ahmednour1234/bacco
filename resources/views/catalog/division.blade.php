@@ -86,6 +86,61 @@
     /* ── EMPTY ── */
     .items-empty { grid-column: 1/-1; text-align: center; padding: 60px 24px; color: #999; }
     .items-empty svg { width: 40px; height: 40px; stroke: #ddd; fill: none; stroke-width: 1.5; margin: 0 auto 12px; }
+
+    /* ── CAT CARD HEADER (mockup CAT-XX) ── */
+    .cat-card { background: #0d3d24; color: #fff; border-radius: 12px; padding: 22px 26px; margin: 28px 0 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .cat-card .cat-title { font-size: clamp(18px, 2.4vw, 22px); font-weight: 800; letter-spacing: -0.3px; }
+    .cat-card .cat-sub { margin-top: 8px; display: inline-flex; gap: 10px; align-items: center; background: rgba(255,255,255,.12); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
+    .cat-card .cat-sub .dot { opacity: .6; }
+    .cat-card .cat-code { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #8fd3ae; }
+    .cat-url { font-size: 12px; color: #888; padding: 12px 4px 0; border-bottom: 1px solid var(--border); margin-bottom: 4px; word-break: break-all; }
+
+    /* ── SEO META PREVIEW ── */
+    .seo-block { margin-top: 18px; }
+    .seo-block .seo-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; margin-bottom: 8px; }
+    .seo-box { border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; background: #f7faf8; font-size: 13.5px; line-height: 1.6; color: var(--dark); }
+    .seo-box.desc { color: #444; }
+    .seo-count { font-size: 11px; color: #999; margin-top: 6px; }
+
+    /* ── ITEM FAMILY CARDS (mockup grid) ── */
+    .fam-section-title { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; color: var(--dark); margin: 40px 0 6px; }
+    .fam-section-title::before { content: ""; width: 4px; height: 20px; background: var(--green); border-radius: 3px; }
+    .fam-section-sub { font-size: 13px; color: #777; margin-bottom: 20px; }
+    .fam-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    @media (max-width: 640px) { .fam-grid { grid-template-columns: 1fr; } }
+    .fam-card { border: 1.5px solid var(--border); border-radius: 12px; padding: 18px 20px; background: var(--white); transition: border-color .2s, box-shadow .2s; text-decoration: none; color: inherit; display: block; }
+    .fam-card:hover { border-color: var(--green); box-shadow: 0 4px 16px rgba(0,106,59,.08); }
+    .fam-card .fam-en { font-size: 11px; font-weight: 700; letter-spacing: .5px; color: #aaa; text-transform: uppercase; margin-bottom: 6px; }
+    .fam-card .fam-ar { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+    .fam-card .fam-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--green); font-weight: 600; }
+    .fam-card .fam-meta .sep { color: #ccc; }
+
+    /* ── MATERIALS ── */
+    .mat-section-title { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; color: var(--dark); margin: 40px 0 14px; }
+    .mat-section-title::before { content: ""; width: 4px; height: 20px; background: var(--green); border-radius: 3px; }
+    .mat-list { font-size: 13.5px; color: #555; line-height: 1.9; }
+    .mat-list .mat-pill { display: inline-block; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 16px; padding: 3px 12px; margin: 0 4px 6px 0; font-size: 12.5px; font-weight: 600; }
+
+    /* ── GENERIC SEO SECTION (pricing layers / how-to / standards) ── */
+    .seo-section-title { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; color: var(--dark); margin: 40px 0 12px; }
+    .seo-section-title::before { content: ""; width: 4px; height: 20px; background: var(--green); border-radius: 3px; }
+    .seo-section-body { font-size: 13.5px; color: #555; line-height: 1.85; }
+    .seo-section-body strong { color: var(--dark); }
+
+    /* ── RELATED CATEGORIES ── */
+    .relcat-list { font-size: 13.5px; color: #555; line-height: 1.9; }
+    .relcat-list a { color: var(--green); font-weight: 600; }
+    .relcat-list a:hover { text-decoration: underline; }
+    .relcat-list .sep { color: #ccc; margin: 0 4px; }
+
+    /* ── FAQ ── */
+    .faq-item { border-bottom: 1px solid var(--border); padding: 16px 0; }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q { font-size: 14.5px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+    .faq-a { font-size: 13.5px; color: #666; line-height: 1.75; }
+
+    /* ── SCHEMA BADGE ── */
+    .schema-badge { margin-top: 36px; background: #f5f3fb; border: 1px solid #ddd6f3; border-left: 3px solid #7c3aed; border-radius: 8px; padding: 12px 16px; font-size: 12.5px; color: #5b21b6; font-family: ui-monospace, monospace; }
 </style>
 @endsection
 
@@ -130,6 +185,51 @@ $_itemListSchema = json_encode([
         </nav>
     </div>
 
+    @php
+        $__isAr     = app()->getLocale() === 'ar';
+        $__cat      = $category ?? null;
+        $__catCode  = $__cat ? 'CAT-' . str_pad($__cat->id, 2, '0', STR_PAD_LEFT) : null;
+        $__prodN    = number_format($stats['products'] ?? 0);
+        $__itemN    = number_format($stats['items'] ?? 0);
+        $__catUrl   = 'qimta.com' . request()->getPathInfo();
+
+        // Generated SEO meta (mirrors layout's <title>/<meta description>)
+        $__metaTitle = $__isAr
+            ? $division . ' — ' . $__prodN . ' منتجاً · تسعير BOQ في السعودية | كيمتا'
+            : $division . ' — ' . $__prodN . ' Products · BOQ Pricing | Qimta';
+        $__metaDesc  = $__isAr
+            ? 'تصفّح ' . $__prodN . ' منتجاً في فئة ' . $division . '. سعّر جدول الكميات في أقل من 60 ثانية بمحرك RAG. مجاني للمقاولين في السعودية والخليج. سجّل الآن.'
+            : 'Browse ' . $__prodN . ' verified ' . strtolower($division) . ' products. Price your BOQ in under 60 seconds with the RAG engine. Free for contractors across Saudi Arabia and the GCC.';
+    @endphp
+
+    {{-- CAT card header (mockup) --}}
+    @if($__cat)
+    <div class="cat-card">
+        <div>
+            <div class="cat-title">{{ $division }}</div>
+            <div class="cat-sub">
+                <span>{{ $__prodN }} {{ $__isAr ? 'منتج' : 'products' }}</span>
+                <span class="dot">·</span>
+                <span>{{ $__itemN }} {{ $__isAr ? 'عائلة' : 'families' }}</span>
+            </div>
+        </div>
+        <div class="cat-code">{{ $__catCode }}</div>
+    </div>
+    <div class="cat-url">{{ $__catUrl }}</div>
+
+    {{-- SEO meta previews --}}
+    <div class="seo-block">
+        <div class="seo-label">Meta Title</div>
+        <div class="seo-box">{{ $__metaTitle }}</div>
+        <div class="seo-count">{{ mb_strlen($__metaTitle) }} {{ $__isAr ? 'حرفاً' : 'chars' }}</div>
+    </div>
+    <div class="seo-block">
+        <div class="seo-label">Meta Description</div>
+        <div class="seo-box desc">{{ $__metaDesc }}</div>
+        <div class="seo-count">{{ mb_strlen($__metaDesc) }} {{ $__isAr ? 'حرفاً' : 'chars' }}</div>
+    </div>
+    @endif
+
     {{-- GEO Fact Block — machine-readable citation paragraph for LLMs/AI overviews --}}
     @php
         $__factSlug = request()->getPathInfo();
@@ -150,6 +250,113 @@ $_itemListSchema = json_encode([
         <h1>{{ $division }} — All Item Descriptions</h1>
         <p>Browse {{ strtolower($division) }} item families, technical specifications, standards, materials, and indexed product coverage inside Qimta's construction catalog.</p>
     </div>
+
+    {{-- Item families available for pricing (mockup grid) --}}
+    @if($items->isNotEmpty())
+    <div class="fam-section-title">{{ $__isAr ? 'عائلات البنود المتاحة للتسعير' : 'Item Families Available for Pricing' }}</div>
+    <p class="fam-section-sub">{{ $__isAr ? 'تتضمن هذه الفئة بنوداً للعزل الصوتي بمواصفات ومواد محددة، مُتقاطعة مع قواعد بيانات المصنّعين.' : 'These families cross-reference manufacturer databases with verified specs and materials.' }}</p>
+    <div class="fam-grid">
+        @foreach($items as $fam)
+            @php
+                $__famKey   = 'catalog.items.' . $fam->item_description;
+                $__famTitle = ($__isAr && Lang::has($__famKey)) ? __($__famKey) : $fam->item_description;
+            @endphp
+            <a href="{{ route('catalog.item', [$slug, Str::slug($fam->item_description)]) }}" class="fam-card">
+                <div class="fam-en">{{ $fam->item_description }}</div>
+                <div class="fam-ar">{{ $__famTitle }}</div>
+                <div class="fam-meta">
+                    @if($fam->common_materials)<span>{{ Str::limit($fam->common_materials, 30) }}</span><span class="sep">·</span>@endif
+                    <span>{{ number_format($fam->products) }} {{ $__isAr ? 'منتجات' : 'products' }}</span>
+                </div>
+            </a>
+        @endforeach
+    </div>
+    @endif
+
+    {{-- Available materials --}}
+    @if($materials->isNotEmpty())
+    <div class="mat-section-title">{{ $__isAr ? 'المواد المتوفرة' : 'Available Materials' }}</div>
+    <div class="mat-list">
+        @foreach($materials as $m)
+            <span class="mat-pill">{{ $m }}</span>
+        @endforeach
+    </div>
+    @endif
+
+    {{-- Pricing layers — Standard & Engineered --}}
+    <div class="seo-section-title">{{ $__isAr ? 'طبقات التسعير — Standard وEngineered' : 'Pricing Layers — Standard & Engineered' }}</div>
+    <div class="seo-section-body">
+        {{ $__isAr
+            ? 'Standard (STD): 2-6 أسابيع · Engineered (ENG): حتى 12-18 أسبوعاً للمواصفات المُخصّصة. كلاهما يُسعَّر عبر RAG مجاناً.'
+            : 'Standard (STD): 2-6 weeks · Engineered (ENG): up to 12-18 weeks for custom specs. Both priced via the RAG engine for free.' }}
+    </div>
+
+    {{-- How pricing works with Qimta --}}
+    <div class="seo-section-title">{{ $__isAr ? 'كيف تُسعّر ' . $division . ' مع كيمتا' : 'How to Price ' . $division . ' with Qimta' }}</div>
+    <div class="seo-section-body">
+        {{ $__isAr
+            ? 'ارفع جدول الكميات بصيغة Excel أو PDF أو CSV. يُطابق محرك RAG بنود ' . $division . ' تلقائياً مع الـ ' . $__prodN . ' منتج ويُخرج تسعيراً مكتملاً في أقل من 60 ثانية.'
+            : 'Upload your BOQ as Excel, PDF, or CSV. The RAG engine auto-matches ' . strtolower($division) . ' line items against ' . $__prodN . ' products and returns a complete quote in under 60 seconds.' }}
+    </div>
+
+    {{-- Related categories --}}
+    @if(($relatedCategories ?? collect())->isNotEmpty())
+    <div class="seo-section-title">{{ $__isAr ? 'الفئات المرتبطة' : 'Related Categories' }}</div>
+    <div class="relcat-list">
+        @foreach($relatedCategories as $i => $rc)
+            <a href="{{ route('catalog.category', $rc->slug) }}">{{ $rc->name }}</a>@if(!$loop->last)<span class="sep">·</span>@endif
+        @endforeach
+    </div>
+    @endif
+
+    {{-- Accreditation & standards --}}
+    <div class="seo-section-title">{{ $__isAr ? 'معايير الاعتماد — SASO والمعايير الدولية' : 'Accreditation — SASO & International Standards' }}</div>
+    <div class="seo-section-body">
+        {{ $__isAr
+            ? 'توضّح منتجات ' . $division . ' معايير SASO والمعايير الدولية ISO وASTM لتسهيل القبول في مشاريع المباني السعودية.'
+            : $division . ' products document SASO, ISO, and ASTM standards to ease approval on Saudi building projects.' }}
+    </div>
+
+    {{-- FAQ --}}
+    @php
+        $__faqs = $__isAr ? [
+            ['q' => 'كم عدد منتجات ' . $division . ' المتوفرة في كيمتا؟', 'a' => 'يضم كتالوج كيمتا ' . $__prodN . ' منتجاً عبر ' . $__itemN . ' عائلة بنود. تسعيرها مجاني للمشترين في السعودية والخليج.'],
+            ['q' => 'ما سعر ' . $division . ' في السعودية؟', 'a' => 'تتفاوت الأسعار حسب المواصفات والمواد والكميات. ارفع جدول الكميات للتسعير الفوري في أقل من 60 ثانية — مجاناً.'],
+            ['q' => 'ما وقت التسليم؟', 'a' => 'من 2 إلى 8 أسابيع حسب نوع المواصفات وحجم المشروع.'],
+            ['q' => 'هل المواد مناسبة للمناخ السعودي الحار؟', 'a' => 'نعم. المنتجات توضّح معايير مقاومة الحرارة والأشعة فوق البنفسجية وفق المعايير المعتمدة.'],
+        ] : [
+            ['q' => 'How many ' . strtolower($division) . ' products are available in Qimta?', 'a' => 'The Qimta catalog includes ' . $__prodN . ' products across ' . $__itemN . ' item families. Pricing is free for buyers in Saudi Arabia and the GCC.'],
+            ['q' => 'What is the price of ' . strtolower($division) . ' in Saudi Arabia?', 'a' => 'Prices vary by spec, material, and quantity. Upload your BOQ for an instant quote in under 60 seconds — free.'],
+            ['q' => 'What is the delivery time?', 'a' => '2 to 8 weeks depending on spec type and project scale.'],
+            ['q' => 'Are the materials suitable for the hot Saudi climate?', 'a' => 'Yes. Products document heat- and UV-resistance ratings against approved standards.'],
+        ];
+    @endphp
+    <div class="seo-section-title">{{ $__isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions' }}</div>
+    <div>
+        @foreach($__faqs as $faq)
+        <div class="faq-item">
+            <div class="faq-q">{{ $faq['q'] }}</div>
+            <div class="faq-a">{{ $faq['a'] }}</div>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- FAQPage JSON-LD --}}
+    @php
+        $__faqSchema = json_encode([
+            '@context' => 'https://schema.org',
+            '@type'    => 'FAQPage',
+            'mainEntity' => collect($__faqs)->map(fn($f) => [
+                '@type' => 'Question',
+                'name'  => $f['q'],
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['a']],
+            ])->toArray(),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $__faqSchema !!}</script>
+
+    {{-- Schema badge --}}
+    <div class="schema-badge">Schema: BreadcrumbList + FAQPage + ItemList ({{ $items->total() }} items)</div>
 
     {{-- Stats --}}
     <div class="stats-row">
@@ -253,7 +460,14 @@ $_itemListSchema = json_encode([
                 @forelse($items as $item)
                 <div class="item-card">
                     <div class="item-card-head">
-                        <h3>{{ $item->item_description }}</h3>
+                        @php
+                            // Arabic locale → translated family name, else the English source text.
+                            $__itemKey   = 'catalog.items.' . $item->item_description;
+                            $__itemTitle = (app()->getLocale() === 'ar' && Lang::has($__itemKey))
+                                ? __($__itemKey)
+                                : $item->item_description;
+                        @endphp
+                        <h3>{{ $__itemTitle }}</h3>
                         <span class="item-badge">{{ number_format($item->products) }} PRODUCTS</span>
                     </div>
                     @if($item->common_materials)

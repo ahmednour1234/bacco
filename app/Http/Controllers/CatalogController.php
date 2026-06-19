@@ -153,6 +153,16 @@ class CatalogController extends Controller
 
             $division = $db->table('catalog_products')->where('category_id', $category->id)->value('division') ?? '';
 
+            // Related categories — siblings sharing the same division
+            $relatedCatIds = $db->table('catalog_products')
+                ->where('division', $division)
+                ->whereNotNull('category_id')
+                ->where('category_id', '!=', $category->id)
+                ->distinct()->pluck('category_id');
+            $relatedCategories = $relatedCatIds->isNotEmpty()
+                ? $db->table('catalog_categories')->whereIn('id', $relatedCatIds)->limit(6)->get(['id', 'name', 'slug'])
+                : collect();
+
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
             throw $e;
         } catch (\Exception $e) {
@@ -162,6 +172,7 @@ class CatalogController extends Controller
 
         return view('catalog.division', [
             'division'    => $category->name,
+            'category'    => $category,
             'slug'        => $slug,
             'filterRoute' => 'catalog.category',
             'items'       => $items,
@@ -169,6 +180,7 @@ class CatalogController extends Controller
             'materials'   => $materials,
             'sizes'       => $sizes,
             'leadTimes'   => $leadTimes,
+            'relatedCategories' => $relatedCategories,
         ]);
     }
 

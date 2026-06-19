@@ -1,3 +1,4 @@
+<div>
 <form wire:submit="save" class="space-y-6" x-data="articleForm()" x-init="init()">
     {{-- -- Basic Info ---------------------------------------------------- --}}
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -490,3 +491,4 @@ function articleForm() {
     };
 }
 </script>
+</div>

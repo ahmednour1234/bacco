@@ -38,4 +38,17 @@ return [
         'title' => 'لا توجد بيانات في الكتالوج بعد',
         'body'  => 'استورد أول ملف كتالوج للبدء.',
     ],
+
+    // ── Item-family (item_description) translations ──────────────────────────
+    // Keyed by the exact English item_description from the catalog DB.
+    // Any term not listed here falls back to its English text in the view.
+    'items' => [
+        'Accessible Door Operator' => 'مشغّل الأبواب لذوي الاحتياجات',
+        'Handrail Braille Plate'   => 'لوحة برايل لدرابزين اليد',
+        'Induction Loop System'    => 'نظام الحلقة الحثّية للصم',
+        'Wheelchair Platform Lift' => 'مصعد منصة كرسي الإعاقة',
+        'Tactile Warning Strip'    => 'شريط التحذير اللمسي للمكفوفين',
+        'Lowered Counter Unit'     => 'وحدة الكاونتر المنخفض',
+        'Contrasting Nosing Strip' => 'شريط حافة الدرج المتباين',
+    ],
 ];

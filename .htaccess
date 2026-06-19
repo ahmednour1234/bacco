@@ -5,6 +5,12 @@
     RewriteCond %{HTTP_HOST} ^www\.qimta\.com$ [NC]
     RewriteRule ^(.*)$ https://qimta.com/$1 [L,R=301]
 
+    # ── Strip /public from the URL (301) — kills duplicate content ────────────
+    # An external request for /public/ar/about is permanently redirected to
+    # the clean /ar/about, so Google only ever indexes one canonical URL.
+    RewriteCond %{THE_REQUEST} \s/+public/(\S*) [NC]
+    RewriteRule ^ /%1 [R=301,L]
+
     # ── Route everything through public/ (Laravel document root) ──────────────
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
