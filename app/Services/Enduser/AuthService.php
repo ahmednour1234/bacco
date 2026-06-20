@@ -80,8 +80,11 @@ class AuthService
             ttl:   now()->addMinutes(self::OTP_TTL_MINUTES)
         );
 
-        // ── Send via mail (swap this for your Mailable when mail is configured) ──
-        // Mail::to($email)->send(new \App\Mail\OtpMail($otp));
+        try {
+            Mail::to($email)->send(new \App\Mail\OtpMail($otp, self::OTP_TTL_MINUTES));
+        } catch (\Throwable $e) {
+            Log::error("[Qimta OTP] mail failed email={$email} error={$e->getMessage()}");
+        }
 
         // Visible in storage/logs/laravel.log during development
         Log::info("[Qimta OTP] email={$email} otp={$otp}");

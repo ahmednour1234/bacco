@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class AuthService
 {
@@ -56,6 +57,12 @@ class AuthService
             value: $otp,
             ttl:   now()->addMinutes(self::OTP_TTL_MINUTES)
         );
+
+        try {
+            Mail::to($email)->send(new \App\Mail\OtpMail($otp, self::OTP_TTL_MINUTES));
+        } catch (\Throwable $e) {
+            Log::error("[Qimta Supplier OTP] mail failed email={$email} error={$e->getMessage()}");
+        }
 
         Log::info("[Qimta Supplier OTP] email={$email} otp={$otp}");
 

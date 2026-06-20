@@ -55,8 +55,8 @@
         <h3 class="mb-5 text-sm font-semibold text-slate-700 uppercase tracking-wide">Content (HTML Editor)</h3>
 
         {{-- Hidden file inputs for media insertion --}}
-        <input type="file" x-ref="mediaEnInput"  accept="image/*,video/*" class="hidden" @change="insertMediaEn($event)">
-        <input type="file" x-ref="mediaArInput"  accept="image/*,video/*" class="hidden" @change="insertMediaAr($event)">
+        <input type="file" x-ref="mediaEnInput"  accept="image/*,video/*" class="hidden" x-on:change="insertMediaEn($event)">
+        <input type="file" x-ref="mediaArInput"  accept="image/*,video/*" class="hidden" x-on:change="insertMediaAr($event)">
 
         {{-- -- English Editor -------------------------------- --}}
         <div class="mb-8">
@@ -69,7 +69,7 @@
             <div class="flex flex-wrap items-center gap-1 rounded-t-xl border border-b-0 border-slate-200 bg-slate-50 px-3 py-2">
 
                 {{-- Format --}}
-                <select @change="execVal('en','formatBlock',$event.target.value); $event.target.value=''" class="editor-select" title="Block format">
+                <select x-on:change="execVal('en','formatBlock',$event.target.value); $event.target.value=''" class="editor-select" title="Block format">
                     <option value="">Paragraph</option>
                     <option value="h1">H1</option>
                     <option value="h2">H2</option>
@@ -79,7 +79,7 @@
                 </select>
 
                 {{-- Font size --}}
-                <select @change="execVal('en','fontSize',$event.target.value); $event.target.value=''" class="editor-select" title="Font size">
+                <select x-on:change="execVal('en','fontSize',$event.target.value); $event.target.value=''" class="editor-select" title="Font size">
                     <option value="">Size</option>
                     <option value="1">Tiny</option>
                     <option value="2">Small</option>
@@ -92,40 +92,40 @@
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Style --}}
-                <button type="button" @click="exec('en','bold')"          class="editor-btn font-bold"  title="Bold">B</button>
-                <button type="button" @click="exec('en','italic')"        class="editor-btn italic"      title="Italic">I</button>
-                <button type="button" @click="exec('en','underline')"     class="editor-btn underline"   title="Underline">U</button>
-                <button type="button" @click="exec('en','strikeThrough')" class="editor-btn line-through" title="Strikethrough">S</button>
+                <button type="button" x-on:click="exec('en','bold')"          class="editor-btn font-bold"  title="Bold">B</button>
+                <button type="button" x-on:click="exec('en','italic')"        class="editor-btn italic"      title="Italic">I</button>
+                <button type="button" x-on:click="exec('en','underline')"     class="editor-btn underline"   title="Underline">U</button>
+                <button type="button" x-on:click="exec('en','strikeThrough')" class="editor-btn line-through" title="Strikethrough">S</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Align --}}
-                <button type="button" @click="exec('en','justifyLeft')"   class="editor-btn" title="Align left">
+                <button type="button" x-on:click="exec('en','justifyLeft')"   class="editor-btn" title="Align left">
                     <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 4h16v2H2V4zm0 4h10v2H2V8zm0 4h16v2H2v-2zm0 4h10v2H2v-2z"/></svg>
                 </button>
-                <button type="button" @click="exec('en','justifyCenter')" class="editor-btn" title="Center">
+                <button type="button" x-on:click="exec('en','justifyCenter')" class="editor-btn" title="Center">
                     <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 4h16v2H2V4zm3 4h10v2H5V8zm-3 4h16v2H2v-2zm3 4h10v2H5v-2z"/></svg>
                 </button>
-                <button type="button" @click="exec('en','justifyRight')"  class="editor-btn" title="Align right">
+                <button type="button" x-on:click="exec('en','justifyRight')"  class="editor-btn" title="Align right">
                     <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 4h16v2H2V4zm6 4h10v2H8V8zm-6 4h16v2H2v-2zm6 4h10v2H8v-2z"/></svg>
                 </button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Lists --}}
-                <button type="button" @click="exec('en','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
-                <button type="button" @click="exec('en','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
+                <button type="button" x-on:click="exec('en','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
+                <button type="button" x-on:click="exec('en','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Link --}}
-                <button type="button" @click="insertLink('en')" class="editor-btn" title="Insert link">
+                <button type="button" x-on:click="insertLink('en')" class="editor-btn" title="Insert link">
                     <svg class="h-3.5 w-3.5 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                     Link
                 </button>
 
                 {{-- Media --}}
-                <button type="button" @click="$refs.mediaEnInput.click()" class="editor-btn text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100" title="Insert image or video">
+                <button type="button" x-on:click="$refs.mediaEnInput.click()" class="editor-btn text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100" title="Insert image or video">
                     <svg class="h-3.5 w-3.5 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     Media
                 </button>
@@ -133,7 +133,7 @@
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Clear --}}
-                <button type="button" @click="exec('en','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
+                <button type="button" x-on:click="exec('en','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
             </div>
 
             {{-- Editor body EN --}}
@@ -142,8 +142,8 @@
                  dir="ltr"
                  x-ref="editorEn"
                  wire:ignore
-                 @input="syncEnDebounced()"
-                 @blur="syncEn()"
+                 x-on:input="syncEnDebounced()"
+                 x-on:blur="syncEn()"
                  class="editor-body"
                  style="min-height:360px; resize:vertical; overflow:auto;"
             ></div>
@@ -160,7 +160,7 @@
             {{-- Toolbar AR --}}
             <div class="flex flex-wrap items-center gap-1 rounded-t-xl border border-b-0 border-slate-200 bg-slate-50 px-3 py-2">
 
-                <select @change="execVal('ar','formatBlock',$event.target.value); $event.target.value=''" class="editor-select" title="Block format">
+                <select x-on:change="execVal('ar','formatBlock',$event.target.value); $event.target.value=''" class="editor-select" title="Block format">
                     <option value="">Paragraph</option>
                     <option value="h1">H1</option>
                     <option value="h2">H2</option>
@@ -169,7 +169,7 @@
                     <option value="pre">Code</option>
                 </select>
 
-                <select @change="execVal('ar','fontSize',$event.target.value); $event.target.value=''" class="editor-select" title="Font size">
+                <select x-on:change="execVal('ar','fontSize',$event.target.value); $event.target.value=''" class="editor-select" title="Font size">
                     <option value="">Size</option>
                     <option value="1">Tiny</option>
                     <option value="2">Small</option>
@@ -181,43 +181,43 @@
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" @click="exec('ar','bold')"          class="editor-btn font-bold"   title="Bold">B</button>
-                <button type="button" @click="exec('ar','italic')"        class="editor-btn italic"       title="Italic">I</button>
-                <button type="button" @click="exec('ar','underline')"     class="editor-btn underline"    title="Underline">U</button>
-                <button type="button" @click="exec('ar','strikeThrough')" class="editor-btn line-through" title="Strikethrough">S</button>
+                <button type="button" x-on:click="exec('ar','bold')"          class="editor-btn font-bold"   title="Bold">B</button>
+                <button type="button" x-on:click="exec('ar','italic')"        class="editor-btn italic"       title="Italic">I</button>
+                <button type="button" x-on:click="exec('ar','underline')"     class="editor-btn underline"    title="Underline">U</button>
+                <button type="button" x-on:click="exec('ar','strikeThrough')" class="editor-btn line-through" title="Strikethrough">S</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" @click="exec('ar','justifyRight')"  class="editor-btn" title="Align right (RTL start)">
+                <button type="button" x-on:click="exec('ar','justifyRight')"  class="editor-btn" title="Align right (RTL start)">
                     <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 4h16v2H2V4zm6 4h10v2H8V8zm-6 4h16v2H2v-2zm6 4h10v2H8v-2z"/></svg>
                 </button>
-                <button type="button" @click="exec('ar','justifyCenter')" class="editor-btn" title="Center">
+                <button type="button" x-on:click="exec('ar','justifyCenter')" class="editor-btn" title="Center">
                     <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 4h16v2H2V4zm3 4h10v2H5V8zm-3 4h16v2H2v-2zm3 4h10v2H5v-2z"/></svg>
                 </button>
-                <button type="button" @click="exec('ar','justifyLeft')"   class="editor-btn" title="Align left">
+                <button type="button" x-on:click="exec('ar','justifyLeft')"   class="editor-btn" title="Align left">
                     <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 4h16v2H2V4zm0 4h10v2H2V8zm0 4h16v2H2v-2zm0 4h10v2H2v-2z"/></svg>
                 </button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" @click="exec('ar','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
-                <button type="button" @click="exec('ar','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
+                <button type="button" x-on:click="exec('ar','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
+                <button type="button" x-on:click="exec('ar','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" @click="insertLink('ar')" class="editor-btn" title="Insert link">
+                <button type="button" x-on:click="insertLink('ar')" class="editor-btn" title="Insert link">
                     <svg class="h-3.5 w-3.5 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                     Link
                 </button>
 
-                <button type="button" @click="$refs.mediaArInput.click()" class="editor-btn text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100" title="Insert image or video">
+                <button type="button" x-on:click="$refs.mediaArInput.click()" class="editor-btn text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100" title="Insert image or video">
                     <svg class="h-3.5 w-3.5 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     Media
                 </button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" @click="exec('ar','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
+                <button type="button" x-on:click="exec('ar','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
             </div>
 
             <div id="editor-ar"
@@ -225,8 +225,8 @@
                  dir="rtl"
                  x-ref="editorAr"
                  wire:ignore
-                 @input="syncArDebounced()"
-                 @blur="syncAr()"
+                 x-on:input="syncArDebounced()"
+                 x-on:blur="syncAr()"
                  class="editor-body"
                  style="min-height:360px; resize:vertical; overflow:auto;"
             ></div>
