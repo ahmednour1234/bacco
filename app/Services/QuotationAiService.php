@@ -12,6 +12,9 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class QuotationAiService
 {
+    /** Increment this whenever BOQ parsing logic changes to invalidate old caches. */
+    private const PARSER_VERSION = 2;
+
     private string $baseUrl;
     private string $parseEndpoint;
     private string $apiKey;
@@ -57,7 +60,10 @@ class QuotationAiService
         }
 
         $fileHash     = hash_file('sha256', $absPath);
-        $cacheKey     = 'boq_analysis_' . $fileHash;
+        // Bump PARSER_VERSION whenever the extraction logic changes so that
+        // previously-uploaded files are re-parsed instead of returning a stale
+        // cached result produced by the old code.
+        $cacheKey     = 'boq_analysis_v' . self::PARSER_VERSION . '_' . $fileHash;
         $forceRefresh = (bool) ($context['force_refresh'] ?? false);
 
         if (! $forceRefresh && ($cached = Cache::get($cacheKey)) !== null) {
