@@ -7,35 +7,35 @@
 @section('styles')
 <style>
     /* ── BREADCRUMB ── */
-    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #999; margin-bottom: 32px; flex-wrap: wrap; }
+    .breadcrumb { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #999; margin-bottom: 32px; flex-wrap: wrap; }
     .breadcrumb a { color: #999; transition: color .2s; }
     .breadcrumb a:hover { color: var(--green); }
     .breadcrumb svg { width: 12px; height: 12px; stroke: #bbb; fill: none; stroke-width: 2; flex-shrink: 0; }
     .breadcrumb span { color: var(--green); }
 
     /* ── HERO ── */
-    .item-hero { padding: 40px 0 48px; }
+    .item-hero { padding: 40px 0 48px; text-align: center; }
     .item-hero-text h1 { font-size: clamp(22px, 3vw, 34px); font-weight: 800; letter-spacing: -0.8px; line-height: 1.2; margin-bottom: 16px; }
-    .item-hero-text p { font-size: 14px; color: #555; line-height: 1.7; max-width: 640px; }
+    .item-hero-text p { font-size: 14px; color: #555; line-height: 1.7; max-width: 640px; margin-left: auto; margin-right: auto; }
 
     /* ── OVERVIEW + MATRIX ── */
-    .item-body { display: grid; grid-template-columns: 200px 1fr; gap: 24px; margin-bottom: 40px; }
+    .item-body { display: grid; grid-template-columns: 200px minmax(0, 760px); gap: 24px; margin-bottom: 40px; justify-content: center; align-items: start; }
     @media (max-width: 820px) { .item-body { grid-template-columns: 1fr; } }
 
-    .overview-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 24px; background: var(--white); }
+    .overview-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 24px; background: var(--white); text-align: center; }
     .overview-card .ov-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; margin-bottom: 3px; margin-top: 16px; }
     .overview-card .ov-label:first-child { margin-top: 0; }
     .overview-card .ov-title { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; margin-bottom: 12px; }
     .overview-card .ov-val { font-size: 13px; font-weight: 700; color: var(--dark); line-height: 1.4; }
-    .overview-card .ov-lead { display: flex; align-items: center; gap: 6px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: #666; }
+    .overview-card .ov-lead { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: #666; }
     .overview-card .ov-lead svg { width: 14px; height: 14px; stroke: #aaa; fill: none; stroke-width: 2; flex-shrink: 0; }
 
-    .matrix-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 28px; background: var(--white); }
+    .matrix-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 28px; background: var(--white); text-align: center; }
     .matrix-card .mat-title { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; margin-bottom: 20px; }
     .matrix-section { margin-bottom: 20px; }
     .matrix-section:last-child { margin-bottom: 0; }
     .matrix-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #aaa; margin-bottom: 8px; }
-    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
     .chip { display: inline-block; padding: 5px 12px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 600; color: #444; background: #fafafa; }
     .chip.active { border-color: var(--green); color: var(--green); background: #f0fdf4; }
     .matrix-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 16px; }
@@ -71,8 +71,8 @@
     .cta-block .cta-meta { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 14px; letter-spacing: 0.5px; text-transform: uppercase; }
 
     /* ── FAQ ── */
-    .faq-section { display: grid; grid-template-columns: 240px 1fr; gap: 40px; margin-bottom: 56px; }
-    @media (max-width: 820px) { .faq-section { grid-template-columns: 1fr; } }
+    .faq-section { display: grid; grid-template-columns: 240px minmax(0, 640px); gap: 40px; margin-bottom: 56px; justify-content: center; align-items: start; }
+    @media (max-width: 820px) { .faq-section { grid-template-columns: 1fr; text-align: center; } }
     .faq-section-left h3 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 8px; }
     .faq-section-left p { font-size: 13px; color: #666; line-height: 1.65; }
     .faq-list { display: flex; flex-direction: column; }
@@ -84,9 +84,9 @@
     .faq-item .faq-answer { font-size: 13px; color: #555; line-height: 1.7; padding-bottom: 16px; }
 
     /* ── RELATED ── */
-    .related-section { margin-bottom: 56px; }
+    .related-section { margin-bottom: 56px; text-align: center; }
     .related-section h3 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 20px; }
-    .related-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+    .related-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
     .related-tag { display: inline-block; padding: 8px 18px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #444; text-decoration: none; transition: border-color .2s, color .2s, background .2s; }
     .related-tag:hover { border-color: var(--green); color: var(--green); background: #f0fdf4; }
 
