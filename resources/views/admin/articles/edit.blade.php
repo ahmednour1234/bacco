@@ -15,7 +15,7 @@
         </a>
         <div>
             <h1 class="text-2xl font-bold text-slate-900">Edit Article</h1>
-            <p class="mt-0.5 text-sm text-slate-500">{{ $article->name_en }}</p>
+            <p class="mt-0.5 text-sm text-slate-500">{{ $article->name_en ?? '' }}</p>
         </div>
     </div>
 
