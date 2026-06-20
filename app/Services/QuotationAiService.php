@@ -70,18 +70,27 @@ class QuotationAiService
         }
 
         if (in_array($ext, ['xlsx', 'xlsm', 'xlsb', 'xls', 'csv'], true)) {
-            // Read Excel locally first. Fallback to DeepSeek if local parse failed or found 0 items.
+            // Read Excel locally first. Fall back to AI if local parse failed,
+            // found 0 items, OR could not read one of the sheets (so multi-sheet
+            // files never silently drop a sheet the local parser didn't understand).
             $result = $this->parseSpreadsheetDirect($absPath);
 
-            if (! $result['success'] || empty($result['items'])) {
+            $hasSkippedSheets = ! empty($result['skipped_sheets']);
+
+            if (! $result['success'] || empty($result['items']) || $hasSkippedSheets) {
                 $deepSeekResult = $this->parseBoqWithDeepSeek($file, $context);
-                // Only use DeepSeek result if it actually found items
+                // AI sees every sheet at once, so prefer its result whenever it
+                // actually returned items (covers the skipped-sheet case too).
                 if ($deepSeekResult['success'] && ! empty($deepSeekResult['items'])) {
-                    $result = $deepSeekResult;
+                    // Keep the larger of the two item sets so we never lose the
+                    // rows the local parser already extracted correctly.
+                    if (count($deepSeekResult['items']) >= count($result['items'] ?? [])) {
+                        $result = $deepSeekResult;
+                    }
                 } elseif (! $result['success']) {
                     $result = $deepSeekResult;
                 }
-                // else: keep local result (even with 0 items) if DeepSeek also failed
+                // else: keep local result if AI also failed/returned nothing
             }
         } elseif (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif'], true)) {
             $result = $this->parseBoqWithDeepSeek($file, $context);
@@ -127,6 +136,7 @@ class QuotationAiService
 
             $items = [];
             $rejected = [];
+            $skippedSheets = [];   // sheets we could not parse locally (header undetected)
 
             foreach ($sheets as $sheet) {
                 $grid = $sheet['grid'];
@@ -138,6 +148,7 @@ class QuotationAiService
 
                 if ($header === null || ! isset($header['map']['description'])) {
                     Log::warning('QuotationAiService: header not detected in sheet.', ['sheet' => $sheet['name']]);
+                    $skippedSheets[] = $sheet['name'];
                     continue;
                 }
 
@@ -221,10 +232,11 @@ class QuotationAiService
             }
 
             return [
-                'success'  => true,
-                'items'    => $items,
-                'rejected' => $rejected,
-                'error'    => null,
+                'success'        => true,
+                'items'          => $items,
+                'rejected'       => $rejected,
+                'error'          => null,
+                'skipped_sheets' => $skippedSheets,
             ];
         } catch (\Throwable $e) {
             Log::error('QuotationAiService: parseSpreadsheetDirect failed.', [
@@ -1057,9 +1069,33 @@ PROMPT);
             'success'             => false,
             'items'               => [],
             'rejected'            => [],
-            'error'               => $message,
+            'error'               => $this->userFacingError($message, $serviceUnavailable),
             'service_unavailable' => $serviceUnavailable,
         ];
+    }
+
+    /**
+     * Translate any internal error into a neutral, user-safe message.
+     *
+     * The user must never see the name of the underlying AI/processing engine
+     * (DeepSeek, Groq, Gemini, Vision, etc.) or configuration hints like API
+     * keys. The detailed message is kept in the logs for debugging only.
+     */
+    private function userFacingError(string $message, bool $serviceUnavailable = false): string
+    {
+        // Detect any reference to an AI provider / engine / API config so we can
+        // swap it for a generic, branded-neutral message.
+        $sensitive = '/deepseek|groq|gemini|vision|openai|openrouter|api[\s_-]?key|\.env|non-?json|token limit/i';
+
+        if (preg_match($sensitive, $message)) {
+            Log::warning('QuotationAiService: suppressed technical error from user.', ['internal' => $message]);
+
+            return $serviceUnavailable
+                ? 'The file could not be processed right now. Please try again in a moment.'
+                : 'We could not read this file automatically. Please make sure it is a clear BOQ (Excel, CSV, PDF, or image) and try again, or add the items manually.';
+        }
+
+        return $message;
     }
 
     private function mimeForExtension(string $ext): string
