@@ -46,8 +46,8 @@
     /* ── USE CASES ── */
     .use-cases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 48px; }
     @media (max-width: 700px) { .use-cases { grid-template-columns: 1fr; } }
-    .use-case-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 24px; background: var(--white); }
-    .use-case-card .uc-icon { width: 32px; height: 32px; margin-bottom: 12px; }
+    .use-case-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 24px; background: var(--white); text-align: center; }
+    .use-case-card .uc-icon { width: 32px; height: 32px; margin-bottom: 12px; margin-left: auto; margin-right: auto; }
     .use-case-card .uc-icon svg { width: 32px; height: 32px; stroke: var(--green); fill: none; stroke-width: 1.5; }
     .use-case-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
     .use-case-card p { font-size: 13px; color: #666; line-height: 1.6; }
