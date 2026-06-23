@@ -499,6 +499,16 @@ class CreateQuotation extends Component
             return;
         }
 
+        $hasPricedItem = $selectedItems->contains(
+            fn($i) => is_numeric($i['unit_price'] ?? null) && (float) $i['unit_price'] > 0
+        );
+
+        if (! $hasPricedItem) {
+            $this->dispatch('toast', message: __('app.all_items_zero_price'), type: 'error');
+
+            return;
+        }
+
         $quotation = $this->persistQuotation(QuotationRequestStatusEnum::Tender);
         $this->persistItems($quotation);
         $this->quotationId = $quotation->id;

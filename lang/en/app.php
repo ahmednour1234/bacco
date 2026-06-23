@@ -404,6 +404,7 @@ return [
     'all_items_approved'       => 'All items approved successfully.',
     'all_items_rejected'       => 'All items rejected.',
     'select_item_pricing_required' => 'Please select at least one item for pricing.',
+    'all_items_zero_price' => 'All selected items have a price of zero. At least one item must have a price greater than zero before submitting.',
     'no_items_upload_or_add'   => 'No items yet. Upload a BOQ file or add items manually.',
     'item_description_placeholder' => 'Item description…',
     'pcs'                      => 'pcs',
