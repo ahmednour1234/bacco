@@ -11,7 +11,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ProcessCatalogImportJob implements ShouldQueue
 {
@@ -55,10 +54,8 @@ class ProcessCatalogImportJob implements ShouldQueue
                 throw new \RuntimeException("Import file not found: {$filePath}");
             }
 
-            Excel::import(
-                new CatalogProductsImport($import, $importRepo, $productRepo, $categoryRepo),
-                $filePath
-            );
+            (new CatalogProductsImport($import, $importRepo, $productRepo, $categoryRepo))
+                ->import($filePath);
 
             // Refresh to get final counts
             $import->refresh();

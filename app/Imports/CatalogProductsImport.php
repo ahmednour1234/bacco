@@ -6,14 +6,29 @@ use App\Models\Catalog\CatalogImport;
 use App\Repositories\Catalog\CatalogCategoryRepository;
 use App\Repositories\Catalog\CatalogImportRepository;
 use App\Repositories\Catalog\CatalogProductRepository;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Reader\Csv as CsvReader;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class CatalogProductsImport implements ToCollection, WithChunkReading, WithHeadingRow
+/**
+ * Streams a catalog Excel/CSV file row-by-row using PhpSpreadsheet directly
+ * (no maatwebsite/excel dependency) and batch-upserts products in chunks so
+ * very large files never load fully into memory.
+ *
+ * Heading row is row 4, data starts on row 5. Column names are matched by
+ * header TEXT (English or Arabic), not by fixed column index.
+ */
+class CatalogProductsImport
 {
+    /** Heading row in the Excel file (1-based). */
+    private const HEADING_ROW = 4;
+
+    /** First data row (1-based). */
+    private const FIRST_DATA_ROW = 5;
+
+    /** Rows upserted per batch. */
+    private const CHUNK_SIZE = 1000;
+
     /** In-memory category cache: "catalogId|name" => category_id */
     private array $categoryCache = [];
 
@@ -67,30 +82,87 @@ class CatalogProductsImport implements ToCollection, WithChunkReading, WithHeadi
         private CatalogCategoryRepository $categoryRepo,
     ) {}
 
-    // Row 4 is the heading row in the Excel file
-    public function headingRow(): int { return 4; }
+    /**
+     * Read the file and import it. Loads the spreadsheet once, then walks the
+     * rows in CHUNK_SIZE batches, upserting each batch before moving on.
+     */
+    public function import(string $filePath): void
+    {
+        $reader = IOFactory::createReaderForFile($filePath);
+        $reader->setReadDataOnly(true);
 
-    // Read 1 000 rows at a time — never loads the full file into memory
-    public function chunkSize(): int { return 1000; }
+        // For CSVs PhpSpreadsheet defaults to comma + UTF-8; keep Arabic intact.
+        if ($reader instanceof CsvReader) {
+            $reader->setInputEncoding(CsvReader::GUESS_ENCODING);
+        }
+
+        $spreadsheet = $reader->load($filePath);
+        $sheet       = $spreadsheet->getActiveSheet();
+        $highestRow  = $sheet->getHighestDataRow();
+        $highestCol  = $sheet->getHighestDataColumn();
+
+        // Build the header map from the heading row.
+        $headers = [];
+        foreach ($sheet->rangeToArray(
+            "A" . self::HEADING_ROW . ":{$highestCol}" . self::HEADING_ROW,
+            null,
+            false,
+            false,
+            false
+        )[0] ?? [] as $colIndex => $headerCell) {
+            $field = $this->resolveHeader((string) $headerCell);
+            if ($field !== null) {
+                $headers[$colIndex] = $field;
+            }
+        }
+
+        // Walk data rows in chunks so memory stays flat.
+        $batch = [];
+        for ($row = self::FIRST_DATA_ROW; $row <= $highestRow; $row++) {
+            $cells = $sheet->rangeToArray(
+                "A{$row}:{$highestCol}{$row}",
+                null,
+                false,
+                false,
+                false
+            )[0] ?? [];
+
+            $batch[] = ['row' => $row, 'cells' => $cells];
+
+            if (count($batch) >= self::CHUNK_SIZE) {
+                $this->processChunk($batch, $headers);
+                $batch = [];
+            }
+        }
+
+        if ($batch !== []) {
+            $this->processChunk($batch, $headers);
+        }
+
+        // Free memory.
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+    }
 
     /**
-     * Called once per chunk.
-     * Normalises column names, resolves categories, batch-upserts products.
+     * Normalise, resolve categories and batch-upsert one chunk of rows.
+     *
+     * @param  array<int, array{row:int, cells:array}>  $rows
+     * @param  array<int, string>                       $headers  colIndex => field
      */
-    public function collection(Collection $rows): void
+    private function processChunk(array $rows, array $headers): void
     {
         $now        = now()->toDateTimeString();
         $products   = [];
         $failedRows = [];
-        $rowOffset  = 5; // data starts at row 5
 
-        foreach ($rows as $index => $row) {
-            $rowNumber = $rowOffset + $index;
+        foreach ($rows as $entry) {
+            $rowNumber = $entry['row'];
             try {
-                $r = $this->normalizeRow($row->toArray());
+                $r = $this->mapRow($entry['cells'], $headers);
 
                 // Skip completely empty rows
-                if (empty(array_filter($r))) {
+                if (empty(array_filter($r, fn($v) => trim((string) $v) !== ''))) {
                     continue;
                 }
 
@@ -126,7 +198,7 @@ class CatalogProductsImport implements ToCollection, WithChunkReading, WithHeadi
                     'source_file'      => $this->catalogImport->file_name,
                     'import_batch_id'  => $this->catalogImport->id,
                     'status'           => 'active',
-                    'raw_data'         => json_encode($r),
+                    'raw_data'         => json_encode($r, JSON_UNESCAPED_UNICODE),
                     'created_at'       => $now,
                     'updated_at'       => $now,
                 ];
@@ -135,7 +207,7 @@ class CatalogProductsImport implements ToCollection, WithChunkReading, WithHeadi
                 $failedRows[] = [
                     'catalog_import_id' => $this->catalogImport->id,
                     'row_number'        => $rowNumber,
-                    'row_data'          => json_encode($row->toArray()),
+                    'row_data'          => json_encode($entry['cells'], JSON_UNESCAPED_UNICODE),
                     'error_message'     => $e->getMessage(),
                     'created_at'        => $now,
                     'updated_at'        => $now,
@@ -163,32 +235,42 @@ class CatalogProductsImport implements ToCollection, WithChunkReading, WithHeadi
     }
 
     /**
-     * Normalise Excel heading keys to snake_case regardless of original format.
-     * e.g. "Sub-Type" → "sub_type", "Qimta Code" → "qimta_code"
+     * Build an associative [field => value] row from the raw cell array using
+     * the column header map.
+     *
+     * @param  array               $cells    raw cell values for the row
+     * @param  array<int, string>  $headers  colIndex => canonical field name
      */
-    private function normalizeRow(array $raw): array
+    private function mapRow(array $cells, array $headers): array
     {
-        $normalized = [];
-        foreach ($raw as $key => $value) {
-            $rawKey = trim((string) $key);
-
-            // Arabic / alternative headers map directly to canonical field names.
-            if (isset(self::HEADER_ALIASES[$rawKey])) {
-                $normalized[self::HEADER_ALIASES[$rawKey]] = $value;
-                continue;
-            }
-
-            $cleanKey = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $rawKey));
-            $cleanKey = trim($cleanKey, '_');
-
-            // Skip headers that produced an empty key (e.g. unrecognised
-            // Arabic header) so they don't overwrite the array's first slot.
-            if ($cleanKey === '') {
-                continue;
-            }
-
-            $normalized[$cleanKey] = $value;
+        $mapped = [];
+        foreach ($headers as $colIndex => $field) {
+            $mapped[$field] = isset($cells[$colIndex]) ? (string) $cells[$colIndex] : '';
         }
-        return $normalized;
+        return $mapped;
+    }
+
+    /**
+     * Resolve a raw header cell to a canonical snake_case field name.
+     * Arabic / alternative headers map via HEADER_ALIASES; everything else is
+     * normalised (lowercased, non-alphanumerics → underscore). Returns null
+     * for headers that don't resolve to a usable field name.
+     */
+    private function resolveHeader(string $rawKey): ?string
+    {
+        $rawKey = trim($rawKey);
+
+        if ($rawKey === '') {
+            return null;
+        }
+
+        if (isset(self::HEADER_ALIASES[$rawKey])) {
+            return self::HEADER_ALIASES[$rawKey];
+        }
+
+        $cleanKey = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $rawKey));
+        $cleanKey = trim($cleanKey, '_');
+
+        return $cleanKey !== '' ? $cleanKey : null;
     }
 }
