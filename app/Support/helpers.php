@@ -1,13 +1,15 @@
 <?php
 
-use Illuminate\Support\Facades\Lang;
+// Global helper functions. Loaded via require_once from AppServiceProvider so
+// they are available everywhere without a composer "files" autoload entry
+// (no `composer dump-autoload` required on deploy).
 
 if (! function_exists('catalog_value_t')) {
     /**
      * Translate a stored catalog data value (division / category / item
      * family) to the current locale via the `catalog.<group>` map.
      *
-     * Falls back to the original English value when no translation key
+     * Falls back to the original (English) value when no translation key
      * exists, so newly imported / untranslated values still display.
      *
      *   catalog_value_t('divisions', $product->division)
@@ -25,6 +27,6 @@ if (! function_exists('catalog_value_t')) {
 
         $key = "catalog.{$group}.{$value}";
 
-        return Lang::has($key) ? __($key) : $value;
+        return \Illuminate\Support\Facades\Lang::has($key) ? __($key) : $value;
     }
 }
