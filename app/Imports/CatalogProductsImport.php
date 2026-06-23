@@ -17,6 +17,49 @@ class CatalogProductsImport implements ToCollection, WithChunkReading, WithHeadi
     /** In-memory category cache: "catalogId|name" => category_id */
     private array $categoryCache = [];
 
+    /**
+     * Arabic (and alternative) header labels mapped to the canonical
+     * snake_case field name used throughout the import.
+     * Keys are trimmed exactly as they appear in the Excel heading cell.
+     */
+    private const HEADER_ALIASES = [
+        // qimta_code
+        'كود قمتا'            => 'qimta_code',
+        'كود قمته'            => 'qimta_code',
+        'الكود'               => 'qimta_code',
+        'كود المنتج'          => 'qimta_code',
+        // division
+        'القسم'               => 'division',
+        'الشعبة'              => 'division',
+        // category
+        'الفئة'               => 'category',
+        'التصنيف'             => 'category',
+        'الصنف'               => 'category',
+        // item_description
+        'وصف الصنف'           => 'item_description',
+        'وصف المنتج'          => 'item_description',
+        'الوصف'               => 'item_description',
+        // sub_type
+        'النوع الفرعي'        => 'sub_type',
+        'النوع الفرعى'        => 'sub_type',
+        // product_name
+        'اسم المنتج'          => 'product_name',
+        'إسم المنتج'          => 'product_name',
+        // type_of_material
+        'نوع المادة'          => 'type_of_material',
+        'نوع الخامة'          => 'type_of_material',
+        // size
+        'الحجم'               => 'size',
+        'المقاس'              => 'size',
+        // unit
+        'الوحدة'              => 'unit',
+        'وحدة القياس'         => 'unit',
+        // lead_time
+        'مدة التوريد'         => 'lead_time',
+        'مدة التسليم'         => 'lead_time',
+        'وقت التوريد'         => 'lead_time',
+    ];
+
     public function __construct(
         private CatalogImport             $catalogImport,
         private CatalogImportRepository   $importRepo,
@@ -127,8 +170,23 @@ class CatalogProductsImport implements ToCollection, WithChunkReading, WithHeadi
     {
         $normalized = [];
         foreach ($raw as $key => $value) {
-            $cleanKey              = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', trim((string) $key)));
-            $cleanKey              = trim($cleanKey, '_');
+            $rawKey = trim((string) $key);
+
+            // Arabic / alternative headers map directly to canonical field names.
+            if (isset(self::HEADER_ALIASES[$rawKey])) {
+                $normalized[self::HEADER_ALIASES[$rawKey]] = $value;
+                continue;
+            }
+
+            $cleanKey = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $rawKey));
+            $cleanKey = trim($cleanKey, '_');
+
+            // Skip headers that produced an empty key (e.g. unrecognised
+            // Arabic header) so they don't overwrite the array's first slot.
+            if ($cleanKey === '') {
+                continue;
+            }
+
             $normalized[$cleanKey] = $value;
         }
         return $normalized;

@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
         // Cached 6 hours; falls back to last-known values if DB is down.
         View::share('catalogStats', CatalogStats::get());
 
+        // Translate a stored catalog data value (division / category / item
+        // family) to the current locale via the `catalog.<group>` map, falling
+        // back to the original English value when no translation exists.
+        //   Usage: {{ catalog_value('divisions', $product->division) }}
         // Scrub invalid UTF-8 from every Livewire response payload before it is
         // JSON-encoded. Without this, a single malformed byte anywhere in a
         // component snapshot or its rendered effects (e.g. coming from the DB)

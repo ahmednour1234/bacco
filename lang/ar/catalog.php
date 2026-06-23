@@ -51,4 +51,15 @@ return [
         'Lowered Counter Unit'     => 'وحدة الكاونتر المنخفض',
         'Contrasting Nosing Strip' => 'شريط حافة الدرج المتباين',
     ],
+
+    // ── Division translations ────────────────────────────────────────────────
+    // Keyed by the exact English division value from the catalog DB.
+    // Any term not listed here falls back to its English text in the view.
+    'divisions' => [
+        'Electrical Power & Lighting' => 'الطاقة الكهربائية والإنارة',
+    ],
+
+    // ── Category translations ────────────────────────────────────────────────
+    // Keyed by the exact English category name from the catalog DB.
+    'categories' => [],
 ];

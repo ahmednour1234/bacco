@@ -161,10 +161,10 @@ $_productSchema = json_encode([
         <div class="overview-card">
             <div class="ov-title">Item Overview</div>
             <div class="ov-label">Division</div>
-            <div class="ov-val">{{ $division }}</div>
+            <div class="ov-val">{{ catalog_value_t('divisions', $division) }}</div>
             @if($product->category)
             <div class="ov-label">Category</div>
-            <div class="ov-val">{{ $product->category }}</div>
+            <div class="ov-val">{{ catalog_value_t('categories', $product->category) }}</div>
             @endif
             @if($product->lead_time)
             <div class="ov-label">Pricing Layer</div>
@@ -208,7 +208,7 @@ $_productSchema = json_encode([
                 @if($product->category)
                 <div>
                     <div class="matrix-cell-label">Category</div>
-                    <div class="matrix-cell-val">{{ $product->category }}</div>
+                    <div class="matrix-cell-val">{{ catalog_value_t('categories', $product->category) }}</div>
                 </div>
                 @endif
                 @if($product->sub_type)
