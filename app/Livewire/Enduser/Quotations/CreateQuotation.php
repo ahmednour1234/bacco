@@ -11,6 +11,7 @@ use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
 use App\Models\UploadedDocument;
+use App\Services\Catalog\SaveQuotationProductsToCatalog;
 use App\Services\PricingService;
 use App\Services\QuotationAiService;
 use App\Services\NotificationService;
@@ -512,6 +513,18 @@ class CreateQuotation extends Component
         $quotation = $this->persistQuotation(QuotationRequestStatusEnum::Tender);
         $this->persistItems($quotation);
         $this->quotationId = $quotation->id;
+
+        // Keep a record of the quotation's products in the catalog. The catalog
+        // lives on a separate DB connection, so a failure here must not abort
+        // the submission — log and continue.
+        try {
+            app(SaveQuotationProductsToCatalog::class)->handle($quotation, $this->items);
+        } catch (\Throwable $e) {
+            Log::error('Failed to save quotation products to catalog', [
+                'quotation_id' => $quotation->id,
+                'error'        => $e->getMessage(),
+            ]);
+        }
 
         app(NotificationService::class)->sendToUserAndAdmins(
             title: 'Quotation Submitted',
