@@ -2,6 +2,7 @@
 
 namespace App\Services\Catalog;
 
+use App\Models\Boq;
 use App\Models\QuotationRequest;
 use App\Repositories\Catalog\CatalogCategoryRepository;
 use App\Repositories\Catalog\CatalogProductRepository;
@@ -9,20 +10,20 @@ use App\Repositories\Catalog\CatalogRepository;
 use Illuminate\Support\Str;
 
 /**
- * Persists the selected items of a submitted quotation into the catalog
+ * Persists the selected items of a submitted quotation OR BOQ into the catalog
  * (catalog_products) so the system keeps a record of every product that has
- * appeared in a quotation.
+ * appeared in a quotation or a BOQ.
  *
  * Items are written into a single, stable catalog named "Quotations".
  * Duplicates are avoided by CatalogProductRepository::bulkUpsert(), which
  * upserts on the unique key (qimta_code, product_name, size, unit).
  *
  * Note: catalog_products lives on the separate `catalog` DB connection, so
- * this runs independently of the quotation save (no shared transaction).
+ * this runs independently of the quotation/BOQ save (no shared transaction).
  */
 class SaveQuotationProductsToCatalog
 {
-    /** Fixed destination catalog for quotation-sourced products. */
+    /** Fixed destination catalog for quotation/BOQ-sourced products. */
     private const CATALOG_NAME = 'Quotations';
 
     public function __construct(
@@ -32,14 +33,48 @@ class SaveQuotationProductsToCatalog
     ) {}
 
     /**
+     * Save a quotation's selected items into the catalog.
+     *
      * @param  QuotationRequest  $quotation  the saved quotation (for metadata)
      * @param  array             $items      the quotation item rows (Livewire $items)
      * @return array{inserted:int, updated:int}
      */
     public function handle(QuotationRequest $quotation, array $items): array
     {
+        return $this->saveItems($items, 'quotation', [
+            'quotation_id' => $quotation->id,
+            'quotation_no' => $quotation->quotation_no ?? null,
+        ], 'Quotation ' . ($quotation->quotation_no ?? $quotation->id));
+    }
+
+    /**
+     * Save a BOQ's selected items into the catalog.
+     *
+     * @param  Boq    $boq    the saved BOQ (for metadata)
+     * @param  array  $items  the BOQ item rows (Livewire $items)
+     * @return array{inserted:int, updated:int}
+     */
+    public function handleBoq(Boq $boq, array $items): array
+    {
+        return $this->saveItems($items, 'boq', [
+            'boq_id'   => $boq->id,
+            'boq_uuid' => $boq->uuid ?? null,
+        ], 'BOQ ' . ($boq->uuid ?? $boq->id));
+    }
+
+    /**
+     * Shared implementation: filter, map and upsert item rows.
+     *
+     * @param  array   $items       raw item rows
+     * @param  string  $source      'quotation' | 'boq' (stored in raw_data)
+     * @param  array   $sourceMeta  extra metadata stored in raw_data
+     * @param  string  $sourceFile  label stored in the source_file column
+     * @return array{inserted:int, updated:int}
+     */
+    private function saveItems(array $items, string $source, array $sourceMeta, string $sourceFile): array
+    {
         // Only keep selected, non-rejected items. Different callers use either
-        // 'is_selected' (CreateQuotation) or 'selected' (ShowQuotation).
+        // 'is_selected' (Create* components) or 'selected' (Show* components).
         $items = array_filter($items, function ($row) {
             $selected = ! empty($row['is_selected']) || ! empty($row['selected']);
             $status   = $row['status'] ?? '';
@@ -99,16 +134,14 @@ class SaveQuotationProductsToCatalog
                 'size'             => $size,
                 'unit'             => $unit,
                 'lead_time'        => null,
-                'source_file'      => 'Quotation ' . ($quotation->quotation_no ?? $quotation->id),
+                'source_file'      => $sourceFile,
                 'import_batch_id'  => null,
                 'status'           => 'active',
-                'raw_data'         => json_encode([
-                    'source'              => 'quotation',
-                    'quotation_id'        => $quotation->id,
-                    'quotation_no'        => $quotation->quotation_no ?? null,
-                    'unit_price'          => $row['unit_price'] ?? null,
-                    'quantity'            => $row['quantity'] ?? null,
-                ], JSON_UNESCAPED_UNICODE),
+                'raw_data'         => json_encode(array_merge([
+                    'source'     => $source,
+                    'unit_price' => $row['unit_price'] ?? null,
+                    'quantity'   => $row['quantity'] ?? null,
+                ], $sourceMeta), JSON_UNESCAPED_UNICODE),
                 'created_at'       => $now,
                 'updated_at'       => $now,
             ];

@@ -23,6 +23,7 @@ use App\Models\QuotationVersion;
 use App\Models\QuotationVersionItem;
 use App\Models\Unit;
 use App\Models\UploadedDocument;
+use App\Services\Catalog\SaveQuotationProductsToCatalog;
 use App\Services\NotificationService;
 use App\Services\QuotationAiService;
 use Illuminate\Support\Facades\Auth;
@@ -657,6 +658,18 @@ class CreateBoq extends Component
         $project = $this->persistProject();
         $boq     = $this->persistBoq($project, BoqStatusEnum::Submitted);
         $this->persistItems($boq);
+
+        // Keep a record of the BOQ's products in the catalog. The catalog lives
+        // on a separate DB connection, so a failure here must not abort the
+        // submission — log and continue.
+        try {
+            app(SaveQuotationProductsToCatalog::class)->handleBoq($boq, $this->items);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to save BOQ products to catalog', [
+                'boq_id' => $boq->id,
+                'error'  => $e->getMessage(),
+            ]);
+        }
 
         app(NotificationService::class)->sendToUserAndAdmins(
             title: 'BOQ Submitted',
