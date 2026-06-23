@@ -38,10 +38,12 @@ class SaveQuotationProductsToCatalog
      */
     public function handle(QuotationRequest $quotation, array $items): array
     {
-        // Only keep selected, non-rejected items.
+        // Only keep selected, non-rejected items. Different callers use either
+        // 'is_selected' (CreateQuotation) or 'selected' (ShowQuotation).
         $items = array_filter($items, function ($row) {
-            $status = $row['status'] ?? '';
-            return ! empty($row['is_selected'])
+            $selected = ! empty($row['is_selected']) || ! empty($row['selected']);
+            $status   = $row['status'] ?? '';
+            return $selected
                 && $status !== \App\Enums\QuotationItemStatusEnum::Rejected->value;
         });
 

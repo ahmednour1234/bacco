@@ -9,6 +9,7 @@ use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Enums\NotificationTypeEnum;
 use App\Enums\UserTypeEnum;
+use App\Services\Catalog\SaveQuotationProductsToCatalog;
 use App\Services\Enduser\OrderService;
 use App\Services\NotificationService;
 use App\Services\PricingService;
@@ -434,7 +435,7 @@ class ShowQuotation extends Component
                 ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
 
             if ($subtotal <= 0) {
-                $this->dispatch('toast', message: __('app.total_must_be_positive'), type: 'error');
+                $this->dispatch('toast', message: __('app.all_items_zero_price'), type: 'error');
                 return;
             }
 
@@ -445,6 +446,18 @@ class ShowQuotation extends Component
             );
 
             $this->quotation->update(['status' => QuotationRequestStatusEnum::Submitted]);
+
+            // Keep a record of the quotation's (now priced) products in the
+            // catalog. The catalog is on a separate DB connection, so a failure
+            // here must not abort the submission — log and continue.
+            try {
+                app(SaveQuotationProductsToCatalog::class)->handle($this->quotation, $selectedItems);
+            } catch (\Throwable $e) {
+                Log::error('Failed to save quotation products to catalog', [
+                    'quotation_id' => $this->quotation->id,
+                    'error'        => $e->getMessage(),
+                ]);
+            }
 
             // Notify all admins about the new order
             app(NotificationService::class)->sendToUserType(
