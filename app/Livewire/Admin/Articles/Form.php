@@ -28,10 +28,10 @@ class Form extends Component
         if ($article && $article->exists) {
             $this->article       = $article;
             $this->isEditing     = true;
-            $this->name_en       = $article->name_en;
-            $this->name_ar       = $article->name_ar;
-            $this->title_en      = $article->title_en;
-            $this->title_ar      = $article->title_ar;
+            $this->name_en       = (string) ($article->name_en ?? '');
+            $this->name_ar       = (string) ($article->name_ar ?? '');
+            $this->title_en      = (string) ($article->title_en ?? '');
+            $this->title_ar      = (string) ($article->title_ar ?? '');
             $this->desc_en       = (string) ($article->desc_en ?? '');
             $this->desc_ar       = (string) ($article->desc_ar ?? '');
             $this->active        = (bool)   $article->active;
