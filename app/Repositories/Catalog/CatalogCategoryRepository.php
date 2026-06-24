@@ -20,8 +20,6 @@ class CatalogCategoryRepository
             return $cache[$key];
         }
 
-        $slug = Str::slug($name) ?: Str::uuid();
-
         $row = DB::connection('catalog')
             ->table('catalog_categories')
             ->where('catalog_id', $catalogId)
@@ -32,6 +30,8 @@ class CatalogCategoryRepository
             $cache[$key] = $row->id;
             return $row->id;
         }
+
+        $slug = $this->uniqueSlug($catalogId, $name, $name, '');
 
         $id = DB::connection('catalog')->table('catalog_categories')->insertGetId([
             'uuid'       => (string) Str::uuid(),
@@ -103,7 +103,7 @@ class CatalogCategoryRepository
         // Create a new bilingual category. `name` is NOT NULL, so fall back to
         // the Arabic label when no English name was provided.
         $name = $nameEn !== '' ? $nameEn : $nameAr;
-        $slug = Str::slug($name) ?: (string) Str::uuid();
+        $slug = $this->uniqueSlug($catalogId, $name, $nameEn, $nameAr);
 
         $id = DB::connection('catalog')->table('catalog_categories')->insertGetId([
             'uuid'       => (string) Str::uuid(),
@@ -118,6 +118,41 @@ class CatalogCategoryRepository
 
         $cache[$cacheKey] = $id;
         return $id;
+    }
+
+    /**
+     * Build a slug that is unique within the catalog.
+     *
+     * Str::slug() transliterates Arabic poorly — many distinct Arabic names
+     * collapse to the same (or an empty) slug, which violates the
+     * (catalog_id, slug) unique index. We therefore base the slug on the full
+     * bilingual name and append a short deterministic hash, then ensure no
+     * existing row already uses it.
+     */
+    private function uniqueSlug(int $catalogId, string $name, string $nameEn, string $nameAr): string
+    {
+        $base = Str::slug($name);
+
+        // Deterministic suffix from BOTH languages so the same concept always
+        // maps to the same slug (idempotent re-imports), while different names
+        // get different slugs even when transliteration collides.
+        $hash = substr(md5(mb_strtolower($nameEn . '|' . $nameAr)), 0, 8);
+
+        $slug = $base !== '' ? ($base . '-' . $hash) : ('cat-' . $hash);
+
+        // Extremely unlikely, but guarantee uniqueness against existing rows.
+        $candidate = $slug;
+        $i = 1;
+        while (
+            DB::connection('catalog')->table('catalog_categories')
+                ->where('catalog_id', $catalogId)
+                ->where('slug', $candidate)
+                ->exists()
+        ) {
+            $candidate = $slug . '-' . $i++;
+        }
+
+        return $candidate;
     }
 
     public function forCatalog(int $catalogId)
