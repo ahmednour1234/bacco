@@ -15,21 +15,35 @@ class CatalogController extends Controller
         $divisions = collect();
         try {
             $db = DB::connection('catalog');
+            $isAr = app()->getLocale() === 'ar';
+
             $divisions = $db->table('catalog_products')
-                ->whereNotNull('division')
-                ->where('division', '!=', '')
+                ->where(function ($q) {
+                    $q->where('division', '!=', '')->orWhere('division_ar', '!=', '');
+                })
                 ->select(
                     'division',
+                    'division_ar',
                     DB::raw('count(*) as products'),
                 )
-                ->groupBy('division')
-                ->orderBy('division')
+                ->groupBy('division', 'division_ar')
                 ->get()
-                ->map(fn($r) => (object)[
-                    'name'     => $r->division,
-                    'slug'     => \Illuminate\Support\Str::slug($r->division),
-                    'products' => $r->products,
-                ]);
+                ->map(function ($r) use ($isAr) {
+                    $label = $isAr
+                        ? ($r->division_ar ?: $r->division)
+                        : ($r->division ?: $r->division_ar);
+
+                    return (object) [
+                        'name'     => $label,
+                        // slug always from the English value when present, so the
+                        // category route stays stable across locales.
+                        'slug'     => \Illuminate\Support\Str::slug($r->division ?: $r->division_ar),
+                        'products' => $r->products,
+                    ];
+                })
+                ->filter(fn($d) => trim((string) $d->name) !== '')
+                ->sortBy('name')
+                ->values();
         } catch (\Exception $e) {
             // catalog DB unavailable — welcome page still renders, cards are hidden
         }
@@ -55,17 +69,27 @@ class CatalogController extends Controller
                 ->select(
                     'c.id',
                     'c.name',
+                    'c.name_ar',
                     'c.slug',
                     DB::raw('count(p.id) as products'),
                     DB::raw('count(distinct p.item_description) as items'),
                     DB::raw('MAX(p.division) as division'),
                 )
-                ->groupBy('c.id', 'c.name', 'c.slug')
+                ->groupBy('c.id', 'c.name', 'c.name_ar', 'c.slug')
                 ->orderBy('c.name')
                 ->get()
-                ->map(fn($r) => (object) array_merge((array) $r, [
-                    'slug' => $r->slug ?: Str::slug($r->name),
-                ]));
+                ->map(function ($r) {
+                    // Locale-aware label, cross-falling back to the other language.
+                    $isAr  = app()->getLocale() === 'ar';
+                    $label = $isAr
+                        ? ($r->name_ar ?: $r->name)
+                        : ($r->name ?: $r->name_ar);
+
+                    return (object) array_merge((array) $r, [
+                        'name' => $label,
+                        'slug' => $r->slug ?: Str::slug($r->name ?: $r->name_ar),
+                    ]);
+                });
 
             $totals = [
                 'divisions'  => $db->table('catalog_products')->whereNotNull('division')->distinct()->count('division'),

@@ -39,8 +39,12 @@ class CatalogProductRepository
             $rows,
             ['qimta_code', 'product_name', 'size', 'unit'],     // conflict columns (unique key)
             [                                                     // columns to update on conflict
-                'catalog_id', 'category_id', 'division',
-                'item_description', 'sub_type', 'type_of_material',
+                'catalog_id', 'category_id',
+                'division', 'division_ar',
+                'item_description', 'item_description_ar',
+                'sub_type', 'sub_type_ar',
+                'product_name_ar',
+                'type_of_material',
                 'lead_time', 'source_file', 'import_batch_id',
                 'raw_data', 'updated_at',
             ]

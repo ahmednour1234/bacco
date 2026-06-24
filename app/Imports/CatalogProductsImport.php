@@ -48,23 +48,25 @@ class CatalogProductsImport
         'الكود'               => 'qimta_code',
         'الرمز'               => 'qimta_code',
         'كود المنتج'          => 'qimta_code',
-        // division
-        'القسم'               => 'division',
-        'الشعبة'              => 'division',
+        // division — Arabic headers fill the *_ar column, English fill the base
+        'القسم'               => 'division_ar',
+        'الشعبة'              => 'division_ar',
+        'division'            => 'division',
         // category
-        'الفئة'               => 'category',
-        'التصنيف'             => 'category',
-        'الصنف'               => 'category',
+        'الفئة'               => 'category_ar',
+        'التصنيف'             => 'category_ar',
+        'الصنف'               => 'category_ar',
+        'category'            => 'category',
         // item_description
-        'وصف الصنف'           => 'item_description',
-        'وصف المنتج'          => 'item_description',
-        'الوصف'               => 'item_description',
+        'وصف الصنف'           => 'item_description_ar',
+        'وصف المنتج'          => 'item_description_ar',
+        'الوصف'               => 'item_description_ar',
         // sub_type
-        'النوع الفرعي'        => 'sub_type',
-        'النوع الفرعى'        => 'sub_type',
+        'النوع الفرعي'        => 'sub_type_ar',
+        'النوع الفرعى'        => 'sub_type_ar',
         // product_name
-        'اسم المنتج'          => 'product_name',
-        'إسم المنتج'          => 'product_name',
+        'اسم المنتج'          => 'product_name_ar',
+        'إسم المنتج'          => 'product_name_ar',
         // type_of_material
         'نوع المادة'          => 'type_of_material',
         'نوع الخامة'          => 'type_of_material',
@@ -161,41 +163,63 @@ class CatalogProductsImport
                     continue;
                 }
 
-                $categoryName = $r['category'] ?? null;
-                $categoryId   = null;
+                // Bilingual category: resolve a single category row that carries
+                // both names. Prefer the English name as the lookup key; fall
+                // back to Arabic when the file is Arabic-only.
+                $categoryEn = trim($r['category'] ?? '');
+                $categoryAr = trim($r['category_ar'] ?? '');
+                $categoryId = null;
 
-                if ($categoryName) {
-                    $categoryId = $this->categoryRepo->resolveByName(
+                if ($categoryEn !== '' || $categoryAr !== '') {
+                    $categoryId = $this->categoryRepo->resolveBilingual(
                         $this->catalogImport->catalog_id,
-                        $categoryName,
+                        $categoryEn,
+                        $categoryAr,
                         $this->categoryCache
                     );
                 }
 
                 $qimtaCode   = trim($r['qimta_code'] ?? '');
-                $productName = trim($r['product_name'] ?? '');
                 $size        = trim($r['size'] ?? '');
                 $unit        = trim($r['unit'] ?? '');
 
+                // For each bilingual field keep both languages; if only one is
+                // provided, leave the other null (display layer cross-falls back).
+                $divisionEn   = trim($r['division'] ?? '') ?: null;
+                $divisionAr   = trim($r['division_ar'] ?? '') ?: null;
+                $descEn       = trim($r['item_description'] ?? '') ?: null;
+                $descAr       = trim($r['item_description_ar'] ?? '') ?: null;
+                $subTypeEn    = trim($r['sub_type'] ?? '') ?: null;
+                $subTypeAr    = trim($r['sub_type_ar'] ?? '') ?: null;
+                $productEn    = trim($r['product_name'] ?? '');
+                $productAr    = trim($r['product_name_ar'] ?? '') ?: null;
+
+                // product_name is NOT NULL — if the file only has Arabic, use it.
+                $productName = $productEn !== '' ? $productEn : (string) $productAr;
+
                 $products[] = [
-                    'uuid'             => (string) Str::uuid(),
-                    'catalog_id'       => $this->catalogImport->catalog_id,
-                    'category_id'      => $categoryId,
-                    'qimta_code'       => $qimtaCode,
-                    'division'         => trim($r['division'] ?? '') ?: null,
-                    'item_description' => trim($r['item_description'] ?? '') ?: null,
-                    'sub_type'         => trim($r['sub_type'] ?? '') ?: null,
-                    'product_name'     => $productName,
-                    'type_of_material' => trim($r['type_of_material'] ?? '') ?: null,
-                    'size'             => $size,
-                    'unit'             => $unit,
-                    'lead_time'        => trim($r['lead_time'] ?? '') ?: null,
-                    'source_file'      => $this->catalogImport->file_name,
-                    'import_batch_id'  => $this->catalogImport->id,
-                    'status'           => 'active',
-                    'raw_data'         => json_encode($r, JSON_UNESCAPED_UNICODE),
-                    'created_at'       => $now,
-                    'updated_at'       => $now,
+                    'uuid'                => (string) Str::uuid(),
+                    'catalog_id'          => $this->catalogImport->catalog_id,
+                    'category_id'         => $categoryId,
+                    'qimta_code'          => $qimtaCode,
+                    'division'            => $divisionEn,
+                    'division_ar'         => $divisionAr,
+                    'item_description'    => $descEn,
+                    'item_description_ar' => $descAr,
+                    'sub_type'            => $subTypeEn,
+                    'sub_type_ar'         => $subTypeAr,
+                    'product_name'        => $productName,
+                    'product_name_ar'     => $productAr,
+                    'type_of_material'    => trim($r['type_of_material'] ?? '') ?: null,
+                    'size'                => $size,
+                    'unit'                => $unit,
+                    'lead_time'           => trim($r['lead_time'] ?? '') ?: null,
+                    'source_file'         => $this->catalogImport->file_name,
+                    'import_batch_id'     => $this->catalogImport->id,
+                    'status'              => 'active',
+                    'raw_data'            => json_encode($r, JSON_UNESCAPED_UNICODE),
+                    'created_at'          => $now,
+                    'updated_at'          => $now,
                 ];
 
             } catch (\Throwable $e) {

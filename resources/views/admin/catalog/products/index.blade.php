@@ -135,10 +135,10 @@
                 @forelse($products as $product)
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-3 py-2 font-mono text-gray-700 whitespace-nowrap">{{ $product->qimta_code ?: '—' }}</td>
-                        <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ $product->division ? catalog_value_t('divisions', $product->division) : '—' }}</td>
-                        <td class="px-3 py-2 text-gray-600">{{ $product->category?->name ? catalog_value_t('categories', $product->category->name) : '—' }}</td>
-                        <td class="px-3 py-2 font-medium text-gray-900">{{ $product->product_name ?: '—' }}</td>
-                        <td class="px-3 py-2 text-gray-600">{{ $product->sub_type ?? '—' }}</td>
+                        <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ $product->division_label ?: '—' }}</td>
+                        <td class="px-3 py-2 text-gray-600">{{ $product->category?->name_label ?: '—' }}</td>
+                        <td class="px-3 py-2 font-medium text-gray-900">{{ $product->product_name_label ?: '—' }}</td>
+                        <td class="px-3 py-2 text-gray-600">{{ $product->sub_type_label ?: '—' }}</td>
                         <td class="px-3 py-2 text-gray-600">{{ $product->type_of_material ?? '—' }}</td>
                         <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ $product->size ?: '—' }}</td>
                         <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ $product->unit ?: '—' }}</td>
