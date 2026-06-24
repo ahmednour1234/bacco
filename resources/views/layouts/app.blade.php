@@ -19,6 +19,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', $__defaultTitle)</title>
+    @include('partials.favicon')
     <meta name="description" content="@yield('description', $__defaultDesc)">
     {{-- Canonical + Hreflang: /ar/ prefix routes for Google-crawlable Arabic --}}
     @php
