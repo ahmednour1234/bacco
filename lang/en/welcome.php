@@ -32,6 +32,7 @@ return [
         'sub'       => 'Access :products verified products and 1B technical specs. Our RAG engine matches your requirements to manufacturer reality in seconds.',
         'btn_primary'   => 'Price a BOQ — Free',
         'btn_secondary' => 'View Enterprise Solutions',
+        'btn_price_boq' => 'Price Your BOQ Free',
         'mock_live'     => 'Live',
         'mock_match'    => 'Match BOQ',
         'mock_export'   => 'Export',

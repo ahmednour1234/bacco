@@ -530,7 +530,7 @@ $_faqSchema = json_encode([
 
                     <div class="hero-btns">
                         <a href="{{ route('guest.boq.create') }}" class="btn btn-dark btn-lg">
-                            {{ __('welcome.hero.btn_primary') }}
+                            {{ __('welcome.hero.btn_price_boq') }}
                         </a>
 
                         <a href="{{ route('contact') }}" class="btn btn-outline btn-lg">
