@@ -20,11 +20,11 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  */
 class CatalogProductsImport
 {
-    /** Heading row in the Excel file (1-based). */
+    /** Fallback heading row (1-based) if auto-detection fails. */
     private const HEADING_ROW = 4;
 
-    /** First data row (1-based). */
-    private const FIRST_DATA_ROW = 5;
+    /** How many leading rows to scan when auto-detecting the heading row. */
+    private const HEADING_SCAN_ROWS = 12;
 
     /** Rows upserted per batch. */
     private const CHUNK_SIZE = 1000;
@@ -41,7 +41,12 @@ class CatalogProductsImport
         // qimta_code
         'كود قمتا'            => 'qimta_code',
         'كود قمته'            => 'qimta_code',
+        'رمز قيمتا'           => 'qimta_code',
+        'رمز قيمته'           => 'qimta_code',
+        'رمز قمتا'            => 'qimta_code',
+        'رمز المنتج'          => 'qimta_code',
         'الكود'               => 'qimta_code',
+        'الرمز'               => 'qimta_code',
         'كود المنتج'          => 'qimta_code',
         // division
         'القسم'               => 'division',
@@ -101,24 +106,14 @@ class CatalogProductsImport
         $highestRow  = $sheet->getHighestDataRow();
         $highestCol  = $sheet->getHighestDataColumn();
 
-        // Build the header map from the heading row.
-        $headers = [];
-        foreach ($sheet->rangeToArray(
-            "A" . self::HEADING_ROW . ":{$highestCol}" . self::HEADING_ROW,
-            null,
-            false,
-            false,
-            false
-        )[0] ?? [] as $colIndex => $headerCell) {
-            $field = $this->resolveHeader((string) $headerCell);
-            if ($field !== null) {
-                $headers[$colIndex] = $field;
-            }
-        }
+        // Auto-detect which row holds the column headers (different templates put
+        // it on row 3 or row 4), then build the header map from it.
+        [$headingRow, $headers] = $this->detectHeaders($sheet, $highestCol);
+        $firstDataRow = $headingRow + 1;
 
         // Walk data rows in chunks so memory stays flat.
         $batch = [];
-        for ($row = self::FIRST_DATA_ROW; $row <= $highestRow; $row++) {
+        for ($row = $firstDataRow; $row <= $highestRow; $row++) {
             $cells = $sheet->rangeToArray(
                 "A{$row}:{$highestCol}{$row}",
                 null,
@@ -232,6 +227,63 @@ class CatalogProductsImport
             $updated,
             count($failedRows)
         );
+    }
+
+    /**
+     * Scan the first few rows and pick the one that looks most like a header
+     * row (the most cells resolving to known fields). Returns [rowNumber, map]
+     * where map is colIndex => canonical field name.
+     *
+     * Falls back to HEADING_ROW when nothing recognisable is found.
+     *
+     * @return array{0:int, 1:array<int,string>}
+     */
+    private function detectHeaders($sheet, string $highestCol): array
+    {
+        $bestRow     = self::HEADING_ROW;
+        $bestMap     = [];
+        $bestScore   = 0;
+
+        for ($row = 1; $row <= self::HEADING_SCAN_ROWS; $row++) {
+            $cells = $sheet->rangeToArray("A{$row}:{$highestCol}{$row}", null, false, false, false)[0] ?? [];
+
+            $map = [];
+            foreach ($cells as $colIndex => $headerCell) {
+                $field = $this->resolveHeader((string) $headerCell);
+                if ($field !== null) {
+                    $map[$colIndex] = $field;
+                }
+            }
+
+            // Score = number of DISTINCT recognised fields on this row.
+            $score = count(array_unique($map));
+
+            // A real header row maps at least the core identifying columns.
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestRow   = $row;
+                $bestMap   = $map;
+            }
+        }
+
+        // Need at least 2 recognised columns to trust auto-detection; otherwise
+        // fall back to the default heading row with whatever it resolves.
+        if ($bestScore < 2) {
+            $cells = $sheet->rangeToArray(
+                "A" . self::HEADING_ROW . ":{$highestCol}" . self::HEADING_ROW,
+                null, false, false, false
+            )[0] ?? [];
+            $bestMap = [];
+            foreach ($cells as $colIndex => $headerCell) {
+                $field = $this->resolveHeader((string) $headerCell);
+                if ($field !== null) {
+                    $bestMap[$colIndex] = $field;
+                }
+            }
+            $bestRow = self::HEADING_ROW;
+        }
+
+        return [$bestRow, $bestMap];
     }
 
     /**
