@@ -195,15 +195,6 @@ $_itemListSchema = json_encode([
         $__catCode  = $__cat ? 'CAT-' . str_pad($__cat->id, 2, '0', STR_PAD_LEFT) : null;
         $__prodN    = number_format($stats['products'] ?? 0);
         $__itemN    = number_format($stats['items'] ?? 0);
-        $__catUrl   = 'qimta.com' . request()->getPathInfo();
-
-        // Generated SEO meta (mirrors layout's <title>/<meta description>)
-        $__metaTitle = $__isAr
-            ? $division . ' — ' . $__prodN . ' منتج · تسعير BOQ السعودية | كيمتا'
-            : $division . ' — ' . $__prodN . ' Products · BOQ Pricing KSA | Qimta';
-        $__metaDesc  = $__isAr
-            ? 'تصفّح ' . $__prodN . ' منتج معتمد لفئة ' . $division . '. تسعير BOQ في أقل من 60 ثانية. مجاني للمقاولين في السعودية والخليج.'
-            : 'Browse ' . $__prodN . ' verified ' . strtolower($division) . ' products. BOQ pricing in under 60 seconds. Free for contractors in Saudi Arabia and GCC.';
     @endphp
 
     {{-- CAT card header (mockup) --}}
@@ -218,19 +209,6 @@ $_itemListSchema = json_encode([
             </div>
         </div>
         <div class="cat-code">{{ $__catCode }}</div>
-    </div>
-    <div class="cat-url">{{ $__catUrl }}</div>
-
-    {{-- SEO meta previews --}}
-    <div class="seo-block">
-        <div class="seo-label">Meta Title</div>
-        <div class="seo-box">{{ $__metaTitle }}</div>
-        <div class="seo-count">{{ mb_strlen($__metaTitle) }} {{ $__isAr ? 'حرفاً' : 'chars' }}</div>
-    </div>
-    <div class="seo-block">
-        <div class="seo-label">Meta Description</div>
-        <div class="seo-box desc">{{ $__metaDesc }}</div>
-        <div class="seo-count">{{ mb_strlen($__metaDesc) }} {{ $__isAr ? 'حرفاً' : 'chars' }}</div>
     </div>
     @endif
 
