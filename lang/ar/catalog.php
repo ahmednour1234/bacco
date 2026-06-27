@@ -1,7 +1,7 @@
 ﻿<?php
 
 return [
-    'title'           => 'كتالوج مواد البناء — :products منتج · تسعير جداول الكميات | كيمتا',
+    'title'           => 'كتالوج مواد البناء — :products منتج · تسعير BOQ | كيمتا',
     'breadcrumb_home' => 'الرئيسية',
     'breadcrumb_catalog' => 'الكتالوج',
 

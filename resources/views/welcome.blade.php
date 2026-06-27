@@ -4,11 +4,11 @@
 
 @section('title', $isAr
     ? 'كيمتا — منصة تسعير جداول الكميات | السعودية والخليج'
-    : 'Qimta — Construction BOQ Pricing Platform | Saudi Arabia & GCC')
+    : 'Construction BOQ Pricing Platform — Saudi Arabia | Qimta')
 
 @section('description', $isAr
-    ? 'كيمتا: سعر كل بند من جدول الكميات في دقائق. ' . number_format($catalogStats['products']) . ' منتجاً موثّقاً ومليارات المواصفات التقنية. منصة تسعير مشاريع البناء للسعودية والخليج.'
-    : 'Qimta prices every BOQ line across every brand in seconds. Access ' . number_format($catalogStats['products']) . ' verified products and 1B technical specs. The construction pricing platform for Saudi Arabia & GCC.')
+    ? 'سعّر أي جدول كميات في ثوانٍ. ' . number_format($catalogStats['products']) . ' منتج موثّق ومليار مواصفة. تسعير BOQ مجاني للسعودية والخليج. جرّب الآن.'
+    : 'Price any construction BOQ in seconds. ' . number_format($catalogStats['products']) . ' verified products and 1B specs. Free BOQ pricing for Saudi Arabia and GCC. Try now.')
 
 @section('nav-cta')
     <a href="{{ route('guest.boq.create') }}" class="btn-nav-cta">

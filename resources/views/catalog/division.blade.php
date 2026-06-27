@@ -1,8 +1,12 @@
 @extends('layouts.app')
 
-@section('title', $division . ' — BOQ Pricing & Specifications | Qimta Catalog')
+@section('title', app()->getLocale() === 'ar'
+    ? $division . ' — ' . number_format($stats['products'] ?? 0) . ' منتج · تسعير BOQ السعودية | كيمتا'
+    : $division . ' — ' . number_format($stats['products'] ?? 0) . ' Products · BOQ Pricing KSA | Qimta')
 
-@section('description', $division . ' construction materials — browse item descriptions, BOQ pricing, technical specifications, and verified products in Qimta’s Gulf catalog.')
+@section('description', app()->getLocale() === 'ar'
+    ? 'تصفّح ' . number_format($stats['products'] ?? 0) . ' منتج معتمد لفئة ' . $division . '. تسعير BOQ في أقل من 60 ثانية. مجاني للمقاولين في السعودية والخليج.'
+    : 'Browse ' . number_format($stats['products'] ?? 0) . ' verified ' . strtolower($division) . ' products. BOQ pricing in under 60 seconds. Free for contractors in Saudi Arabia and GCC.')
 
 @section('styles')
 <style>
@@ -195,11 +199,11 @@ $_itemListSchema = json_encode([
 
         // Generated SEO meta (mirrors layout's <title>/<meta description>)
         $__metaTitle = $__isAr
-            ? $division . ' — ' . $__prodN . ' منتجاً · تسعير BOQ في السعودية | كيمتا'
-            : $division . ' — ' . $__prodN . ' Products · BOQ Pricing | Qimta';
+            ? $division . ' — ' . $__prodN . ' منتج · تسعير BOQ السعودية | كيمتا'
+            : $division . ' — ' . $__prodN . ' Products · BOQ Pricing KSA | Qimta';
         $__metaDesc  = $__isAr
-            ? 'تصفّح ' . $__prodN . ' منتجاً في فئة ' . $division . '. سعّر جدول الكميات في أقل من 60 ثانية بمحرك RAG. مجاني للمقاولين في السعودية والخليج. سجّل الآن.'
-            : 'Browse ' . $__prodN . ' verified ' . strtolower($division) . ' products. Price your BOQ in under 60 seconds with the RAG engine. Free for contractors across Saudi Arabia and the GCC.';
+            ? 'تصفّح ' . $__prodN . ' منتج معتمد لفئة ' . $division . '. تسعير BOQ في أقل من 60 ثانية. مجاني للمقاولين في السعودية والخليج.'
+            : 'Browse ' . $__prodN . ' verified ' . strtolower($division) . ' products. BOQ pricing in under 60 seconds. Free for contractors in Saudi Arabia and GCC.';
     @endphp
 
     {{-- CAT card header (mockup) --}}

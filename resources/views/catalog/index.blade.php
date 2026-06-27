@@ -3,8 +3,8 @@
 @section('title', __('catalog.title', ['products' => number_format($catalogStats['products'])]))
 
 @section('description', app()->getLocale() === 'ar'
-    ? 'تصفح ' . number_format($catalogStats['products']) . ' منتج بناء معتمد عبر ' . number_format($catalogStats['categories']) . ' فئة. تسعير فوري لجداول الكميات للمقاولين وفرق المشتريات في السعودية والخليج. مجاني.'
-    : 'Browse ' . number_format($catalogStats['products']) . ' verified construction products across ' . number_format($catalogStats['categories']) . ' categories. Instant BOQ pricing for contractors and procurement teams in Saudi Arabia and GCC. Free.')
+    ? 'تصفّح ' . number_format($catalogStats['products']) . ' منتج موثّق عبر ' . number_format($catalogStats['categories']) . ' فئة. تسعير جداول الكميات الفوري للمقاولين في السعودية والخليج. مجاني.'
+    : 'Browse ' . number_format($catalogStats['products']) . ' verified products across ' . number_format($catalogStats['categories']) . ' categories. Instant BOQ pricing for contractors in Saudi Arabia and GCC. Free.')
 @section('og_image', 'https://qimta.com/images/og-catalog.jpg')
 @section('og_type', 'website')
 @section('styles')
