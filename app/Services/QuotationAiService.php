@@ -174,6 +174,10 @@ class QuotationAiService
                         continue;
                     }
 
+                    if (! isset($map['quantity'])) {
+                        $quantity = 1.0;
+                    }
+
                     // Skip floor breakdown sub-rows: Ref. is "-" meaning it's a per-floor
                     // quantity split of the parent item, not a standalone product.
                     if ($itemNo === '-' || $this->isFloorBreakdownRow($itemNo, $description)) {
@@ -360,7 +364,21 @@ class QuotationAiService
             }
         }
 
-        return $bestScore >= 3 ? $best : null;
+        if ($bestScore >= 3) {
+            return $best;
+        }
+
+        // Allow simpler BOQ sheets that only define a description column plus one
+        // other BOQ-related column, e.g. Item + Description or Description + Qty.
+        if ($bestScore === 2 && isset($best['map']['description']) && (
+            isset($best['map']['item_code']) ||
+            isset($best['map']['quantity']) ||
+            isset($best['map']['unit'])
+        )) {
+            return $best;
+        }
+
+        return null;
     }
 
     private function cell(array $row, ?int $index): string
