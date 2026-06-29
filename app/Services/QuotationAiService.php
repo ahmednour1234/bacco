@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class QuotationAiService
 {
     /** Increment this whenever BOQ parsing logic changes to invalidate old caches. */
-    private const PARSER_VERSION = 2;
+    private const PARSER_VERSION = 4;
 
     private string $baseUrl;
     private string $parseEndpoint;
@@ -147,6 +147,14 @@ class QuotationAiService
             foreach ($sheets as $sheet) {
                 $grid = $sheet['grid'];
                 if (count($grid) < 2) {
+                    continue;
+                }
+
+                // Skip dedicated summary / cost-abstract sheets entirely. Their rows
+                // are per-discipline totals (Structural Concrete, Electrical, …) and
+                // grand totals, not procurable products.
+                if ($this->isSummarySheet($sheet['name'])) {
+                    Log::info('QuotationAiService: skipped summary sheet.', ['sheet' => $sheet['name']]);
                     continue;
                 }
 
@@ -419,6 +427,12 @@ class QuotationAiService
             return true;
         }
 
+        // Bare "Total" lines, optionally with a currency suffix, e.g. "Total",
+        // "Total (SAR)", "Total cost", "Total (SAR) unit cost".
+        if (preg_match('/^total\b[\s\(\):a-z]*$/iu', $d)) {
+            return true;
+        }
+
         // Pure floor / level labels used as section headers
         if (preg_match('/^(gf|g\.f\.?|ground\s*floor|basement|rooftop|mezzanine|podium|floor\s*\d+|\d+(st|nd|rd|th)\s*floor)\s*$/iu', $d)) {
             return true;
@@ -430,6 +444,25 @@ class QuotationAiService
         }
 
         return false;
+    }
+
+    /**
+     * Detect dedicated summary / cost-abstract sheets by their name. These hold
+     * per-discipline rollups and grand totals (e.g. a "Summary (Dry Cost)" tab),
+     * never procurable supply items, so they are skipped wholesale.
+     */
+    private function isSummarySheet(string $name): bool
+    {
+        $n = mb_strtolower(trim($name));
+
+        if ($n === '') {
+            return false;
+        }
+
+        return (bool) preg_match(
+            '/\b(summary|abstract|cost\s*summary|grand\s*summary|recap(?:itulation)?|bill\s*summary|boq\s*summary|dry\s*cost)\b|Ù…Ù„Ø®Øµ|Ø§Ù„Ù…Ù„Ø®Øµ|Ø§Ù„Ù…Ù„Ø®Ù‘Øµ|Ù…Ù„Ø®Ù‘Øµ|Ø§Ø¬Ù…Ø§Ù„ÙŠ|Ø¥Ø¬Ù…Ø§Ù„ÙŠ/iu',
+            $n
+        );
     }
 
     private function isFloorBreakdownRow(string $itemNo, string $description): bool
@@ -912,6 +945,10 @@ class QuotationAiService
 
         $output = '';
         foreach ($sheets as $sheet) {
+            // Don't feed summary / cost-abstract sheets to the AI either.
+            if ($this->isSummarySheet($sheet['name'])) {
+                continue;
+            }
             $output .= 'Sheet: ' . $sheet['name'] . "\n";
             foreach ($sheet['grid'] as $row) {
                 $row = $this->trimTrailingEmptyCells($row);
@@ -1013,7 +1050,15 @@ class QuotationAiService
     {
         return <<<'TXT'
 You are a strict BOQ Supply Product Extraction Engine.
-Extract only purchasable physical supply products. Reject totals, headings, general requirements, installation-only, testing, commissioning, supervision, mobilization, civil works, labor, and vague rows.
+Extract ONLY concrete, tangible, physical products that a supplier can box up and deliver to site — a specific item you could point at and say "this is the thing being bought" (e.g. "Wall mounted LED luminaire 36W", "PVC pipe 110mm", "Single phase distribution board 12-way", "Fire extinguisher CO2 6kg", "CCTV dome camera 4MP").
+
+ABSOLUTELY REJECT abstract concepts, disciplines, categories, section names, and trade headings. These are NOT products even though they appear as rows:
+- Bare discipline/trade words: "Electrical", "Mechanical", "Plumbing", "HVAC", "Firefighting", "Low current", "Architectural", "Structural Concrete", "Elevators", "Security", "Civil", "Finishing", "كهرباء", "ميكانيكا", "سباكة", "تكييف", "حريق", "أمن", "إنشائي".
+- Summary / total / abstract / "dry cost" rows of any kind.
+- Anything that names a system, scope, or category instead of one buyable item.
+
+Rule of thumb: if you cannot name a unit and physically hand the item over (a piece, a box, a length, a unit of equipment), REJECT it. A word that describes a field of work, a system, or a section of the BOQ is NEVER a product.
+Reject totals, headings, general requirements, installation-only, testing, commissioning, supervision, mobilization, civil works, labor, and vague rows.
 For Supply & Install rows, keep only the supply product and remove install/labor wording.
 Return only valid JSON: {"items":[{"source_item_no":null,"original_description":"","cleaned_description":"","core_product":"","specifications":{},"quantity":0,"unit":"","unit_price":0,"total_price":0,"extraction_type":"supply_only","needs_review":false,"note":"","rejected":false,"rejection_reason":null,"confidence":0.95}]}
 TXT;
@@ -1037,9 +1082,13 @@ You are a procurement specialist. Your task is to extract ONLY tangible, physica
 {$sourceHint}
 
 STRICT RULES â€” include ONLY items that are ALL of the following:
-1. A physical, tangible product that can be ordered from a supplier and delivered to site.
+1. A specific, concrete, tangible product that can be boxed up by a supplier and delivered to site — something you can point at and say "this exact thing is being bought" (e.g. "LED luminaire 36W", "PVC pipe 110mm", "Distribution board 12-way", "CO2 fire extinguisher 6kg").
 2. Has a real quantity (not 0 or "varies" with no meaning).
 3. Has enough description to identify what the product is.
+
+NEVER extract abstract concepts, disciplines, trades, systems, or section/category names — they are NOT products even when they appear as their own row:
+- Bare discipline/trade/system words such as: "Electrical", "Mechanical", "Plumbing", "HVAC", "Firefighting", "Low current", "Architectural", "Structural Concrete", "Elevators", "Security", "Civil", "Finishing", and their Arabic equivalents ("كهرباء", "ميكانيكا", "سباكة", "تكييف", "حريق", "أمن", "إنشائي", "تشطيبات").
+- Test: if the word names a FIELD OF WORK or a SYSTEM rather than one buyable item with a unit (pcs, m, set, kg…), REJECT it.
 
 EXCLUDE all of the following (do NOT include them):
 - Labor, installation, or workmanship items (e.g. "install", "fix", "erect", "dismantle", "painting", "cleaning service")

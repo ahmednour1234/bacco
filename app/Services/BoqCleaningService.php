@@ -20,6 +20,16 @@ class BoqCleaningService
     /** Section totals, summaries, aggregate lines */
     private const TOTAL_PATTERN = '/\b(sub.?total|grand\s*total|section\s*total|total\s*price|total\s*amount|mechanical\s*total|electrical\s*total|civil\s*total|plumbing\s*total|hvac\s*total|fire\s*total|summary|subtotal)\b/i';
 
+    /**
+     * Bare discipline / trade / system / category names that are headings, not
+     * procurable products — even when they appear on their own BOQ row with a
+     * price (e.g. cost-summary rows: "Electrical", "Plumbing", "Structural
+     * Concrete", "Low current"). Matched only when the WHOLE description is one
+     * of these (optionally followed by "works"/"system"), never as a substring,
+     * so real products like "Electrical socket" are not affected.
+     */
+    private const DISCIPLINE_HEADING_PATTERN = '/^\s*(?:structural(?:\s+concrete)?|architectural|electrical|mechanical|plumbing|hvac|fire\s*fighting|firefighting|fire\s*protection|low\s*current|extra\s*low\s*voltage|elv|civil|finishing|finishes|elevators?|lifts?|escalators?|landscap(?:e|ing)|infrastructure|security|safety|drainage|sanitary|water\s*supply|works?|general)(?:\s+(?:works?|systems?|installations?))?\s*$/iu';
+
     /** Preliminary, mobilisation, provisional sum — at start of description */
     private const PRELIMINARY_PATTERN = '/^\s*(preliminar|mobiliz(?:ation)?|demobiliz(?:ation)?|provisional\s+sum|contingenc|p\.?\s*c\.?\s*sum|prime\s*cost\s*sum|scope\s+of\s+works?|bill\s+of\s+quantities|general\s+(?:conditions?|requirements?))\b/i';
 
@@ -144,6 +154,13 @@ class BoqCleaningService
         // 2. Preliminary / provisional sum (matched at start of description)
         if (preg_match(self::PRELIMINARY_PATTERN, $desc)) {
             return ['keep' => false, 'rejection_reason' => 'Preliminary, provisional sum, or mobilization item'];
+        }
+
+        // 2a. Bare discipline / trade / system name used as a heading (not a product).
+        //     Checked against both the raw and the number-stripped description.
+        if (preg_match(self::DISCIPLINE_HEADING_PATTERN, $desc) ||
+            ($stripped !== '' && preg_match(self::DISCIPLINE_HEADING_PATTERN, $stripped))) {
+            return ['keep' => false, 'rejection_reason' => 'Discipline / trade / system heading, not a procurable product'];
         }
 
         // 2b. Fragment-only lines: floor labels, pure dimension specs, bare numbers
