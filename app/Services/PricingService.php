@@ -106,9 +106,56 @@ class PricingService
             $query->whereHas('category', fn($q) => $q->where('name', 'like', '%' . $category . '%'));
         }
 
+        // CRITICAL: only accept a price whose UNIT matches the item's unit.
+        // A product priced per m² must never be used to price an item measured in m³ —
+        // that would return a real number that is the wrong "unit price".
+        $unit = $this->normalizeUnit((string) ($item['unit'] ?? ''));
+        if ($unit === '') {
+            // No unit on the item → we cannot guarantee the price is per the correct unit.
+            // Fall through to the AI estimator, which is told the unit explicitly.
+            return null;
+        }
+
+        $query->whereHas('unit', function ($q) use ($unit) {
+            $q->whereRaw('LOWER(TRIM(name)) = ?', [$unit])
+              ->orWhereRaw('LOWER(TRIM(symbol)) = ?', [$unit]);
+        });
+
         $product = $query->select('unit_price')->first();
 
         return $product ? (float) $product->unit_price : null;
+    }
+
+    /**
+     * Canonicalize a free-text unit string so equivalent spellings match.
+     * e.g. "م³", "م3", "م^3", "M3", "متر مكعب", "cubic meter" → "م3".
+     * Returns '' when the input is empty.
+     */
+    private function normalizeUnit(string $unit): string
+    {
+        $u = trim(mb_strtolower($unit));
+        if ($u === '') {
+            return '';
+        }
+
+        // Normalize superscripts and notation: م³ / م^3 / م 3 → م3
+        $u = strtr($u, ['²' => '2', '³' => '3', '^' => '', '.' => '']);
+        $u = preg_replace('/\s+/', '', $u);
+
+        // Map common synonyms to a single canonical token.
+        static $map = [
+            'متر مكعب' => 'م3', 'مترمكعب' => 'م3', 'cubicmeter' => 'م3', 'cubicmetre' => 'م3', 'cbm' => 'م3', 'm3' => 'م3',
+            'متر مربع' => 'م2', 'مترمربع' => 'م2', 'squaremeter' => 'م2', 'squaremetre' => 'م2', 'sqm' => 'م2', 'm2' => 'م2',
+            'متر طولي' => 'مط', 'مترطولي' => 'مط', 'linearmeter' => 'مط', 'lm' => 'مط',
+            'متر' => 'م', 'meter' => 'م', 'metre' => 'م',
+            'عدد' => 'عدد', 'piece' => 'عدد', 'pcs' => 'عدد', 'pc' => 'عدد', 'no' => 'عدد', 'nos' => 'عدد', 'unit' => 'عدد',
+            'كيلو' => 'كجم', 'كيلوغرام' => 'كجم', 'كيلوجرام' => 'كجم', 'kg' => 'كجم', 'kilogram' => 'كجم',
+            'طن' => 'طن', 'ton' => 'طن', 'tonne' => 'طن',
+            'لتر' => 'لتر', 'liter' => 'لتر', 'litre' => 'لتر', 'l' => 'لتر',
+            'كيس' => 'كيس', 'bag' => 'كيس', 'bags' => 'كيس',
+        ];
+
+        return $map[$u] ?? $u;
     }
 
     // -------------------------------------------------------------------------

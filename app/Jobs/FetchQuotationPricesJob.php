@@ -42,6 +42,7 @@ class FetchQuotationPricesJob implements ShouldQueue
         $items = QuotationItem::where('quotation_request_id', $this->quotationId)
             ->where('is_selected', true)
             ->where('status', '!=', 'rejected')
+            ->with('unit')
             ->get()
             ->map(fn(QuotationItem $item) => [
                 'id'          => $item->id,
@@ -49,6 +50,7 @@ class FetchQuotationPricesJob implements ShouldQueue
                 'quantity'    => (float) $item->quantity,
                 'category'    => (string) ($item->category ?? ''),
                 'brand'       => (string) ($item->brand ?? ''),
+                'unit'        => (string) ($item->unit?->name ?? $item->unit?->symbol ?? ''),
                 'unit_price'  => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
                 'price_source' => $item->price_source,
             ])

@@ -337,9 +337,6 @@ $_itemListSchema = json_encode([
     @endphp
     <script type="application/ld+json">{!! $__faqSchema !!}</script>
 
-    {{-- Schema badge --}}
-    <div class="schema-badge">Schema: BreadcrumbList + FAQPage + ItemList ({{ $items->total() }} items)</div>
-
     {{-- Stats --}}
     <div class="stats-row">
         <div class="stat-card">
