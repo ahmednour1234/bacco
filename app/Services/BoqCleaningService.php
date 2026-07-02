@@ -28,7 +28,7 @@ class BoqCleaningService
      * of these (optionally followed by "works"/"system"), never as a substring,
      * so real products like "Electrical socket" are not affected.
      */
-    private const DISCIPLINE_HEADING_PATTERN = '/^\s*(?:structural(?:\s+concrete)?|architectural|electrical|mechanical|plumbing|hvac|fire\s*fighting|firefighting|fire\s*protection|low\s*current|extra\s*low\s*voltage|elv|civil|finishing|finishes|elevators?|lifts?|escalators?|landscap(?:e|ing)|infrastructure|security|safety|drainage|sanitary|water\s*supply|works?|general)(?:\s+(?:works?|systems?|installations?))?\s*$/iu';
+    private const DISCIPLINE_HEADING_PATTERN = '/^\s*(?:structural(?:\s+concrete)?|architectural|electrical|mechanical|plumbing|hvac|fire\s*fighting|firefighting|fire\s*protection|low\s*current|extra\s*low\s*voltage|elv|civil|finishing|finishes?|wall\s*finish(?:es|ing)?|floor\s*finish(?:es|ing)?|ceiling|ceilings?|wood|woodwork|joinery|carpentry|masonry|concrete|steel|metal\s*works?|door|doors?|window|windows?|partition|partitions?|glazing|painting|tiling|flooring|roofing|insulation|waterproofing|data|voice|network|cctv|access\s*control|elevators?|lifts?|escalators?|landscap(?:e|ing)|infrastructure|security|safety|drainage|sanitary|water\s*supply|miscellaneous|misc|sundr(?:y|ies)|general\s*items?|preliminaries|works?|general)(?:\s+(?:works?|systems?|installations?|engineering|finish(?:es|ing)?|items?))?\s*$/iu';
 
     /** Preliminary, mobilisation, provisional sum — at start of description */
     private const PRELIMINARY_PATTERN = '/^\s*(preliminar|mobiliz(?:ation)?|demobiliz(?:ation)?|provisional\s+sum|contingenc|p\.?\s*c\.?\s*sum|prime\s*cost\s*sum|scope\s+of\s+works?|bill\s+of\s+quantities|general\s+(?:conditions?|requirements?))\b/i';
@@ -80,6 +80,32 @@ class BoqCleaningService
         | (?:in\s+)?number\s*,?\s*supply(?:\s+and)?\s*$
         | this\s+work\s+includes?\b
         | supply\s*$
+    )/ixu';
+
+    /**
+     * Terms & conditions / notes / commercial clauses that BOQ files list as their
+     * own rows (usually a trailing "Notes" or "Terms" section). These are contract
+     * language, never procurable products — e.g. "ANY ADDITIONAL REQUIREMENTS SHALL
+     * HAVE NEW QUOTATION", "EXTENSION OF TIME", "OUR QUANTITY TAKE-OFF WAS BASED ON
+     * THE RECEIVED DRAWINGS...". Matched anywhere in the description.
+     */
+    private const TERMS_CONDITIONS_PATTERN = '/(?:
+        \bshall\s+(?:be|have|apply|not)\b
+        | \bnew\s+quotation\b
+        | \bquoted\s+separ
+        | \bextension\s+of\s+time\b
+        | \bquantity\s+take.?off\b
+        | \bsubject\s+to\s+(?:change|approval|availability|coordination|confirmation)\b
+        | \bafter\s+coordination\b
+        | \bany\s+additional\s+(?:requirements?|items?|works?)\b
+        | \bterms?\s+(?:and|&)\s+conditions?\b
+        | \bprices?\s+(?:are|is)\s+(?:valid|subject|exclusive|inclusive)\b
+        | \bvalidity\s+of\s+(?:this\s+)?(?:quotation|offer|price)\b
+        | \bpayment\s+terms?\b
+        | \bexclud(?:e|ing|es)\b.*\b(?:vat|tax|installation|supply)\b
+        | \bnot\s+included\s+in\s+(?:this\s+)?(?:quotation|scope|price)\b
+        | \bas\s+shown\s+in\s+(?:the\s+)?3d\s+renders?\b
+        | \breceived\s+drawings?\b
     )/ixu';
 
     /** Lines that START with an installation / labor verb — not a supply item */
@@ -237,6 +263,11 @@ class BoqCleaningService
             return ['keep' => false, 'rejection_reason' => 'Prose or description fragment, not a procurable product'];
         }
 
+        // 2g. Terms & conditions / commercial notes rows (contract language, not products).
+        if (preg_match(self::TERMS_CONDITIONS_PATTERN, $desc)) {
+            return ['keep' => false, 'rejection_reason' => 'Terms, conditions, or commercial note — not a procurable product'];
+        }
+
         // 3. Mid-description keywords indicating a pure labor / non-supply line
         if (preg_match(self::PURE_LABOR_PATTERN, $desc)) {
             return ['keep' => false, 'rejection_reason' => 'Non-supply item (labor, site works, or project execution)'];
@@ -304,23 +335,18 @@ class BoqCleaningService
     {
         $desc = trim((string) ($item['description'] ?? ''));
 
-        if (! preg_match('/\s+(?:with|and|&)\s+/i', $desc)) {
+        // This regex splitter is now only a conservative SAFETY NET: the AI extractor
+        // already understands intent and splits genuine multi-product lines. So we split
+        // ONLY on the highest-confidence boundary — "(complete) with" / "c/w" — and never
+        // on bare "and"/"&", which wrongly break single products ("door and frame",
+        // "pump and motor set"). Everything subtler is left to the AI.
+        if (! preg_match('/\s+(?:complete\s+with|c\/w|with)\s+/i', $desc)) {
             return [$item];
         }
 
-        // Split on " with " first (high-confidence boundary), then " and " / " & "
-        $parts        = [];
-        $withSegments = preg_split('/\s+with\s+/i', $desc, -1, PREG_SPLIT_NO_EMPTY) ?: [$desc];
-
-        foreach ($withSegments as $segment) {
-            $andParts = preg_split('/\s+(?:and|&)\s+/i', $segment, -1, PREG_SPLIT_NO_EMPTY) ?: [$segment];
-            foreach ($andParts as $part) {
-                $cleaned = trim((string) $part, ' ,;');
-                if ($cleaned !== '') {
-                    $parts[] = $cleaned;
-                }
-            }
-        }
+        $parts = preg_split('/\s+(?:complete\s+with|c\/w|with)\s+/i', $desc, -1, PREG_SPLIT_NO_EMPTY) ?: [$desc];
+        $parts = array_map(fn ($p) => trim((string) $p, ' ,;'), $parts);
+        $parts = array_values(array_filter($parts, fn ($p) => $p !== ''));
 
         $valid = array_values(array_filter($parts, fn (string $p) => $this->isValidStandaloneProduct($p)));
 

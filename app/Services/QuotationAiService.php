@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class QuotationAiService
 {
     /** Increment this whenever BOQ parsing logic changes to invalidate old caches. */
-    private const PARSER_VERSION = 5;
+    private const PARSER_VERSION = 7;
 
     private string $baseUrl;
     private string $parseEndpoint;
@@ -1094,6 +1094,30 @@ the original single item:
 - Example: rows "The asphalt flooring is to be supplied" / "installed in accordance" /
   "standard road specifications..." all with 7,100 m2 are ONE asphalt item, not 3+.
 
+CRITICAL â€” UNDERSTAND INTENT, DO NOT COPY ROWS LITERALLY:
+Your job is to output WHAT A SUPPLIER MUST ACTUALLY DELIVER, not a copy of the row text.
+Read each description for MEANING and decide how many real, separately-buyable products it
+implies. One BOQ row can imply SEVERAL products, or a spread of rows can imply ONE product.
+- SPLIT a row into multiple items when it lists distinct products that a supplier would
+  buy/price separately — even when joined by commas, "with", "and", "including", "c/w",
+  "consisting of", "comprising", or ":" then a list.
+  Example: "Fire pump set consisting of: fire pump, electric motor, control panel, diesel
+  engine" → FOUR items: (1) fire pump, (2) electric motor, (3) control panel, (4) diesel
+  engine — each with its own quantity and priced on its own.
+  Example: "Wash basin complete with mixer tap and bottle trap" → THREE items: wash basin,
+  mixer tap, bottle trap.
+- Give each split product the correct quantity implied by the text (usually the parent
+  quantity, unless the text states a different count for a sub-item). Each product is
+  priced individually; the line total becomes the SUM of its products.
+- DO NOT split when the extra words are just specifications, dimensions, colours, ratings,
+  standards, or a single product's integral parts. "Steel door 900x2100 with vision panel
+  and SS ironmongery" is usually ONE door product — vision panel and ironmongery are part
+  of that door, not separately-bought items. Use judgement: would a supplier issue a
+  separate price line for it? If no, keep it as one.
+- Balanced approach: split only when genuinely separate products are present; when in doubt
+  about whether something is a separate product vs. an accessory/spec of the main one, keep
+  it as a single item. Do not invent products that are not in the text.
+
 STRICT RULES â€” include ONLY items that are ALL of the following:
 1. A specific, concrete, tangible product that can be boxed up by a supplier and delivered to site — something you can point at and say "this exact thing is being bought" (e.g. "LED luminaire 36W", "PVC pipe 110mm", "Distribution board 12-way", "CO2 fire extinguisher 6kg").
 2. Has a real quantity (not 0 or "varies" with no meaning).
@@ -1116,8 +1140,13 @@ EXCLUDE all of the following (do NOT include them):
 - Security services, night shifts, rentals, payments
 - Any item whose description is too vague or fragmentary to identify a specific product
 
+Emit ONE JSON item PER real product. A single source row may therefore produce several
+items (when it lists multiple products) or several rows may collapse into one item (when
+they are wrapped fragments of the same product). The "items" array is your final delivery
+list, not a row-by-row transcript.
+
 For each valid physical product return JSON with:
-- description: clean product name only (strip "supply and install", "supply and fix", installation clauses, floor/spec suffixes)
+- description: clean product name only (strip "supply and install", "supply and fix", installation clauses, floor/spec suffixes). For a split product, use just that product's own name.
 - quantity: the EXACT numeric value from the quantity/count column (العدد, الكمية, Qty, Quantity, No.). NEVER default to 1 unless the quantity column is truly absent or empty.
 - unit: unit of measure (pcs, m, m2, m3, set, no, kg, etc.)
 - category: product category
