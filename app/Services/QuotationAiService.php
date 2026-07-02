@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class QuotationAiService
 {
     /** Increment this whenever BOQ parsing logic changes to invalidate old caches. */
-    private const PARSER_VERSION = 4;
+    private const PARSER_VERSION = 5;
 
     private string $baseUrl;
     private string $parseEndpoint;
@@ -1081,10 +1081,24 @@ You are a procurement specialist. Your task is to extract ONLY tangible, physica
 {$contextLine}
 {$sourceHint}
 
+CRITICAL â€” MERGE WRAPPED / SPLIT ROWS INTO ONE ITEM:
+BOQ tables extracted from PDF often break ONE item's long description across several
+lines/rows. These continuation lines repeat the SAME quantity, unit and category, and
+their text is a grammatical continuation of the previous line (it starts mid-sentence,
+lowercase, or with "the/and/-", or is a spec/instruction clause). You MUST reconstruct
+the original single item:
+- Treat consecutive rows that share the SAME quantity + unit + category as ONE product
+  when the later rows are clearly continuation text of the first, NOT new products.
+- Emit ONE item with the merged description and the price counted ONCE. Do NOT repeat
+  the same quantity×price for every wrapped line — that multiplies the total wrongly.
+- Example: rows "The asphalt flooring is to be supplied" / "installed in accordance" /
+  "standard road specifications..." all with 7,100 m2 are ONE asphalt item, not 3+.
+
 STRICT RULES â€” include ONLY items that are ALL of the following:
 1. A specific, concrete, tangible product that can be boxed up by a supplier and delivered to site — something you can point at and say "this exact thing is being bought" (e.g. "LED luminaire 36W", "PVC pipe 110mm", "Distribution board 12-way", "CO2 fire extinguisher 6kg").
 2. Has a real quantity (not 0 or "varies" with no meaning).
 3. Has enough description to identify what the product is.
+4. Is an actual PRODUCT, not a sentence, instruction, or specification clause. REJECT rows that are prose such as "the supervising engineer's instructions", "The price includes all materials, labor", "Measurement will be based on the geometric cubic meter", "necessary steps to complete the work", "soil-contacting elements", "in compliance", "everything necessary". These are description fragments, not buyable items.
 
 NEVER extract abstract concepts, disciplines, trades, systems, or section/category names — they are NOT products even when they appear as their own row:
 - Bare discipline/trade/system words such as: "Electrical", "Mechanical", "Plumbing", "HVAC", "Firefighting", "Low current", "Architectural", "Structural Concrete", "Elevators", "Security", "Civil", "Finishing", and their Arabic equivalents ("كهرباء", "ميكانيكا", "سباكة", "تكييف", "حريق", "أمن", "إنشائي", "تشطيبات").

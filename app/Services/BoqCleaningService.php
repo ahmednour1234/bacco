@@ -44,6 +44,44 @@ class BoqCleaningService
     /** Mid-description keywords that signal a pure non-supply line */
     private const PURE_LABOR_PATTERN = '/\b(supervision|testing\s+and\s+commissioning|commissioning\s+only|labour\s+only|labor\s+only|install(?:ation)?\s+only|site\s*clearance|excavat(?:ion|ing)?|backfill(?:ing)?|compaction|scaffolding|temporary\s+works?|as.?built\s+draw(?:ings?)?|shop\s+draw(?:ings?)?|method\s+statement|performance\s+bond|insurance\s+premium|civil\s+works?\s+only|transportation\s+only|haulage\s+only|wiring\s+(?:for|of|at|to|between)|cabling\s+(?:for|of|at|to|between)|points?\s+(?:wiring|cabling)|conduit\s+installation|duct(?:ing)?\s+(?:for|of)|pipe\s+routing|electrical\s+wiring\s+(?:floor|wall|ceiling|raised)\s+mounted|housekeeping|bodily\s+injury|(?:third\s+party|public|employer.?s?)\s+(?:all\s+risks?\s+)?liability|contractors?\s+all\s+risk|site\s+insurance|works?\s+insurance|\bCAR\s+(?:to\s+cover|insurance|policy)|night\s+shift|payments?\s+shall\s+be\s+arranged|rental\s+(?:payments?|fees?|charges?)|provide\s+protection|security\s+(?:as\s+per|guard|personnel|service)|preparation\s+of\s+(?:shop|as.?built|construction|working)\s+draw|\bpreliminar(?:y|ies)|\bmobilization|pre.?construction|project\s+management\s+(?:fee|cost)|overhead\s+(?:and\s+profit|cost)|contingenc(?:y|ies)|modification\s+of\s+existing|modif(?:y|ication)\s+existing|surface\s+prepar(?:ing|ation)?\s+for|terminat(?:e|ing|ion)\s+(?:and\s+)?(?:labelling|labeling|testing|commissioning)|cable\s+(?:terminat|label)|labelling\s+and\s+testing|integration\s+(?:works?|services?|only|fee|cost)|all\s+necessary\s+(?:accessories|materials|fittings|works?)|hangers?\s*,\s*supports?|تركيب\s+فقط|أعمال\s+(?:مدنية|هدم|التكسير|التكسير\s+و|الهدم|الإزالة|التشطيب)|تكسير\s+و(?:إزالة|تنظيف)|تصميم\s+و(?:إنشاء|انشاء|تركيب|تنفيذ|اختبار|انشاء\s+و))\b/iu';
 
+    /**
+     * Prose / description-fragment lines that are NOT procurable products.
+     * These are sentences, measurement notes, or generic spec clauses that a PDF
+     * table wrapping split off onto their own row (e.g. "The price includes all
+     * materials, labor", "Measurement will be based on the geometric cubic meter",
+     * "the supervising engineer's instructions", "soil-contacting elements").
+     * Matched against the WHOLE (trimmed) description so real products are safe.
+     */
+    private const PROSE_FRAGMENT_PATTERN = '/^\s*(?:
+        (?:the\s+)?(?:price|work|scope)\s+includes\b
+        | measurement\s+will\s+be\b
+        | (?:the\s+)?supervising\s+engineer
+        | (?:in\s+)?(?:accordance|compliance)\b
+        | (?:as\s+per|according\s+to|following)\s+(?:the\s+)?(?:supervising|engineer|project|design|drawing|specification|standard|instruction)
+        | necessary\s+(?:steps?|actions?|processes?|works?)\b
+        | soil.?contacting\s+elements?
+        | everything\s+necessary\b
+        | (?:all\s+)?(?:foundation|foundational)\s+works?\b
+        | usage\s+requirements?\b
+        | (?:the\s+)?(?:technical\s+)?specifications?\b
+        | (?:the\s+)?(?:project\s+)?requirements?\.?\s*$
+        | (?:the\s+)?(?:saudi|international)\s+(?:building\s+)?code
+        | designated\s+materials?\b
+        | approved\s+materials?\b
+        | imperfections?\s*$
+        | design\.?\s*$
+        | water\s*$
+        | control\s*$
+        | operation\s*$
+        | experimentation\s*$
+        | includes?\s+(?:all|everything)\b
+        | (?:by\s+)?(?:square|linear|cubic)\s+met(?:er|re)s?\s*:?\s*(?:supply|internal|the)?\s*$
+        | (?:in\s+)?(?:square|linear|cubic)\s+met(?:er|re)s?\s*,?\s*supply(?:\s+and)?\s*$
+        | (?:in\s+)?number\s*,?\s*supply(?:\s+and)?\s*$
+        | this\s+work\s+includes?\b
+        | supply\s*$
+    )/ixu';
+
     /** Lines that START with an installation / labor verb — not a supply item */
     private const LABOR_VERB_START_PATTERN = '/^\s*(?:install(?:ing|ation)?|fix(?:ing)?|erect(?:ing|ion)?|lay(?:ing)?|paint(?:ing)?|plaster(?:ing)?|demolish(?:ing)?|remov(?:ing|al)?|dismantle|commission(?:ing)?|test(?:ing)?|supervise|supervision|excavat(?:ing|ion)?|transport(?:ing|ation)?|mobiliz(?:ation)?|civil\s+works?|maintenance\s+works?|modif(?:y|ication)|adjust(?:ment|ing)?|repair(?:ing)?|terminat(?:e|ing|ion)|connect(?:ing|ion)|wire\s+(?:the|all|from|to)|cleaning(?!\s+(?:material|agent|solution|cloth|equipment|product|suppl|kit|wipe|tool|brush|chemical))|housekeeping|cart\s+away|secure\b|concealed\s+mounting|preparation\s+of|repaint(?:ing)?|relocat(?:e|ing|ion)?|chipping|surface\s+prepar(?:ing|ation)?|(?:floor\s+)?level(?:l?ing)(?!\s+(?:screed|concrete|compound|agent))|protect(?:ing|ion\s+of)?\s+(?:existing|the)|night\s+shift|hangers?\b|all\s+necessary\s+|all\s+required\s+|تركيب|تمديد|تشغيل|صيانة|إزالة|هدم|ديمو|فك\s+و\s*إعادة\s+تركيب|فك\s+و|فكّ?\b|تغيير\s+(?:[اإأ]تجاه|موضع)|تجديد|تأهيل|معالجة\s+الجدران|دهان|تكسير|تصميم|إنشاء|انشاء|استبدال|تنفيذ|حفر|ردم|رصف|أعمال)\b/iu';
 
@@ -192,6 +230,13 @@ class BoqCleaningService
             return ['keep' => false, 'rejection_reason' => 'Standalone non-product concept word'];
         }
 
+        // 2f. Prose / description-fragment lines: sentences, measurement notes, and
+        //     generic spec clauses that a wrapped PDF table split onto their own row.
+        if (preg_match(self::PROSE_FRAGMENT_PATTERN, $desc) ||
+            ($stripped !== '' && $stripped !== $desc && preg_match(self::PROSE_FRAGMENT_PATTERN, $stripped))) {
+            return ['keep' => false, 'rejection_reason' => 'Prose or description fragment, not a procurable product'];
+        }
+
         // 3. Mid-description keywords indicating a pure labor / non-supply line
         if (preg_match(self::PURE_LABOR_PATTERN, $desc)) {
             return ['keep' => false, 'rejection_reason' => 'Non-supply item (labor, site works, or project execution)'];
@@ -311,6 +356,11 @@ class BoqCleaningService
         $accepted = [];
         $rejected = [];
 
+        // Collapse consecutive PDF-wrapped rows (same qty+unit+category where the
+        // later rows are continuation text) into a single item BEFORE filtering,
+        // so a single BOQ line is never priced multiple times.
+        $items = $this->mergeSplitRows($items);
+
         foreach ($items as $item) {
             $cleaned = $this->cleanDescription((string) ($item['description'] ?? ''));
 
@@ -338,6 +388,90 @@ class BoqCleaningService
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    /**
+     * Collapse consecutive rows that a PDF/table extractor split from ONE BOQ line.
+     *
+     * A later row is folded into the current item when it shares the SAME quantity,
+     * unit and category AND its description is a continuation fragment (starts
+     * lowercase / with a dash / a connective word, or is a prose/spec clause) rather
+     * than a new product name. The merged text is appended to the first row and the
+     * duplicate rows are dropped so the line is priced ONCE.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    private function mergeSplitRows(array $items): array
+    {
+        $merged = [];
+
+        foreach ($items as $item) {
+            $prev = $merged !== [] ? $merged[count($merged) - 1] : null;
+
+            if ($prev !== null
+                && $this->sameGrouping($prev, $item)
+                && $this->isContinuationFragment((string) ($item['description'] ?? ''))
+            ) {
+                $prevDesc = trim((string) ($prev['description'] ?? ''));
+                $addDesc  = trim((string) ($item['description'] ?? ''));
+                $merged[count($merged) - 1]['description'] = trim($prevDesc . ' ' . $addDesc);
+                continue;
+            }
+
+            $merged[] = $item;
+        }
+
+        return $merged;
+    }
+
+    /**
+     * True when two rows belong to the same original BOQ line: identical quantity,
+     * unit and category. Missing values compare loosely (both empty = same).
+     *
+     * @param  array<string, mixed>  $a
+     * @param  array<string, mixed>  $b
+     */
+    private function sameGrouping(array $a, array $b): bool
+    {
+        $qtyA = is_numeric($a['quantity'] ?? null) ? (float) $a['quantity'] : null;
+        $qtyB = is_numeric($b['quantity'] ?? null) ? (float) $b['quantity'] : null;
+
+        // Both must have a real, equal quantity — the strongest split signal.
+        if ($qtyA === null || $qtyB === null || abs($qtyA - $qtyB) > 0.0001) {
+            return false;
+        }
+
+        $norm = fn ($v) => mb_strtolower(trim((string) ($v ?? '')));
+
+        return $norm($a['unit'] ?? '') === $norm($b['unit'] ?? '')
+            && $norm($a['category'] ?? '') === $norm($b['category'] ?? '');
+    }
+
+    /**
+     * True when a description reads as a continuation of the previous row rather
+     * than a new product: it starts lowercase, with a dash/connective, or is a
+     * prose/measurement/spec clause. Capitalised product-looking names return false.
+     */
+    private function isContinuationFragment(string $description): bool
+    {
+        $d = trim($description);
+
+        if ($d === '') {
+            return true;
+        }
+
+        // Starts with a connective / dash / lowercase letter → continuation.
+        if (preg_match('/^\s*(?:[-\x{2013}\x{2014}]|the\b|and\b|or\b|in\b|to\b|by\b|for\b|with\b|[a-z\x{0600}-\x{06FF}])/u', $d)) {
+            return true;
+        }
+
+        // Prose / spec / instruction clause → continuation even if capitalised.
+        if (preg_match(self::PROSE_FRAGMENT_PATTERN, $d)) {
+            return true;
+        }
+
+        return false;
+    }
 
     /**
      * Return true if the string looks like a valid standalone product name,
