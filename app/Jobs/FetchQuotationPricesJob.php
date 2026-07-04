@@ -56,18 +56,26 @@ class FetchQuotationPricesJob implements ShouldQueue
             ])
             ->toArray();
 
-        // Pre-flight guard: skip any item that should not reach the pricing engine.
-        // This is a last-resort safety net for items that bypassed earlier filtering.
+        // Final pricing gate — the last line of defense before the pricing engine.
+        // Re-validates each row (classifier + unit + quantity) so anything that
+        // leaked past extraction (a discipline heading, total, placeholder, or a
+        // row with no real unit/qty) is never priced. Nothing is silently dropped:
+        // every block is logged with its reasons for the audit trail.
         $guardedItems = [];
         foreach ($items as $item) {
-            $check = $boqCleaner->filterItem((string) $item['description']);
-            if ($check['keep']) {
+            $blockers = $boqCleaner->pricingGate([
+                'description' => (string) $item['description'],
+                'unit'        => (string) ($item['unit'] ?? ''),
+                'quantity'    => $item['quantity'] ?? null,
+            ]);
+
+            if ($blockers === []) {
                 $guardedItems[] = $item;
             } else {
-                Log::warning('FetchQuotationPricesJob: Pricing guard caught non-supply item.', [
+                Log::warning('FetchQuotationPricesJob: Pricing gate blocked a non-product row.', [
                     'quotation_id' => $this->quotationId,
                     'description'  => $item['description'],
-                    'reason'       => $check['rejection_reason'],
+                    'reasons'      => $blockers,
                 ]);
             }
         }

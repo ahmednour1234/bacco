@@ -18,7 +18,7 @@ class BoqCleaningService
     // ── Rejection patterns ────────────────────────────────────────────────────
 
     /** Section totals, summaries, aggregate lines */
-    private const TOTAL_PATTERN = '/\b(sub.?total|grand\s*total|section\s*total|total\s*price|total\s*amount|mechanical\s*total|electrical\s*total|civil\s*total|plumbing\s*total|hvac\s*total|fire\s*total|summary|subtotal)\b/i';
+    private const TOTAL_PATTERN = '/\b(sub.?total|grand\s*total|section\s*total|total\s*price|total\s*amount|total\s*\(?\s*sar\s*\)?|total\b[^a-z0-9]*(?:unit\s*)?cost|mechanical\s*total|electrical\s*total|civil\s*total|plumbing\s*total|hvac\s*total|fire\s*total|summary|subtotal|dry\s*cost)\b/i';
 
     /**
      * Bare discipline / trade / system / category names that are headings, not
@@ -106,6 +106,19 @@ class BoqCleaningService
         | \bnot\s+included\s+in\s+(?:this\s+)?(?:quotation|scope|price)\b
         | \bas\s+shown\s+in\s+(?:the\s+)?3d\s+renders?\b
         | \breceived\s+drawings?\b
+        | \bdown\s*payment\b
+        | \bdownpayment\b
+        | \badvance\s+payment\b
+        | \bprogress\s+invoice\b
+        | \bprogress\s+payment\b
+        | \bretention\b
+        | \bperformance\s+bond\b
+        | \bprovisional\s+sum\b
+        | ^\s*our\s+(?:proposal|quotation|offer|scope|price)\b
+        | ^\s*we\s+(?:propose|usually|noticed|considered|can\s+increase|have\s+a\s+concern)\b
+        | \bexcluding\s+the\b
+        | \bنسبة\s+الدفعة\b
+        | \bدفعة\s+مقدمة\b
     )/ixu';
 
     /** Lines that START with an installation / labor verb — not a supply item */
@@ -179,6 +192,27 @@ class BoqCleaningService
     /** Pure spec continuation — just a number + unit + optional adjective */
     private const SPEC_CONTINUATION_PATTERN = '/^[\d.]+\s*(?:mm|cm|m|m2|m3|kg|kw|kva|kvar|v|a|bar|psi|inch|ft|liter|l)?\s*(?:long|wide|high|deep|thick|dia|diameter|capacity|rating)?$/i';
 
+    // ── Product-scoring signals (from Qimta Extraction Engine spec) ───────────
+    //
+    // These power a graded confidence score (product noun + size/spec + equip
+    // tag + valid unit) instead of a binary keep/reject, so genuinely ambiguous
+    // rows that survive the hard rejections above are judged on evidence.
+
+    /** Size / spec tokens that strongly indicate a real product (600x400, Ø25, DN50, 32A…). */
+    private const SIZE_SPEC_PATTERN = '/(\d+\s*[x×*]\s*\d+|ø\s*\d+|φ\s*\d+|\d+\s*ø|\d+\s*(?:mm|cm|inch|in|")\b|\d+\s*(?:kw|kva|amp|hp|ltr|kg|ton|btu|tr|cfm|gpm|bar)\b|dn\s*\d+|pn\s*\d+|sch\s*\d+|class\s*\d+|\d+\s*gang\b|\b\d+a\b)/iu';
+
+    /** Equipment tag codes: FCU-V41A-L0-01, EF-01, VRV-…, W22, DT05A … */
+    private const EQUIP_TAG_PATTERN = '/^\s*(?:[A-Z]{1,5}\d{0,2}[A-Z]?(?:-[A-Z0-9]{1,6}){1,4}|[A-Z]{1,3}\d{1,3}[A-Z]?)\s*(?:size\b.*)?$/i';
+
+    /** Head nouns that mark a physical construction product (EN + AR). */
+    private const PRODUCT_NOUN_PATTERN = '/\b(?:duct|damper|diffuser|grill|grille|louver|louvre|fan|fcu|ahu|vrv|vrf|idu|odu|chiller|pump|thermostat|pipe|piping|fitting|valve|elbow|tee|insulation|copper|refrigerant|drain|sprinkler|hose|extinguisher|cabinet|detector|sensor|panel|breaker|cable|wire|conduit|socket|switch|outlet|fixture|light|led|luminaire|transformer|generator|ups|camera|intercom|speaker|water\s*heater|meter|vent|cowl|trap|clean\s*out|cleanout|manhole|gully|water\s*closet|wc|lavatory|basin|sink|mixer|shower|bath|bidet|urinal|concrete|block|masonry|brick|cement|mortar|plaster|render|screed|waterproof|membrane|rebar|steel|reinforcement|formwork|tile|tiles|porcelain|ceramic|marble|granite|limestone|stone|gravel|sand|paint|epoxy|gypsum|partition|ceiling|cladding|door|window|glass|glazing|aluminum|aluminium|wood|timber|mdf|handrail|balustrade|skirting|wardrobe|vanity|counter|kitchen|canopy|stair|railing|paver|kerb|curb|asphalt|fence|mirror|column|luminaires?|bench|pot|pipe)\b|(?:دكت|مكيف|مروحة|أنبوب|أنابيب|مواسير|ماسورة|محبس|صمام|عازل|رشاش|طفاية|كاشف|لوحة|قاطع|كيبل|كابل|سلك|مخرج|مفتاح|كشاف|إنارة|سخان|عداد|مضخة|خرسانة|بلوك|طابوق|أسمنت|مونة|لياسة|دهان|بلاط|سيراميك|بورسلين|رخام|جرانيت|حجر|جبس|سقف|باب|أبواب|نافذة|شباك|زجاج|ألمنيوم|خشب|درابزين|نعلات|خزانة|مغسلة|كرسي|شطاف|دش|صرف|حديد|تسليح)/u';
+
+    /** Work-activity heads that count as products only when paired with a material/noun. */
+    private const WORK_ACTIVITY_PATTERN = '/\b(?:supply|install(?:ation)?|construct|casting|excavation\s+for|backfill)\b|(?:توريد|تركيب|تنفيذ|صب|حفر|ردم)/u';
+
+    /** Weak units — accepted only when a product noun / size is also present. */
+    private const WEAK_UNIT_PATTERN = '/^(?:ls|l\.?s|lump\s*sum|lot|مقطوعية)$/i';
+
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
@@ -193,10 +227,14 @@ class BoqCleaningService
     /**
      * Determine whether a BOQ line description represents a procurable supply item.
      *
+     * $unitPrice and $quantity are optional; when provided they enable the
+     * placeholder heuristic (N6): a row priced at 0 or exactly 1.00 with qty 1 and
+     * no size token is almost always a section-header/placeholder row, not a product.
+     *
      * @return array{keep: true, description: string, extraction_type: string}
      *            |array{keep: false, rejection_reason: string}
      */
-    public function filterItem(string $description): array
+    public function filterItem(string $description, ?float $unitPrice = null, ?float $quantity = null): array
     {
         $desc = trim($description);
 
@@ -268,6 +306,17 @@ class BoqCleaningService
             return ['keep' => false, 'rejection_reason' => 'Terms, conditions, or commercial note — not a procurable product'];
         }
 
+        // 2h. Placeholder heuristic (N6): a row priced at exactly 0 or 1.00 with a
+        //     quantity of 1 and NO size/spec token is a header/placeholder in
+        //     disguise (e.g. "Mechanical: … 1.00"), not a real product. Only applied
+        //     when price+qty are known AND there is no strong product signal.
+        if ($unitPrice !== null && ($unitPrice === 0.0 || $unitPrice === 1.0)
+            && ($quantity === null || $quantity <= 1.0)
+            && ! preg_match(self::SIZE_SPEC_PATTERN, $desc)
+            && ! preg_match(self::EQUIP_TAG_PATTERN, $desc)) {
+            return ['keep' => false, 'rejection_reason' => 'Placeholder row (price 0/1.00, qty 1, no product spec)'];
+        }
+
         // 3. Mid-description keywords indicating a pure labor / non-supply line
         if (preg_match(self::PURE_LABOR_PATTERN, $desc)) {
             return ['keep' => false, 'rejection_reason' => 'Non-supply item (labor, site works, or project execution)'];
@@ -298,6 +347,81 @@ class BoqCleaningService
             'description'     => $desc,
             'extraction_type' => 'supply_only',
         ];
+    }
+
+    /**
+     * Graded product-confidence score for a row, in the spirit of the Qimta
+     * Extraction Engine's deterministic classifier. Higher = more likely a real,
+     * priceable product. Used to flag low-confidence rows for review rather than
+     * silently trusting/dropping them.
+     *
+     * Signals: product noun, size/spec token, equipment tag, valid unit, work+material.
+     * Penalty: a weak unit (LS/lot) with no product noun or size.
+     *
+     * @return float 0.0 – 1.0
+     */
+    public function scoreProduct(string $description, ?string $unit = null): float
+    {
+        $desc = trim($description);
+        if ($desc === '') {
+            return 0.0;
+        }
+
+        $hasNoun = (bool) preg_match(self::PRODUCT_NOUN_PATTERN, $desc);
+        $hasSize = (bool) preg_match(self::SIZE_SPEC_PATTERN, $desc);
+        $hasTag  = (bool) preg_match(self::EQUIP_TAG_PATTERN, $desc);
+        $hasWork = (bool) preg_match(self::WORK_ACTIVITY_PATTERN, $desc);
+        $unitOk  = $unit !== null && trim($unit) !== '';
+
+        $score = 0.0;
+        if ($hasNoun) { $score += 0.35; }
+        if ($hasSize) { $score += 0.30; }
+        if ($hasTag)  { $score += 0.30; }
+        if ($unitOk)  { $score += 0.20; }
+        if ($hasWork && $hasNoun) { $score += 0.10; }
+
+        // Weak-unit penalty: LS/lot with no product evidence is suspicious.
+        if ($unit !== null && preg_match(self::WEAK_UNIT_PATTERN, trim($unit))
+            && ! ($hasNoun || $hasSize || $hasTag)) {
+            $score -= 0.25;
+        }
+
+        return max(0.0, min(1.0, $score));
+    }
+
+    /**
+     * Final gate before pricing — the last line of defense. Re-checks a fully
+     * built product row and returns the reasons it must NOT be priced (empty =
+     * safe to price). Catches anything that leaked past earlier stages: a bare
+     * discipline heading, a total-like line, a commercial term, or a missing
+     * unit/quantity.
+     *
+     * @param  array<string, mixed>  $product  ['description','unit','quantity']
+     * @return list<string>  blocking reasons; empty means "ready to price"
+     */
+    public function pricingGate(array $product): array
+    {
+        $desc = trim((string) ($product['description'] ?? ''));
+        $unit = trim((string) ($product['unit'] ?? ''));
+        $qty  = $product['quantity'] ?? null;
+        $errs = [];
+
+        if (mb_strlen($desc) < 4) {
+            $errs[] = 'description too short';
+        }
+        // Re-run the hard classifier: if it would now reject, block it.
+        $check = $this->filterItem($desc);
+        if (! ($check['keep'] ?? false)) {
+            $errs[] = 'blocked by classifier: ' . ($check['rejection_reason'] ?? 'not a product');
+        }
+        if ($unit === '') {
+            $errs[] = 'missing unit';
+        }
+        if (! is_numeric($qty) || (float) $qty <= 0) {
+            $errs[] = 'invalid quantity';
+        }
+
+        return $errs;
     }
 
     /**

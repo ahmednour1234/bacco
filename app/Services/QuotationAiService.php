@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class QuotationAiService
 {
     /** Increment this whenever BOQ parsing logic changes to invalidate old caches. */
-    private const PARSER_VERSION = 7;
+    private const PARSER_VERSION = 8;
 
     private string $baseUrl;
     private string $parseEndpoint;
@@ -205,7 +205,7 @@ class QuotationAiService
                         $unitPrice = $totalPrice / $quantity;
                     }
 
-                    $supply = $this->boqCleaner->filterItem($description);
+                    $supply = $this->boqCleaner->filterItem($description, $unitPrice, $quantity);
 
                     if (! ($supply['keep'] ?? false)) {
                         $rejected[] = $this->rejectedRow(
