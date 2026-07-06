@@ -8,13 +8,8 @@
     $_brands = $catalogStats['brands'];
 @endphp
 
-@section('title', $isAr
-    ? 'منصة مشتريات الإنشاء B2B — كيمتا | السعودية والخليج'
-    : 'B2B Construction Procurement Platform — Qimta | Saudi Arabia & GCC')
-
-@section('description', $isAr
-    ? 'كيمتا: منصة مشتريات الإنشاء B2B للسعودية والخليج. تربط المقاولين وفرق المشتريات بـ ' . $_p . ' منتج إنشائي من ' . $_brands . ' علامة تجارية معتمدة — بتسعير فوري وموثّق.'
-    : 'Qimta: B2B construction procurement platform for Saudi Arabia and GCC. Connects contractors and procurement teams to ' . $_p . ' construction products from ' . $_brands . ' verified brands — with instant, verified pricing.')
+{{-- SEO title & description come from the DB (SeoMeta route "landing.procurement-platform"),
+     editable at /admin/seo. Layout falls back to defaults if the record is missing. --}}
 
 @section('styles')
 <style>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ArticleController as AdminArticleController;
+use App\Http\Controllers\Admin\SeoMetaController as AdminSeoMetaController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\BoqController as AdminBoqController;
 use App\Http\Controllers\Admin\BrandController as AdminBrandController;
@@ -298,6 +299,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Articles
         Route::resource('articles', AdminArticleController::class)->except(['show', 'store', 'update']);
         Route::post('/articles/upload-media', [AdminArticleController::class, 'uploadMedia'])->name('articles.upload-media');
+
+        // SEO metadata for public/landing pages (edit-only; rows are seeded)
+        Route::get('/seo', [AdminSeoMetaController::class, 'index'])->name('seo.index');
+        Route::get('/seo/{seo}/edit', [AdminSeoMetaController::class, 'edit'])->name('seo.edit');
 
         // Contact Submissions
         Route::get('/contact-submissions', [AdminContactSubmissionController::class, 'index'])->name('contact-submissions.index');

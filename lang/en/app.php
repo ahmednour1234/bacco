@@ -903,6 +903,23 @@ return [
     'search_articles'               => 'Search articles…',
     'no_articles_found'             => 'No articles found.',
 
+    // SEO pages
+    'seo_pages'                     => 'SEO Pages',
+    'seo_pages_desc'                => 'Manage bilingual SEO metadata for public pages.',
+    'seo_search'                    => 'Search pages…',
+    'seo_none_found'                => 'No SEO pages found.',
+    'seo_page'                      => 'Page',
+    'seo_edit'                      => 'Edit SEO',
+    'seo_title'                     => 'Title',
+    'seo_meta_desc'                 => 'Meta description',
+    'seo_keywords'                  => 'Keywords',
+    'seo_schema'                    => 'Structured data (JSON-LD)',
+    'seo_social'                    => 'Social & Open Graph',
+    'seo_og_image'                  => 'OG image',
+    'seo_og_type'                   => 'OG type',
+    'seo_saved'                     => 'SEO settings saved successfully.',
+    'seo_invalid_json'              => 'This must be valid JSON.',
+
     // Contact Submissions
     'contact_submissions'           => 'Contact Submissions',
     'contact_submissions_sub'       => 'Incoming enquiries from the contact form.',

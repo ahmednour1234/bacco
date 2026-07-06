@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             EmployeeSeeder::class,
             ArticleSeeder::class,
+            SeoMetaSeeder::class,
         ]);
     }
 }

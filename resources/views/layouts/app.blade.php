@@ -5,13 +5,23 @@
     $switchLabel  = $isAr ? 'EN' : 'AR';
     // Route prefix: 'ar.' for Arabic pages, '' for English pages
     $__rp = $isAr ? 'ar.' : '';
-    // Locale-aware SEO defaults
-    $__defaultTitle = $isAr
+    // Locale-aware SEO defaults (hardcoded fallbacks)
+    $__fallbackTitle = $isAr
         ? 'كيمتا — منصة تسعير مواد البناء | السعودية والخليج'
         : 'Qimta — BOQ Pricing in Under 60 Seconds | Saudi Arabia';
-    $__defaultDesc = $isAr
+    $__fallbackDesc = $isAr
         ? 'كيمتا تُسعّر كل بند في جدول الكميات مقابل آلاف المنتجات الإنشائية. فوري، دقيق، جاهز للخليج العربي.'
         : 'Qimta — Construction BOQ pricing platform for Saudi Arabia and GCC. Instant BOQ matching with verified manufacturer prices.';
+
+    // DB-backed SEO ($seo is shared by AppServiceProvider's view composer; may be null).
+    // Precedence for each field: page @section override → DB SeoMeta → hardcoded fallback.
+    $seo = $seo ?? null;
+    $__defaultTitle = ($seo?->title) ?: $__fallbackTitle;
+    $__defaultDesc  = ($seo?->meta_desc) ?: $__fallbackDesc;
+    $__defaultOgImg = ($seo?->og_image) ?: 'https://www.qimta.com/images/qimta-og.jpg';
+    $__defaultOgType = ($seo?->og_type) ?: 'website';
+    $__seoKeywords  = $seo?->keywords;
+    $__seoSchema    = $seo?->schema;
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}" dir="{{ $dir }}">
@@ -21,6 +31,9 @@
     <title>@yield('title', $__defaultTitle)</title>
     @include('partials.favicon')
     <meta name="description" content="@yield('description', $__defaultDesc)">
+    @if($__seoKeywords)
+    <meta name="keywords" content="{{ $__seoKeywords }}">
+    @endif
     {{-- Canonical + Hreflang: /ar/ prefix routes for Google-crawlable Arabic --}}
     @php
         $__path = rtrim(request()->getPathInfo(), '/') ?: '/';
@@ -47,11 +60,11 @@
     <link rel="alternate"  hreflang="ar-SA"      href="{{ $__arUrl }}">
     @endunless
     {{-- Open Graph / Twitter Card --}}
-    <meta property="og:type"        content="@yield('og_type', 'website')">
+    <meta property="og:type"        content="@yield('og_type', $__defaultOgType)">
     <meta property="og:site_name"   content="Qimta Technology Company">
     <meta property="og:title"       content="@yield('title', $__defaultTitle)">
     <meta property="og:description" content="@yield('description', $__defaultDesc)">
-    <meta property="og:image"       content="@yield('og_image', 'https://www.qimta.com/images/qimta-og.jpg')">
+    <meta property="og:image"       content="@yield('og_image', $__defaultOgImg)">
     <meta property="og:image:width"  content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:url"         content="{{ $__canonical }}">
@@ -61,7 +74,7 @@
     <meta name="twitter:site"        content="@@QimtaSm">
     <meta name="twitter:title"       content="@yield('title', $__defaultTitle)">
     <meta name="twitter:description" content="@yield('description', $__defaultDesc)">
-    <meta name="twitter:image"       content="@yield('og_image', 'https://www.qimta.com/images/qimta-og.jpg')">
+    <meta name="twitter:image"       content="@yield('og_image', $__defaultOgImg)">
     {{-- Self-hosted Cairo variable font: eliminates 2 external DNS lookups (FCP fix) --}}
     <link rel="preload" href="/fonts/cairo/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/cairo/cairo-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -262,6 +275,17 @@
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     @endphp
     <script type="application/ld+json">{!! $_globalSchema !!}</script>
+    @php
+        // Per-page JSON-LD from the DB SeoMeta (validated so a malformed admin
+        // entry never emits broken markup).
+        $__validSchema = null;
+        if ($__seoSchema && json_decode($__seoSchema) !== null && json_last_error() === JSON_ERROR_NONE) {
+            $__validSchema = $__seoSchema;
+        }
+    @endphp
+    @if($__validSchema)
+    <script type="application/ld+json">{!! $__validSchema !!}</script>
+    @endif
     @stack('schema')
 </head>
 <body>

@@ -2,13 +2,8 @@
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
-@section('title', $isAr
-    ? 'تواصل مع كيمتا — Onboarding المشترين والعلامات التجارية | مشاريع الخليج'
-    : 'Contact Qimta � Brand Onboarding & Enterprise Inquiries | Gulf Projects')
-
-@section('description', $isAr
-    ? 'تواصل مع فريق كيمتا للاستفسار عن خدماتنا للعلامات التجارية والمشترين والمشاريع في الخليج.'
-    : 'Get in touch with Qimta for brand listing, enterprise BOQ solutions, or buyer onboarding. Serving construction projects across Saudi Arabia and the GCC.')
+{{-- SEO title & description come from the DB (SeoMeta route "contact"), editable at
+     /admin/seo. Layout falls back to defaults if the record is missing. --}}
 
 @section('nav-cta')
     <a href="{{ route('enduser.login') }}" class="btn-demo">{{ __('contact.nav.get_demo') }}</a>

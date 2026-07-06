@@ -27,6 +27,14 @@ class AppServiceProvider extends ServiceProvider
         // Cached 6 hours; falls back to last-known values if DB is down.
         View::share('catalogStats', CatalogStats::get());
 
+        // Inject DB-backed SEO metadata into the public layout, keyed by the
+        // current route name. The blade reads $seo (a SeoMeta model or null) and
+        // falls back to its own defaults when no record exists. Resolved lazily
+        // per-request and guarded so a missing table / DB outage never 500s a page.
+        View::composer('layouts.app', function ($view) {
+            $view->with('seo', \App\Services\SeoResolver::forCurrentRoute());
+        });
+
         // Scrub invalid UTF-8 from every Livewire response payload before it is
         // JSON-encoded. Without this, a single malformed byte anywhere in a
         // component snapshot or its rendered effects (e.g. coming from the DB)

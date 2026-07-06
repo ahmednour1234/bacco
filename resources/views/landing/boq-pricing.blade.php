@@ -8,13 +8,8 @@
     $_brands = $catalogStats['brands'];
 @endphp
 
-@section('title', $isAr
-    ? 'تسعير BOQ — جداول الكميات الإنشائية | كيمتا | السعودية والخليج'
-    : 'BOQ Pricing — Construction Bill of Quantities | Qimta | Saudi Arabia & GCC')
-
-@section('description', $isAr
-    ? 'سعّر جدول الكميات بالكامل خلال 60 ثانية. كيمتا تُطابق كل بند مع ' . $_p . ' منتج إنشائي معتمد — مجاناً للمقاولين وفرق المشتريات في السعودية والخليج.'
-    : 'Price your entire Bill of Quantities in 60 seconds. Qimta matches every line item against ' . $_p . ' verified construction products — free for contractors and procurement teams in Saudi Arabia and GCC.')
+{{-- SEO title & description come from the DB (SeoMeta route "landing.boq-pricing"),
+     editable at /admin/seo. Layout falls back to defaults if the record is missing. --}}
 
 @section('styles')
 <style>

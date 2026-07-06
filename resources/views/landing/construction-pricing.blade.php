@@ -8,13 +8,8 @@
     $_brands = $catalogStats['brands'];
 @endphp
 
-@section('title', $isAr
-    ? 'تسعير مواد البناء في السعودية والخليج — كيمتا | ' . $_p . ' منتج'
-    : 'Construction Materials Pricing in Saudi Arabia & GCC — Qimta | ' . $_p . ' Products')
-
-@section('description', $isAr
-    ? 'احصل على أسعار مواد البناء فوراً لأي مشروع في السعودية والخليج. كيمتا تفهرس ' . $_p . ' منتجاً من ' . $_brands . ' علامة تجارية مع تسعير تلقائي لجداول الكميات.'
-    : 'Get instant construction materials pricing for any project in Saudi Arabia and GCC. Qimta indexes ' . $_p . ' products from ' . $_brands . ' brands with automatic BOQ pricing.')
+{{-- SEO title & description come from the DB (SeoMeta route "landing.construction-pricing"),
+     editable at /admin/seo. Layout falls back to defaults if the record is missing. --}}
 
 @section('styles')
 <style>
