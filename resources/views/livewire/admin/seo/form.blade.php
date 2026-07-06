@@ -34,7 +34,7 @@
                 </div>
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.seo_schema') }} (EN)</label>
-                    <textarea wire:model="schema_en" rows="5" dir="ltr" placeholder='{"@context":"https://schema.org", ...}'
+                    <textarea wire:model="schema_en" rows="5" dir="ltr" placeholder="{{ '{\"@context\":\"https://schema.org\", ...}' }}"
                               class="w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-xs text-slate-800 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"></textarea>
                     @error('schema_en') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
@@ -62,7 +62,7 @@
                 </div>
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.seo_schema') }} (AR)</label>
-                    <textarea wire:model="schema_ar" rows="5" dir="ltr" placeholder='{"@context":"https://schema.org", ...}'
+                    <textarea wire:model="schema_ar" rows="5" dir="ltr" placeholder="{{ '{\"@context\":\"https://schema.org\", ...}' }}"
                               class="w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-xs text-slate-800 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"></textarea>
                     @error('schema_ar') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
