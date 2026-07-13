@@ -880,6 +880,11 @@
 
         {{-- ── Actions row ──────────────────────────────────────────────── --}}
         @if(!$pricesFetching)
+        @if($unpricedCount > 0)
+        <div style="border-radius:14px;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;padding:12px 16px;font-size:13px;font-weight:700;">
+            {{ __('app.unpriced_items_block_checkout') }} ({{ $unpricedCount }})
+        </div>
+        @endif
         <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;">
             <button type="button" wire:click="goBack"
                 style="display:inline-flex;align-items:center;gap:8px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;padding:11px 22px;font-size:13px;font-weight:600;color:#475569;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);">
@@ -887,8 +892,8 @@
                 {{ $isAr ? 'السابق' : 'Back' }}
             </button>
             @if(!($guestMode && $showGuestLoginOverlay) && !empty($pricedItems))
-            <button type="button" wire:click="proceedToAddress"
-                style="display:inline-flex;align-items:center;gap:8px;border-radius:12px;background:#059669;color:#fff;padding:11px 26px;font-size:13px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(5,150,105,.25);">
+            <button type="button" wire:click="proceedToAddress" @if($unpricedCount > 0) disabled @endif
+                style="display:inline-flex;align-items:center;gap:8px;border-radius:12px;background:#059669;color:#fff;padding:11px 26px;font-size:13px;font-weight:700;border:none;cursor:{{ $unpricedCount > 0 ? 'not-allowed' : 'pointer' }};opacity:{{ $unpricedCount > 0 ? '.55' : '1' }};box-shadow:0 4px 12px rgba(5,150,105,.25);">
                 {{ $isAr ? 'التالي: العنوان والدفع' : 'Next: Address & Payment' }}
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
@@ -1046,7 +1051,7 @@
                         <div class="border-t border-slate-100 pt-3 flex justify-between"><span class="font-bold text-slate-800">{{ app()->getLocale()==='ar'?'الإجمالي':'Grand Total' }}</span><span class="font-bold text-emerald-600 text-lg">{{ number_format($quotationTotal * 1.15, 2) }} SAR</span></div>
                     </div>
                     <div class="border-t border-slate-100 px-6 py-5 space-y-3">
-                        <button type="button" wire:click="placeOrder" wire:loading.attr="disabled"
+                        <button type="button" wire:click="placeOrder" wire:loading.attr="disabled" @if($unpricedCount > 0) disabled @endif
                             class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95 disabled:opacity-60">
                             <svg wire:loading wire:target="placeOrder" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                             <svg wire:loading.remove wire:target="placeOrder" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>

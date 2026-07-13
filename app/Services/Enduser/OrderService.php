@@ -20,6 +20,13 @@ class OrderService
     public function createFromQuotation(QuotationRequest $quotation, array $selectedItems, array $addressData = []): Order
     {
         return DB::transaction(function () use ($quotation, $selectedItems, $addressData) {
+            $missingPrices = collect($selectedItems)
+                ->filter(fn($i) => ! is_numeric($i['unit_price'] ?? null) || (float) ($i['unit_price'] ?? 0) <= 0)
+                ->count();
+
+            if ($missingPrices > 0) {
+                throw new \RuntimeException('Cannot create an order with unpriced quotation items.');
+            }
 
             $vatRate  = 0.15;
             $subtotal = collect($selectedItems)

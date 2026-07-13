@@ -1,6 +1,9 @@
 <div>
 
     @if($quotation)
+    @php
+        $missingPriceCount = $this->missingPriceCount();
+    @endphp
 
     {{-- ───── Header card ─────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -70,6 +73,25 @@
 
         {{-- Action buttons --}}
         <div class="flex shrink-0 items-center gap-3">
+            @if($missingPriceCount > 0)
+            <button
+                type="button"
+                wire:click="repriceMissingItems"
+                wire:loading.attr="disabled"
+                wire:target="repriceMissingItems"
+                class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+                <svg wire:loading wire:target="repriceMissingItems" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                <svg wire:loading.remove wire:target="repriceMissingItems" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span wire:loading.remove wire:target="repriceMissingItems">إعادة التسعير ({{ $missingPriceCount }})</span>
+                <span wire:loading wire:target="repriceMissingItems">جاري التسعير...</span>
+            </button>
+            @endif
             <a
                 href="{{ route('admin.quotations.index') }}"
                 wire:navigate
@@ -98,7 +120,13 @@
 
         <div class="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-sm font-semibold text-slate-800">{{ __('app.boq_full') }}</h2>
-            <span class="text-xs text-slate-400">{{ __('app.read_only_view') }}</span>
+            @if($missingPriceCount > 0)
+                <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                    {{ $missingPriceCount }} بند مختار بدون سعر
+                </span>
+            @else
+                <span class="text-xs text-slate-400">{{ __('app.read_only_view') }}</span>
+            @endif
         </div>
 
         <div class="p-6">

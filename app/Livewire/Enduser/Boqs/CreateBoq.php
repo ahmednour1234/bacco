@@ -871,6 +871,11 @@ class CreateBoq extends Component
     /** Step 3 → 4: go to address & payment. */
     public function proceedToAddress(): void
     {
+        if ($this->countUnpricedQuotationItems() > 0) {
+            $this->dispatch('toast', message: __('app.unpriced_items_block_checkout'), type: 'error');
+            return;
+        }
+
         $this->currentStep = 4;
     }
 
@@ -942,9 +947,17 @@ class CreateBoq extends Component
             return;
         }
 
+        if ($this->countUnpricedQuotationItems() > 0) {
+            $this->dispatch('toast', message: __('app.unpriced_items_block_checkout'), type: 'error');
+            return;
+        }
+
         try {
             $order = DB::transaction(function () {
                 $quotation = QuotationRequest::findOrFail($this->quotationId);
+                if ($this->countUnpricedQuotationItems() > 0) {
+                    throw new \RuntimeException('Cannot place order with unpriced quotation items.');
+                }
 
                 // ── Create a QuotationVersion (self-accepted) ──────────────
                 $version = QuotationVersion::create([
@@ -1029,7 +1042,7 @@ class CreateBoq extends Component
                 }
 
                 // ── Mark quotation as submitted ────────────────────────────
-                $quotation->update(['status' => QuotationRequestStatusEnum::UnderReview]);
+                $quotation->update(['status' => QuotationRequestStatusEnum::InReview]);
 
                 return $order;
             });
@@ -1068,6 +1081,22 @@ class CreateBoq extends Component
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
+
+    private function countUnpricedQuotationItems(): int
+    {
+        if (! $this->quotationId) {
+            return $this->unpricedCount;
+        }
+
+        return QuotationItem::where('quotation_request_id', $this->quotationId)
+            ->where('is_selected', true)
+            ->where('status', '!=', 'rejected')
+            ->where(function ($query) {
+                $query->whereNull('unit_price')
+                    ->orWhere('unit_price', '<=', 0);
+            })
+            ->count();
+    }
 
     private function persistProject(): Project
     {

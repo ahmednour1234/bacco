@@ -383,7 +383,7 @@
                     <button
                         type="button"
                         @click="step = 3; window.scrollTo({ top: 0, behavior: 'smooth' })"
-                        @disabled($subtotal <= 0)
+                        @disabled($subtotal <= 0 || $missingPriceCount > 0)
                         class="flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
                         style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);"
                     >
@@ -566,6 +566,14 @@
                 {{ __('app.no_price_submit') }}
             </div>
             @endif
+            @if($missingPriceCount > 0)
+            <div class="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
+                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+                {{ __('app.unpriced_items_block_checkout') }} ({{ $missingPriceCount }})
+            </div>
+            @endif
 
             {{-- Navigation --}}
             <div class="flex gap-3 pb-4">
@@ -579,6 +587,7 @@
                 </button>
                 <button type="button"
                     @click="step = 4; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                    @disabled($missingPriceCount > 0)
                     class="flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
                     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                     <span>{{ __('app.checkout_step_address') }}</span>
@@ -982,6 +991,7 @@
                     wire:click="submitForApproval"
                     wire:loading.attr="disabled"
                     wire:target="submitForApproval"
+                    @disabled($missingPriceCount > 0)
                     class="flex-1 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-lg transition"
                     style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 6px 20px -4px rgba(16,185,129,0.5);"
                 >

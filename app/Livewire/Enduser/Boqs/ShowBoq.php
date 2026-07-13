@@ -430,6 +430,11 @@ class ShowBoq extends Component
 
     public function proceedToAddress(): void
     {
+        if ($this->countUnpricedQuotationItems() > 0) {
+            $this->dispatch('toast', message: __('app.unpriced_items_block_checkout'), type: 'error');
+            return;
+        }
+
         $this->currentStep = 3;
     }
 
@@ -499,9 +504,17 @@ class ShowBoq extends Component
             return;
         }
 
+        if ($this->countUnpricedQuotationItems() > 0) {
+            $this->dispatch('toast', message: __('app.unpriced_items_block_checkout'), type: 'error');
+            return;
+        }
+
         try {
             $order = DB::transaction(function () {
                 $quotation = QuotationRequest::findOrFail($this->quotationId);
+                if ($this->countUnpricedQuotationItems() > 0) {
+                    throw new \RuntimeException('Cannot place order with unpriced quotation items.');
+                }
 
                 $version = QuotationVersion::create([
                     'quotation_request_id' => $quotation->id,
@@ -628,6 +641,22 @@ class ShowBoq extends Component
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
+
+    private function countUnpricedQuotationItems(): int
+    {
+        if (! $this->quotationId) {
+            return $this->unpricedCount;
+        }
+
+        return QuotationItem::where('quotation_request_id', $this->quotationId)
+            ->where('is_selected', true)
+            ->where('status', '!=', 'rejected')
+            ->where(function ($query) {
+                $query->whereNull('unit_price')
+                    ->orWhere('unit_price', '<=', 0);
+            })
+            ->count();
+    }
 
     private function loadItems(): void
     {

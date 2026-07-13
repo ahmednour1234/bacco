@@ -397,6 +397,11 @@ class ShowQuotation extends Component
             return;
         }
 
+        if ($this->missingSelectedPriceCount() > 0) {
+            $this->dispatch('toast', message: __('app.unpriced_items_block_checkout'), type: 'error');
+            return;
+        }
+
         $subtotal = collect(array_values($this->items))
             ->filter(fn($i) => ! empty($i['selected']) && ($i['status'] ?? '') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
             ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
@@ -420,6 +425,11 @@ class ShowQuotation extends Component
             return;
         }
 
+        if ($this->missingSelectedPriceCount() > 0) {
+            $this->dispatch('toast', message: __('app.unpriced_items_block_checkout'), type: 'error');
+            return;
+        }
+
         if (! $this->validateAddress()) {
             return;
         }
@@ -429,6 +439,11 @@ class ShowQuotation extends Component
                 ->filter(fn($i) => ! empty($i['selected']) && ($i['status'] ?? '') !== 'rejected')
                 ->values()
                 ->all();
+
+            if ($this->missingSelectedPriceCount($selectedItems) > 0) {
+                $this->dispatch('toast', message: __('app.unpriced_items_block_checkout'), type: 'error');
+                return;
+            }
 
             $subtotal = collect($selectedItems)
                 ->filter(fn($i) => is_numeric($i['unit_price'] ?? null))
@@ -520,6 +535,15 @@ class ShowQuotation extends Component
             'delivery_postal_code'  => $this->deliveryPostalCode,
             'delivery_country'      => $this->deliveryCountry ?: 'SA',
         ];
+    }
+
+    private function missingSelectedPriceCount(?array $items = null): int
+    {
+        return collect($items ?? $this->items)
+            ->filter(fn($item) => ! empty($item['selected'])
+                && ($item['status'] ?? '') !== 'rejected'
+                && (! is_numeric($item['unit_price'] ?? null) || (float) ($item['unit_price'] ?? 0) <= 0))
+            ->count();
     }
 
     // -------------------------------------------------------------------------

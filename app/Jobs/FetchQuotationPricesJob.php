@@ -83,7 +83,6 @@ class FetchQuotationPricesJob implements ShouldQueue
         try {
             $priced    = $pricingService->fetchPrices($guardedItems);
             $gotPrices = 0;
-            $removedIds = [];
 
             foreach ($priced as $row) {
                 if (! empty($row['id']) && isset($row['unit_price']) && $row['unit_price'] > 0) {
@@ -93,26 +92,32 @@ class FetchQuotationPricesJob implements ShouldQueue
                         'price_status' => 'pending',
                     ]);
                     $gotPrices++;
-                } elseif (! empty($row['id'])) {
-                    // No price found — delete the item automatically
-                    QuotationItem::where('id', $row['id'])->delete();
-                    $removedIds[] = $row['id'];
                 }
             }
 
             // Also delete any guarded-out items (filtered before pricing)
             $guardedIds = array_column($guardedItems, 'id');
-            $pricedIds  = array_column($priced, 'id');
             $skippedIds = array_diff(array_column($items, 'id'), $guardedIds);
             if (! empty($skippedIds)) {
                 QuotationItem::whereIn('id', $skippedIds)->delete();
-                $removedIds = array_merge($removedIds, array_values($skippedIds));
             }
 
-            $removed = count($removedIds);
+            $remainingUnpriced = QuotationItem::where('quotation_request_id', $this->quotationId)
+                ->where('is_selected', true)
+                ->where('status', '!=', 'rejected')
+                ->where(function ($query) {
+                    $query->whereNull('unit_price')
+                        ->orWhere('unit_price', '<=', 0);
+                })
+                ->count();
+            $removed = count($skippedIds);
             $body    = $removed > 0
                 ? "تم تسعير {$gotPrices} عنصر وحذف {$removed} عنصر لم يُسعَّر تلقائياً."
                 : "تم تسعير جميع {$gotPrices} عنصر بنجاح.";
+
+            if ($remainingUnpriced > 0) {
+                $body = "Priced {$gotPrices} item(s). {$remainingUnpriced} selected item(s) still need pricing review.";
+            }
 
             $notificationService->send(
                 title: 'عرض السعر جاهز للمراجعة',

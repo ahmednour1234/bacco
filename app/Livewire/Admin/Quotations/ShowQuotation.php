@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Admin\Quotations;
 
+use App\Jobs\FetchQuotationPricesJob;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class ShowQuotation extends Component
@@ -14,6 +16,8 @@ class ShowQuotation extends Component
 
     /** @var array<int, array<string, mixed>> */
     public array $items = [];
+
+    public bool $repricing = false;
 
     public function mount(string $uuid): void
     {
@@ -29,6 +33,56 @@ class ShowQuotation extends Component
     public function render()
     {
         return view('livewire.admin.quotations.show-quotation');
+    }
+
+    public function repriceMissingItems(): void
+    {
+        if (! $this->quotation) {
+            return;
+        }
+
+        $missingCount = $this->missingPriceCount();
+        if ($missingCount === 0) {
+            $this->dispatch('toast', message: 'All selected items already have prices.', type: 'success');
+            return;
+        }
+
+        $this->repricing = true;
+
+        try {
+            FetchQuotationPricesJob::dispatchSync(
+                $this->quotation->id,
+                $this->quotation->client_id,
+                $this->quotation->uuid,
+            );
+
+            $this->quotation->refresh();
+            $this->loadItems();
+
+            $remaining = $this->missingPriceCount();
+            $message = $remaining > 0
+                ? "Repricing finished, but {$remaining} selected item(s) still have no price."
+                : 'Repricing finished. All selected items are priced.';
+
+            $this->dispatch('toast', message: $message, type: $remaining > 0 ? 'warning' : 'success');
+        } catch (\Throwable $e) {
+            Log::error('Admin ShowQuotation::repriceMissingItems failed.', [
+                'quotation_id' => $this->quotation->id,
+                'message'      => $e->getMessage(),
+            ]);
+            $this->dispatch('toast', message: 'Repricing failed. Please try again.', type: 'error');
+        } finally {
+            $this->repricing = false;
+        }
+    }
+
+    public function missingPriceCount(): int
+    {
+        return collect($this->items)
+            ->filter(fn($item) => ($item['selected'] ?? false)
+                && ($item['status'] ?? '') !== 'rejected'
+                && (! is_numeric($item['unit_price'] ?? null) || (float) ($item['unit_price'] ?? 0) <= 0))
+            ->count();
     }
 
     private function loadItems(): void
