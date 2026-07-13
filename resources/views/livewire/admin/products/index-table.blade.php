@@ -71,7 +71,7 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 bg-slate-50">
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.product_name') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name_en_ar') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">{{ __('app.division') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.brand') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.category') }}</th>
@@ -92,10 +92,15 @@
                             $installationPrice = (float) ($product->installation_price ?? 0);
                             $totalPrice = $unitPrice + $engineeringPrice + $installationPrice;
                             $sourceLabel = ($product->supplier_products_count ?? 0) > 0 ? __('app.supplier') : __('app.admin');
+                            $brand = $product->brand;
+                            $category = $product->category;
                         @endphp
                         <tr class="transition-colors hover:bg-slate-50">
                             <td class="px-5 py-4">
-                                <p class="font-medium text-slate-900">{{ $product->name }}</p>
+                                <p class="font-medium text-slate-900">{{ $product->name_en ?: $product->name }}</p>
+                                @if ($product->name_ar)
+                                    <p class="mt-0.5 text-xs text-slate-400" dir="rtl">{{ $product->name_ar }}</p>
+                                @endif
                                 @if ($product->sku)
                                     <p class="mt-0.5 text-xs text-slate-400">{{ __('app.sku_label') }} {{ $product->sku }}</p>
                                 @endif
@@ -104,10 +109,24 @@
                                 {{ $product->division ?? '—' }}
                             </td>
                             <td class="hidden px-5 py-4 text-slate-600 md:table-cell">
-                                {{ $product->brand?->name ?? '—' }}
+                                @if ($brand)
+                                    <p>{{ $brand->name_en ?: $brand->name }}</p>
+                                    @if ($brand->name_ar)
+                                        <p class="mt-0.5 text-xs text-slate-400" dir="rtl">{{ $brand->name_ar }}</p>
+                                    @endif
+                                @else
+                                    —
+                                @endif
                             </td>
                             <td class="hidden px-5 py-4 text-slate-600 lg:table-cell">
-                                {{ $product->category?->name ?? '—' }}
+                                @if ($category)
+                                    <p>{{ $category->name_en ?: $category->name }}</p>
+                                    @if ($category->name_ar)
+                                        <p class="mt-0.5 text-xs text-slate-400" dir="rtl">{{ $category->name_ar }}</p>
+                                    @endif
+                                @else
+                                    —
+                                @endif
                             </td>
                             <td class="hidden px-5 py-4 text-slate-600 lg:table-cell">
                                 {{ $product->model_type ?? '—' }}

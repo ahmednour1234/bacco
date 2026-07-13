@@ -46,10 +46,16 @@ class IndexTable extends Component
             ->when($this->search !== '', function ($q) {
                 $q->where(function ($inner) {
                     $inner->where('name', 'like', '%' . $this->search . '%')
+                          ->orWhere('name_en', 'like', '%' . $this->search . '%')
+                          ->orWhere('name_ar', 'like', '%' . $this->search . '%')
                           ->orWhere('sku', 'like', '%' . $this->search . '%')
-                          ->orWhere('division', 'like', '%' . $this->search . '%');
+                          ->orWhere('division', 'like', '%' . $this->search . '%')
+                          ->orWhere('description', 'like', '%' . $this->search . '%')
+                          ->orWhere('description_en', 'like', '%' . $this->search . '%')
+                          ->orWhere('description_ar', 'like', '%' . $this->search . '%');
                 });
             })
+            ->orderBy('name_en')
             ->orderBy('name')
             ->paginate($this->perPage);
 

@@ -10,9 +10,13 @@ class Form extends Component
 {
     public ?Brand $brand = null;
 
-    public string $name = '';
+    public string $name_en = '';
 
-    public string $description = '';
+    public string $name_ar = '';
+
+    public string $description_en = '';
+
+    public string $description_ar = '';
 
     public bool $active = true;
 
@@ -25,8 +29,10 @@ class Form extends Component
         if ($brand && $brand->exists) {
             $this->brand = $brand;
             $this->isEditing = true;
-            $this->name = (string) $brand->name;
-            $this->description = (string) ($brand->description ?? '');
+            $this->name_en = (string) ($brand->name_en ?: $brand->name);
+            $this->name_ar = (string) ($brand->name_ar ?? '');
+            $this->description_en = (string) ($brand->description_en ?: ($brand->description ?? ''));
+            $this->description_ar = (string) ($brand->description_ar ?? '');
             $this->active = (bool) $brand->active;
             $this->website_ids = $brand->websites()->pluck('websites.id')->map(fn ($id) => (int) $id)->toArray();
         }
@@ -35,8 +41,10 @@ class Form extends Component
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
+            'name_en' => ['required', 'string', 'max:255'],
+            'name_ar' => ['required', 'string', 'max:255'],
+            'description_en' => ['nullable', 'string', 'max:1000'],
+            'description_ar' => ['nullable', 'string', 'max:1000'],
             'active' => ['boolean'],
             'website_ids' => ['nullable', 'array'],
             'website_ids.*' => ['integer', 'exists:websites,id'],
@@ -47,10 +55,19 @@ class Form extends Component
     {
         $data = $this->validate();
 
+        $legacyName = $data['name_en'] ?: $data['name_ar'];
+        $legacyDescription = trim((string) ($data['description_en'] ?? '')) !== ''
+            ? $data['description_en']
+            : ($data['description_ar'] ?? null);
+
         if ($this->isEditing && $this->brand) {
             $this->brand->update([
-                'name' => $data['name'],
-                'description' => $data['description'] ?? null,
+                'name' => $legacyName,
+                'name_en' => $data['name_en'],
+                'name_ar' => $data['name_ar'],
+                'description' => $legacyDescription,
+                'description_en' => $data['description_en'] ?? null,
+                'description_ar' => $data['description_ar'] ?? null,
                 'active' => $data['active'],
             ]);
 
@@ -60,8 +77,12 @@ class Form extends Component
         }
 
         $brand = Brand::create([
-            'name' => $data['name'],
-            'description' => $data['description'] ?? null,
+            'name' => $legacyName,
+            'name_en' => $data['name_en'],
+            'name_ar' => $data['name_ar'],
+            'description' => $legacyDescription,
+            'description_en' => $data['description_en'] ?? null,
+            'description_ar' => $data['description_ar'] ?? null,
             'active' => $data['active'],
         ]);
 

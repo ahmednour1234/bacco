@@ -45,8 +45,16 @@ class IndexTable extends Component
             ->withCount('products')
             ->with('websites')
             ->when($this->search !== '', function ($query): void {
-                $query->where('name', 'like', '%' . $this->search . '%');
+                $query->where(function ($inner): void {
+                    $inner->where('name', 'like', '%' . $this->search . '%')
+                        ->orWhere('name_en', 'like', '%' . $this->search . '%')
+                        ->orWhere('name_ar', 'like', '%' . $this->search . '%')
+                        ->orWhere('description', 'like', '%' . $this->search . '%')
+                        ->orWhere('description_en', 'like', '%' . $this->search . '%')
+                        ->orWhere('description_ar', 'like', '%' . $this->search . '%');
+                });
             })
+            ->orderBy('name_en')
             ->orderBy('name')
             ->paginate($this->perPage);
 

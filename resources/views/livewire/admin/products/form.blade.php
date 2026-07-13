@@ -50,19 +50,36 @@
 
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 
-                {{-- Product Name --}}
+                {{-- Product Name (English) --}}
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                        {{ __('app.product_name') }} <span class="text-red-500">*</span>
+                        {{ __('app.name_en') }} <span class="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
-                        wire:model.blur="name"
+                        wire:model.blur="name_en"
+                        dir="ltr"
                         placeholder="{{ __('app.eg_industrial_sensor') }}"
                         class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                                placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                     >
-                    @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    @error('name_en') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Product Name (Arabic) --}}
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                        {{ __('app.name_ar') }} <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        wire:model.blur="name_ar"
+                        dir="rtl"
+                        placeholder="{{ __('app.product_name') }}"
+                        class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
+                               placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    >
+                    @error('name_ar') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
                 {{-- Division (search-select) --}}
@@ -78,7 +95,7 @@
                 <x-admin.search-select
                     prop="brand_id"
                     :current-value="$brand_id"
-                    :options="$brands->map(fn($b) => ['v' => $b->id, 'l' => $b->name])->values()->toArray()"
+                    :options="$brandOptions"
                     placeholder="{{ __('app.brand_name_placeholder') }}"
                     label="{{ __('app.brand') }}"
                     error-field="brand_id"
@@ -88,7 +105,7 @@
                 <x-admin.search-select
                     prop="category_id"
                     :current-value="$category_id"
-                    :options="$categories->map(fn($c) => ['v' => $c->id, 'l' => $c->name])->values()->toArray()"
+                    :options="$categoryOptions"
                     placeholder="{{ __('app.product_category') }}"
                     label="{{ __('app.classification') }}"
                     error-field="category_id"
@@ -234,16 +251,32 @@
             </h2>
 
             {{-- Technical Specifications --}}
-            <div class="mb-5">
-                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.technical_specifications') }}</label>
+            <div class="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.desc_en') }}</label>
                 <textarea
-                    wire:model.blur="description"
+                    wire:model.blur="description_en"
                     rows="5"
+                    dir="ltr"
                     placeholder="{{ __('app.enter_product_specs') }}"
                     class="w-full resize-y rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
                            placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                 ></textarea>
-                @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                @error('description_en') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.desc_ar') }}</label>
+                <textarea
+                    wire:model.blur="description_ar"
+                    rows="5"
+                    dir="rtl"
+                    placeholder="{{ __('app.enter_product_specs') }}"
+                    class="w-full resize-y rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
+                           placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                ></textarea>
+                @error('description_ar') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
             </div>
 
             {{-- Datasheet Upload --}}
@@ -514,10 +547,11 @@
                 </div>
             </div>
             <div class="overflow-x-auto px-2 pb-2">
-                <table class="min-w-[1600px] w-full text-sm">
+                <table class="min-w-[1800px] w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            <th class="px-4 py-3.5 text-left whitespace-nowrap">Product Name</th>
+                            <th class="px-4 py-3.5 text-left whitespace-nowrap">Product Name (EN)</th>
+                            <th class="px-4 py-3.5 text-left whitespace-nowrap">Product Name (AR)</th>
                             <th class="px-4 py-3.5 text-left whitespace-nowrap">Division</th>
                             <th class="px-4 py-3.5 text-left whitespace-nowrap">Brand</th>
                             <th class="px-4 py-3.5 text-left whitespace-nowrap">Category</th>
@@ -532,10 +566,19 @@
                         @foreach ($aiExtractedProducts as $idx => $item)
                             <tr class="align-top hover:bg-slate-50/70">
 
-                                {{-- Name --}}
+                                {{-- Name (English) --}}
                                     <td class="px-4 py-2.5 min-w-[320px]">
                                     <input type="text"
                                            wire:model.blur="aiExtractedProducts.{{ $idx }}.name"
+                                         class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800
+                                                  focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
+                                </td>
+
+                                {{-- Name (Arabic) --}}
+                                    <td class="px-4 py-2.5 min-w-[320px]">
+                                    <input type="text"
+                                           wire:model.blur="aiExtractedProducts.{{ $idx }}.name_ar"
+                                           dir="rtl"
                                          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800
                                                   focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
                                 </td>
@@ -559,7 +602,9 @@
                                                    focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
                                         <option value="">— none —</option>
                                         @foreach ($brands as $brand)
-                                            <option value="{{ $brand->id }}" @selected(($item['brand_id'] ?? '') == $brand->id)>{{ $brand->name }}</option>
+                                            <option value="{{ $brand->id }}" @selected(($item['brand_id'] ?? '') == $brand->id)>
+                                                {{ $brand->name_en ?: $brand->name }} @if($brand->name_ar) / {{ $brand->name_ar }} @endif
+                                            </option>
                                         @endforeach
                                     </select>
                                     @if (!empty($item['brand']))
@@ -576,7 +621,9 @@
                                                    focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
                                         <option value="">— none —</option>
                                         @foreach ($categories as $cat)
-                                            <option value="{{ $cat->id }}" @selected(($item['category_id'] ?? '') == $cat->id)>{{ $cat->name }}</option>
+                                            <option value="{{ $cat->id }}" @selected(($item['category_id'] ?? '') == $cat->id)>
+                                                {{ $cat->name_en ?: $cat->name }} @if($cat->name_ar) / {{ $cat->name_ar }} @endif
+                                            </option>
                                         @endforeach
                                     </select>
                                 </td>
@@ -608,7 +655,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="border-t-2 border-slate-200 bg-slate-50 font-semibold">
-                            <td colspan="8" class="px-3 py-3 text-right text-sm text-slate-700 uppercase tracking-wide">
+                            <td colspan="9" class="px-3 py-3 text-right text-sm text-slate-700 uppercase tracking-wide">
                                 Total Est. Inventory Value (SAR)
                             </td>
                             <td class="px-3 py-3 text-right text-base font-bold text-emerald-600">

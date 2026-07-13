@@ -27,6 +27,10 @@ class Form extends Component
 
     public string $name = '';
 
+    public string $name_en = '';
+
+    public string $name_ar = '';
+
     public string $division = '';
 
     public string $model_type = '';
@@ -46,6 +50,10 @@ class Form extends Component
     public string $margin_percentage = '15';
 
     public string $description = '';
+
+    public string $description_en = '';
+
+    public string $description_ar = '';
 
     public bool $active = true;
 
@@ -97,6 +105,8 @@ class Form extends Component
             $this->product            = $product;
             $this->isEditing          = true;
             $this->name               = (string) $product->name;
+            $this->name_en            = (string) ($product->name_en ?: $product->name);
+            $this->name_ar            = (string) ($product->name_ar ?? '');
             $this->division           = (string) ($product->division ?? '');
             $this->model_type         = (string) ($product->model_type ?? '');
             $this->brand_id           = $product->brand_id ?? '';
@@ -107,6 +117,8 @@ class Form extends Component
             $this->installation_price = number_format((float) ($product->installation_price ?? 0), 2, '.', '');
             $this->margin_percentage  = number_format((float) ($product->margin_percentage ?? 15), 2, '.', '');
             $this->description        = (string) ($product->description ?? '');
+            $this->description_en     = (string) ($product->description_en ?: ($product->description ?? ''));
+            $this->description_ar     = (string) ($product->description_ar ?? '');
             $this->active             = (bool) $product->active;
             $this->existingDatasheet  = $product->datasheet_path;
         }
@@ -117,7 +129,8 @@ class Form extends Component
     protected function rules(): array
     {
         return [
-            'name'               => ['required', 'string', 'max:255'],
+            'name_en'            => ['required', 'string', 'max:255'],
+            'name_ar'            => ['required', 'string', 'max:255'],
             'division'           => ['nullable', 'string', 'max:100'],
             'model_type'         => ['nullable', 'string', 'max:255'],
             'brand_id'           => ['nullable', 'integer', 'exists:brands,id'],
@@ -127,7 +140,8 @@ class Form extends Component
             'engineering_price'  => ['nullable', 'numeric', 'min:0'],
             'installation_price' => ['nullable', 'numeric', 'min:0'],
             'margin_percentage'  => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'description'        => ['nullable', 'string'],
+            'description_en'     => ['nullable', 'string'],
+            'description_ar'     => ['nullable', 'string'],
             'active'             => ['boolean'],
             'datasheet'          => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx', 'max:10240'],
         ];
@@ -143,6 +157,10 @@ class Form extends Component
         $data['brand_id']    = $data['brand_id']    ?: null;
         $data['category_id'] = $data['category_id'] ?: null;
         $data['unit_id']     = $data['unit_id']      ?: null;
+        $data['name'] = $data['name_en'] ?: $data['name_ar'];
+        $data['description'] = trim((string) ($data['description_en'] ?? '')) !== ''
+            ? $data['description_en']
+            : ($data['description_ar'] ?? null);
 
         // Handle file upload
         if ($this->datasheet) {
@@ -217,6 +235,7 @@ Context: {$contextHints}. Use SAR currency.
 
 For each product, return an object with these exact keys:
 - name (string, required)
+- name_ar (string, required, Arabic translation of the product name)
 - division (string or null — one of: HVAC, Electrical, Automation, Mechanical, Plumbing, Fire & Safety, Networking, ICT, Other)
 - brand (string or null — the brand/manufacturer name as text)
 - model_type (string or null)
@@ -356,6 +375,7 @@ PROMPT;
 
                 return [
                     'name'               => $item['name']       ?? '',
+                    'name_ar'            => $item['name_ar']    ?? null,
                     'division'           => $item['division']   ?? null,
                     'brand'              => $item['brand']      ?? null,
                     'brand_id'           => null,  // user picks in table
@@ -458,6 +478,15 @@ PROMPT;
         }
 
         $rows = $this->deduplicateExtractedItems($this->aiExtractedProducts);
+        $hasMissingArabicName = collect($rows)->contains(function ($item): bool {
+            return trim((string) ($item['name'] ?? '')) !== ''
+                && trim((string) ($item['name_ar'] ?? '')) === '';
+        });
+
+        if ($hasMissingArabicName) {
+            $this->addError('aiPastedText', 'Please fill the Arabic product name for every imported product before saving.');
+            return null;
+        }
 
         foreach ($rows as $item) {
             if (trim((string) ($item['name'] ?? '')) === '') {
@@ -466,6 +495,8 @@ PROMPT;
 
             Product::create([
                 'name'               => $item['name'],
+                'name_en'            => $item['name'],
+                'name_ar'            => $item['name_ar'] ?? null,
                 'division'           => $item['division']    ?? null,
                 'model_type'         => $item['model_type']  ?? null,
                 'brand_id'           => ($item['brand_id']   ?? null) ?: null,
@@ -499,9 +530,17 @@ PROMPT;
 
     public function render()
     {
-        $brands     = Brand::where('active', true)->orderBy('name')->get();
-        $categories = Category::orderBy('name')->get();
+        $brands     = Brand::where('active', true)->orderBy('name_en')->orderBy('name')->get();
+        $categories = Category::orderBy('name_en')->orderBy('name')->get();
         $units      = Unit::orderBy('name')->get();
+        $brandOptions = $brands
+            ->map(fn ($brand) => ['v' => $brand->id, 'l' => $this->catalogLabel($brand)])
+            ->values()
+            ->toArray();
+        $categoryOptions = $categories
+            ->map(fn ($category) => ['v' => $category->id, 'l' => $this->catalogLabel($category)])
+            ->values()
+            ->toArray();
 
         $base       = (float) $this->unit_price
                     + (float) $this->engineering_price
@@ -509,11 +548,21 @@ PROMPT;
         $finalPrice = $base * (1 + (float) $this->margin_percentage / 100);
 
         return view('livewire.admin.products.form', [
-            'brands'     => $brands,
-            'categories' => $categories,
-            'units'      => $units,
-            'finalPrice' => $finalPrice,
-            'divisions'  => self::DIVISIONS,
+            'brands'          => $brands,
+            'categories'      => $categories,
+            'brandOptions'    => $brandOptions,
+            'categoryOptions' => $categoryOptions,
+            'units'           => $units,
+            'finalPrice'      => $finalPrice,
+            'divisions'       => self::DIVISIONS,
         ]);
+    }
+
+    private function catalogLabel(object $item): string
+    {
+        $english = trim((string) ($item->name_en ?: $item->name));
+        $arabic = trim((string) ($item->name_ar ?? ''));
+
+        return $arabic === '' ? $english : "{$english} / {$arabic}";
     }
 }

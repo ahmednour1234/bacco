@@ -1,16 +1,28 @@
 <form wire:submit="save" class="space-y-6">
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div class="md:col-span-2">
-                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.name') }}</label>
-                <input type="text" wire:model.blur="name" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.name_en') }}</label>
+                <input type="text" wire:model.blur="name_en" dir="ltr" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
+                @error('name_en') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
-            <div class="md:col-span-2">
-                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.description') }}</label>
-                <textarea wire:model.blur="description" rows="4" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"></textarea>
-                @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.name_ar') }}</label>
+                <input type="text" wire:model.blur="name_ar" dir="rtl" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100">
+                @error('name_ar') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.desc_en') }}</label>
+                <textarea wire:model.blur="description_en" rows="4" dir="ltr" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"></textarea>
+                @error('description_en') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ __('app.desc_ar') }}</label>
+                <textarea wire:model.blur="description_ar" rows="4" dir="rtl" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"></textarea>
+                @error('description_ar') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <div class="md:col-span-2">

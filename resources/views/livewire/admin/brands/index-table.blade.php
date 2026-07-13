@@ -49,7 +49,7 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 bg-slate-50">
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name_en_ar') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.description') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.websites') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">{{ __('app.products') }}</th>
@@ -60,8 +60,18 @@
                 <tbody class="divide-y divide-slate-100">
                     @foreach ($brands as $brand)
                         <tr class="transition-colors hover:bg-slate-50">
-                            <td class="px-5 py-4 font-medium text-slate-900">{{ $brand->name }}</td>
-                            <td class="hidden max-w-xs truncate px-5 py-4 text-slate-500 md:table-cell">{{ $brand->description ?? '—' }}</td>
+                            <td class="px-5 py-4">
+                                <p class="font-medium text-slate-900">{{ $brand->name_en ?: $brand->name }}</p>
+                                @if ($brand->name_ar)
+                                    <p class="mt-0.5 text-xs text-slate-400" dir="rtl">{{ $brand->name_ar }}</p>
+                                @endif
+                            </td>
+                            <td class="hidden max-w-xs px-5 py-4 text-slate-500 md:table-cell">
+                                <p class="truncate">{{ $brand->description_en ?: ($brand->description ?? '—') }}</p>
+                                @if ($brand->description_ar)
+                                    <p class="mt-0.5 truncate text-xs text-slate-400" dir="rtl">{{ $brand->description_ar }}</p>
+                                @endif
+                            </td>
                             <td class="hidden px-5 py-4 lg:table-cell">
                                 @if ($brand->websites->isEmpty())
                                     <span class="text-xs text-slate-400">{{ __('app.none') }}</span>

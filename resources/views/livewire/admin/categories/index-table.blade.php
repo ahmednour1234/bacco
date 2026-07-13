@@ -40,7 +40,7 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 bg-slate-50">
-                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name') }}</th>
+                        <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('app.name_en_ar') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 sm:table-cell">{{ __('app.slug') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 md:table-cell">{{ __('app.parent') }}</th>
                         <th class="hidden px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 lg:table-cell">{{ __('app.websites') }}</th>
@@ -52,9 +52,23 @@
                 <tbody class="divide-y divide-slate-100">
                     @foreach ($categories as $category)
                         <tr class="transition-colors hover:bg-slate-50">
-                            <td class="px-5 py-4 font-medium text-slate-900">{{ $category->name }}</td>
+                            <td class="px-5 py-4">
+                                <p class="font-medium text-slate-900">{{ $category->name_en ?: $category->name }}</p>
+                                @if ($category->name_ar)
+                                    <p class="mt-0.5 text-xs text-slate-400" dir="rtl">{{ $category->name_ar }}</p>
+                                @endif
+                            </td>
                             <td class="hidden px-5 py-4 font-mono text-xs text-slate-400 sm:table-cell">{{ $category->slug }}</td>
-                            <td class="hidden px-5 py-4 text-slate-500 md:table-cell">{{ $category->parent?->name ?? '—' }}</td>
+                            <td class="hidden px-5 py-4 text-slate-500 md:table-cell">
+                                @if ($category->parent)
+                                    <p>{{ $category->parent->name_en ?: $category->parent->name }}</p>
+                                    @if ($category->parent->name_ar)
+                                        <p class="mt-0.5 text-xs text-slate-400" dir="rtl">{{ $category->parent->name_ar }}</p>
+                                    @endif
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td class="hidden px-5 py-4 lg:table-cell">
                                 @if ($category->websites->isEmpty())
                                     <span class="text-xs text-slate-400">{{ __('app.none') }}</span>
