@@ -42,7 +42,6 @@ class FetchQuotationPricesJob implements ShouldQueue
         }
 
         $items = QuotationItem::where('quotation_request_id', $this->quotationId)
-            ->where('is_selected', true)
             ->where('status', '!=', 'rejected')
             ->with('unit')
             ->get()
@@ -105,7 +104,6 @@ class FetchQuotationPricesJob implements ShouldQueue
             }
 
             $remainingUnpriced = QuotationItem::where('quotation_request_id', $this->quotationId)
-                ->where('is_selected', true)
                 ->where('status', '!=', 'rejected')
                 ->where(function ($query) {
                     $query->whereNull('unit_price')

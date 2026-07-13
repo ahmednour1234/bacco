@@ -91,6 +91,16 @@ class IndexList extends Component
             return;
         }
 
+        $missingPrices = $quotation->items
+            ->filter(fn($i) => ($i->status->value ?? '') !== 'rejected'
+                && (! is_numeric($i->unit_price) || (float) $i->unit_price <= 0))
+            ->count();
+
+        if ($missingPrices > 0) {
+            $this->dispatch('toast', message: __('app.unpriced_items_block_checkout'), type: 'error');
+            return;
+        }
+
         $subtotal = $quotation->items
             ->filter(fn($i) => ($i->status->value ?? '') !== 'rejected' && is_numeric($i->unit_price))
             ->sum(fn($i) => (float) $i->unit_price * (float) $i->quantity);
@@ -115,18 +125,30 @@ class IndexList extends Component
             ->where('client_id', Auth::id())
             ->firstOrFail();
 
-        $selectedItems = $quotation->items->map(fn($i) => [
-            'id'          => $i->id,
-            'product_id'  => $i->product_id,
-            'description' => (string) $i->description,
-            'quantity'    => (float) $i->quantity,
-            'unit_id'     => $i->unit_id,
-            'unit_price'  => (float) ($i->unit_price ?? 0),
-            'category'    => (string) ($i->category ?? ''),
-            'brand'       => (string) ($i->brand ?? ''),
-            'status'      => $i->status->value ?? 'pending',
-            'selected'    => true,
-        ])->values()->toArray();
+        $missingPrices = $quotation->items
+            ->filter(fn($i) => ($i->status->value ?? '') !== 'rejected'
+                && (! is_numeric($i->unit_price) || (float) $i->unit_price <= 0))
+            ->count();
+
+        if ($missingPrices > 0) {
+            $this->dispatch('toast', message: __('app.unpriced_items_block_checkout'), type: 'error');
+            return;
+        }
+
+        $selectedItems = $quotation->items
+            ->filter(fn($i) => ($i->status->value ?? '') !== 'rejected')
+            ->map(fn($i) => [
+                'id'          => $i->id,
+                'product_id'  => $i->product_id,
+                'description' => (string) $i->description,
+                'quantity'    => (float) $i->quantity,
+                'unit_id'     => $i->unit_id,
+                'unit_price'  => (float) ($i->unit_price ?? 0),
+                'category'    => (string) ($i->category ?? ''),
+                'brand'       => (string) ($i->brand ?? ''),
+                'status'      => $i->status->value ?? 'pending',
+                'selected'    => true,
+            ])->values()->toArray();
 
         try {
             $order = app(OrderService::class)->createFromQuotation(

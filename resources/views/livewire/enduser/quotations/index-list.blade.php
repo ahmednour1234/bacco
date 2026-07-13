@@ -331,12 +331,14 @@
 
                     // Validity badge (only for draft/tender)
                     $validityBadge = null;
+                    $isExpired = false;
                     if (in_array($sv, ['draft', 'tender'], true)) {
                         $validityRef = $quotation->prices_fetched_at ?? $quotation->created_at;
                         $expiresAt   = $validityRef->copy()->addDays(\App\Models\QuotationRequest::EXPIRY_DAYS);
                         $daysLeft    = (int) now()->startOfDay()->diffInDays($expiresAt->startOfDay(), false);
 
                         if ($daysLeft < 0) {
+                            $isExpired = true;
                             $ago = abs($daysLeft);
                             $validityBadge = [
                                 'text'  => $ago === 1 ? __('app.expired_since_one_day') : __('app.expired_since_days', ['days' => $ago]),
@@ -413,6 +415,7 @@
                         </p>
                     </div>
 
+                    @unless($isExpired)
                     {{-- Right: actions --}}
                     <div class="flex shrink-0 flex-wrap items-center gap-2">
 
@@ -453,6 +456,7 @@
                             {{ __('app.view_details') }}
                         </a>
                     </div>
+                    @endunless
 
                 </div>
             @endforeach

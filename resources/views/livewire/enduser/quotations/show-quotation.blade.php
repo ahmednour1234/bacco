@@ -320,7 +320,7 @@
             $total    = $subtotal + $tax;
             $itemCount = $allItems->filter(fn($i) => !empty($i['selected']) && ($i['status'] ?? '') !== 'rejected')->count();
             $missingPriceCount = $allItems
-                ->filter(fn($i) => !empty($i['selected']) && ($i['status'] ?? '') !== 'rejected' && (!is_numeric($i['unit_price'] ?? null) || (float) ($i['unit_price'] ?? 0) <= 0))
+                ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected' && (!is_numeric($i['unit_price'] ?? null) || (float) ($i['unit_price'] ?? 0) <= 0))
                 ->count();
         @endphp
 
@@ -448,6 +448,21 @@
                     </p>
                 </div>
             </div>
+            @elseif($missingPriceCount > 0)
+            <div class="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5">
+                <svg class="h-5 w-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-red-800">{{ __('app.unpriced_items_block_checkout') }}</p>
+                    <p class="mt-0.5 text-xs text-red-600">{{ __('app.retry_missing_prices', ['count' => $missingPriceCount]) }}</p>
+                </div>
+                <button wire:click="refetchPrices" wire:loading.attr="disabled" wire:target="refetchPrices" type="button"
+                    class="shrink-0 rounded-xl border border-red-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-60">
+                    <span wire:loading.remove wire:target="refetchPrices">{{ __('app.refresh_prices') }}</span>
+                    <span wire:loading wire:target="refetchPrices">{{ __('app.refreshing_prices') }}</span>
+                </button>
+            </div>
             @else
             <div class="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
                 <svg class="h-5 w-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -573,6 +588,14 @@
                 </svg>
                 {{ __('app.unpriced_items_block_checkout') }} ({{ $missingPriceCount }})
             </div>
+            @if(!$pricingQueued)
+            <button wire:click="refetchPrices" wire:loading.attr="disabled" wire:target="refetchPrices" type="button"
+                class="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-6 py-3.5 text-sm font-semibold text-red-700 shadow-sm transition hover:bg-red-100 disabled:opacity-60">
+                <svg wire:loading wire:target="refetchPrices" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                <span wire:loading.remove wire:target="refetchPrices">{{ __('app.retry_missing_prices', ['count' => $missingPriceCount]) }}</span>
+                <span wire:loading wire:target="refetchPrices">{{ __('app.refreshing_prices') }}</span>
+            </button>
+            @endif
             @endif
 
             {{-- Navigation --}}
@@ -805,6 +828,15 @@
             </div>
 
             {{-- ── Navigation ───────────────────────────────────────────────── --}}
+            @if($missingPriceCount > 0)
+            <div class="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
+                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+                {{ __('app.unpriced_items_block_checkout') }} ({{ $missingPriceCount }})
+            </div>
+            @endif
+
             <div class="mt-4 flex gap-3">
                 <button type="button"
                     @click="step = 3; addressError = false; window.scrollTo({ top: 0, behavior: 'smooth' })"
@@ -815,7 +847,8 @@
                     {{ __('app.back') }}
                 </button>
                 <button type="button" @click="tryProceedToReview()"
-                    class="flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition"
+                    @disabled($missingPriceCount > 0)
+                    class="flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
                     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                     <span>{{ __('app.checkout_continue_review') }}</span>
                     <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">

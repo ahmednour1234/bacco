@@ -133,7 +133,7 @@ class ShowQuotation extends Component
             $this->pricingJobStartedAt = null;
 
             $pricedItems = collect($this->items)
-                ->filter(fn($i) => ! empty($i['selected']) && ($i['status'] ?? '') !== 'rejected');
+                ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected');
             $gotPrices = $pricedItems->filter(fn($i) => ! empty($i['unit_price']))->count();
             $total     = $pricedItems->count();
             $missing   = $total - $gotPrices;
@@ -289,7 +289,7 @@ class ShowQuotation extends Component
         }
 
         $ids = collect($this->items)
-            ->filter(fn($i) => ! empty($i['selected']) && ($i['status'] ?? '') !== 'rejected')
+            ->filter(fn($i) => ($i['status'] ?? '') !== 'rejected')
             ->pluck('id')
             ->filter()
             ->map(fn($id) => (int) $id)
@@ -301,7 +301,7 @@ class ShowQuotation extends Component
             return;
         }
 
-        // Reset selected prices first so PricingService treats them as unpriced.
+        // Reset quotation prices first so PricingService treats them as unpriced.
         QuotationItem::whereIn('id', $ids)->update([
             'unit_price'   => null,
             'price_source' => null,
@@ -309,7 +309,7 @@ class ShowQuotation extends Component
         ]);
 
         foreach ($this->items as $index => $item) {
-            if (! empty($item['selected']) && ($item['status'] ?? '') !== 'rejected') {
+            if (($item['status'] ?? '') !== 'rejected') {
                 $this->items[$index]['unit_price']   = null;
                 $this->items[$index]['price_source'] = null;
             }
@@ -325,7 +325,6 @@ class ShowQuotation extends Component
         set_time_limit(300); // Prevent 60-second fatal timeout during AI price fetching
         try {
             $dbItems = QuotationItem::where('quotation_request_id', $this->quotation->id)
-                ->where('is_selected', true)
                 ->where('status', '!=', 'rejected')
                 ->get()
                 ->map(fn(QuotationItem $item) => [
@@ -540,8 +539,7 @@ class ShowQuotation extends Component
     private function missingSelectedPriceCount(?array $items = null): int
     {
         return collect($items ?? $this->items)
-            ->filter(fn($item) => ! empty($item['selected'])
-                && ($item['status'] ?? '') !== 'rejected'
+            ->filter(fn($item) => ($item['status'] ?? '') !== 'rejected'
                 && (! is_numeric($item['unit_price'] ?? null) || (float) ($item['unit_price'] ?? 0) <= 0))
             ->count();
     }
