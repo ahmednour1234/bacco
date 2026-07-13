@@ -13,7 +13,9 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class QuotationAiService
 {
     /** Increment this whenever BOQ parsing logic changes to invalidate old caches. */
-    private const PARSER_VERSION = 8;
+    private const PARSER_VERSION = 9;
+    private const LARGE_BOQ_VERIFICATION_THRESHOLD = 2000;
+    private const LARGE_BOQ_VERIFICATION_CHUNK_SIZE = 120;
 
     private string $baseUrl;
     private string $parseEndpoint;
@@ -108,6 +110,10 @@ class QuotationAiService
             $cleaning = $this->boqCleaner->process($result['items']);
             $result['items'] = $cleaning['accepted'] ?? $result['items'];
             $result['rejected'] = array_merge($result['rejected'] ?? [], $cleaning['rejected'] ?? []);
+        }
+
+        if ($result['success'] && count($result['items'] ?? []) > self::LARGE_BOQ_VERIFICATION_THRESHOLD) {
+            $result = $this->verifyLargeBoqItemsWithAi($result);
         }
 
         // Only cache when we actually extracted items; empty results should be re-tried.
@@ -999,6 +1005,109 @@ class QuotationAiService
         return str_contains($value, ',') || str_contains($value, '"') || str_contains($value, "\n")
             ? '"' . str_replace('"', '""', $value) . '"'
             : $value;
+    }
+
+    private function verifyLargeBoqItemsWithAi(array $result): array
+    {
+        $apiKey = (string) config('services.deepseek.key', '');
+        if ($apiKey === '') {
+            Log::warning('QuotationAiService: large BOQ verification skipped, AI key is not configured.');
+            return $result;
+        }
+
+        $items = array_values(array_filter($result['items'] ?? [], 'is_array'));
+        if (count($items) <= self::LARGE_BOQ_VERIFICATION_THRESHOLD) {
+            return $result;
+        }
+
+        Log::info('QuotationAiService: starting second-pass physical item verification.', [
+            'items_count' => count($items),
+            'threshold'   => self::LARGE_BOQ_VERIFICATION_THRESHOLD,
+        ]);
+
+        $verifiedItems = [];
+        $rejectedItems = $result['rejected'] ?? [];
+
+        foreach (array_chunk($items, self::LARGE_BOQ_VERIFICATION_CHUNK_SIZE) as $chunkIndex => $chunk) {
+            $payload = array_map(fn(array $item) => [
+                'description' => (string) ($item['description'] ?? ''),
+                'quantity'    => $item['quantity'] ?? null,
+                'unit'        => (string) ($item['unit'] ?? ''),
+                'unit_price'  => $item['unit_price'] ?? null,
+                'category'    => (string) ($item['category'] ?? ''),
+                'brand'       => (string) ($item['brand'] ?? ''),
+            ], $chunk);
+
+            $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if (! is_string($json)) {
+                Log::warning('QuotationAiService: large BOQ verification chunk JSON encode failed.', [
+                    'chunk' => $chunkIndex + 1,
+                ]);
+                array_push($verifiedItems, ...$chunk);
+                continue;
+            }
+
+            $prompt = <<<PROMPT
+You are doing a SECOND PASS verification on a BOQ extraction result.
+
+The first pass may hallucinate non-products when the BOQ has thousands of rows.
+Your job is to keep ONLY physical, tangible, procurable supply products.
+
+Rules:
+- Keep items only if a supplier can actually deliver them as materials/equipment.
+- Reject headings, trade names, systems, scopes, prose, specifications-only rows, totals, labor, installation, testing, commissioning, supervision, drawings, insurance, preliminaries, mobilisation, site works, and vague fragments.
+- Do not invent new products.
+- Do not add items that are not in the input.
+- You may clean a product description, but keep the original quantity, unit, unit_price, category, and brand when available.
+
+Input JSON array:
+{$json}
+
+Return ONLY valid JSON in this shape:
+{"items":[{"description":"","quantity":1,"unit":"","unit_price":null,"category":"","brand":"","confidence":0.95}]}
+PROMPT;
+
+            try {
+                $chunkResult = $this->callDeepSeekChat($prompt, $apiKey, $this->deepSeekModel());
+            } catch (\Throwable $e) {
+                Log::warning('QuotationAiService: large BOQ verification chunk threw an exception.', [
+                    'chunk'   => $chunkIndex + 1,
+                    'message' => $e->getMessage(),
+                ]);
+                array_push($verifiedItems, ...$chunk);
+                continue;
+            }
+
+            if ($chunkResult['success'] ?? false) {
+                array_push($verifiedItems, ...($chunkResult['items'] ?? []));
+                $rejectedItems = array_merge($rejectedItems, $chunkResult['rejected'] ?? []);
+                continue;
+            }
+
+            Log::warning('QuotationAiService: large BOQ verification chunk failed, keeping original chunk.', [
+                'chunk' => $chunkIndex + 1,
+                'error' => $chunkResult['error'] ?? null,
+            ]);
+            array_push($verifiedItems, ...$chunk);
+        }
+
+        if (empty($verifiedItems)) {
+            Log::warning('QuotationAiService: second-pass verification returned no items, keeping first-pass result.', [
+                'original_items_count' => count($items),
+            ]);
+            return $result;
+        }
+
+        $result['items'] = $verifiedItems;
+        $result['rejected'] = $rejectedItems;
+        $result['large_boq_verified'] = true;
+
+        Log::info('QuotationAiService: second-pass physical item verification completed.', [
+            'before' => count($items),
+            'after'  => count($verifiedItems),
+        ]);
+
+        return $result;
     }
 
     private function normaliseAiItem(array $raw): ?array
