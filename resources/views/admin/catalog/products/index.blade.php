@@ -43,7 +43,7 @@
                     <option value="">All</option>
                     @foreach($categories as $c)
                         <option value="{{ $c->id }}" @selected(($filters['category_id'] ?? '') == $c->id)>
-                            {{ $c->name }}
+                            {{ $c->name ?: '—' }} @if($c->name_ar) / {{ $c->name_ar }} @endif
                         </option>
                     @endforeach
                 </select>
@@ -121,10 +121,10 @@
             <thead class="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
                 <tr>
                     <th class="px-3 py-3 text-left">Qimta Code</th>
-                    <th class="px-3 py-3 text-left">Division</th>
-                    <th class="px-3 py-3 text-left">Category</th>
-                    <th class="px-3 py-3 text-left">Product Name</th>
-                    <th class="px-3 py-3 text-left">Sub-Type</th>
+                    <th class="px-3 py-3 text-left">Division (EN / AR)</th>
+                    <th class="px-3 py-3 text-left">Category (EN / AR)</th>
+                    <th class="px-3 py-3 text-left">Product (EN / AR)</th>
+                    <th class="px-3 py-3 text-left">Sub-Type (EN / AR)</th>
                     <th class="px-3 py-3 text-left">Material</th>
                     <th class="px-3 py-3 text-left">Size</th>
                     <th class="px-3 py-3 text-left">Unit</th>
@@ -135,10 +135,44 @@
                 @forelse($products as $product)
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-3 py-2 font-mono text-gray-700 whitespace-nowrap">{{ $product->qimta_code ?: '—' }}</td>
-                        <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ $product->division_label ?: '—' }}</td>
-                        <td class="px-3 py-2 text-gray-600">{{ $product->category?->name_label ?: '—' }}</td>
-                        <td class="px-3 py-2 font-medium text-gray-900">{{ $product->product_name_label ?: '—' }}</td>
-                        <td class="px-3 py-2 text-gray-600">{{ $product->sub_type_label ?: '—' }}</td>
+                        <td class="px-3 py-2 text-gray-600 whitespace-nowrap">
+                            <p>{{ $product->division ?: '—' }}</p>
+                            @if($product->division_ar)
+                                <p class="mt-0.5 text-[11px] text-gray-400" dir="rtl">{{ $product->division_ar }}</p>
+                            @endif
+                        </td>
+                        <td class="px-3 py-2 text-gray-600">
+                            @if($product->category)
+                                <p>{{ $product->category->name ?: '—' }}</p>
+                                @if($product->category->name_ar)
+                                    <p class="mt-0.5 text-[11px] text-gray-400" dir="rtl">{{ $product->category->name_ar }}</p>
+                                @endif
+                            @else
+                                —
+                            @endif
+                        </td>
+                        <td class="px-3 py-2 font-medium text-gray-900">
+                            <p>{{ $product->product_name ?: '—' }}</p>
+                            @if($product->product_name_ar)
+                                <p class="mt-0.5 text-[11px] font-normal text-gray-500" dir="rtl">{{ $product->product_name_ar }}</p>
+                            @endif
+                            @if($product->item_description || $product->item_description_ar)
+                                <div class="mt-1 max-w-md text-[11px] font-normal text-gray-400">
+                                    @if($product->item_description)
+                                        <p class="truncate">{{ $product->item_description }}</p>
+                                    @endif
+                                    @if($product->item_description_ar)
+                                        <p class="truncate" dir="rtl">{{ $product->item_description_ar }}</p>
+                                    @endif
+                                </div>
+                            @endif
+                        </td>
+                        <td class="px-3 py-2 text-gray-600">
+                            <p>{{ $product->sub_type ?: '—' }}</p>
+                            @if($product->sub_type_ar)
+                                <p class="mt-0.5 text-[11px] text-gray-400" dir="rtl">{{ $product->sub_type_ar }}</p>
+                            @endif
+                        </td>
                         <td class="px-3 py-2 text-gray-600">{{ $product->type_of_material ?? '—' }}</td>
                         <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ $product->size ?: '—' }}</td>
                         <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ $product->unit ?: '—' }}</td>

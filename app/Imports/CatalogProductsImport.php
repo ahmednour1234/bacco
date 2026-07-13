@@ -50,23 +50,77 @@ class CatalogProductsImport
         'كود المنتج'          => 'qimta_code',
         // division — Arabic headers fill the *_ar column, English fill the base
         'القسم'               => 'division_ar',
+        'القسم عربي'          => 'division_ar',
+        'القسم بالعربي'       => 'division_ar',
+        'القسم إنجليزي'       => 'division',
+        'القسم انجليزي'       => 'division',
         'الشعبة'              => 'division_ar',
         'division'            => 'division',
+        'division_en'         => 'division',
+        'division_ar'         => 'division_ar',
+        'division english'    => 'division',
+        'division arabic'     => 'division_ar',
         // category
         'الفئة'               => 'category_ar',
         'التصنيف'             => 'category_ar',
+        'التصنيف عربي'        => 'category_ar',
+        'التصنيف بالعربي'     => 'category_ar',
+        'التصنيف إنجليزي'     => 'category',
+        'التصنيف انجليزي'     => 'category',
         'الصنف'               => 'category_ar',
         'category'            => 'category',
+        'category_en'         => 'category',
+        'category_ar'         => 'category_ar',
+        'category english'    => 'category',
+        'category arabic'     => 'category_ar',
         // item_description
         'وصف الصنف'           => 'item_description_ar',
         'وصف المنتج'          => 'item_description_ar',
+        'وصف المنتج عربي'     => 'item_description_ar',
+        'وصف المنتج بالعربي'  => 'item_description_ar',
+        'وصف المنتج إنجليزي'  => 'item_description',
+        'وصف المنتج انجليزي'  => 'item_description',
         'الوصف'               => 'item_description_ar',
+        'item_description'    => 'item_description',
+        'item_description_en' => 'item_description',
+        'item_description_ar' => 'item_description_ar',
+        'description'         => 'item_description',
+        'description_en'      => 'item_description',
+        'description_ar'      => 'item_description_ar',
+        'description english' => 'item_description',
+        'description arabic'  => 'item_description_ar',
         // sub_type
         'النوع الفرعي'        => 'sub_type_ar',
         'النوع الفرعى'        => 'sub_type_ar',
+        'النوع الفرعي عربي'   => 'sub_type_ar',
+        'النوع الفرعي بالعربي' => 'sub_type_ar',
+        'النوع الفرعي إنجليزي' => 'sub_type',
+        'النوع الفرعي انجليزي' => 'sub_type',
+        'sub_type'            => 'sub_type',
+        'sub_type_en'         => 'sub_type',
+        'sub_type_ar'         => 'sub_type_ar',
+        'sub type'            => 'sub_type',
+        'sub type en'         => 'sub_type',
+        'sub type ar'         => 'sub_type_ar',
+        'sub type english'    => 'sub_type',
+        'sub type arabic'     => 'sub_type_ar',
         // product_name
         'اسم المنتج'          => 'product_name_ar',
         'إسم المنتج'          => 'product_name_ar',
+        'اسم المنتج عربي'     => 'product_name_ar',
+        'اسم المنتج بالعربي'  => 'product_name_ar',
+        'اسم المنتج إنجليزي'  => 'product_name',
+        'اسم المنتج انجليزي'  => 'product_name',
+        'product_name'        => 'product_name',
+        'product_name_en'     => 'product_name',
+        'product_name_ar'     => 'product_name_ar',
+        'product name'        => 'product_name',
+        'product name en'     => 'product_name',
+        'product name ar'     => 'product_name_ar',
+        'product name english' => 'product_name',
+        'product name arabic' => 'product_name_ar',
+        'english product name' => 'product_name',
+        'arabic product name' => 'product_name_ar',
         // type_of_material
         'نوع المادة'          => 'type_of_material',
         'نوع الخامة'          => 'type_of_material',
@@ -346,6 +400,10 @@ class CatalogProductsImport
 
         $cleanKey = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $rawKey));
         $cleanKey = trim($cleanKey, '_');
+
+        if (isset(self::HEADER_ALIASES[$cleanKey])) {
+            return self::HEADER_ALIASES[$cleanKey];
+        }
 
         return $cleanKey !== '' ? $cleanKey : null;
     }

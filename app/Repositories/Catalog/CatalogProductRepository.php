@@ -64,15 +64,29 @@ class CatalogProductRepository
         $q = CatalogProduct::with('category')
             ->when($filters['catalog_id'] ?? null, fn($q, $v) => $q->where('catalog_id', $v))
             ->when($filters['category_id'] ?? null, fn($q, $v) => $q->where('category_id', $v))
-            ->when($filters['division'] ?? null, fn($q, $v) => $q->where('division', $v))
-            ->when($filters['sub_type'] ?? null, fn($q, $v) => $q->where('sub_type', $v))
+            ->when($filters['division'] ?? null, function ($q, $v) {
+                $q->where(fn ($inner) => $inner->where('division', $v)->orWhere('division_ar', $v));
+            })
+            ->when($filters['sub_type'] ?? null, function ($q, $v) {
+                $q->where(fn ($inner) => $inner->where('sub_type', $v)->orWhere('sub_type_ar', $v));
+            })
             ->when($filters['unit'] ?? null, fn($q, $v) => $q->where('unit', $v))
             ->when($filters['type_of_material'] ?? null, fn($q, $v) => $q->where('type_of_material', $v))
             ->when($filters['search'] ?? null, function ($q, $s) {
                 $q->where(function ($q2) use ($s) {
                     $q2->where('product_name', 'like', "%{$s}%")
+                       ->orWhere('product_name_ar', 'like', "%{$s}%")
                        ->orWhere('item_description', 'like', "%{$s}%")
-                       ->orWhere('qimta_code', 'like', "%{$s}%");
+                       ->orWhere('item_description_ar', 'like', "%{$s}%")
+                       ->orWhere('division', 'like', "%{$s}%")
+                       ->orWhere('division_ar', 'like', "%{$s}%")
+                       ->orWhere('sub_type', 'like', "%{$s}%")
+                       ->orWhere('sub_type_ar', 'like', "%{$s}%")
+                       ->orWhere('qimta_code', 'like', "%{$s}%")
+                       ->orWhereHas('category', function ($category) use ($s) {
+                           $category->where('name', 'like', "%{$s}%")
+                               ->orWhere('name_ar', 'like', "%{$s}%");
+                       });
                 });
             });
 
@@ -84,12 +98,25 @@ class CatalogProductRepository
      */
     public function distinctValues(string $column, ?int $catalogId = null): array
     {
-        return CatalogProduct::when($catalogId, fn($q) => $q->where('catalog_id', $catalogId))
-            ->whereNotNull($column)
-            ->where($column, '!=', '')
-            ->distinct()
-            ->orderBy($column)
-            ->pluck($column)
+        $columns = match ($column) {
+            'division' => ['division', 'division_ar'],
+            'sub_type' => ['sub_type', 'sub_type_ar'],
+            default => [$column],
+        };
+
+        return collect($columns)
+            ->flatMap(function (string $field) use ($catalogId) {
+                return CatalogProduct::when($catalogId, fn($q) => $q->where('catalog_id', $catalogId))
+                    ->whereNotNull($field)
+                    ->where($field, '!=', '')
+                    ->distinct()
+                    ->orderBy($field)
+                    ->pluck($field);
+            })
+            ->filter(fn ($value) => trim((string) $value) !== '')
+            ->unique()
+            ->sort()
+            ->values()
             ->toArray();
     }
 }
