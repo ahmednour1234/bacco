@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\NotificationTypeEnum;
+use App\Mail\QuotationPricedMail;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Services\BoqCleaningService;
@@ -14,6 +15,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class FetchQuotationPricesJob implements ShouldQueue
 {
@@ -33,7 +35,7 @@ class FetchQuotationPricesJob implements ShouldQueue
 
     public function handle(PricingService $pricingService, NotificationService $notificationService, BoqCleaningService $boqCleaner): void
     {
-        $quotation = QuotationRequest::find($this->quotationId);
+        $quotation = QuotationRequest::with('client')->find($this->quotationId);
 
         if (! $quotation) {
             return;
@@ -126,6 +128,22 @@ class FetchQuotationPricesJob implements ShouldQueue
                 recipientIds: $this->userId ? [$this->userId] : [],
                 actionUrl: route('enduser.quotations.show', $this->quotationUuid),
             );
+
+            if ($remainingUnpriced === 0 && $quotation->client?->email) {
+                try {
+                    Mail::to($quotation->client->email)->send(new QuotationPricedMail(
+                        quotation: $quotation,
+                        actionUrl: route('enduser.quotations.show', $this->quotationUuid),
+                    ));
+                } catch (\Throwable $mailException) {
+                    Log::error('FetchQuotationPricesJob: quotation priced email failed.', [
+                        'quotation_id' => $this->quotationId,
+                        'client_id'    => $quotation->client_id,
+                        'email'        => $quotation->client->email,
+                        'message'      => $mailException->getMessage(),
+                    ]);
+                }
+            }
 
         } catch (\Throwable $e) {
             Log::error('FetchQuotationPricesJob failed.', [
