@@ -278,6 +278,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // BOQs
         Route::get('/boqs', [AdminBoqController::class, 'index'])->name('boqs.index');
         Route::get('/boqs/{uuid}', [AdminBoqController::class, 'show'])->name('boqs.show');
+        Route::get('/boqs/{uuid}/documents/{documentUuid}/download', [AdminBoqController::class, 'downloadDocument'])->name('boqs.documents.download');
 
         // Suppliers
         Route::resource('suppliers', AdminSupplierController::class)->except(['destroy']);

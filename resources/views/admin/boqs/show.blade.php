@@ -96,6 +96,61 @@
         </div>
     </div>
 
+    {{-- Original Attachments (source files uploaded by the client to extract the BOQ) --}}
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+            <div class="flex items-center gap-2.5">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50">
+                    <svg class="h-4 w-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                    </svg>
+                </span>
+                <h3 class="text-sm font-bold text-slate-700">{{ __('app.original_attachments') ?? 'Original Attachments' }}</h3>
+                <span class="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-bold text-violet-600">{{ $boq->uploadedDocuments->count() }}</span>
+            </div>
+        </div>
+
+        @if($boq->uploadedDocuments->isEmpty())
+            <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <svg class="h-10 w-10 text-slate-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                </svg>
+                <p class="text-sm font-medium text-slate-400">{{ __('app.no_attachments_found') ?? 'No original attachment was uploaded for this BOQ.' }}</p>
+            </div>
+        @else
+            <ul class="divide-y divide-slate-50">
+                @foreach($boq->uploadedDocuments as $doc)
+                    <li class="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                </svg>
+                            </span>
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-slate-800">{{ $doc->file_name }}</p>
+                                <p class="mt-0.5 text-xs text-slate-400">
+                                    @if($doc->file_size)
+                                        {{ number_format($doc->file_size / 1024, 1) }} KB ·
+                                    @endif
+                                    {{ $doc->uploadedBy?->name ?? '—' }} ·
+                                    {{ $doc->created_at?->format('M j, Y') }}
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.boqs.documents.download', [$boq->uuid, $doc->uuid]) }}"
+                           class="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-violet-50 px-4 py-2 text-xs font-semibold text-violet-700 hover:bg-violet-100 transition">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            {{ __('app.download') ?? 'Download' }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </div>
+
     {{-- Notes --}}
     @if($boq->notes)
     <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
