@@ -70,11 +70,24 @@ class CreateQuotation extends Component
     public array $priceRanges = [];
 
     /**
-     * Outstanding BOQ-validation questions the user must answer before pricing.
-     * The first element is the one currently shown in the blocking modal.
+     * BOQ-validation questions the user must answer before pricing. The list stays
+     * intact for the whole session so the user can navigate back and forth; answers
+     * are collected separately and applied once, on finish.
      * @var list<array<string, mixed>>
      */
     public array $validationQuestions = [];
+
+    /**
+     * Collected answers, keyed by question index:
+     *   [i => ['choice' => <option string>, 'custom' => <free-text or ''>]]
+     * A question is "answered" when it has a choice, and — if that choice is the
+     * free-text option — a non-empty custom value.
+     * @var array<int, array{choice:string, custom:string}>
+     */
+    public array $validationAnswers = [];
+
+    /** Index of the question currently shown in the modal. */
+    public int $currentQuestion = 0;
 
     /** Whether the post-upload validation gate has run for the current items. */
     public bool $validationRan = false;
@@ -357,6 +370,8 @@ class CreateQuotation extends Component
     {
         $this->validationRan       = true;
         $this->validationQuestions = [];
+        $this->validationAnswers   = [];
+        $this->currentQuestion     = 0;
 
         try {
             $result = app(BoqValidationService::class)->validate($this->items);
@@ -372,21 +387,19 @@ class CreateQuotation extends Component
     }
 
     /**
-     * Apply the user's answer to the CURRENT (first) validation question, then pop
-     * it off the queue so the next question surfaces. The chosen option is applied
-     * to the underlying item according to the question's gate.
+     * Record the user's choice for a question WITHOUT applying it yet.
      *
-     * @param  string  $choice  One of the question's option strings.
+     * Nothing touches $this->items here: answers are collected and only applied on
+     * finishValidation(), so the user can freely navigate back and change any answer
+     * before committing. The optional $custom carries free text for the "other" option.
      */
-    public function answerValidation(string $choice): void
+    public function answerValidation(int $questionIndex, string $choice, string $custom = ''): void
     {
-        if (empty($this->validationQuestions)) {
+        if (! array_key_exists($questionIndex, $this->validationQuestions)) {
             return;
         }
 
-        $question = $this->validationQuestions[0];
-        $row      = (int) ($question['row'] ?? -1);
-        $gate     = (string) ($question['gate'] ?? '');
+        $question = $this->validationQuestions[$questionIndex];
         $options  = is_array($question['options'] ?? null) ? $question['options'] : [];
 
         // Reject answers that are not one of the offered options.
@@ -394,15 +407,89 @@ class CreateQuotation extends Component
             return;
         }
 
-        if (array_key_exists($row, $this->items)) {
-            $this->applyValidationAnswer($row, $gate, $choice, $question);
+        $this->validationAnswers[$questionIndex] = [
+            'choice' => $choice,
+            'custom' => trim($custom),
+        ];
+    }
+
+    /** Navigate directly to a question (tab click). */
+    public function goToQuestion(int $index): void
+    {
+        if (array_key_exists($index, $this->validationQuestions)) {
+            $this->currentQuestion = $index;
+        }
+    }
+
+    public function nextQuestion(): void
+    {
+        if ($this->currentQuestion < count($this->validationQuestions) - 1) {
+            $this->currentQuestion++;
+        }
+    }
+
+    public function prevQuestion(): void
+    {
+        if ($this->currentQuestion > 0) {
+            $this->currentQuestion--;
+        }
+    }
+
+    /**
+     * True when every question has a usable answer: a chosen option, and — when that
+     * option is the free-text "other" — a non-empty custom value.
+     */
+    public function getAllValidationAnsweredProperty(): bool
+    {
+        foreach ($this->validationQuestions as $i => $question) {
+            $answer = $this->validationAnswers[$i] ?? null;
+            if ($answer === null || ($answer['choice'] ?? '') === '') {
+                return false;
+            }
+            if (($answer['choice'] ?? '') === ($question['custom_option'] ?? null)
+                && ($answer['custom'] ?? '') === '') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Commit all collected answers to the items, then close the gate. Refuses to run
+     * until every question is answered. Applies row-index-affecting changes safely by
+     * never splicing the items array (see softRejectRow).
+     */
+    public function finishValidation(): void
+    {
+        if (empty($this->validationQuestions)) {
+            return;
         }
 
-        // Consume this question; reindex so element 0 is always the next one.
-        array_shift($this->validationQuestions);
-        $this->validationQuestions = array_values($this->validationQuestions);
+        if (! $this->allValidationAnswered) {
+            $this->dispatch('toast', message: __('app.validation_answer_first'), type: 'warning');
+            return;
+        }
 
-        // Persist the corrections as they are made, if we already have a draft.
+        foreach ($this->validationQuestions as $i => $question) {
+            $answer = $this->validationAnswers[$i] ?? null;
+            if ($answer === null) {
+                continue;
+            }
+
+            $row = (int) ($question['row'] ?? -1);
+            if (! array_key_exists($row, $this->items)) {
+                continue;
+            }
+
+            $this->applyValidationAnswer($row, (string) ($question['gate'] ?? ''), $answer, $question);
+        }
+
+        // Clear the gate.
+        $this->validationQuestions = [];
+        $this->validationAnswers   = [];
+        $this->currentQuestion     = 0;
+
+        // Persist the corrections if we already have a draft.
         if ($this->quotationId !== null) {
             try {
                 $quotation = QuotationRequest::where('client_id', Auth::id())->find($this->quotationId);
@@ -410,23 +497,93 @@ class CreateQuotation extends Component
                     $this->persistItems($quotation);
                 }
             } catch (\Throwable $e) {
-                Log::warning('CreateQuotation::answerValidation persist failed.', ['message' => $e->getMessage()]);
+                Log::warning('CreateQuotation::finishValidation persist failed.', ['message' => $e->getMessage()]);
             }
         }
+
+        $this->dispatch('toast', message: __('app.validation_done'), type: 'success');
     }
 
     /**
-     * Mutate a single item based on a resolved validation question.
-     *
-     * The mapping is deliberately conservative: for unit/quantity we take the chosen
-     * option as the corrected value; for duplicate we remove the extra rows; for the
-     * remaining advisory gates (specs/generic/scope) the answer is recorded but the
-     * row is only removed when the user explicitly chose a "remove" option.
+     * Skip manual answering: auto-pick the system-recommended option for every
+     * question, then commit. Questions without a recommendation fall back to the
+     * first concrete (non-"other") option so nothing is left requiring free text.
      */
-    private function applyValidationAnswer(int $row, string $gate, string $choice, array $question): void
+    public function skipWithRecommendations(): void
     {
+        if (empty($this->validationQuestions)) {
+            return;
+        }
+
+        foreach ($this->validationQuestions as $i => $question) {
+            $options    = is_array($question['options'] ?? null) ? $question['options'] : [];
+            $customOpt  = $question['custom_option'] ?? null;
+            $suggested  = $question['suggested'] ?? null;
+
+            // Prefer the recommendation, but never auto-pick the free-text option
+            // (it would need typing). Otherwise take the first concrete option.
+            $pick = null;
+            if ($suggested !== null && $suggested !== $customOpt && in_array($suggested, $options, true)) {
+                $pick = $suggested;
+            } else {
+                foreach ($options as $opt) {
+                    if ($opt !== $customOpt) {
+                        $pick = $opt;
+                        break;
+                    }
+                }
+            }
+
+            if ($pick !== null) {
+                $this->validationAnswers[$i] = ['choice' => $pick, 'custom' => ''];
+            }
+        }
+
+        $this->finishValidation();
+    }
+
+    /**
+     * Mutate a single item based on a resolved validation question and its answer.
+     *
+     * When the chosen option is the free-text "other", the custom value is written to
+     * the gate's target field (unit/description/brand). Otherwise the chosen option
+     * itself is applied. "Remove" choices soft-reject the row(s).
+     *
+     * @param  array{choice:string, custom:string}  $answer
+     */
+    private function applyValidationAnswer(int $row, string $gate, array $answer, array $question): void
+    {
+        $choice   = $answer['choice'] ?? '';
+        $custom   = trim($answer['custom'] ?? '');
+        $isCustom = $choice === ($question['custom_option'] ?? null);
         $isRemove = $choice === __('app.validation_dup_remove')
             || $choice === __('app.validation_remove_item');
+
+        // Resolve the value the user settled on: their free text when they chose
+        // "other", otherwise the chosen option string itself.
+        $value = $isCustom ? $custom : $choice;
+
+        // For gates that target an item field, write the resolved value straight onto
+        // the BOQ item so the product row itself changes (brand/unit/description/...).
+        // This is the core behaviour: answers EDIT the items, not the quotation shell.
+        $field = $question['custom_field'] ?? null;
+        if ($value !== '' && ! $isRemove && $field !== null) {
+            if ($field === 'unit') {
+                $this->items[$row]['unit'] = $this->extractUnitToken($value);
+            } elseif ($field === 'brand') {
+                // A specs answer names the brand/grade; keep it in brand and also fold
+                // it into the description so pricing sees the fuller spec.
+                $this->items[$row]['brand'] = $value;
+                $this->items[$row]['description'] = $this->appendSpec(
+                    (string) ($this->items[$row]['description'] ?? ''),
+                    $value
+                );
+            } elseif ($field === 'description') {
+                // generic/scope: the answer replaces the vague description outright.
+                $this->items[$row]['description'] = $value;
+            }
+            return;
+        }
 
         switch ($gate) {
             case 'unit':
@@ -435,7 +592,7 @@ class CreateQuotation extends Component
                 break;
 
             case 'quantity':
-                if (is_numeric($this->firstNumber($choice))) {
+                if ($this->firstNumber($choice) !== '') {
                     $this->items[$row]['quantity'] = (float) $this->firstNumber($choice);
                 }
                 break;
@@ -501,6 +658,29 @@ class CreateQuotation extends Component
     private function firstNumber(string $s): string
     {
         return preg_match('/[\d.]+/', $s, $m) ? $m[0] : '';
+    }
+
+    /**
+     * Fold a spec (brand/grade) into a description without duplicating it.
+     * "Reinforcement steel" + "SABIC B500" → "Reinforcement steel — SABIC B500".
+     */
+    private function appendSpec(string $description, string $spec): string
+    {
+        $description = trim($description);
+        $spec        = trim($spec);
+
+        if ($spec === '') {
+            return $description;
+        }
+        if ($description === '') {
+            return $spec;
+        }
+        // Already present (case-insensitive) → leave as-is.
+        if (mb_stripos($description, $spec) !== false) {
+            return $description;
+        }
+
+        return $description . ' — ' . $spec;
     }
 
     // -------------------------------------------------------------------------

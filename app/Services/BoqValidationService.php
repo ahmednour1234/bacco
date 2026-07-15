@@ -188,12 +188,31 @@ class BoqValidationService
                 ? $entry['sug']
                 : null;
 
+            $options = array_map(fn($o) => mb_substr((string) $o, 0, 120), array_slice($opts, 0, 4));
+
+            // Which item field a free-text answer should be written to for this gate.
+            // Duplicate is a keep/remove decision — no meaningful free-text target.
+            $customField = match ((string) $gate) {
+                'unit'    => 'unit',
+                'generic' => 'description',
+                'scope'   => 'description',
+                'specs'   => 'brand',   // "specify the brand/grade" → brand field
+                default   => null,
+            };
+
+            // Offer an explicit "other / specify" option whenever free text makes sense.
+            if ($customField !== null) {
+                $options[] = __('app.validation_other_option');
+            }
+
             $questions[] = [
-                'row'       => (int) $row,
-                'gate'      => (string) $gate,
-                'question'  => mb_substr($question, 0, 255),
-                'options'   => array_map(fn($o) => mb_substr((string) $o, 0, 120), array_slice($opts, 0, 4)),
-                'suggested' => $suggested,
+                'row'          => (int) $row,
+                'gate'         => (string) $gate,
+                'question'     => mb_substr($question, 0, 255),
+                'options'      => array_values($options),
+                'suggested'    => $suggested,
+                'custom_field' => $customField,
+                'custom_option'=> $customField !== null ? __('app.validation_other_option') : null,
             ];
         }
 
@@ -255,7 +274,9 @@ class BoqValidationService
                     __('app.validation_dup_keep'),
                     __('app.validation_dup_remove'),
                 ],
-                'suggested' => __('app.validation_dup_remove'),
+                'suggested'    => __('app.validation_dup_remove'),
+                'custom_field' => null,
+                'custom_option'=> null,
                 // Extra rows so the caller can remove the duplicates on "remove".
                 'dup_rows'  => array_slice($rows, 1),
             ];

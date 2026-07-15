@@ -1125,15 +1125,23 @@
     {{-- ───── BOQ validation gate (blocking modal) ────────────────────────── --}}
     @if(! empty($validationQuestions))
         @php
-            $vq        = $validationQuestions[0];
-            $vqGate    = $vq['gate'] ?? '';
-            $vqGateLbl = __('app.validation_gate_' . $vqGate);
+            $curIdx      = max(0, min($currentQuestion, count($validationQuestions) - 1));
+            $vq          = $validationQuestions[$curIdx];
+            $vqGate      = $vq['gate'] ?? '';
+            $vqGateLbl   = __('app.validation_gate_' . $vqGate);
+            $curAnswer   = $validationAnswers[$curIdx] ?? null;
+            $curChoice   = $curAnswer['choice'] ?? null;
+            $curCustom   = $curAnswer['custom'] ?? '';
+            $customOpt   = $vq['custom_option'] ?? null;
+            $total       = count($validationQuestions);
         @endphp
         <div
             class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4"
             wire:key="validation-modal"
         >
-            <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl">
+            <div class="flex max-h-[90vh] w-full max-w-xl flex-col rounded-3xl bg-white shadow-2xl">
+
+                {{-- Header --}}
                 <div class="flex items-start gap-3 border-b border-slate-100 px-6 py-5">
                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1146,32 +1154,65 @@
                     </div>
                 </div>
 
-                <div class="px-6 py-6">
+                {{-- Tabs: one chip per question, showing answered state --}}
+                <div class="flex flex-wrap gap-1.5 border-b border-slate-100 px-6 py-3">
+                    @foreach($validationQuestions as $i => $q)
+                        @php
+                            $ans      = $validationAnswers[$i] ?? null;
+                            $answered = $ans !== null && ($ans['choice'] ?? '') !== ''
+                                && (($ans['choice'] ?? '') !== ($q['custom_option'] ?? null) || ($ans['custom'] ?? '') !== '');
+                            $isActive = $i === $curIdx;
+                        @endphp
+                        <button
+                            type="button"
+                            wire:click="goToQuestion({{ $i }})"
+                            title="{{ __('app.validation_gate_' . ($q['gate'] ?? '')) }}"
+                            class="flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold transition
+                                {{ $isActive ? 'ring-2 ring-emerald-400 ' : '' }}
+                                {{ $answered ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}"
+                        >
+                            @if($answered)
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            @else
+                                {{ $i + 1 }}
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
+
+                {{-- Body (scrollable) --}}
+                <div class="overflow-y-auto px-6 py-6" wire:key="vq-body-{{ $curIdx }}">
                     <div class="mb-3 flex items-center justify-between">
                         <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
                             {{ $vqGateLbl }}
                         </span>
-                        <span class="text-[11px] font-medium text-slate-400">
-                            {{ __('app.validation_remaining', ['count' => count($validationQuestions)]) }}
-                        </span>
+                        <span class="text-[11px] font-medium text-slate-400">{{ $curIdx + 1 }} / {{ $total }}</span>
                     </div>
 
                     <p class="text-sm font-medium leading-relaxed text-slate-800">{{ $vq['question'] ?? '' }}</p>
 
                     <div class="mt-5 grid gap-2">
                         @foreach(($vq['options'] ?? []) as $option)
-                            @php $isSuggested = ($vq['suggested'] ?? null) === $option; @endphp
+                            @php
+                                $isSuggested = ($vq['suggested'] ?? null) === $option;
+                                $isChosen    = $curChoice === $option;
+                                $isCustomOpt = $customOpt !== null && $option === $customOpt;
+                            @endphp
                             <button
                                 type="button"
-                                wire:click="answerValidation(@js($option))"
+                                wire:click="answerValidation({{ $curIdx }}, @js($option), @js($isCustomOpt ? $curCustom : ''))"
                                 wire:loading.attr="disabled"
                                 class="flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition
-                                    {{ $isSuggested
-                                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                        : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40' }}"
+                                    {{ $isChosen
+                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-300'
+                                        : ($isSuggested
+                                            ? 'border-emerald-200 bg-emerald-50/40 text-emerald-700 hover:bg-emerald-50'
+                                            : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40') }}"
                             >
                                 <span>{{ $option }}</span>
-                                @if($isSuggested)
+                                @if($isSuggested && ! $isChosen)
                                     <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                                         <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
@@ -1179,9 +1220,82 @@
                                         {{ __('app.recommended') }}
                                     </span>
                                 @endif
+                                @if($isChosen)
+                                    <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                @endif
                             </button>
                         @endforeach
                     </div>
+
+                    {{-- Free-text field: shown only when the "other/specify" option is chosen --}}
+                    @if($customOpt !== null && $curChoice === $customOpt)
+                        <div class="mt-3" wire:key="vq-custom-{{ $curIdx }}">
+                            <input
+                                type="text"
+                                value="{{ $curCustom }}"
+                                wire:change="answerValidation({{ $curIdx }}, @js($customOpt), $event.target.value)"
+                                placeholder="{{ __('app.validation_custom_placeholder') }}"
+                                autofocus
+                                class="h-11 w-full rounded-xl border border-emerald-300 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                            >
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Footer: navigation + finish --}}
+                <div class="flex items-center justify-between gap-3 border-t border-slate-100 px-6 py-4">
+                    <button
+                        type="button"
+                        wire:click="prevQuestion"
+                        @disabled($curIdx === 0)
+                        class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-40"
+                    >
+                        <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        {{ __('app.validation_prev') }}
+                    </button>
+
+                    {{-- Skip: apply every recommended option at once and continue --}}
+                    <button
+                        type="button"
+                        wire:click="skipWithRecommendations"
+                        wire:loading.attr="disabled"
+                        class="inline-flex h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-40"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                        </svg>
+                        {{ __('app.validation_skip_recommended') }}
+                    </button>
+
+                    @if($curIdx < $total - 1)
+                        <button
+                            type="button"
+                            wire:click="nextQuestion"
+                            class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-800 px-5 text-sm font-semibold text-white transition hover:bg-slate-900"
+                        >
+                            {{ __('app.validation_next') }}
+                            <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    @else
+                        <button
+                            type="button"
+                            wire:click="finishValidation"
+                            wire:loading.attr="disabled"
+                            @disabled(! $this->allValidationAnswered)
+                            class="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40"
+                        >
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            {{ __('app.validation_finish') }}
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
