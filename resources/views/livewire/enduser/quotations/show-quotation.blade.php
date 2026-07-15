@@ -247,7 +247,6 @@
                                     <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-400 w-28">{{ __('app.quantity_unit') }}</th>
                                     <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-400 w-44">{{ __('app.logistics_timeline') }}</th>
                                     <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-400 w-44">{{ __('app.engineering_timeline') }}</th>
-                                    <th class="px-5 py-3.5 text-start text-xs font-semibold uppercase tracking-wide text-slate-400 w-32">{{ __('app.brand') }}</th>
                                     <th class="px-5 py-3.5 text-end text-xs font-semibold uppercase tracking-wide text-slate-400 w-36">{{ __('app.price_sar') }}</th>
                                 </tr>
                             </thead>
@@ -300,7 +299,6 @@
                                                 <span class="text-xs text-slate-300">{{ __('app.no_updates_yet') }}</span>
                                             @endif
                                         </td>
-                                        <td class="px-5 py-5 text-xs text-slate-600">{{ $item['brand'] ?: '—' }}</td>
                                         <td class="px-5 py-5 text-end font-mono font-bold text-slate-800">
                                             @if($pricingQueued && empty($item['unit_price']))
                                                 <svg class="ms-auto h-4 w-4 animate-spin text-slate-300" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
@@ -501,7 +499,6 @@
                                 <th class="px-4 py-3 text-start">{{ app()->getLocale() === 'ar' ? 'وصف الصنف' : 'Item Description' }}</th>
                                 <th class="px-4 py-3 text-center w-20">{{ app()->getLocale() === 'ar' ? 'الكمية' : 'Qty' }}</th>
                                 <th class="px-4 py-3 text-center w-20">{{ app()->getLocale() === 'ar' ? 'الوحدة' : 'Unit' }}</th>
-                                <th class="px-4 py-3 text-center w-28">{{ app()->getLocale() === 'ar' ? 'البراند' : 'Brand' }}</th>
                                 <th class="px-4 py-3 text-end w-32">{{ app()->getLocale() === 'ar' ? 'سعر الوحدة' : 'Unit Price' }}</th>
                                 <th class="px-4 py-3 text-end w-32">{{ app()->getLocale() === 'ar' ? 'الإجمالي' : 'Total' }}</th>
                             </tr>
@@ -523,13 +520,6 @@
                                 </td>
                                 <td class="px-4 py-3 text-center font-mono text-slate-700">{{ number_format((float)($item['quantity'] ?? 0), 0) }}</td>
                                 <td class="px-4 py-3 text-center text-slate-500 text-xs">{{ $item['unit'] ?: '—' }}</td>
-                                <td class="px-4 py-3 text-center">
-                                    @if(!empty($item['brand']))
-                                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">{{ $item['brand'] }}</span>
-                                    @else
-                                        <span class="text-slate-300">—</span>
-                                    @endif
-                                </td>
                                 <td class="px-4 py-3 text-end font-mono text-slate-800">
                                     @if($hasPrice)
                                         {{ number_format((float)$item['unit_price'], 2) }}

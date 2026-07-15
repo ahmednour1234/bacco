@@ -363,7 +363,6 @@
                             <th class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500 min-w-[220px]">{{ __('app.description') }}</th>
                             <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
                             <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.unit') }}</th>
-                            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ app()->getLocale()==='ar' ? 'البراند' : 'Brand' }}</th>
                             <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ app()->getLocale()==='ar' ? 'سعر الوحدة' : 'Unit Price' }}</th>
                             <th class="px-4 py-3 text-end text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ app()->getLocale()==='ar' ? 'الإجمالي' : 'Total' }}</th>
                         </tr></thead>
@@ -373,13 +372,6 @@
                                     <td class="px-4 py-3 text-slate-700">{{ $pi['description'] }}</td>
                                     <td class="px-4 py-3 text-center text-slate-600">{{ number_format($pi['quantity'], 2) }}</td>
                                     <td class="px-4 py-3 text-center text-slate-500">{{ $pi['unit'] ?: '—' }}</td>
-                                    <td class="px-4 py-3 text-center">
-                                        @if(!empty($pi['brand']))
-                                            <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">{{ $pi['brand'] }}</span>
-                                        @else
-                                            <span class="text-slate-300">—</span>
-                                        @endif
-                                    </td>
                                     <td class="px-4 py-3 text-end font-medium {{ $pi['unit_price'] ? 'text-slate-800' : 'text-red-400' }}">
                                         {{ $pi['unit_price'] ? number_format($pi['unit_price'], 2).' SAR' : (app()->getLocale()==='ar'?'لم يُسعَّر':'Not priced') }}
                                     </td>
@@ -388,9 +380,9 @@
                             @endforeach
                         </tbody>
                         <tfoot>
-                            <tr class="border-t-2 border-slate-200 bg-slate-50"><td colspan="5" class="px-4 py-3 text-end text-sm font-semibold text-slate-600">{{ app()->getLocale()==='ar'?'المجموع':'Subtotal' }}</td><td class="px-4 py-3 text-end font-bold text-slate-800">{{ number_format($quotationTotal, 2) }} SAR</td></tr>
-                            <tr class="bg-slate-50"><td colspan="5" class="px-4 py-2 text-end text-xs text-slate-500">{{ app()->getLocale()==='ar'?'ضريبة القيمة المضافة (15%)':'VAT (15%)' }}</td><td class="px-4 py-2 text-end text-sm text-slate-600">{{ number_format($quotationTotal * 0.15, 2) }} SAR</td></tr>
-                            <tr class="bg-emerald-50"><td colspan="5" class="px-4 py-3 text-end text-sm font-bold text-emerald-700">{{ app()->getLocale()==='ar'?'الإجمالي شامل الضريبة':'Grand Total incl. VAT' }}</td><td class="px-4 py-3 text-end text-lg font-bold text-emerald-700">{{ number_format($quotationTotal * 1.15, 2) }} SAR</td></tr>
+                            <tr class="border-t-2 border-slate-200 bg-slate-50"><td colspan="4" class="px-4 py-3 text-end text-sm font-semibold text-slate-600">{{ app()->getLocale()==='ar'?'المجموع':'Subtotal' }}</td><td class="px-4 py-3 text-end font-bold text-slate-800">{{ number_format($quotationTotal, 2) }} SAR</td></tr>
+                            <tr class="bg-slate-50"><td colspan="4" class="px-4 py-2 text-end text-xs text-slate-500">{{ app()->getLocale()==='ar'?'ضريبة القيمة المضافة (15%)':'VAT (15%)' }}</td><td class="px-4 py-2 text-end text-sm text-slate-600">{{ number_format($quotationTotal * 0.15, 2) }} SAR</td></tr>
+                            <tr class="bg-emerald-50"><td colspan="4" class="px-4 py-3 text-end text-sm font-bold text-emerald-700">{{ app()->getLocale()==='ar'?'الإجمالي شامل الضريبة':'Grand Total incl. VAT' }}</td><td class="px-4 py-3 text-end text-lg font-bold text-emerald-700">{{ number_format($quotationTotal * 1.15, 2) }} SAR</td></tr>
                         </tfoot>
                     </table>
                 </div>

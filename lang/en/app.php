@@ -1020,4 +1020,18 @@ return [
     'checkout_order_summary'        => 'Order Summary',
     'project'                       => 'Project',
     'recommended'                   => 'Recommended',
+
+    // Price analysis (pricing-review step)
+    'analysis_title'                => 'Price Analysis',
+    'analysis_none'                 => 'No issues found in the pricing.',
+    'analysis_duplication_msg'      => '{1 Possible duplicate item ":desc" appears :count times.|[2,*] Possible duplicate item ":desc" appears :count times.}',
+    'analysis_inconsistency_msg'    => 'Item ":desc" is priced inconsistently (from :min to :max SAR per unit).',
+    'analysis_vat_mismatch_msg'     => 'VAT looks off: shown :reported SAR, expected :expected SAR (15% of subtotal).',
+    'analysis_market_range'         => 'Market range',
+    'analysis_range_below'          => 'Below market',
+    'analysis_range_above'          => 'Above market',
+    'analysis_range_within'         => 'Within market',
+    'min_price'                     => 'Min',
+    'avg_price'                     => 'Avg',
+    'max_price'                     => 'Max',
 ];

@@ -985,4 +985,18 @@ return [
     'address_fields_required'       => 'يرجى ملء جميع حقول العنوان المطلوبة.',
     'only_tender_can_convert'       => 'يمكن تحويل عروض المناقصات فقط إلى طلبات.',
     'recommended'                   => 'موصى به',
+
+    // تحليل الأسعار (خطوة مراجعة التسعير)
+    'analysis_title'                => 'تحليل الأسعار',
+    'analysis_none'                 => 'لا توجد ملاحظات على التسعير.',
+    'analysis_duplication_msg'      => '{1 بند مكرر محتمل ":desc" ظهر :count مرة.|[2,*] بند مكرر محتمل ":desc" ظهر :count مرات.}',
+    'analysis_inconsistency_msg'    => 'البند ":desc" مُسعّر بشكل غير متسق (من :min إلى :max ريال للوحدة).',
+    'analysis_vat_mismatch_msg'     => 'قيمة الضريبة غير متطابقة: المعروض :reported ريال، والمتوقع :expected ريال (15% من الإجمالي الفرعي).',
+    'analysis_market_range'         => 'النطاق السوقي',
+    'analysis_range_below'          => 'أقل من السوق',
+    'analysis_range_above'          => 'أعلى من السوق',
+    'analysis_range_within'         => 'ضمن السوق',
+    'min_price'                     => 'الأدنى',
+    'avg_price'                     => 'المتوسط',
+    'max_price'                     => 'الأعلى',
 ];

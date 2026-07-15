@@ -11,6 +11,7 @@ use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
 use App\Models\UploadedDocument;
+use App\Services\PriceAnalysisService;
 use App\Services\PricingService;
 use App\Services\QuotationAiService;
 use App\Services\NotificationService;
@@ -54,6 +55,18 @@ class CreateQuotation extends Component
     public bool $showPricing = false;
 
     public bool $pricingLoading = false;
+
+    /**
+     * Analysis findings surfaced on the pricing-review step.
+     * @var list<array{code:string, severity:string, message:string, rows:list<int>}>
+     */
+    public array $priceFindings = [];
+
+    /**
+     * Market unit-price range per item index: [index => ['min'=>, 'avg'=>, 'max'=>]].
+     * @var array<int, array{min:float, avg:float, max:float}>
+     */
+    public array $priceRanges = [];
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -251,6 +264,8 @@ class CreateQuotation extends Component
         try {
             $this->items      = app(PricingService::class)->fetchPrices($this->items);
             $this->showPricing = true;
+
+            $this->runPriceAnalysis();
         } catch (\Throwable $e) {
             Log::error('CreateQuotation::fetchPricing failed.', ['message' => $e->getMessage()]);
             $this->dispatch('toast', message: 'Pricing fetch failed. Please try again.', type: 'error');
@@ -274,6 +289,7 @@ class CreateQuotation extends Component
             return;
         }
         $this->items[$index]['price_status'] = 'approved';
+        $this->runPriceAnalysis();
     }
 
     public function rejectPriceItem(int $index): void
@@ -282,6 +298,36 @@ class CreateQuotation extends Component
             return;
         }
         $this->items[$index]['price_status'] = 'rejected';
+        $this->runPriceAnalysis();
+    }
+
+    /**
+     * Run the whole-set price analysis (duplication, inconsistency, market range,
+     * VAT check) and store the results for the pricing-review step. Never throws:
+     * analysis is advisory, so a failure must not break the pricing flow.
+     *
+     * The "reported VAT" checked here is 15% of the current non-rejected subtotal —
+     * the same figure the review blade renders — so the check confirms that number
+     * is internally consistent.
+     */
+    private function runPriceAnalysis(): void
+    {
+        try {
+            $subtotal = collect($this->items)
+                ->filter(fn($i) => ($i['price_status'] ?? 'pending') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
+                ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
+
+            $reportedVat = round($subtotal * PriceAnalysisService::VAT_RATE, 2);
+
+            $result = app(PriceAnalysisService::class)->analyze($this->items, $reportedVat);
+
+            $this->priceFindings = $result['findings'];
+            $this->priceRanges   = $result['ranges'];
+        } catch (\Throwable $e) {
+            Log::error('CreateQuotation::runPriceAnalysis failed.', ['message' => $e->getMessage()]);
+            $this->priceFindings = [];
+            $this->priceRanges   = [];
+        }
     }
 
     // -------------------------------------------------------------------------

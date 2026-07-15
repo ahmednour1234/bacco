@@ -515,7 +515,6 @@
                                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-20">{{ __('app.qty') }}</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.unit') }}</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-32">{{ __('app.category') }}</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.brand') }}</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.status') }}</th>
                                         <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.engineering') }}</th>
                                         <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.actions') }}</th>
@@ -580,18 +579,6 @@
                                                     value="{{ $item['category'] }}"
                                                     wire:change="updateItem({{ $index }}, 'category', $event.target.value)"
                                                     placeholder="{{ __('app.category') }}"
-                                                    class="w-full rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-1 focus:ring-emerald-200 group-hover:border-slate-200"
-                                                    @if(($item['status'] ?? '') === 'rejected') disabled @endif
-                                                >
-                                            </td>
-
-                                            {{-- Brand --}}
-                                            <td class="px-4 py-2.5">
-                                                <input
-                                                    type="text"
-                                                    value="{{ $item['brand'] }}"
-                                                    wire:change="updateItem({{ $index }}, 'brand', $event.target.value)"
-                                                    placeholder="{{ __('app.brand') }}"
                                                     class="w-full rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-1 focus:ring-emerald-200 group-hover:border-slate-200"
                                                     @if(($item['status'] ?? '') === 'rejected') disabled @endif
                                                 >
@@ -785,6 +772,34 @@
 
             <div class="p-6 space-y-5">
 
+                {{-- Price analysis findings (duplication / inconsistency / VAT) --}}
+                <div>
+                    <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('app.analysis_title') }}</h3>
+                    @if(empty($priceFindings))
+                        <div class="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-sm text-emerald-700">
+                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            {{ __('app.analysis_none') }}
+                        </div>
+                    @else
+                        <div class="space-y-2">
+                            @foreach($priceFindings as $finding)
+                                @php
+                                    $isDanger  = ($finding['severity'] ?? 'warning') === 'danger';
+                                    $boxClass  = $isDanger ? 'border-red-200 bg-red-50/70 text-red-700' : 'border-amber-200 bg-amber-50/70 text-amber-700';
+                                @endphp
+                                <div class="flex items-start gap-2 rounded-xl border px-4 py-3 text-sm {{ $boxClass }}">
+                                    <svg class="mt-0.5 h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                    </svg>
+                                    <span>{{ $finding['message'] }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
                 {{-- Pricing table --}}
                 <div class="overflow-x-auto rounded-xl border border-slate-200">
                     <table class="w-full text-sm">
@@ -798,6 +813,7 @@
                                 <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.engineering') }}</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.status') }}</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.price_sar') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-40">{{ __('app.analysis_market_range') }}</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.total_sar') }}</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-8">{{ __('app.source') }}</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.actions') }}</th>
@@ -854,6 +870,31 @@
                                             {{ number_format($unitPrice, 2) }}
                                         @else
                                             <span class="text-xs text-slate-400 italic">{{ __('app.not_found') }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @php $range = $priceRanges[$index] ?? null; @endphp
+                                        @if($range)
+                                            @php
+                                                $rangeState = $unitPrice === null ? 'within'
+                                                    : ($unitPrice < $range['min'] ? 'below'
+                                                    : ($unitPrice > $range['max'] ? 'above' : 'within'));
+                                                $rangeBadge = match($rangeState) {
+                                                    'below' => ['bg-amber-100 text-amber-700', __('app.analysis_range_below')],
+                                                    'above' => ['bg-red-100 text-red-700', __('app.analysis_range_above')],
+                                                    default => ['bg-emerald-100 text-emerald-700', __('app.analysis_range_within')],
+                                                };
+                                            @endphp
+                                            <div class="flex flex-col items-center gap-1">
+                                                <span class="font-mono text-xs text-slate-500" title="{{ __('app.min_price') }} / {{ __('app.avg_price') }} / {{ __('app.max_price') }}">
+                                                    {{ number_format($range['min'], 0) }} · {{ number_format($range['avg'], 0) }} · {{ number_format($range['max'], 0) }}
+                                                </span>
+                                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold {{ $rangeBadge[0] }}">
+                                                    {{ $rangeBadge[1] }}
+                                                </span>
+                                            </div>
+                                        @else
+                                            <span class="text-slate-300">—</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono text-sm font-medium text-slate-800">
