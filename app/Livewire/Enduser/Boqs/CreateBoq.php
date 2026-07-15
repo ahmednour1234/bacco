@@ -26,6 +26,7 @@ use App\Models\UploadedDocument;
 use App\Services\Catalog\SaveQuotationProductsToCatalog;
 use App\Services\NotificationService;
 use App\Services\QuotationAiService;
+use App\Services\SpecValidationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,17 @@ class CreateBoq extends Component
 
     /** Wizard step: 1=Extraction, 2=Confirmation, 3=Fetch Prices, 4=Address+Payment, 5=Order Placed */
     public int $currentStep = 1;
+
+    /** Interstitial spec-questions step, shown between confirmation (2) and pricing (3). */
+    public const STEP_QUESTIONS = 25;
+
+    /**
+     * Items awaiting user answers before pricing, built during confirmItems().
+     * Shape: [{id, description, validation_status, suggested_unit, unit,
+     *          missing_specs:[{key,question,example}], answers:{key:value}}]
+     * @var array<int, array<string, mixed>>
+     */
+    public array $questionItems = [];
 
     public ?int $boqId = null;
     public ?int $projectId = null;
@@ -767,37 +779,197 @@ class CreateBoq extends Component
                 }
             });
 
-            // ── Load items for display (no prices yet) ──────────────────────
-            $qItems = QuotationItem::where('quotation_request_id', $this->quotationId)->with('unit')->get();
-            $this->pricedItems  = $qItems->map(fn($qi) => [
-                'description' => (string) $qi->description,
-                'quantity'    => (float) $qi->quantity,
-                'unit'        => $qi->unit?->name ?? '',
-                'unit_price'  => null,
-                'line_total'  => 0,
-                'category'    => (string) ($qi->category ?? ''),
-            ])->toArray();
-            $this->quotationTotal = 0;
-            $this->pricedCount    = 0;
-            $this->unpricedCount  = count($this->pricedItems);
-
-            // ── Run pricing synchronously so prices appear immediately ────────
-            $this->pricesFetching = true;
-            $this->currentStep = 3;
-
-            try {
-                FetchQuotationPricesJob::dispatchSync($this->quotationId, $this->guestMode ? null : Auth::id(), $this->quotationUuid);
-            } catch (\Throwable $jobEx) {
-                Log::error('CreateBoq: pricing job failed synchronously.', ['message' => $jobEx->getMessage()]);
+            // ── Spec validation gate (before pricing) ───────────────────────
+            // Audit unit correctness + spec completeness. If anything needs the
+            // user's input, pause on the questions step instead of pricing blind.
+            if ($this->runSpecValidation()) {
+                return; // paused on STEP_QUESTIONS
             }
 
-            // Load results immediately so step 3 renders with real data
-            $this->pollPriceStatus();
+            // Nothing to ask → price now.
+            $this->runPricing();
 
         } catch (\Throwable $e) {
             Log::error('CreateBoq::confirmItems failed.', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             $this->dispatch('toast', message: 'Failed to process items. Please try again.', type: 'error');
         }
+    }
+
+    /**
+     * Validate the just-created quotation items for unit/spec issues and persist
+     * the verdict on both the QuotationItem and its BoqItem. When any item needs
+     * more information, populate $questionItems and switch to the questions step.
+     *
+     * @return bool  true if the flow paused for questions (caller must return).
+     */
+    private function runSpecValidation(): bool
+    {
+        $qItems = QuotationItem::where('quotation_request_id', $this->quotationId)
+            ->with('unit')
+            ->get();
+
+        $payload = $qItems->map(fn($qi) => [
+            'id'          => $qi->id,
+            'description' => (string) $qi->description,
+            'unit'        => $qi->unit?->name ?? '',
+            'quantity'    => (float) $qi->quantity,
+            'category'    => (string) ($qi->category ?? ''),
+            'brand'       => (string) ($qi->brand ?? ''),
+        ])->values()->toArray();
+
+        try {
+            $validated = app(SpecValidationService::class)->validate($payload);
+        } catch (\Throwable $e) {
+            Log::error('CreateBoq: spec validation failed, continuing to pricing.', ['message' => $e->getMessage()]);
+            return false; // never block the flow on a validation outage
+        }
+
+        $this->questionItems = [];
+
+        foreach ($validated as $row) {
+            $id     = $row['id'] ?? null;
+            $status = $row['validation_status'] ?? 'valid';
+            $specs  = is_array($row['missing_specs'] ?? null) ? $row['missing_specs'] : [];
+            if ($id === null) {
+                continue;
+            }
+
+            $attrs = [
+                'validation_status' => $status,
+                'suggested_unit'    => $row['suggested_unit'] ?? null,
+                'missing_specs'     => $specs,
+                'validation_note'   => $row['validation_note'] ?? null,
+                'validated_at'      => now(),
+            ];
+
+            QuotationItem::where('id', $id)->update($attrs);
+
+            // Mirror the verdict onto the source BoqItem (matched by description).
+            if ($this->boqId !== null) {
+                BoqItem::where('boq_id', $this->boqId)
+                    ->where('description', (string) ($row['description'] ?? ''))
+                    ->update($attrs);
+            }
+
+            if ($status === 'needs_information' && ! empty($specs)) {
+                $this->questionItems[] = [
+                    'id'                => $id,
+                    'description'       => (string) ($row['description'] ?? ''),
+                    'unit'              => (string) ($row['unit'] ?? ''),
+                    'validation_status' => $status,
+                    'suggested_unit'    => $row['suggested_unit'] ?? null,
+                    'missing_specs'     => $specs,
+                    'answers'           => [],
+                ];
+            }
+        }
+
+        if (! empty($this->questionItems)) {
+            $this->currentStep = self::STEP_QUESTIONS;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Merge the user's spec answers into each item, mark them valid, then price.
+     */
+    public function submitSpecAnswers(): void
+    {
+        if (! $this->quotationId) {
+            return;
+        }
+
+        foreach ($this->questionItems as $qi) {
+            $id      = $qi['id'] ?? null;
+            $answers = is_array($qi['answers'] ?? null) ? array_filter($qi['answers'], fn($v) => trim((string) $v) !== '') : [];
+            if ($id === null) {
+                continue;
+            }
+
+            $item = QuotationItem::find($id);
+            if (! $item) {
+                continue;
+            }
+
+            // Append the answered specs to the description so the pricing AI uses them.
+            $suffix = $this->buildSpecSuffix($qi['missing_specs'] ?? [], $answers);
+            $newDescription = $suffix !== ''
+                ? trim($item->description) . ' — ' . $suffix
+                : $item->description;
+
+            $update = [
+                'description'       => $newDescription,
+                'spec_answers'      => $answers,
+                'validation_status' => 'valid',
+                'validated_at'      => now(),
+            ];
+            $item->update($update);
+
+            if ($this->boqId !== null) {
+                BoqItem::where('boq_id', $this->boqId)
+                    ->where('description', (string) ($qi['description'] ?? ''))
+                    ->update(['spec_answers' => $answers, 'validation_status' => 'valid', 'validated_at' => now()]);
+            }
+        }
+
+        $this->questionItems = [];
+        $this->runPricing();
+    }
+
+    /** Skip the questions and price with what we have (estimate). */
+    public function skipSpecAnswers(): void
+    {
+        if (! $this->quotationId) {
+            return;
+        }
+        $this->questionItems = [];
+        $this->runPricing();
+    }
+
+    /** Turn answered questions into a human-readable spec string for the description. */
+    private function buildSpecSuffix(array $missingSpecs, array $answers): string
+    {
+        $parts = [];
+        foreach ($missingSpecs as $spec) {
+            $key = $spec['key'] ?? null;
+            if ($key !== null && isset($answers[$key]) && trim((string) $answers[$key]) !== '') {
+                $label   = trim((string) ($spec['question'] ?? $key));
+                $parts[] = $label . ': ' . trim((string) $answers[$key]);
+            }
+        }
+        return implode(' | ', $parts);
+    }
+
+    /** Load items for display, run pricing synchronously, and advance to step 3. */
+    private function runPricing(): void
+    {
+        $qItems = QuotationItem::where('quotation_request_id', $this->quotationId)->with('unit')->get();
+        $this->pricedItems  = $qItems->map(fn($qi) => [
+            'description' => (string) $qi->description,
+            'quantity'    => (float) $qi->quantity,
+            'unit'        => $qi->unit?->name ?? '',
+            'unit_price'  => null,
+            'line_total'  => 0,
+            'category'    => (string) ($qi->category ?? ''),
+        ])->toArray();
+        $this->quotationTotal = 0;
+        $this->pricedCount    = 0;
+        $this->unpricedCount  = count($this->pricedItems);
+
+        // ── Run pricing synchronously so prices appear immediately ────────
+        $this->pricesFetching = true;
+        $this->currentStep = 3;
+
+        try {
+            FetchQuotationPricesJob::dispatchSync($this->quotationId, $this->guestMode ? null : Auth::id(), $this->quotationUuid);
+        } catch (\Throwable $jobEx) {
+            Log::error('CreateBoq: pricing job failed synchronously.', ['message' => $jobEx->getMessage()]);
+        }
+
+        // Load results immediately so step 3 renders with real data
+        $this->pollPriceStatus();
     }
 
     /** Poll called every 5s while prices are being fetched in the background. */

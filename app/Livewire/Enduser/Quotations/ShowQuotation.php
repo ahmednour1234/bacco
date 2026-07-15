@@ -579,6 +579,8 @@ class ShowQuotation extends Component
                 'price_status'         => $item->price_status ?? 'pending',
                 'selected'             => (bool) $item->is_selected,
                 'product_name'         => $item->product?->name ?? null,
+                'validation_status'    => $item->validation_status,
+                'suggested_unit'       => $item->suggested_unit,
             ])
             ->toArray();
     }

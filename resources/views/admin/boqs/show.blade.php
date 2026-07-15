@@ -204,7 +204,19 @@
                         @foreach($boq->items as $idx => $item)
                             <tr class="hover:bg-slate-50/60 transition-colors">
                                 <td class="px-5 py-4 text-slate-400 text-xs font-mono">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
-                                <td class="px-5 py-4 font-semibold text-slate-800">{{ $item->description ?: '—' }}</td>
+                                <td class="px-5 py-4 font-semibold text-slate-800">
+                                    {{ $item->description ?: '—' }}
+                                    @php $vs = \App\Enums\SpecValidationStatusEnum::tryFromString($item->validation_status ?? null); @endphp
+                                    @if($vs && $vs !== \App\Enums\SpecValidationStatusEnum::Valid)
+                                        <span class="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $vs->badgeClasses() }}"
+                                              @if(!empty($item->validation_note)) title="{{ $item->validation_note }}" @endif>
+                                            {{ $vs->label() }}
+                                            @if($vs === \App\Enums\SpecValidationStatusEnum::UnitError && !empty($item->suggested_unit))
+                                                <span class="opacity-80">→ {{ $item->suggested_unit }}</span>
+                                            @endif
+                                        </span>
+                                    @endif
+                                </td>
                                 <td class="px-5 py-4 text-slate-700">
                                     <span class="font-bold">{{ number_format((float)$item->quantity, 0) }}</span>
                                     @if($item->unit)

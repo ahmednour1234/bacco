@@ -261,6 +261,15 @@
                                     <tr class="align-top transition-colors hover:bg-slate-50/50 @if($statusVal === 'rejected') opacity-50 @endif">
                                         <td class="px-5 py-5">
                                             <p class="font-semibold leading-snug text-slate-800">{{ $item['description'] ?: '—' }}</p>
+                                            @php $vs = \App\Enums\SpecValidationStatusEnum::tryFromString($item['validation_status'] ?? null); @endphp
+                                            @if($vs && $vs !== \App\Enums\SpecValidationStatusEnum::Valid)
+                                                <span class="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $vs->badgeClasses() }}">
+                                                    {{ $vs->label() }}
+                                                    @if($vs === \App\Enums\SpecValidationStatusEnum::UnitError && !empty($item['suggested_unit']))
+                                                        <span class="opacity-80">→ {{ $item['suggested_unit'] }}</span>
+                                                    @endif
+                                                </span>
+                                            @endif
                                         </td>
                                         <td class="px-5 py-5">
                                             <p class="font-bold text-slate-800">{{ number_format((float)($item['quantity'] ?? 0)) }}</p>
@@ -492,6 +501,7 @@
                                 <th class="px-4 py-3 text-start">{{ app()->getLocale() === 'ar' ? 'وصف الصنف' : 'Item Description' }}</th>
                                 <th class="px-4 py-3 text-center w-20">{{ app()->getLocale() === 'ar' ? 'الكمية' : 'Qty' }}</th>
                                 <th class="px-4 py-3 text-center w-20">{{ app()->getLocale() === 'ar' ? 'الوحدة' : 'Unit' }}</th>
+                                <th class="px-4 py-3 text-center w-28">{{ app()->getLocale() === 'ar' ? 'البراند' : 'Brand' }}</th>
                                 <th class="px-4 py-3 text-end w-32">{{ app()->getLocale() === 'ar' ? 'سعر الوحدة' : 'Unit Price' }}</th>
                                 <th class="px-4 py-3 text-end w-32">{{ app()->getLocale() === 'ar' ? 'الإجمالي' : 'Total' }}</th>
                             </tr>
@@ -508,14 +518,18 @@
                                 <td class="px-4 py-3">
                                     <div class="font-medium text-slate-800 leading-snug max-w-xs">{{ $item['description'] ?: '—' }}</div>
                                     @if(!empty($item['product_name']))
-                                        <div class="mt-0.5 text-xs text-slateald-500 text-slate-400">{{ $item['product_name'] }}</div>
-                                    @endif
-                                    @if(!empty($item['brand']))
-                                        <div class="mt-0.5 text-xs text-slate-400">{{ $item['brand'] }}</div>
+                                        <div class="mt-0.5 text-xs text-slate-400">{{ $item['product_name'] }}</div>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-center font-mono text-slate-700">{{ number_format((float)($item['quantity'] ?? 0), 0) }}</td>
                                 <td class="px-4 py-3 text-center text-slate-500 text-xs">{{ $item['unit'] ?: '—' }}</td>
+                                <td class="px-4 py-3 text-center">
+                                    @if(!empty($item['brand']))
+                                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">{{ $item['brand'] }}</span>
+                                    @else
+                                        <span class="text-slate-300">—</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 text-end font-mono text-slate-800">
                                     @if($hasPrice)
                                         {{ number_format((float)$item['unit_price'], 2) }}

@@ -106,6 +106,9 @@ class ShowQuotation extends Component
                 'price_source'         => $item->price_source,
                 'selected'             => (bool) $item->is_selected,
                 'product_name'         => $item->product?->name ?? null,
+                'validation_status'    => $item->validation_status,
+                'suggested_unit'       => $item->suggested_unit,
+                'validation_note'      => $item->validation_note,
             ])
             ->toArray();
     }

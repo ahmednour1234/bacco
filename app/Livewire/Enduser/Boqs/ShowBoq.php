@@ -21,6 +21,7 @@ use App\Models\Unit;
 use App\Models\UploadedDocument;
 use App\Services\NotificationService;
 use App\Services\QuotationAiService;
+use App\Services\SpecValidationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,6 +42,12 @@ class ShowBoq extends Component
 
     // ── Wizard state ──────────────────────────────────────────────────────────
     public int $currentStep = 1;
+
+    /** Interstitial spec-questions step, shown between confirm (1) and pricing (2). */
+    public const STEP_QUESTIONS = 25;
+
+    /** @var array<int, array<string, mixed>> */
+    public array $questionItems = [];
 
     public bool $pricesFetching = false;
 
@@ -363,16 +370,162 @@ class ShowBoq extends Component
                 $this->boq->update(['status' => BoqStatusEnum::Submitted]);
             });
 
-            // Dispatch async pricing job
-            FetchQuotationPricesJob::dispatch($this->quotationId, Auth::id(), $this->quotationUuid);
+            // ── Spec validation gate (before pricing) ───────────────────────
+            if ($this->runSpecValidation()) {
+                return; // paused on STEP_QUESTIONS
+            }
 
-            $this->pricesFetching = true;
-            $this->currentStep    = 2;
+            $this->startPricing();
 
         } catch (\Throwable $e) {
             Log::error('ShowBoq::confirmItems failed.', ['message' => $e->getMessage()]);
             $this->dispatch('toast', message: 'فشل إنشاء عرض السعر. يرجى المحاولة مرة أخرى.', type: 'error');
         }
+    }
+
+    /**
+     * Audit unit/spec issues on the new quotation items, persist verdicts, and —
+     * if any item needs info — pause on the questions step.
+     *
+     * @return bool  true if the flow paused for questions (caller must return).
+     */
+    private function runSpecValidation(): bool
+    {
+        $qItems = QuotationItem::where('quotation_request_id', $this->quotationId)
+            ->with('unit')
+            ->get();
+
+        $payload = $qItems->map(fn($qi) => [
+            'id'          => $qi->id,
+            'description' => (string) $qi->description,
+            'unit'        => $qi->unit?->name ?? '',
+            'quantity'    => (float) $qi->quantity,
+            'category'    => (string) ($qi->category ?? ''),
+            'brand'       => (string) ($qi->brand ?? ''),
+        ])->values()->toArray();
+
+        try {
+            $validated = app(SpecValidationService::class)->validate($payload);
+        } catch (\Throwable $e) {
+            Log::error('ShowBoq: spec validation failed, continuing to pricing.', ['message' => $e->getMessage()]);
+            return false;
+        }
+
+        $this->questionItems = [];
+
+        foreach ($validated as $row) {
+            $id     = $row['id'] ?? null;
+            $status = $row['validation_status'] ?? 'valid';
+            $specs  = is_array($row['missing_specs'] ?? null) ? $row['missing_specs'] : [];
+            if ($id === null) {
+                continue;
+            }
+
+            $attrs = [
+                'validation_status' => $status,
+                'suggested_unit'    => $row['suggested_unit'] ?? null,
+                'missing_specs'     => $specs,
+                'validation_note'   => $row['validation_note'] ?? null,
+                'validated_at'      => now(),
+            ];
+
+            QuotationItem::where('id', $id)->update($attrs);
+
+            BoqItem::where('boq_id', $this->boq->id)
+                ->where('description', (string) ($row['description'] ?? ''))
+                ->update($attrs);
+
+            if ($status === 'needs_information' && ! empty($specs)) {
+                $this->questionItems[] = [
+                    'id'                => $id,
+                    'description'       => (string) ($row['description'] ?? ''),
+                    'unit'              => (string) ($row['unit'] ?? ''),
+                    'validation_status' => $status,
+                    'suggested_unit'    => $row['suggested_unit'] ?? null,
+                    'missing_specs'     => $specs,
+                    'answers'           => [],
+                ];
+            }
+        }
+
+        if (! empty($this->questionItems)) {
+            $this->currentStep = self::STEP_QUESTIONS;
+            return true;
+        }
+
+        return false;
+    }
+
+    /** Merge the user's spec answers into each item, mark valid, then price. */
+    public function submitSpecAnswers(): void
+    {
+        if (! $this->quotationId) {
+            return;
+        }
+
+        foreach ($this->questionItems as $qi) {
+            $id      = $qi['id'] ?? null;
+            $answers = is_array($qi['answers'] ?? null) ? array_filter($qi['answers'], fn($v) => trim((string) $v) !== '') : [];
+            if ($id === null) {
+                continue;
+            }
+
+            $item = QuotationItem::find($id);
+            if (! $item) {
+                continue;
+            }
+
+            $suffix = $this->buildSpecSuffix($qi['missing_specs'] ?? [], $answers);
+            $newDescription = $suffix !== ''
+                ? trim($item->description) . ' — ' . $suffix
+                : $item->description;
+
+            $item->update([
+                'description'       => $newDescription,
+                'spec_answers'      => $answers,
+                'validation_status' => 'valid',
+                'validated_at'      => now(),
+            ]);
+
+            BoqItem::where('boq_id', $this->boq->id)
+                ->where('description', (string) ($qi['description'] ?? ''))
+                ->update(['spec_answers' => $answers, 'validation_status' => 'valid', 'validated_at' => now()]);
+        }
+
+        $this->questionItems = [];
+        $this->startPricing();
+    }
+
+    /** Skip the questions and price with what we have. */
+    public function skipSpecAnswers(): void
+    {
+        if (! $this->quotationId) {
+            return;
+        }
+        $this->questionItems = [];
+        $this->startPricing();
+    }
+
+    private function buildSpecSuffix(array $missingSpecs, array $answers): string
+    {
+        $parts = [];
+        foreach ($missingSpecs as $spec) {
+            $key = $spec['key'] ?? null;
+            if ($key !== null && isset($answers[$key]) && trim((string) $answers[$key]) !== '') {
+                $label   = trim((string) ($spec['question'] ?? $key));
+                $parts[] = $label . ': ' . trim((string) $answers[$key]);
+            }
+        }
+        return implode(' | ', $parts);
+    }
+
+    /** Dispatch async pricing and advance to the pricing step. */
+    private function startPricing(): void
+    {
+        FetchQuotationPricesJob::dispatch($this->quotationId, Auth::id(), $this->quotationUuid);
+
+        $this->pricesFetching = true;
+        $this->currentStep    = 2;
     }
 
     // -------------------------------------------------------------------------

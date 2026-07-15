@@ -182,7 +182,19 @@
                                             <span title="Not selected" class="inline-block h-6 w-6 rounded-full border-2 border-slate-200 bg-white"></span>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-3 font-medium text-slate-800">{{ $item['description'] ?: '—' }}</td>
+                                    <td class="px-4 py-3 font-medium text-slate-800">
+                                        {{ $item['description'] ?: '—' }}
+                                        @php $vs = \App\Enums\SpecValidationStatusEnum::tryFromString($item['validation_status'] ?? null); @endphp
+                                        @if($vs && $vs !== \App\Enums\SpecValidationStatusEnum::Valid)
+                                            <span class="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $vs->badgeClasses() }}"
+                                                  @if(!empty($item['validation_note'])) title="{{ $item['validation_note'] }}" @endif>
+                                                {{ $vs->label() }}
+                                                @if($vs === \App\Enums\SpecValidationStatusEnum::UnitError && !empty($item['suggested_unit']))
+                                                    <span class="opacity-80">→ {{ $item['suggested_unit'] }}</span>
+                                                @endif
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 text-slate-600">{{ number_format((float)($item['quantity'] ?? 0)) }}</td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['unit'] ?: '—' }}</td>
                                     <td class="px-4 py-3 text-slate-500">{{ $item['category'] ?: '—' }}</td>

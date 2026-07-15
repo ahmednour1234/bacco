@@ -23,6 +23,9 @@ class BoqItem extends BaseModel
             'confidence'           => 'decimal:2',
             'raw_data'             => 'array',
             'ai_extracted'         => 'boolean',
+            'missing_specs'        => 'array',
+            'spec_answers'         => 'array',
+            'validated_at'         => 'datetime',
         ]);
     }
 

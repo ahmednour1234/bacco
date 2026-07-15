@@ -310,6 +310,13 @@
         @endif {{-- end step 1 --}}
 
         {{-- ═══════════════════════════════════════
+             STEP 2.5 – أسئلة المواصفات قبل التسعير
+        ═══════════════════════════════════════ --}}
+        @if($currentStep === \App\Livewire\Enduser\Boqs\ShowBoq::STEP_QUESTIONS)
+            @include('livewire.enduser.boqs.partials.spec-questions')
+        @endif
+
+        {{-- ═══════════════════════════════════════
              STEP 2 – جلب الأسعار
         ═══════════════════════════════════════ --}}
         @if($currentStep === 2)

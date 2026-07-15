@@ -730,6 +730,13 @@
     @endif
 
     {{-- ══════════════════════════════════════════════════════
+         STEP 2.5 – أسئلة المواصفات  (Spec clarification before pricing)
+    ══════════════════════════════════════════════════════ --}}
+    @if($currentStep === \App\Livewire\Enduser\Boqs\CreateBoq::STEP_QUESTIONS)
+        @include('livewire.enduser.boqs.partials.spec-questions')
+    @endif
+
+    {{-- ══════════════════════════════════════════════════════
          STEP 3 – جلب الأسعار  (Prices / Quotation Review)
     ══════════════════════════════════════════════════════ --}}
     @if($currentStep === 3)

@@ -23,6 +23,9 @@ class QuotationItem extends BaseModel
             'ai_extracted'         => 'boolean',
             'verified_price'       => 'decimal:2',
             'price_verified_at'    => 'datetime',
+            'missing_specs'        => 'array',
+            'spec_answers'         => 'array',
+            'validated_at'         => 'datetime',
         ]);
     }
 
