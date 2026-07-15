@@ -472,8 +472,9 @@ class CreateQuotation extends Component
 
     /**
      * Commit all collected answers to the items, then close the gate. Refuses to run
-     * until every question is answered. Applies row-index-affecting changes safely by
-     * never splicing the items array (see softRejectRow).
+     * until every question is answered. Field edits are applied in place; removals are
+     * batched and executed once at the end (see removeRows) so real deletion never
+     * corrupts the indices of rows still being processed.
      */
     public function finishValidation(): void
     {
@@ -486,6 +487,11 @@ class CreateQuotation extends Component
             return;
         }
 
+        // Rows the user asked to remove. Collected here and deleted in ONE pass at the
+        // end, in descending index order, so real deletion never shifts the indices of
+        // rows still to be processed.
+        $rowsToRemove = [];
+
         foreach ($this->validationQuestions as $i => $question) {
             $answer = $this->validationAnswers[$i] ?? null;
             if ($answer === null) {
@@ -497,8 +503,14 @@ class CreateQuotation extends Component
                 continue;
             }
 
-            $this->applyValidationAnswer($row, (string) ($question['gate'] ?? ''), $answer, $question);
+            $remove = $this->applyValidationAnswer($row, (string) ($question['gate'] ?? ''), $answer, $question);
+            foreach ($remove as $r) {
+                $rowsToRemove[$r] = true;
+            }
         }
+
+        // Actually remove the flagged rows (duplicates / out-of-scope / unwanted).
+        $this->removeRows(array_keys($rowsToRemove));
 
         // Clear the gate.
         $this->validationQuestions = [];
@@ -563,11 +575,16 @@ class CreateQuotation extends Component
      *
      * When the chosen option is the free-text "other", the custom value is written to
      * the gate's target field (unit/description/brand). Otherwise the chosen option
-     * itself is applied. "Remove" choices soft-reject the row(s).
+     * itself is applied.
+     *
+     * Field edits happen in place immediately. Removals are NOT done here — the rows
+     * to remove are returned to the caller, which deletes them all at once at the end
+     * so real deletion never shifts indices of rows still being processed.
      *
      * @param  array{choice:string, custom:string}  $answer
+     * @return list<int>  Row indices the user asked to remove (empty when none).
      */
-    private function applyValidationAnswer(int $row, string $gate, array $answer, array $question): void
+    private function applyValidationAnswer(int $row, string $gate, array $answer, array $question): array
     {
         $choice   = $answer['choice'] ?? '';
         $custom   = trim($answer['custom'] ?? '');
@@ -582,8 +599,10 @@ class CreateQuotation extends Component
         // For gates that target an item field, write the resolved value straight onto
         // the BOQ item so the product row itself changes (brand/unit/description/...).
         // This is the core behaviour: answers EDIT the items, not the quotation shell.
+        // A vague placeholder ("not specified", "unclear") is treated as "leave as-is"
+        // so it is never written into a field.
         $field = $question['custom_field'] ?? null;
-        if ($value !== '' && ! $isRemove && $field !== null) {
+        if ($value !== '' && ! $isRemove && ! $this->isVagueValue($value) && $field !== null) {
             if ($field === 'unit') {
                 $this->items[$row]['unit'] = $this->extractUnitToken($value);
             } elseif ($field === 'brand') {
@@ -598,7 +617,7 @@ class CreateQuotation extends Component
                 // generic/scope: the answer replaces the vague description outright.
                 $this->items[$row]['description'] = $value;
             }
-            return;
+            return [];
         }
 
         switch ($gate) {
@@ -615,10 +634,9 @@ class CreateQuotation extends Component
 
             case 'duplicate':
                 if ($isRemove) {
+                    // Remove the duplicate copies (keep the primary row).
                     $dupRows = is_array($question['dup_rows'] ?? null) ? $question['dup_rows'] : [$row];
-                    foreach ($dupRows as $r) {
-                        $this->softRejectRow((int) $r);
-                    }
+                    return array_map('intval', $dupRows);
                 }
                 break;
 
@@ -626,36 +644,43 @@ class CreateQuotation extends Component
             case 'generic':
             case 'scope':
                 if ($isRemove) {
-                    $this->softRejectRow($row);
+                    return [$row];
                 }
                 // Otherwise the user confirmed the row is fine as-is; nothing to change.
                 break;
         }
+
+        return [];
     }
 
     /**
-     * Mark a row as rejected WITHOUT re-indexing the items array.
+     * Permanently delete the given item rows from the table and the database.
      *
-     * Validation answers must never splice $this->items: the remaining queued
-     * questions still reference rows by their original index, so removing an element
-     * would silently point every later question at the wrong row. Rejecting keeps the
-     * index stable while excluding the row from pricing, totals and submission.
+     * Deletes in DESCENDING index order and re-splices once so earlier indices stay
+     * valid throughout. Safe to call after every answer has been resolved, because at
+     * that point no code still references rows by their original index.
+     *
+     * @param  list<int>  $rows
      */
-    private function softRejectRow(int $row): void
+    private function removeRows(array $rows): void
     {
-        if (! array_key_exists($row, $this->items)) {
+        if (empty($rows)) {
             return;
         }
 
-        $this->items[$row]['status']       = QuotationItemStatusEnum::Rejected->value;
-        $this->items[$row]['price_status'] = 'rejected';
-        $this->items[$row]['is_selected']  = false;
+        $rows = array_values(array_unique(array_map('intval', $rows)));
+        rsort($rows);
 
-        if (! empty($this->items[$row]['id'])) {
-            QuotationItem::where('id', $this->items[$row]['id'])->update([
-                'status'      => QuotationItemStatusEnum::Rejected,
-                'is_selected' => false,
-            ]);
+        foreach ($rows as $row) {
+            if (! array_key_exists($row, $this->items)) {
+                continue;
+            }
+
+            if (! empty($this->items[$row]['id'])) {
+                QuotationItem::where('id', $this->items[$row]['id'])->delete();
+            }
+
+            array_splice($this->items, $row, 1);
         }
     }
 
@@ -697,6 +722,23 @@ class CreateQuotation extends Component
         }
 
         return $description . ' — ' . $spec;
+    }
+
+    /**
+     * A "leave as-is" placeholder answer that must never be written into a field —
+     * e.g. the user picked "not specified"/"unclear" rather than a concrete value.
+     */
+    private function isVagueValue(string $value): bool
+    {
+        $v = mb_strtolower(trim($value));
+
+        foreach (['غير محدد', 'غير معروف', 'غير واضح', 'not specified', 'unspecified', 'unknown', 'unclear', 'n/a'] as $needle) {
+            if ($v === mb_strtolower($needle)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // -------------------------------------------------------------------------
