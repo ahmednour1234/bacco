@@ -403,15 +403,13 @@ class ShowBoq extends Component
             $lineTotal = $unitPrice !== null ? round($unitPrice * $quantity, 2) : 0;
 
             $this->pricedItems[] = [
-                'description'       => (string) $qi->description,
-                'quantity'          => $quantity,
-                'unit'              => $qi->unit?->name ?? '',
-                'brand'             => (string) ($qi->brand ?? ''),
-                'unit_price'        => $unitPrice,
-                'line_total'        => $lineTotal,
-                'category'          => (string) ($qi->category ?? ''),
-                'price_verdict'     => $qi->price_verdict,
-                'verification_note' => (string) ($qi->price_verification_note ?? ''),
+                'description' => (string) $qi->description,
+                'quantity'    => $quantity,
+                'unit'        => $qi->unit?->name ?? '',
+                'brand'       => (string) ($qi->brand ?? ''),
+                'unit_price'  => $unitPrice,
+                'line_total'  => $lineTotal,
+                'category'    => (string) ($qi->category ?? ''),
             ];
 
             if ($unitPrice !== null) {
