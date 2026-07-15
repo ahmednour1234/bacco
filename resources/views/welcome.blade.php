@@ -24,6 +24,17 @@
 
 @section('styles')
 <style>
+    /* Visually hidden but available to screen readers (e.g. table captions) */
+    .sr-only {
+        position: absolute;
+        width: 1px; height: 1px;
+        padding: 0; margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
     /* -- HERO -- */
     .hero {
         padding: 105px 0 90px;
@@ -230,7 +241,8 @@
     /* -- PROBLEM -- */
     .problem { padding: 80px 0; background: var(--white); }
     .section-intro { font-size: 14px; color: var(--gray-text); max-width: 520px; margin-bottom: 48px; line-height: 1.65; }
-    .section-intro strong { display: block; font-size: 20px; font-weight: 700; margin-bottom: 6px; color: var(--dark); }
+    .section-intro strong,
+    .section-intro-title { display: block; font-size: 20px; font-weight: 700; margin-bottom: 6px; color: var(--dark); font-family: inherit; line-height: 1.4; }
     .problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     .problem-card { border: 1px solid var(--border); border-radius: 16px; padding: 36px 28px; }
     .problem-icon { width: 52px; height: 52px; background: rgba(0,106,59,.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; color: var(--green); }
@@ -243,6 +255,9 @@
     .section-title { font-family: 'Cairo', sans-serif; font-size: 25px; font-weight: 800; color: var(--dark); text-align: left; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
     [dir="rtl"] .section-title { text-align: right; }
     .section-title::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    /* Grids converted to semantic lists (ol/ul) — strip default list styling */
+    .how-grid, .pillars-grid, .eco-grid,
+    .engine-metrics, .divs-grid, .news-grid { list-style: none; margin: 0; padding: 0; }
     .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
     .how-card { background: var(--white); border-radius: 16px; padding: 32px 24px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; overflow: hidden; min-height: 260px; }
     .how-card.active { background: var(--green); color: var(--white); border-color: transparent; }
@@ -268,7 +283,7 @@
     [dir="rtl"] .pillar-num { letter-spacing: 0; }
     .pillar-title { font-family: 'Cairo', sans-serif; font-size: 22px; font-weight: 900; color: var(--white); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
     [dir="rtl"] .pillar-title { letter-spacing: 0; }
-    .pillar-desc { font-size: 12px; color: rgba(255,255,255,.7); line-height: 1.6; }
+    .pillar-desc { font-size: 12px; color: rgba(255,255,255,.92); line-height: 1.6; }
 
     /* -- ECOSYSTEM -- */
     .eco { padding: 80px 0; background: var(--white); }
@@ -297,8 +312,10 @@
     .compare table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 14px; overflow: hidden; min-width: 540px; font-family: 'Cairo', sans-serif; }
     .compare th, .compare td { padding: 22px 32px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border); vertical-align: middle; height: 64px; }
     [dir="rtl"] .compare th, [dir="rtl"] .compare td { text-align: right; }
-    .compare th { font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #bbb; background: var(--white); }
-    [dir="rtl"] .compare th { letter-spacing: 0; }
+    .compare thead th { font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #bbb; background: var(--white); }
+    [dir="rtl"] .compare thead th { letter-spacing: 0; }
+    /* Row headers (first cell of each body row) keep the original data-cell look */
+    .compare tbody th[scope="row"] { font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 800; color: var(--dark); background: var(--white); letter-spacing: 0; text-transform: none; }
     .compare th.col-qimta { background: var(--green); color: var(--white); text-align: center; font-family: 'Cairo', sans-serif; font-weight: 900; font-size: 16px; letter-spacing: 0; text-transform: none; }
     .compare td { font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 800; color: var(--dark); }
     .compare td.col-qimta { background: var(--green); text-align: center; font-family: 'Cairo', sans-serif; font-weight: 900; font-size: 15px; color: var(--white); border-bottom: 1px solid rgba(255,255,255,.12); }
@@ -333,9 +350,10 @@
     .divs-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
     .div-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 18px 16px; text-decoration: none; color: inherit; display: block; transition: border-color .2s, box-shadow .2s; }
     .div-card:hover { border-color: var(--green); box-shadow: 0 4px 16px rgba(0,106,59,.08); }
-    .div-num { font-size: 11px; font-weight: 700; color: #aaa; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .div-name { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
-    .div-count { font-size: 12px; color: #888; }
+    .divs-grid > li { display: block; }
+    .div-num { display: block; font-size: 11px; font-weight: 700; color: #aaa; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .div-name { display: block; font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+    .div-count { display: block; font-size: 12px; color: #888; }
 
     /* -- NEWS -- */
     .news { padding: 80px 0; background: var(--white); }
@@ -348,7 +366,7 @@
     .news-img-placeholder img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
     .news-card:hover .news-img-placeholder img { transform: scale(1.05); }
     .news-body { padding: 20px; }
-    .news-tag { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+    .news-tag { display: block; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
     [dir="rtl"] .news-tag { letter-spacing: 0; }
     .news-tag.market { color: #e07b00; }
     .news-tag.tech { color: var(--green); }
@@ -516,13 +534,13 @@ $_faqSchema = json_encode([
 @section('content')
 
     <!-- HERO -->
-    <section class="hero">
+    <section class="hero" aria-labelledby="hero-title">
         <div class="container">
             <div class="hero-inner">
                 <div class="hero-content">
-                    <h2 class="hero-tag">{{ __('welcome.hero.tag') }}</h2>
+                    <p class="hero-tag">{{ __('welcome.hero.tag') }}</p>
 
-                    <h1>{{ __('welcome.hero.h1') }}</h1>
+                    <h1 id="hero-title">{{ __('welcome.hero.h1') }}</h1>
 
                     <p class="hero-sub">
                         {{ __('welcome.hero.sub', ['products' => number_format($catalogStats['products'])]) }}
@@ -564,11 +582,11 @@ $_faqSchema = json_encode([
     </section>
 
     <!-- STATS -->
-    <section class="stats">
+    <section class="stats" aria-labelledby="stats-title">
         <div class="container">
             <div class="stats-top">
                 <div>
-                    <p class="stats-label">{{ __('welcome.stats.label') }}</p>
+                    <h2 id="stats-title" class="stats-label">{{ __('welcome.stats.label') }}</h2>
                     <p class="stats-sub">{{ __('welcome.stats.sub') }}</p>
                 </div>
                 <a href="{{ route('catalog.index') }}" class="stats-link">{{ __('welcome.stats.link') }} &rarr;</a>
@@ -603,34 +621,34 @@ $_faqSchema = json_encode([
     </section>
 
     <!-- PROBLEM -->
-    <section class="problem">
+    <section class="problem" aria-labelledby="problem-title">
         <div class="container">
             <div class="section-intro">
-                <strong>{{ __('welcome.problem.headline') }}</strong>
+                <h2 id="problem-title" class="section-intro-title">{{ __('welcome.problem.headline') }}</h2>
                 {{ __('welcome.problem.sub') }}
             </div>
             <div class="problem-grid">
-                <div class="problem-card">
-                    <div class="problem-icon">
-                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <article class="problem-card">
+                    <div class="problem-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     </div>
-                    <p class="problem-title">{{ __('welcome.problem.p1_title') }}</p>
+                    <h3 class="problem-title">{{ __('welcome.problem.p1_title') }}</h3>
                     <p class="problem-desc">{{ __('welcome.problem.p1_desc') }}</p>
-                </div>
-                <div class="problem-card">
-                    <div class="problem-icon">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </article>
+                <article class="problem-card">
+                    <div class="problem-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
-                    <p class="problem-title">{{ __('welcome.problem.p2_title') }}</p>
+                    <h3 class="problem-title">{{ __('welcome.problem.p2_title') }}</h3>
                     <p class="problem-desc">{{ __('welcome.problem.p2_desc') }}</p>
-                </div>
-                <div class="problem-card">
-                    <div class="problem-icon">
-                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </article>
+                <article class="problem-card">
+                    <div class="problem-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                     </div>
-                    <p class="problem-title">{{ __('welcome.problem.p3_title') }}</p>
+                    <h3 class="problem-title">{{ __('welcome.problem.p3_title') }}</h3>
                     <p class="problem-desc">{{ __('welcome.problem.p3_desc') }}</p>
-                </div>
+                </article>
             </div>
         </div>
     </section>
@@ -640,36 +658,37 @@ $_faqSchema = json_encode([
         <div class="container">
             <div class="compare-wrap">
             <table>
+                <caption class="sr-only">{{ __('welcome.compare.caption') }}</caption>
                 <thead>
                     <tr>
-                        <th>{{ __('welcome.compare.feature') }}</th>
-                        <th class="col-qimta">{{ __('welcome.compare.qimta_engine') }}</th>
-                        <th class="col-trad">{{ __('welcome.compare.traditional') }}</th>
+                        <th scope="col">{{ __('welcome.compare.feature') }}</th>
+                        <th scope="col" class="col-qimta">{{ __('welcome.compare.qimta_engine') }}</th>
+                        <th scope="col" class="col-trad">{{ __('welcome.compare.traditional') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{ __('welcome.compare.speed_label') }}</td>
+                        <th scope="row">{{ __('welcome.compare.speed_label') }}</th>
                         <td class="col-qimta">{{ __('welcome.compare.speed_qimta') }}</td>
                         <td class="col-trad">{{ __('welcome.compare.speed_trad') }}</td>
                     </tr>
                     <tr>
-                        <td>{{ __('welcome.compare.valid_label') }}</td>
+                        <th scope="row">{{ __('welcome.compare.valid_label') }}</th>
                         <td class="col-qimta">{{ __('welcome.compare.valid_qimta') }}</td>
                         <td class="col-trad">{{ __('welcome.compare.valid_trad') }}</td>
                     </tr>
                     <tr>
-                        <td>{{ __('welcome.compare.brand_label') }}</td>
+                        <th scope="row">{{ __('welcome.compare.brand_label') }}</th>
                         <td class="col-qimta">{{ __('welcome.compare.brand_qimta') }}</td>
                         <td class="col-trad">{{ __('welcome.compare.brand_trad') }}</td>
                     </tr>
                     <tr>
-                        <td>{{ __('welcome.compare.data_label') }}</td>
+                        <th scope="row">{{ __('welcome.compare.data_label') }}</th>
                         <td class="col-qimta">{{ __('welcome.compare.data_qimta') }}</td>
                         <td class="col-trad">{{ __('welcome.compare.data_trad') }}</td>
                     </tr>
                     <tr>
-                        <td>{{ __('welcome.compare.buy_label') }}</td>
+                        <th scope="row">{{ __('welcome.compare.buy_label') }}</th>
                         <td class="col-qimta">{{ __('welcome.compare.buy_qimta') }}</td>
                         <td class="col-trad">{{ __('welcome.compare.buy_trad') }}</td>
                     </tr>
@@ -680,229 +699,235 @@ $_faqSchema = json_encode([
     </section>
 
     <!-- HOW IT WORKS -->
-    <section class="how">
+    <section class="how" aria-labelledby="how-title">
         <div class="container">
-            <p class="section-title">{{ __('welcome.how.title') }}</p>
-            <div class="how-grid">
-                <div class="how-card">
-                    <div class="how-icon">
-                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+            <h2 id="how-title" class="section-title">{{ __('welcome.how.title') }}</h2>
+            <ol class="how-grid">
+                <li class="how-card">
+                    <div class="how-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
                     </div>
-                    <p class="how-num">01</p>
-                    <p class="how-title">{{ __('welcome.how.s1_title') }}</p>
+                    <span class="how-num" aria-hidden="true">01</span>
+                    <h3 class="how-title">{{ __('welcome.how.s1_title') }}</h3>
                     <p class="how-desc">{{ __('welcome.how.s1_desc') }}</p>
-                </div>
-                <div class="how-card active">
-                    <div class="how-icon">
-                        <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </li>
+                <li class="how-card active">
+                    <div class="how-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     </div>
-                    <p class="how-num">02</p>
-                    <p class="how-title">{{ __('welcome.how.s2_title') }}</p>
+                    <span class="how-num" aria-hidden="true">02</span>
+                    <h3 class="how-title">{{ __('welcome.how.s2_title') }}</h3>
                     <p class="how-desc">{{ __('welcome.how.s2_desc') }}</p>
-                </div>
-                <div class="how-card">
-                    <div class="how-icon">
-                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </li>
+                <li class="how-card">
+                    <div class="how-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     </div>
-                    <p class="how-num">03</p>
-                    <p class="how-title">{{ __('welcome.how.s3_title') }}</p>
+                    <span class="how-num" aria-hidden="true">03</span>
+                    <h3 class="how-title">{{ __('welcome.how.s3_title') }}</h3>
                     <p class="how-desc">{{ __('welcome.how.s3_desc') }}</p>
-                </div>
-                <div class="how-card">
-                    <div class="how-icon">
-                        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                </li>
+                <li class="how-card">
+                    <div class="how-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                     </div>
-                    <p class="how-num">04</p>
-                    <p class="how-title">{{ __('welcome.how.s4_title') }}</p>
+                    <span class="how-num" aria-hidden="true">04</span>
+                    <h3 class="how-title">{{ __('welcome.how.s4_title') }}</h3>
                     <p class="how-desc">{{ __('welcome.how.s4_desc') }}</p>
-                </div>
-            </div>
+                </li>
+            </ol>
         </div>
     </section>
 
     <!-- PILLARS -->
-    <section class="pillars">
+    <section class="pillars" aria-labelledby="pillars-title">
         <div class="container">
-            <div class="pillars-grid">
-                <div class="pillar">
-                    <div class="pillar-icon">
-                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <h2 id="pillars-title" class="sr-only">{{ __('welcome.pillars.title') }}</h2>
+            <ul class="pillars-grid">
+                <li class="pillar">
+                    <div class="pillar-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
-                    <p class="pillar-num">{{ __('welcome.pillars.p1_num') }}</p>
-                    <p class="pillar-title">{{ __('welcome.pillars.p1_title') }}</p>
+                    <span class="pillar-num" aria-hidden="true">{{ __('welcome.pillars.p1_num') }}</span>
+                    <h3 class="pillar-title">{{ __('welcome.pillars.p1_title') }}</h3>
                     <p class="pillar-desc">{{ __('welcome.pillars.p1_desc') }}</p>
-                </div>
-                <div class="pillar">
-                    <div class="pillar-icon">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M16 6l2 2-2 2" stroke-width="1.2"/></svg>
+                </li>
+                <li class="pillar">
+                    <div class="pillar-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M16 6l2 2-2 2" stroke-width="1.2"/></svg>
                     </div>
-                    <p class="pillar-num">{{ __('welcome.pillars.p2_num') }}</p>
-                    <p class="pillar-title">{{ __('welcome.pillars.p2_title') }}</p>
+                    <span class="pillar-num" aria-hidden="true">{{ __('welcome.pillars.p2_num') }}</span>
+                    <h3 class="pillar-title">{{ __('welcome.pillars.p2_title') }}</h3>
                     <p class="pillar-desc">{{ __('welcome.pillars.p2_desc') }}</p>
-                </div>
-                <div class="pillar">
-                    <div class="pillar-icon">
-                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                </li>
+                <li class="pillar">
+                    <div class="pillar-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
                     </div>
-                    <p class="pillar-num">{{ __('welcome.pillars.p3_num') }}</p>
-                    <p class="pillar-title">{{ __('welcome.pillars.p3_title') }}</p>
+                    <span class="pillar-num" aria-hidden="true">{{ __('welcome.pillars.p3_num') }}</span>
+                    <h3 class="pillar-title">{{ __('welcome.pillars.p3_title') }}</h3>
                     <p class="pillar-desc">{{ __('welcome.pillars.p3_desc') }}</p>
-                </div>
-            </div>
+                </li>
+            </ul>
         </div>
     </section>
 
     <!-- ECOSYSTEM -->
-    <section class="eco">
+    <section class="eco" aria-labelledby="eco-title">
         <div class="container">
             <div class="eco-header">
-                <p class="eco-label">{{ __('welcome.eco.label') }}</p>
+                <h2 id="eco-title" class="eco-label">{{ __('welcome.eco.label') }}</h2>
                 <p class="eco-sub">{{ __('welcome.eco.sub') }}</p>
             </div>
-            <div class="eco-grid">
-                <div class="eco-card">
-                    <div class="eco-icon">
-                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <ul class="eco-grid">
+                <li class="eco-card">
+                    <div class="eco-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
-                    <p class="eco-title">{{ __('welcome.eco.contractors_title') }}</p>
+                    <h3 class="eco-title">{{ __('welcome.eco.contractors_title') }}</h3>
                     <p class="eco-desc">{{ __('welcome.eco.contractors_desc') }}</p>
-                    <a href="{{ route('enduser.register') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
-                </div>
-                <div class="eco-card">
-                    <div class="eco-icon">
-                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <a href="{{ route('enduser.register') }}" class="eco-link" aria-label="{{ __('welcome.eco.learn_more') }}: {{ __('welcome.eco.contractors_title') }}">{{ __('welcome.eco.learn_more') }} &rarr;</a>
+                </li>
+                <li class="eco-card">
+                    <div class="eco-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                     </div>
-                    <p class="eco-title">{{ __('welcome.eco.procurement_title') }}</p>
+                    <h3 class="eco-title">{{ __('welcome.eco.procurement_title') }}</h3>
                     <p class="eco-desc">{{ __('welcome.eco.procurement_desc') }}</p>
-                    <a href="{{ route('catalog.index') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
-                </div>
-                <div class="eco-card">
-                    <div class="eco-icon">
-                        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <a href="{{ route('catalog.index') }}" class="eco-link" aria-label="{{ __('welcome.eco.learn_more') }}: {{ __('welcome.eco.procurement_title') }}">{{ __('welcome.eco.learn_more') }} &rarr;</a>
+                </li>
+                <li class="eco-card">
+                    <div class="eco-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                     </div>
-                    <p class="eco-title">{{ __('welcome.eco.brands_title') }}</p>
+                    <h3 class="eco-title">{{ __('welcome.eco.brands_title') }}</h3>
                     <p class="eco-desc">{{ __('welcome.eco.brands_desc') }}</p>
-                    <a href="{{ route('for-brands') }}" class="eco-link">{{ __('welcome.eco.learn_more') }} &rarr;</a>
-                </div>
-            </div>
+                    <a href="{{ route('for-brands') }}" class="eco-link" aria-label="{{ __('welcome.eco.learn_more') }}: {{ __('welcome.eco.brands_title') }}">{{ __('welcome.eco.learn_more') }} &rarr;</a>
+                </li>
+            </ul>
         </div>
     </section>
 
     <!-- ENGINE -->
-    <section class="engine">
+    <section class="engine" aria-labelledby="engine-title">
         <div class="container engine-inner">
             <div class="engine-card">
                 <p class="engine-title">{{ __('welcome.engine.label') }}</p>
-                <p class="engine-name">{{ __('welcome.engine.name') }}</p>
+                <h2 id="engine-title" class="engine-name">{{ __('welcome.engine.name') }}</h2>
                 <p class="engine-desc">{{ __('welcome.engine.desc') }}</p>
                 <div class="engine-feat">
                     <div class="engine-feat-text">
-                        <p class="engine-feat-title">{{ __('welcome.engine.feat1_title') }}</p>
+                        <h3 class="engine-feat-title">{{ __('welcome.engine.feat1_title') }}</h3>
                         <p class="engine-feat-sub">{{ __('welcome.engine.feat1_sub') }}</p>
                     </div>
-                    <div class="engine-feat-icon">
-                        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+                    <div class="engine-feat-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
                     </div>
                 </div>
                 <div class="engine-feat">
                     <div class="engine-feat-text">
-                        <p class="engine-feat-title">{{ __('welcome.engine.feat2_title') }}</p>
+                        <h3 class="engine-feat-title">{{ __('welcome.engine.feat2_title') }}</h3>
                         <p class="engine-feat-sub">{{ __('welcome.engine.feat2_sub') }}</p>
                     </div>
-                    <div class="engine-feat-icon">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <div class="engine-feat-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
                 </div>
             </div>
-            <div class="engine-metrics">
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <ul class="engine-metrics">
+                <li class="metric-card">
+                    <div class="metric-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                     </div>
                     <p class="metric-val">{{ number_format($catalogStats['products']) }}</p>
                     <p class="metric-label">{{ __('welcome.engine.m1_desc') }}</p>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                </li>
+                <li class="metric-card">
+                    <div class="metric-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                     </div>
                     <p class="metric-val">{{ __('welcome.engine.m2_title') }}</p>
                     <p class="metric-label">{{ __('welcome.engine.m2_desc') }}</p>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </li>
+                <li class="metric-card">
+                    <div class="metric-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     </div>
                     <p class="metric-val">{{ __('welcome.engine.m3_title') }}</p>
                     <p class="metric-label">{{ __('welcome.engine.m3_desc') }}</p>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                </li>
+                <li class="metric-card">
+                    <div class="metric-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                     </div>
                     <p class="metric-val">{{ __('welcome.engine.m4_title') }}</p>
                     <p class="metric-label">{{ __('welcome.engine.m4_desc') }}</p>
-                </div>
-            </div>
+                </li>
+            </ul>
         </div>
     </section>
 
     <!-- DIVISIONS -->
-    <section class="divs">
+    <section class="divs" aria-labelledby="divs-title">
         <div class="container">
-            <div class="divs-grid">
+            <h2 id="divs-title" class="sr-only">{{ __('welcome.divs.title') }}</h2>
+            <ul class="divs-grid">
                 @forelse($divisions ?? [] as $div)
-                    <a href="{{ route('catalog.division', $div->slug) }}" class="div-card">
-                        <p class="div-num">{{ strtoupper(preg_replace('/[^0-9]/', '', $div->name) ? 'Div ' . preg_replace('/[^0-9]/', '', $div->name) : '') }}</p>
-                        <p class="div-name">{{ $div->name }}</p>
-                        <p class="div-count">{{ number_format($div->products) }} {{ __('welcome.divs.products') }}</p>
-                    </a>
+                    <li>
+                        <a href="{{ route('catalog.division', $div->slug) }}" class="div-card">
+                            <span class="div-num">{{ strtoupper(preg_replace('/[^0-9]/', '', $div->name) ? 'Div ' . preg_replace('/[^0-9]/', '', $div->name) : '') }}</span>
+                            <span class="div-name">{{ $div->name }}</span>
+                            <span class="div-count">{{ number_format($div->products) }} {{ __('welcome.divs.products') }}</span>
+                        </a>
+                    </li>
                 @empty
                     {{-- fallback hardcoded cards if DB unavailable --}}
-                    <div class="div-card"><p class="div-num">Div 03</p><p class="div-name">{{ $isAr ? 'خرسانة' : 'Concrete' }}</p><p class="div-count">12,402 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 04</p><p class="div-name">{{ $isAr ? 'بناء' : 'Masonry' }}</p><p class="div-count">8,190 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 05</p><p class="div-name">{{ $isAr ? 'معادن' : 'Metals' }}</p><p class="div-count">26,561 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 07</p><p class="div-name">{{ $isAr ? 'عزل حراري ومائي' : 'Thermal & Moisture' }}</p><p class="div-count">15,003 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 08</p><p class="div-name">{{ $isAr ? 'فتحات' : 'Openings' }}</p><p class="div-count">53,291 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 09</p><p class="div-name">{{ $isAr ? 'تشطيبات' : 'Finishes' }}</p><p class="div-count">42,891 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 21</p><p class="div-name">{{ $isAr ? 'إطفاء الحريق' : 'Fire Suppression' }}</p><p class="div-count">5,620 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 22</p><p class="div-name">{{ $isAr ? 'سباكة' : 'Plumbing' }}</p><p class="div-count">28,109 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 23</p><p class="div-name">{{ $isAr ? 'تكييف' : 'HVAC' }}</p><p class="div-count">31,005 {{ __('welcome.divs.products') }}</p></div>
-                    <div class="div-card"><p class="div-num">Div 26</p><p class="div-name">{{ $isAr ? 'كهرباء' : 'Electrical' }}</p><p class="div-count">55,420 {{ __('welcome.divs.products') }}</p></div>
+                    <li><div class="div-card"><span class="div-num">Div 03</span><span class="div-name">{{ $isAr ? 'خرسانة' : 'Concrete' }}</span><span class="div-count">12,402 {{ __('welcome.divs.products') }}</span></div></li>
+                    <li><div class="div-card"><span class="div-num">Div 04</span><span class="div-name">{{ $isAr ? 'بناء' : 'Masonry' }}</span><span class="div-count">8,190 {{ __('welcome.divs.products') }}</span></div></li>
+                    <li><div class="div-card"><span class="div-num">Div 05</span><span class="div-name">{{ $isAr ? 'معادن' : 'Metals' }}</span><span class="div-count">26,561 {{ __('welcome.divs.products') }}</span></div></li>
+                    <li><div class="div-card"><span class="div-num">Div 07</span><span class="div-name">{{ $isAr ? 'عزل حراري ومائي' : 'Thermal & Moisture' }}</span><span class="div-count">15,003 {{ __('welcome.divs.products') }}</span></div></li>
+                    <li><div class="div-card"><span class="div-num">Div 08</span><span class="div-name">{{ $isAr ? 'فتحات' : 'Openings' }}</span><span class="div-count">53,291 {{ __('welcome.divs.products') }}</span></div></li>
+                    <li><div class="div-card"><span class="div-num">Div 09</span><span class="div-name">{{ $isAr ? 'تشطيبات' : 'Finishes' }}</span><span class="div-count">42,891 {{ __('welcome.divs.products') }}</span></div></li>
+                    <li><div class="div-card"><span class="div-num">Div 21</span><span class="div-name">{{ $isAr ? 'إطفاء الحريق' : 'Fire Suppression' }}</span><span class="div-count">5,620 {{ __('welcome.divs.products') }}</span></div></li>
+                    <li><div class="div-card"><span class="div-num">Div 22</span><span class="div-name">{{ $isAr ? 'سباكة' : 'Plumbing' }}</span><span class="div-count">28,109 {{ __('welcome.divs.products') }}</span></div></li>
+                    <li><div class="div-card"><span class="div-num">Div 23</span><span class="div-name">{{ $isAr ? 'تكييف' : 'HVAC' }}</span><span class="div-count">31,005 {{ __('welcome.divs.products') }}</span></div></li>
+                    <li><div class="div-card"><span class="div-num">Div 26</span><span class="div-name">{{ $isAr ? 'كهرباء' : 'Electrical' }}</span><span class="div-count">55,420 {{ __('welcome.divs.products') }}</span></div></li>
                 @endforelse
-            </div>
+            </ul>
         </div>
     </section>
 
     <!-- NEWS -->
-    <section class="news">
+    <section class="news" aria-labelledby="news-title">
         <div class="container">
             <div class="news-top">
-                <p class="news-top-title">{{ __('welcome.news.title') }}</p>
+                <h2 id="news-title" class="news-top-title">{{ __('welcome.news.title') }}</h2>
                 <a href="{{ route('news') }}" class="news-link">{{ __('welcome.news.view_all') }} &#8599;</a>
             </div>
-            <div class="news-grid">
+            <ul class="news-grid">
                 @foreach($news as $article)
-                <div class="news-card">
-                    @if($article->image)
-                    <div class="news-img-placeholder">
-                        <img src="{{ asset('storage/' . $article->image) }}"
-                             width="800" height="534"
-                             alt="{{ $isAr ? $article->title_ar : $article->title_en }}"
-                             loading="lazy">
-                    </div>
-                    @endif
-                    <div class="news-body">
-                        @if($article->tag)
-                        <p class="news-tag {{ $article->tag }}">{{ $isAr ? $article->name_ar : $article->name_en }}</p>
+                <li>
+                    <article class="news-card">
+                        @if($article->image)
+                        <div class="news-img-placeholder">
+                            <img src="{{ asset('storage/' . $article->image) }}"
+                                 width="800" height="534"
+                                 alt="{{ $isAr ? $article->title_ar : $article->title_en }}"
+                                 loading="lazy">
+                        </div>
                         @endif
-                        <p class="news-title">{{ $isAr ? $article->title_ar : $article->title_en }}</p>
-                        @php $rawDesc = $isAr ? $article->desc_ar : $article->desc_en; @endphp
-                        <p class="news-desc">{{ \Illuminate\Support\Str::limit(strip_tags($rawDesc), 120) }}</p>
-                    </div>
-                </div>
+                        <div class="news-body">
+                            @if($article->tag)
+                            <span class="news-tag {{ $article->tag }}">{{ $isAr ? $article->name_ar : $article->name_en }}</span>
+                            @endif
+                            <h3 class="news-title">{{ $isAr ? $article->title_ar : $article->title_en }}</h3>
+                            @php $rawDesc = $isAr ? $article->desc_ar : $article->desc_en; @endphp
+                            <p class="news-desc">{{ \Illuminate\Support\Str::limit(strip_tags($rawDesc), 120) }}</p>
+                        </div>
+                    </article>
+                </li>
                 @endforeach
-            </div>
+            </ul>
         </div>
     </section>
 

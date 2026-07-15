@@ -76,6 +76,7 @@ return [
 
     // ── PILLARS ──────────────────────────────────────────────────────────────
     'pillars' => [
+        'title'     => 'Qimta\'s Pillars',
         'p1_num'    => 'Pillar 01',
         'p1_title'  => 'Unified',
         'p1_desc'   => 'One platform. All brands. Zero fragmentation.',
@@ -102,6 +103,7 @@ return [
 
     // ── COMPARE ──────────────────────────────────────────────────────────────
     'compare' => [
+        'caption'       => 'Comparison of Qimta versus the traditional way of pricing BOQs',
         'feature'       => 'Feature',
         'qimta_engine'  => 'Qimta Engine',
         'traditional'   => 'Traditional Way',
@@ -147,6 +149,7 @@ return [
 
     // ── DIVISIONS ────────────────────────────────────────────────────────────
     'divs' => [
+        'title'    => 'Browse by engineering division',
         'products' => 'Products',
     ],
 
