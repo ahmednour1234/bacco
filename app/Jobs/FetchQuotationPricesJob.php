@@ -8,6 +8,7 @@ use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Services\BoqCleaningService;
 use App\Services\NotificationService;
+use App\Services\PriceVerificationService;
 use App\Services\PricingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -33,7 +34,7 @@ class FetchQuotationPricesJob implements ShouldQueue
         private readonly string $quotationUuid,
     ) {}
 
-    public function handle(PricingService $pricingService, NotificationService $notificationService, BoqCleaningService $boqCleaner): void
+    public function handle(PricingService $pricingService, NotificationService $notificationService, BoqCleaningService $boqCleaner, PriceVerificationService $priceVerifier): void
     {
         $quotation = QuotationRequest::with('client')->find($this->quotationId);
 
@@ -82,18 +83,43 @@ class FetchQuotationPricesJob implements ShouldQueue
         }
 
         try {
-            $priced    = $pricingService->fetchPrices($guardedItems);
+            $priced = $pricingService->fetchPrices($guardedItems);
+
+            // Second pass — independently re-check each price against Saudi market /
+            // supplier rates via the AI before anything is shown to the client.
+            // The verdict + verified price are persisted so the audit trail is intact.
+            $priced = $priceVerifier->verify($priced);
+
             $gotPrices = 0;
 
             foreach ($priced as $row) {
-                if (! empty($row['id']) && isset($row['unit_price']) && $row['unit_price'] > 0) {
-                    QuotationItem::where('id', $row['id'])->update([
-                        'unit_price'   => $row['unit_price'],
-                        'price_source' => $row['price_source'] ?? null,
-                        'price_status' => 'pending',
-                    ]);
-                    $gotPrices++;
+                if (empty($row['id']) || ! isset($row['unit_price']) || $row['unit_price'] <= 0) {
+                    continue;
                 }
+
+                $original = (float) $row['unit_price'];
+                $verdict  = $row['price_verdict'] ?? null;
+                $verified = isset($row['verified_price']) && is_numeric($row['verified_price']) && $row['verified_price'] > 0
+                    ? (float) $row['verified_price']
+                    : $original;
+
+                // The price the client sees is the AI-verified one:
+                //  - confirmed → same as the original estimate
+                //  - corrected → the corrected market price replaces it
+                //  - flagged / unverified → keep the original, but mark it for review
+                $finalPrice  = in_array($verdict, ['confirmed', 'corrected'], true) ? $verified : $original;
+                $priceStatus = ($verdict === 'flagged') ? 'needs_review' : 'pending';
+
+                QuotationItem::where('id', $row['id'])->update([
+                    'unit_price'              => $finalPrice,
+                    'price_source'            => $row['price_source'] ?? null,
+                    'verified_price'          => $verified,
+                    'price_verdict'           => $verdict,
+                    'price_verification_note' => $row['price_verification_note'] ?? null,
+                    'price_verified_at'       => $verdict !== null ? now() : null,
+                    'price_status'            => $priceStatus,
+                ]);
+                $gotPrices++;
             }
 
             // Also delete any guarded-out items (filtered before pricing)

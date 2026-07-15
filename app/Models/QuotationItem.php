@@ -21,6 +21,8 @@ class QuotationItem extends BaseModel
             'confidence'           => 'decimal:2',
             'raw_data'             => 'array',
             'ai_extracted'         => 'boolean',
+            'verified_price'       => 'decimal:2',
+            'price_verified_at'    => 'datetime',
         ]);
     }
 
