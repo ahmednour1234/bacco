@@ -29,6 +29,9 @@ class CreateQuotation extends Component
 {
     use WithFileUploads;
 
+    /** price_status value for a row that is missing something essential to price. */
+    private const NEEDS_REVIEW = 'needs_review';
+
     // -------------------------------------------------------------------------
     // State
     // -------------------------------------------------------------------------
@@ -294,6 +297,12 @@ class CreateQuotation extends Component
             return;
         }
 
+        // Hard block: any NEEDS_REVIEW item must be fixed or removed before pricing.
+        if ($this->quotationBlocked) {
+            $this->dispatch('toast', message: __('app.validation_needs_review_blocked', ['count' => $this->needsReviewCount]), type: 'error');
+            return;
+        }
+
         $this->pricingLoading = true;
 
         try {
@@ -455,6 +464,23 @@ class CreateQuotation extends Component
      * True when every question has a usable answer: a chosen option, and — when that
      * option is the free-text "other" — a non-empty custom value.
      */
+    /** Number of items currently flagged NEEDS_REVIEW. */
+    public function getNeedsReviewCountProperty(): int
+    {
+        return collect($this->items)
+            ->filter(fn($i) => ($i['price_status'] ?? '') === self::NEEDS_REVIEW)
+            ->count();
+    }
+
+    /**
+     * The quotation is blocked (no pricing / no submit) while any item still needs
+     * review. This is the enforcement point for quotation_blocked = true.
+     */
+    public function getQuotationBlockedProperty(): bool
+    {
+        return $this->needsReviewCount > 0;
+    }
+
     public function getAllValidationAnsweredProperty(): bool
     {
         foreach ($this->validationQuestions as $i => $question) {
@@ -517,6 +543,11 @@ class CreateQuotation extends Component
         $this->validationAnswers   = [];
         $this->currentQuestion     = 0;
 
+        // Second-pass: anything STILL missing something essential after the user's
+        // corrections gets flagged NEEDS_REVIEW — pulled out of pricing and totals,
+        // and it blocks the quotation until fixed or removed.
+        $this->flagNeedsReview();
+
         // Persist the corrections if we already have a draft.
         if ($this->quotationId !== null) {
             try {
@@ -529,7 +560,135 @@ class CreateQuotation extends Component
             }
         }
 
-        $this->dispatch('toast', message: __('app.validation_done'), type: 'success');
+        if ($this->quotationBlocked) {
+            $this->dispatch('toast', message: __('app.validation_needs_review_blocked', ['count' => $this->needsReviewCount]), type: 'warning');
+        } else {
+            $this->dispatch('toast', message: __('app.validation_done'), type: 'success');
+        }
+    }
+
+    /**
+     * Flag every item that is still missing something essential as NEEDS_REVIEW.
+     *
+     * A row needs review when ANY of these hold after the user's corrections:
+     *   - the unit is empty or not a recognizable unit;
+     *   - mandatory technical specs are missing (no brand/grade AND a bare description);
+     *   - the description mentions a "complete system" with no component schedule;
+     *   - it is a probable duplicate of another non-review row.
+     *
+     * Flagged rows get price_status='needs_review' and their price zeroed so they fall
+     * out of the subtotal. Rows that come back clean are un-flagged (a later correction
+     * can clear a previous review flag). This is the gate behind quotationBlocked.
+     */
+    private function flagNeedsReview(): void
+    {
+        // Signatures of the currently-clean rows, to detect leftover duplicates.
+        $seen = [];
+
+        foreach ($this->items as $i => $item) {
+            // Never touch rows the user explicitly rejected.
+            if (($item['price_status'] ?? '') === 'rejected'
+                || ($item['status'] ?? '') === QuotationItemStatusEnum::Rejected->value) {
+                continue;
+            }
+
+            $reasons = $this->reviewReasons($item, $seen);
+
+            if (! empty($reasons)) {
+                $this->items[$i]['price_status']        = self::NEEDS_REVIEW;
+                $this->items[$i]['unit_price']          = null;
+                $this->items[$i]['price_source']        = null;
+                $this->items[$i]['needs_review_reason'] = implode(' · ', $reasons);
+            } else {
+                // Clean now: clear any stale review flag but keep other statuses intact.
+                if (($this->items[$i]['price_status'] ?? '') === self::NEEDS_REVIEW) {
+                    $this->items[$i]['price_status'] = 'pending';
+                }
+                unset($this->items[$i]['needs_review_reason']);
+
+                // Record signature so later identical rows are caught as duplicates.
+                $sig = $this->itemSignature($item);
+                if ($sig !== '') {
+                    $seen[$sig] = true;
+                }
+            }
+        }
+    }
+
+    /**
+     * Reasons a single item needs review, or [] when it is complete.
+     *
+     * @param  array<string, bool>  $seen  Signatures of already-accepted rows.
+     * @return list<string>
+     */
+    private function reviewReasons(array $item, array $seen): array
+    {
+        $reasons     = [];
+        $description = trim((string) ($item['description'] ?? ''));
+        $unit        = trim((string) ($item['unit'] ?? ''));
+        $brand       = trim((string) ($item['brand'] ?? ''));
+
+        // Invalid / missing unit.
+        if ($unit === '' || $this->isVagueValue($unit)) {
+            $reasons[] = __('app.review_reason_unit');
+        }
+
+        // "Complete system" with no itemized component schedule.
+        if ($this->mentionsCompleteSystem($description)) {
+            $reasons[] = __('app.review_reason_system');
+        }
+
+        // Missing mandatory technical specs: a short, bare description with no
+        // brand/grade and no numbers (size/diameter/strength) to price against.
+        $hasNumbers = preg_match('/\d/', $description) === 1;
+        if ($brand === '' && ! $hasNumbers && mb_strlen($description) < 25) {
+            $reasons[] = __('app.review_reason_specs');
+        }
+
+        // Leftover duplicate of an already-accepted row.
+        $sig = $this->itemSignature($item);
+        if ($sig !== '' && isset($seen[$sig])) {
+            $reasons[] = __('app.review_reason_duplicate');
+        }
+
+        return $reasons;
+    }
+
+    /** True when the text claims a whole system/package with no component breakdown. */
+    private function mentionsCompleteSystem(string $description): bool
+    {
+        $d = mb_strtolower($description);
+
+        $phrases = ['complete system', 'full system', 'complete set', 'نظام كامل', 'منظومة كاملة', 'طقم كامل', 'توريد وتركيب كامل'];
+        $mentionsSystem = false;
+        foreach ($phrases as $p) {
+            if (mb_stripos($d, $p) !== false) {
+                $mentionsSystem = true;
+                break;
+            }
+        }
+        if (! $mentionsSystem) {
+            return false;
+        }
+
+        // A component schedule usually shows itself as a list/breakdown or numbers.
+        $hasSchedule = preg_match('/\d/', $d) === 1
+            || mb_stripos($d, 'يشمل') !== false
+            || mb_stripos($d, 'includes') !== false
+            || mb_strpos($d, '-') !== false;
+
+        return ! $hasSchedule;
+    }
+
+    /** Normalized signature for duplicate detection (description + unit). */
+    private function itemSignature(array $item): string
+    {
+        $desc = mb_strtolower(trim((string) ($item['description'] ?? '')));
+        $desc = preg_replace('/\s+/u', ' ', $desc);
+        if ($desc === '') {
+            return '';
+        }
+        return $desc . '|' . mb_strtolower(trim((string) ($item['unit'] ?? '')));
     }
 
     /**
@@ -943,6 +1102,13 @@ class CreateQuotation extends Component
 
         if (empty($this->items)) {
             $this->dispatch('toast', message: 'Please add at least one item before submitting.', type: 'error');
+
+            return;
+        }
+
+        // Hard block: cannot submit while any item still needs review.
+        if ($this->quotationBlocked) {
+            $this->dispatch('toast', message: __('app.validation_needs_review_blocked', ['count' => $this->needsReviewCount]), type: 'error');
 
             return;
         }

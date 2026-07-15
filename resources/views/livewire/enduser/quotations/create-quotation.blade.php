@@ -800,6 +800,16 @@
                     @endif
                 </div>
 
+                {{-- Blocking banner: some items still need review --}}
+                @if($this->quotationBlocked)
+                    <div class="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3.5 text-sm text-amber-800">
+                        <svg class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                        </svg>
+                        <span class="font-medium">{{ __('app.validation_needs_review_blocked', ['count' => $this->needsReviewCount]) }}</span>
+                    </div>
+                @endif
+
                 {{-- Pricing table --}}
                 <div class="overflow-x-auto rounded-xl border border-slate-200">
                     <table class="w-full text-sm">
@@ -828,23 +838,31 @@
                                     $priceSource  = $item['price_source'] ?? null;
 
                                     $rowClass = match($priceStatus) {
-                                        'approved' => 'bg-emerald-50/40',
-                                        'rejected' => 'opacity-50 bg-red-50/20',
-                                        default    => '',
+                                        'approved'     => 'bg-emerald-50/40',
+                                        'rejected'     => 'opacity-50 bg-red-50/20',
+                                        'needs_review' => 'bg-amber-50/60',
+                                        default        => '',
                                     };
                                     $badgeClass = match($priceStatus) {
-                                        'approved' => 'bg-emerald-100 text-emerald-700',
-                                        'rejected' => 'bg-red-100 text-red-700',
-                                        default    => 'bg-amber-100 text-amber-700',
+                                        'approved'     => 'bg-emerald-100 text-emerald-700',
+                                        'rejected'     => 'bg-red-100 text-red-700',
+                                        'needs_review' => 'bg-amber-100 text-amber-800',
+                                        default        => 'bg-amber-100 text-amber-700',
                                     };
                                     $badgeLabel = match($priceStatus) {
-                                        'approved' => __('app.status_approved'),
-                                        'rejected' => __('app.status_rejected'),
-                                        default    => __('app.status_pending'),
+                                        'approved'     => __('app.status_approved'),
+                                        'rejected'     => __('app.status_rejected'),
+                                        'needs_review' => __('app.needs_review_badge'),
+                                        default        => __('app.status_pending'),
                                     };
                                 @endphp
                                 <tr class="transition-colors {{ $rowClass }}">
-                                    <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ $item['description'] ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-700 font-medium">
+                                        {{ $item['description'] ?? '—' }}
+                                        @if($priceStatus === 'needs_review' && !empty($item['needs_review_reason']))
+                                            <span class="mt-1 block text-xs font-normal text-amber-700">⚠ {{ $item['needs_review_reason'] }}</span>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 text-sm text-slate-600">{{ number_format((float)($item['quantity'] ?? 0)) }}</td>
                                     <td class="px-4 py-3 text-sm text-slate-500">{{ $item['unit'] ?? '—' }}</td>
                                     <td class="px-4 py-3 text-sm text-slate-500">{{ $item['category'] ?? '—' }}</td>
@@ -954,7 +972,8 @@
                 @php
                     $taxRate   = 0.15;
                     $subtotal  = collect($items)
-                        ->filter(fn($i) => ($i['price_status'] ?? 'pending') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
+                        ->filter(fn($i) => ! in_array(($i['price_status'] ?? 'pending'), ['rejected', 'needs_review'], true)
+                            && is_numeric($i['unit_price'] ?? null))
                         ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
                     $taxAmount = $subtotal * $taxRate;
                     $total     = $subtotal + $taxAmount;
