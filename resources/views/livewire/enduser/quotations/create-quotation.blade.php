@@ -1121,4 +1121,69 @@
         </div>
 
     </div>
+
+    {{-- ───── BOQ validation gate (blocking modal) ────────────────────────── --}}
+    @if(! empty($validationQuestions))
+        @php
+            $vq        = $validationQuestions[0];
+            $vqGate    = $vq['gate'] ?? '';
+            $vqGateLbl = __('app.validation_gate_' . $vqGate);
+        @endphp
+        <div
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4"
+            wire:key="validation-modal"
+        >
+            <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl">
+                <div class="flex items-start gap-3 border-b border-slate-100 px-6 py-5">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                        </svg>
+                    </span>
+                    <div class="min-w-0">
+                        <h2 class="text-base font-bold text-slate-900">{{ __('app.validation_title') }}</h2>
+                        <p class="mt-0.5 text-xs text-slate-500">{{ __('app.validation_subtitle') }}</p>
+                    </div>
+                </div>
+
+                <div class="px-6 py-6">
+                    <div class="mb-3 flex items-center justify-between">
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+                            {{ $vqGateLbl }}
+                        </span>
+                        <span class="text-[11px] font-medium text-slate-400">
+                            {{ __('app.validation_remaining', ['count' => count($validationQuestions)]) }}
+                        </span>
+                    </div>
+
+                    <p class="text-sm font-medium leading-relaxed text-slate-800">{{ $vq['question'] ?? '' }}</p>
+
+                    <div class="mt-5 grid gap-2">
+                        @foreach(($vq['options'] ?? []) as $option)
+                            @php $isSuggested = ($vq['suggested'] ?? null) === $option; @endphp
+                            <button
+                                type="button"
+                                wire:click="answerValidation(@js($option))"
+                                wire:loading.attr="disabled"
+                                class="flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition
+                                    {{ $isSuggested
+                                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                        : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40' }}"
+                            >
+                                <span>{{ $option }}</span>
+                                @if($isSuggested)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        {{ __('app.recommended') }}
+                                    </span>
+                                @endif
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

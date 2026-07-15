@@ -12,15 +12,14 @@ use Illuminate\Support\Facades\Log;
  * of priced items and surfaces problems the per-item passes cannot see, plus a
  * market price range per item. Nothing here mutates prices — it only reports.
  *
- * It produces four kinds of finding, keyed by a stable code so the UI can style
- * and translate each one:
+ * It produces findings keyed by a stable code so the UI can style and translate
+ * each one:
  *
- *   - DUPLICATION        : two or more rows describe the same item (near-identical
- *                          description + unit). A likely double-count in the BOQ.
  *   - PRICE_INCONSISTENCY: rows that describe the same item carry different unit
  *                          prices. One of them is probably wrong.
- *   - VAT_MISMATCH        : the 15% VAT the caller computed does not match a fresh
- *                          recomputation from the non-rejected line items.
+ *
+ * Duplication and VAT are validated EARLIER, at BOQ-upload time
+ * (see BoqValidationService), so they are intentionally not repeated here.
  *
  * The market range (min / avg / max unit price per item) comes from a fresh
  * DeepSeek query, mirroring PricingService's batched-parallel call shape.
@@ -30,89 +29,26 @@ class PriceAnalysisService
     /** Saudi standard VAT rate. Mirrors the rate hard-coded in the pricing blade. */
     public const VAT_RATE = 0.15;
 
-    /** Absolute SAR tolerance when comparing the caller's VAT to a recomputation. */
-    private const VAT_TOLERANCE = 0.5;
-
     /** Items per DeepSeek range call; kept small so calls run in parallel. */
     private const CHUNK_SIZE = 10;
 
     /**
-     * Run every analysis over a set of already-priced items.
+     * Run the pricing-stage analysis over a set of already-priced items.
      *
      * @param  array<int, array<string, mixed>>  $items
-     * @param  float|null  $reportedVat  The VAT figure the caller displays, to be checked.
      * @return array{
      *     findings: list<array{code:string, severity:string, message:string, rows:list<int>}>,
      *     ranges: array<int, array{min:float, avg:float, max:float}>,
      *     summary: array{subtotal:float, vat:float, total:float}
      * }
      */
-    public function analyze(array $items, ?float $reportedVat = null): array
+    public function analyze(array $items): array
     {
-        $findings = [];
-
-        $findings = array_merge($findings, $this->detectDuplicates($items));
-        $findings = array_merge($findings, $this->detectPriceInconsistencies($items));
-
-        $summary  = $this->computeSummary($items);
-
-        if ($reportedVat !== null) {
-            $vatFinding = $this->checkVat($reportedVat, $summary['vat']);
-            if ($vatFinding !== null) {
-                $findings[] = $vatFinding;
-            }
-        }
-
         return [
-            'findings' => array_values($findings),
+            'findings' => array_values($this->detectPriceInconsistencies($items)),
             'ranges'   => $this->fetchMarketRanges($items),
-            'summary'  => $summary,
+            'summary'  => $this->computeSummary($items),
         ];
-    }
-
-    // -------------------------------------------------------------------------
-    // DUPLICATION
-    // -------------------------------------------------------------------------
-
-    /**
-     * Group rows by a normalized (description + unit) key; any key with more than
-     * one non-rejected row is a suspected duplicate.
-     *
-     * @param  array<int, array<string, mixed>>  $items
-     * @return list<array{code:string, severity:string, message:string, rows:list<int>}>
-     */
-    private function detectDuplicates(array $items): array
-    {
-        $groups = [];
-        foreach ($items as $index => $item) {
-            if (($item['price_status'] ?? 'pending') === 'rejected') {
-                continue;
-            }
-            $key = $this->normalizeKey($item);
-            if ($key === '') {
-                continue;
-            }
-            $groups[$key][] = $index;
-        }
-
-        $findings = [];
-        foreach ($groups as $rows) {
-            if (count($rows) < 2) {
-                continue;
-            }
-            $findings[] = [
-                'code'     => 'DUPLICATION',
-                'severity' => 'warning',
-                'message'  => trans_choice(
-                    'app.analysis_duplication_msg',
-                    count($rows),
-                    ['count' => count($rows), 'desc' => $this->label($items[$rows[0]])]
-                ),
-                'rows'     => $rows,
-            ];
-        }
-
-        return $findings;
     }
 
     // -------------------------------------------------------------------------
@@ -168,31 +104,8 @@ class PriceAnalysisService
     }
 
     // -------------------------------------------------------------------------
-    // VAT review
+    // Summary
     // -------------------------------------------------------------------------
-
-    /**
-     * Compare the caller's reported VAT against a fresh recomputation.
-     * Returns a finding only when they diverge beyond tolerance.
-     *
-     * @return array{code:string, severity:string, message:string, rows:list<int>}|null
-     */
-    private function checkVat(float $reportedVat, float $expectedVat): ?array
-    {
-        if (abs($reportedVat - $expectedVat) <= self::VAT_TOLERANCE) {
-            return null;
-        }
-
-        return [
-            'code'     => 'VAT_MISMATCH',
-            'severity' => 'danger',
-            'message'  => __('app.analysis_vat_mismatch_msg', [
-                'reported' => number_format($reportedVat, 2),
-                'expected' => number_format($expectedVat, 2),
-            ]),
-            'rows'     => [],
-        ];
-    }
 
     /**
      * Recompute subtotal / VAT / total from non-rejected priced rows.

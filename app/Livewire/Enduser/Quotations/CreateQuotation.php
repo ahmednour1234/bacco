@@ -11,6 +11,7 @@ use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
 use App\Models\UploadedDocument;
+use App\Services\BoqValidationService;
 use App\Services\PriceAnalysisService;
 use App\Services\PricingService;
 use App\Services\QuotationAiService;
@@ -67,6 +68,16 @@ class CreateQuotation extends Component
      * @var array<int, array{min:float, avg:float, max:float}>
      */
     public array $priceRanges = [];
+
+    /**
+     * Outstanding BOQ-validation questions the user must answer before pricing.
+     * The first element is the one currently shown in the blocking modal.
+     * @var list<array<string, mixed>>
+     */
+    public array $validationQuestions = [];
+
+    /** Whether the post-upload validation gate has run for the current items. */
+    public bool $validationRan = false;
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -233,6 +244,9 @@ class CreateQuotation extends Component
                 $this->persistItems($quotation);
 
                 $this->dispatch('toast', message: count($result['items']) . ' items extracted successfully from the BOQ file.', type: 'success');
+
+                // Gate: audit the freshly-extracted BOQ before pricing is allowed.
+                $this->runBoqValidation();
             }
 
             $this->boqFile = null;
@@ -256,6 +270,14 @@ class CreateQuotation extends Component
     {
         if (empty($this->items)) {
             $this->dispatch('toast', message: 'Add items first before fetching prices.', type: 'warning');
+            return;
+        }
+
+        // Pricing is gated behind BOQ validation: every outstanding question must be
+        // answered first. This mirrors the blocking modal on the client side, and
+        // also guards direct/programmatic calls.
+        if (! empty($this->validationQuestions)) {
+            $this->dispatch('toast', message: __('app.validation_answer_first'), type: 'warning');
             return;
         }
 
@@ -302,24 +324,15 @@ class CreateQuotation extends Component
     }
 
     /**
-     * Run the whole-set price analysis (duplication, inconsistency, market range,
-     * VAT check) and store the results for the pricing-review step. Never throws:
-     * analysis is advisory, so a failure must not break the pricing flow.
-     *
-     * The "reported VAT" checked here is 15% of the current non-rejected subtotal —
-     * the same figure the review blade renders — so the check confirms that number
-     * is internally consistent.
+     * Run the pricing-stage analysis (price inconsistency + market range) and store
+     * the results for the pricing-review step. Never throws: analysis is advisory,
+     * so a failure must not break the pricing flow. Duplication and VAT are handled
+     * earlier, at BOQ-upload time (see runBoqValidation()).
      */
     private function runPriceAnalysis(): void
     {
         try {
-            $subtotal = collect($this->items)
-                ->filter(fn($i) => ($i['price_status'] ?? 'pending') !== 'rejected' && is_numeric($i['unit_price'] ?? null))
-                ->sum(fn($i) => (float) $i['unit_price'] * (float) ($i['quantity'] ?? 0));
-
-            $reportedVat = round($subtotal * PriceAnalysisService::VAT_RATE, 2);
-
-            $result = app(PriceAnalysisService::class)->analyze($this->items, $reportedVat);
+            $result = app(PriceAnalysisService::class)->analyze($this->items);
 
             $this->priceFindings = $result['findings'];
             $this->priceRanges   = $result['ranges'];
@@ -328,6 +341,166 @@ class CreateQuotation extends Component
             $this->priceFindings = [];
             $this->priceRanges   = [];
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // BOQ validation gate (runs after upload, before pricing)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Audit the freshly-extracted BOQ items and queue any questions the user must
+     * resolve before pricing. On AI failure the gate is treated as passed (empty
+     * queue) so a DeepSeek outage never blocks the whole flow — a warning is shown
+     * instead.
+     */
+    private function runBoqValidation(): void
+    {
+        $this->validationRan       = true;
+        $this->validationQuestions = [];
+
+        try {
+            $result = app(BoqValidationService::class)->validate($this->items);
+            $this->validationQuestions = $result['questions'];
+
+            if ($result['failed']) {
+                $this->dispatch('toast', message: __('app.validation_ai_unavailable'), type: 'warning');
+            }
+        } catch (\Throwable $e) {
+            Log::error('CreateQuotation::runBoqValidation failed.', ['message' => $e->getMessage()]);
+            $this->dispatch('toast', message: __('app.validation_ai_unavailable'), type: 'warning');
+        }
+    }
+
+    /**
+     * Apply the user's answer to the CURRENT (first) validation question, then pop
+     * it off the queue so the next question surfaces. The chosen option is applied
+     * to the underlying item according to the question's gate.
+     *
+     * @param  string  $choice  One of the question's option strings.
+     */
+    public function answerValidation(string $choice): void
+    {
+        if (empty($this->validationQuestions)) {
+            return;
+        }
+
+        $question = $this->validationQuestions[0];
+        $row      = (int) ($question['row'] ?? -1);
+        $gate     = (string) ($question['gate'] ?? '');
+        $options  = is_array($question['options'] ?? null) ? $question['options'] : [];
+
+        // Reject answers that are not one of the offered options.
+        if (! in_array($choice, $options, true)) {
+            return;
+        }
+
+        if (array_key_exists($row, $this->items)) {
+            $this->applyValidationAnswer($row, $gate, $choice, $question);
+        }
+
+        // Consume this question; reindex so element 0 is always the next one.
+        array_shift($this->validationQuestions);
+        $this->validationQuestions = array_values($this->validationQuestions);
+
+        // Persist the corrections as they are made, if we already have a draft.
+        if ($this->quotationId !== null) {
+            try {
+                $quotation = QuotationRequest::where('client_id', Auth::id())->find($this->quotationId);
+                if ($quotation) {
+                    $this->persistItems($quotation);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('CreateQuotation::answerValidation persist failed.', ['message' => $e->getMessage()]);
+            }
+        }
+    }
+
+    /**
+     * Mutate a single item based on a resolved validation question.
+     *
+     * The mapping is deliberately conservative: for unit/quantity we take the chosen
+     * option as the corrected value; for duplicate we remove the extra rows; for the
+     * remaining advisory gates (specs/generic/scope) the answer is recorded but the
+     * row is only removed when the user explicitly chose a "remove" option.
+     */
+    private function applyValidationAnswer(int $row, string $gate, string $choice, array $question): void
+    {
+        $isRemove = $choice === __('app.validation_dup_remove')
+            || $choice === __('app.validation_remove_item');
+
+        switch ($gate) {
+            case 'unit':
+                // Options are concrete unit strings; take the leading token as the unit.
+                $this->items[$row]['unit'] = $this->extractUnitToken($choice);
+                break;
+
+            case 'quantity':
+                if (is_numeric($this->firstNumber($choice))) {
+                    $this->items[$row]['quantity'] = (float) $this->firstNumber($choice);
+                }
+                break;
+
+            case 'duplicate':
+                if ($isRemove) {
+                    $dupRows = is_array($question['dup_rows'] ?? null) ? $question['dup_rows'] : [$row];
+                    foreach ($dupRows as $r) {
+                        $this->softRejectRow((int) $r);
+                    }
+                }
+                break;
+
+            case 'specs':
+            case 'generic':
+            case 'scope':
+                if ($isRemove) {
+                    $this->softRejectRow($row);
+                }
+                // Otherwise the user confirmed the row is fine as-is; nothing to change.
+                break;
+        }
+    }
+
+    /**
+     * Mark a row as rejected WITHOUT re-indexing the items array.
+     *
+     * Validation answers must never splice $this->items: the remaining queued
+     * questions still reference rows by their original index, so removing an element
+     * would silently point every later question at the wrong row. Rejecting keeps the
+     * index stable while excluding the row from pricing, totals and submission.
+     */
+    private function softRejectRow(int $row): void
+    {
+        if (! array_key_exists($row, $this->items)) {
+            return;
+        }
+
+        $this->items[$row]['status']       = QuotationItemStatusEnum::Rejected->value;
+        $this->items[$row]['price_status'] = 'rejected';
+        $this->items[$row]['is_selected']  = false;
+
+        if (! empty($this->items[$row]['id'])) {
+            QuotationItem::where('id', $this->items[$row]['id'])->update([
+                'status'      => QuotationItemStatusEnum::Rejected,
+                'is_selected' => false,
+            ]);
+        }
+    }
+
+    /**
+     * Pull a usable unit token out of an option like "TON (طن)" → "TON".
+     */
+    private function extractUnitToken(string $option): string
+    {
+        $token = trim(preg_replace('/\(.*$/u', '', $option));
+        return $token !== '' ? $token : trim($option);
+    }
+
+    /**
+     * First numeric run in a string, or '' when there is none.
+     */
+    private function firstNumber(string $s): string
+    {
+        return preg_match('/[\d.]+/', $s, $m) ? $m[0] : '';
     }
 
     // -------------------------------------------------------------------------
