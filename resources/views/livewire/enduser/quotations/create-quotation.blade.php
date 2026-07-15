@@ -1244,58 +1244,62 @@
                     @endif
                 </div>
 
-                {{-- Footer: navigation + finish --}}
-                <div class="flex items-center justify-between gap-3 border-t border-slate-100 px-6 py-4">
-                    <button
-                        type="button"
-                        wire:click="prevQuestion"
-                        @disabled($curIdx === 0)
-                        class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-40"
-                    >
-                        <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                        </svg>
-                        {{ __('app.validation_prev') }}
-                    </button>
+                {{-- Footer: primary navigation row, then a subtle skip link --}}
+                <div class="border-t border-slate-100 px-6 py-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <button
+                            type="button"
+                            wire:click="prevQuestion"
+                            @disabled($curIdx === 0)
+                            class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-40"
+                        >
+                            <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            {{ __('app.validation_prev') }}
+                        </button>
+
+                        @if($curIdx < $total - 1)
+                            <button
+                                type="button"
+                                wire:click="nextQuestion"
+                                class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-800 px-6 text-sm font-semibold text-white transition hover:bg-slate-900"
+                            >
+                                {{ __('app.validation_next') }}
+                                <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        @else
+                            <button
+                                type="button"
+                                wire:click="finishValidation"
+                                wire:loading.attr="disabled"
+                                @disabled(! $this->allValidationAnswered)
+                                class="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                {{ __('app.validation_finish') }}
+                            </button>
+                        @endif
+                    </div>
 
                     {{-- Skip: apply every recommended option at once and continue --}}
-                    <button
-                        type="button"
-                        wire:click="skipWithRecommendations"
-                        wire:loading.attr="disabled"
-                        class="inline-flex h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-40"
-                    >
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
-                        </svg>
-                        {{ __('app.validation_skip_recommended') }}
-                    </button>
-
-                    @if($curIdx < $total - 1)
+                    <div class="mt-3 flex justify-center border-t border-slate-50 pt-3">
                         <button
                             type="button"
-                            wire:click="nextQuestion"
-                            class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-800 px-5 text-sm font-semibold text-white transition hover:bg-slate-900"
-                        >
-                            {{ __('app.validation_next') }}
-                            <svg class="h-4 w-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </button>
-                    @else
-                        <button
-                            type="button"
-                            wire:click="finishValidation"
+                            wire:click="skipWithRecommendations"
                             wire:loading.attr="disabled"
-                            @disabled(! $this->allValidationAnswered)
-                            class="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40"
+                            class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 transition hover:text-emerald-700 disabled:opacity-40"
                         >
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            <svg class="h-3.5 w-3.5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
                             </svg>
-                            {{ __('app.validation_finish') }}
+                            {{ __('app.validation_skip_recommended') }}
                         </button>
-                    @endif
+                    </div>
                 </div>
             </div>
         </div>

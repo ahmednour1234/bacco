@@ -407,10 +407,26 @@ class CreateQuotation extends Component
             return;
         }
 
+        $custom = trim($custom);
+
         $this->validationAnswers[$questionIndex] = [
             'choice' => $choice,
-            'custom' => trim($custom),
+            'custom' => $custom,
         ];
+
+        // Auto-advance to the next question once a usable answer is given, so the user
+        // does not have to press "Next" after every pick. We DON'T advance when the
+        // chosen option is the free-text "other" but nothing has been typed yet — the
+        // user still needs to fill the input first.
+        $isCustomOpt = $choice === ($question['custom_option'] ?? null);
+        if ($isCustomOpt && $custom === '') {
+            return;
+        }
+
+        if ($questionIndex === $this->currentQuestion
+            && $this->currentQuestion < count($this->validationQuestions) - 1) {
+            $this->currentQuestion++;
+        }
     }
 
     /** Navigate directly to a question (tab click). */
