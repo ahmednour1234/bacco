@@ -864,7 +864,14 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-sm text-slate-600">{{ number_format((float)($item['quantity'] ?? 0)) }}</td>
-                                    <td class="px-4 py-3 text-sm text-slate-500">{{ $item['unit'] ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-500">
+                                        {{ $item['unit'] ?? '—' }}
+                                        @if(!empty($item['original_unit']) && $item['original_unit'] !== ($item['unit'] ?? ''))
+                                            <span class="mt-0.5 block text-[10px] text-slate-400" title="{{ __('app.original_unit') }}">
+                                                <s>{{ $item['original_unit'] }}</s>
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 text-sm text-slate-500">{{ $item['category'] ?? '—' }}</td>
                                     <td class="px-4 py-3 text-sm text-slate-500">{{ $item['brand'] ?? '—' }}</td>
                                     <td class="px-4 py-3 text-center">

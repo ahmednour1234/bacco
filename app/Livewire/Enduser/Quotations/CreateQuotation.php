@@ -633,9 +633,16 @@ class CreateQuotation extends Component
             $reasons[] = __('app.review_reason_unit');
         }
 
-        // "Complete system" with no itemized component schedule.
-        if ($this->mentionsCompleteSystem($description)) {
-            $reasons[] = __('app.review_reason_system');
+        // Generic / incomplete descriptions (constraint 17): any of the listed vague
+        // phrases makes the item incomplete unless a real component breakdown is present.
+        if ($this->hasGenericPhrase($description) && ! $this->hasComponentSchedule($description)) {
+            $reasons[] = __('app.review_reason_generic');
+        }
+
+        // Wrong unit for the product type (constraints 33-39), e.g. concrete not in m³,
+        // rebar not in Ton/kg. Kept separate from the "missing unit" reason above.
+        if ($unit !== '' && ! $this->isVagueValue($unit) && $this->unitMismatchesType($description, $unit)) {
+            $reasons[] = __('app.review_reason_unit_type');
         }
 
         // Missing mandatory technical specs: a short, bare description with no
@@ -654,33 +661,145 @@ class CreateQuotation extends Component
         return $reasons;
     }
 
-    /** True when the text claims a whole system/package with no component breakdown. */
-    private function mentionsCompleteSystem(string $description): bool
+    /**
+     * True when the description contains a generic/placeholder phrase that makes it
+     * impossible to price precisely (constraint 17). The list mirrors the constraint's
+     * generic phrases, in both English and common Arabic equivalents.
+     */
+    private function hasGenericPhrase(string $description): bool
     {
         $d = mb_strtolower($description);
 
-        $phrases = ['complete system', 'full system', 'complete set', 'نظام كامل', 'منظومة كاملة', 'طقم كامل', 'توريد وتركيب كامل'];
-        $mentionsSystem = false;
+        static $phrases = [
+            // English (constraint 17 list)
+            'various sizes', 'all sizes', 'various capacities', 'complete system',
+            'complete set', 'complete equipment', 'as required', 'as per drawings',
+            'approved brand', 'including all accessories', 'full system',
+            // Arabic equivalents
+            'مقاسات مختلفة', 'جميع المقاسات', 'كل المقاسات', 'سعات مختلفة',
+            'نظام كامل', 'منظومة كاملة', 'طقم كامل', 'حسب المطلوب', 'حسب الرسومات',
+            'ماركة معتمدة', 'شاملة جميع الملحقات', 'شامل كافة الملحقات', 'توريد وتركيب كامل',
+        ];
+
         foreach ($phrases as $p) {
             if (mb_stripos($d, $p) !== false) {
-                $mentionsSystem = true;
-                break;
+                return true;
             }
         }
-        if (! $mentionsSystem) {
-            return false;
-        }
 
-        // A component schedule usually shows itself as a list/breakdown or numbers.
-        $hasSchedule = preg_match('/\d/', $d) === 1
-            || mb_stripos($d, 'يشمل') !== false
-            || mb_stripos($d, 'includes') !== false
-            || mb_strpos($d, '-') !== false;
-
-        return ! $hasSchedule;
+        return false;
     }
 
-    /** Normalized signature for duplicate detection (description + unit). */
+    /**
+     * A component schedule / breakdown that would justify a "complete X" description —
+     * a list, an itemization, or explicit numbers.
+     */
+    private function hasComponentSchedule(string $description): bool
+    {
+        $d = mb_strtolower($description);
+
+        return mb_stripos($d, 'يشمل') !== false
+            || mb_stripos($d, 'includes') !== false
+            || mb_stripos($d, 'consisting') !== false
+            || mb_stripos($d, 'مكوّن من') !== false
+            || mb_stripos($d, 'مكون من') !== false
+            || mb_strpos($d, '-') !== false
+            || preg_match('/\d/', $d) === 1;
+    }
+
+    /**
+     * Whether the item's unit is wrong for its product type (constraints 33-39).
+     *
+     * Detects the product type from keywords in the description, then checks the unit
+     * against the units normally valid for that type. Returns false (no complaint)
+     * when the type is unknown — we only flag units we are confident are wrong, never
+     * guess. Uses PricingService-style normalization so "م3"/"m³"/"cbm" all match.
+     */
+    private function unitMismatchesType(string $description, string $unit): bool
+    {
+        $d = mb_strtolower($description);
+        $u = $this->normalizeUnitToken($unit);
+
+        // type keyword(s) => list of acceptable normalized units
+        static $rules = [
+            // Ready-mix concrete → m³ (constraint 34)
+            'concrete|خرسانة|ready-mix|readymix|خرسانه' => ['م3'],
+            // Reinforcement / structural steel → Ton or kg (constraints 35, 39)
+            'reinforcement|rebar|حديد تسليح|structural steel|حديد إنشائي|هيكل معدني' => ['طن', 'كجم'],
+            // Tiles / boards / membranes / sheet finishes → m² (constraint 37)
+            'tile|بلاط|board|لوح|membrane|عازل مائي صفائح|gypsum|جبس بورد' => ['م2'],
+            // Equipment (pumps, generators, AHU, panels, tanks…) → No or Set (constraint 38)
+            'pump|طلمبة|مضخة|generator|مولد|ahu|وحدة مناولة|panel|لوحة|mdb|tank|خزان|ups' => ['عدد', 'set', 'طقم'],
+        ];
+
+        foreach ($rules as $keywords => $validUnits) {
+            foreach (explode('|', $keywords) as $kw) {
+                if ($kw !== '' && mb_stripos($d, $kw) !== false) {
+                    // Type matched. Flag only if the unit is NOT in the valid set.
+                    $normValid = array_map(fn($v) => $this->normalizeUnitToken($v), $validUnits);
+                    return ! in_array($u, $normValid, true);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Canonicalize a unit string so equivalent spellings compare equal.
+     * Mirrors PricingService::normalizeUnit for the tokens we care about here.
+     */
+    private function normalizeUnitToken(string $unit): string
+    {
+        $u = trim(mb_strtolower($this->extractUnitToken($unit)));
+        if ($u === '') {
+            return '';
+        }
+        $u = strtr($u, ['²' => '2', '³' => '3', '^' => '', '.' => '']);
+        $u = preg_replace('/\s+/u', '', $u);
+
+        static $map = [
+            'متر مكعب' => 'م3', 'مترمكعب' => 'م3', 'cubicmeter' => 'م3', 'cbm' => 'م3', 'm3' => 'م3',
+            'متر مربع' => 'م2', 'مترمربع' => 'م2', 'squaremeter' => 'م2', 'sqm' => 'م2', 'm2' => 'م2',
+            'ton' => 'طن', 'tonne' => 'طن', 'طن' => 'طن',
+            'kg' => 'كجم', 'كيلو' => 'كجم', 'كيلوجرام' => 'كجم', 'كجم' => 'كجم',
+            'no' => 'عدد', 'nos' => 'عدد', 'pcs' => 'عدد', 'pc' => 'عدد', 'piece' => 'عدد', 'unit' => 'عدد', 'عدد' => 'عدد',
+            'set' => 'set', 'طقم' => 'طقم',
+        ];
+
+        return $map[$u] ?? $u;
+    }
+
+    /**
+     * Apply a corrected unit while preserving the original (constraints 40-42).
+     *
+     * The original unit is snapshotted once into 'original_unit' the first time a
+     * correction is made, so the change is never silent and stays auditable. A no-op
+     * correction (same unit) is ignored.
+     */
+    private function setCorrectedUnit(int $row, string $newUnit): void
+    {
+        $current = trim((string) ($this->items[$row]['unit'] ?? ''));
+        $newUnit = trim($newUnit);
+
+        if ($newUnit === '' || $newUnit === $current) {
+            return;
+        }
+
+        if (! array_key_exists('original_unit', $this->items[$row])) {
+            $this->items[$row]['original_unit'] = $current;
+        }
+
+        $this->items[$row]['unit'] = $newUnit;
+    }
+
+    /**
+     * Normalized signature for duplicate detection (constraint 44).
+     *
+     * Considers description + category + quantity + normalized unit, so two rows only
+     * collide when they truly describe the same supply in the same amount — not merely
+     * a shared description. Unit is normalized so "م3" and "m³" match.
+     */
     private function itemSignature(array $item): string
     {
         $desc = mb_strtolower(trim((string) ($item['description'] ?? '')));
@@ -688,7 +807,12 @@ class CreateQuotation extends Component
         if ($desc === '') {
             return '';
         }
-        return $desc . '|' . mb_strtolower(trim((string) ($item['unit'] ?? '')));
+
+        $category = mb_strtolower(trim((string) ($item['category'] ?? '')));
+        $unit     = $this->normalizeUnitToken((string) ($item['unit'] ?? ''));
+        $qty      = (float) ($item['quantity'] ?? 0);
+
+        return implode('|', [$desc, $category, $unit, $qty]);
     }
 
     /**
@@ -763,7 +887,7 @@ class CreateQuotation extends Component
         $field = $question['custom_field'] ?? null;
         if ($value !== '' && ! $isRemove && ! $this->isVagueValue($value) && $field !== null) {
             if ($field === 'unit') {
-                $this->items[$row]['unit'] = $this->extractUnitToken($value);
+                $this->setCorrectedUnit($row, $this->extractUnitToken($value));
             } elseif ($field === 'brand') {
                 // A specs answer names the brand/grade; keep it in brand and also fold
                 // it into the description so pricing sees the fuller spec.
@@ -782,7 +906,7 @@ class CreateQuotation extends Component
         switch ($gate) {
             case 'unit':
                 // Options are concrete unit strings; take the leading token as the unit.
-                $this->items[$row]['unit'] = $this->extractUnitToken($choice);
+                $this->setCorrectedUnit($row, $this->extractUnitToken($choice));
                 break;
 
             case 'quantity':
