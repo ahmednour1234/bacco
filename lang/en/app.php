@@ -1035,6 +1035,8 @@ return [
     'validation_skip_recommended'   => 'Skip — apply all recommendations',
     'validation_done'               => 'BOQ review completed — you can price now.',
     'validation_needs_review_blocked' => ':count item(s) still need review — fix or remove them before pricing.',
+    'review_remove_incomplete'      => 'Remove incomplete rows (:count)',
+    'review_rows_removed'           => ':count row(s) with missing specs removed.',
     'review_reason_unit'            => 'unit missing/invalid',
     'review_reason_unit_type'       => 'unit not valid for this product type',
     'review_reason_specs'           => 'mandatory specs missing',

@@ -1000,6 +1000,8 @@ return [
     'validation_skip_recommended'   => 'تخطّي — تطبيق كل التوصيات',
     'validation_done'               => 'اكتملت مراجعة الكميات — يمكنك التسعير الآن.',
     'validation_needs_review_blocked' => ':count بند/بنود لا تزال تحتاج مراجعة — صحّحها أو احذفها قبل التسعير.',
+    'review_remove_incomplete'      => 'حذف البنود الناقصة (:count)',
+    'review_rows_removed'           => 'تم حذف :count بند بمواصفات ناقصة.',
     'review_reason_unit'            => 'الوحدة ناقصة/غير صالحة',
     'review_reason_unit_type'       => 'الوحدة غير صالحة لنوع هذا المنتج',
     'review_reason_specs'           => 'مواصفات إلزامية ناقصة',

@@ -32,6 +32,9 @@ class CreateQuotation extends Component
     /** price_status value for a row that is missing something essential to price. */
     private const NEEDS_REVIEW = 'needs_review';
 
+    /** Hard cap on how many validation questions the user is asked to resolve. */
+    private const MAX_QUESTIONS = 10;
+
     // -------------------------------------------------------------------------
     // State
     // -------------------------------------------------------------------------
@@ -384,7 +387,10 @@ class CreateQuotation extends Component
 
         try {
             $result = app(BoqValidationService::class)->validate($this->items);
-            $this->validationQuestions = $result['questions'];
+            // Cap the interactive gate at 10 questions so the user is never asked to
+            // resolve an endless queue. Anything beyond the cap is left for the
+            // second-pass NEEDS_REVIEW flagging (which the user can auto-remove).
+            $this->validationQuestions = array_slice($result['questions'], 0, self::MAX_QUESTIONS);
 
             if ($result['failed']) {
                 $this->dispatch('toast', message: __('app.validation_ai_unavailable'), type: 'warning');
@@ -479,6 +485,41 @@ class CreateQuotation extends Component
     public function getQuotationBlockedProperty(): bool
     {
         return $this->needsReviewCount > 0;
+    }
+
+    /**
+     * Remove every row currently flagged NEEDS_REVIEW ("مواصفات إلزامية ناقصة") in
+     * one pass. Backs the "remove all incomplete rows" button, and is also used to
+     * auto-clear them. Rejected rows are never touched. Persists when a draft exists.
+     */
+    public function removeNeedsReviewRows(): void
+    {
+        $rows = [];
+        foreach ($this->items as $i => $item) {
+            if (($item['price_status'] ?? '') === self::NEEDS_REVIEW) {
+                $rows[] = $i;
+            }
+        }
+
+        if (empty($rows)) {
+            return;
+        }
+
+        $count = count($rows);
+        $this->removeRows($rows);
+
+        if ($this->quotationId !== null) {
+            try {
+                $quotation = QuotationRequest::where('client_id', Auth::id())->find($this->quotationId);
+                if ($quotation) {
+                    $this->persistItems($quotation);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('CreateQuotation::removeNeedsReviewRows persist failed.', ['message' => $e->getMessage()]);
+            }
+        }
+
+        $this->dispatch('toast', message: __('app.review_rows_removed', ['count' => $count]), type: 'success');
     }
 
     public function getAllValidationAnsweredProperty(): bool

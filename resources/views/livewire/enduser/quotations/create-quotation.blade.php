@@ -486,6 +486,21 @@
                                     </svg>
                                     {{ __('app.remove_all_rows') }}
                                 </button>
+
+                                {{-- Remove all rows flagged "مواصفات إلزامية ناقصة" (needs_review) in one click. --}}
+                                @if($this->needsReviewCount > 0)
+                                <button
+                                    type="button"
+                                    wire:click="removeNeedsReviewRows"
+                                    wire:confirm="{{ __('app.review_rows_removed', ['count' => $this->needsReviewCount]) }}"
+                                    class="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>
+                                    </svg>
+                                    {{ __('app.review_remove_incomplete', ['count' => $this->needsReviewCount]) }}
+                                </button>
+                                @endif
                             @endif
 
                             <button
