@@ -11,6 +11,10 @@ return new class extends Migration
 
     public function up(): void
     {
+        if (Schema::connection('catalog')->hasTable('catalog_products')) {
+            return; // table already exists (pre-existing prod DB) — skip
+        }
+
         Schema::connection('catalog')->create('catalog_products', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();

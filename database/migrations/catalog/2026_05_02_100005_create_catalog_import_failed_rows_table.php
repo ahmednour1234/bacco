@@ -10,6 +10,10 @@ return new class extends Migration
 
     public function up(): void
     {
+        if (Schema::connection('catalog')->hasTable('catalog_import_failed_rows')) {
+            return; // table already exists (pre-existing prod DB) — skip
+        }
+
         Schema::connection('catalog')->create('catalog_import_failed_rows', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('catalog_import_id')->index();
