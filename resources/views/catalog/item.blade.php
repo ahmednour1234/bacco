@@ -132,24 +132,23 @@ $_productSchema = json_encode([
 <script type="application/ld+json">{!! $_productSchema !!}</script>
     <div style="padding-top:32px;">
         @php $__divSlug = \Illuminate\Support\Str::slug($division); @endphp
-        <nav aria-label="breadcrumb" class="breadcrumb">
-            <a href="/">Home</a>
+        <nav aria-label="{{ __('catalog.item.breadcrumb_aria') }}" class="breadcrumb">
+            <a href="/">{{ __('catalog.item.home') }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <a href="{{ route('catalog.index') }}">Catalog</a>
+            <a href="{{ route('catalog.index') }}">{{ __('catalog.item.catalog') }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <a href="{{ route('catalog.division', $__divSlug) }}">{{ $division }}</a>
+            <a href="{{ route('catalog.division', $__divSlug) }}">{{ $divisionLabel ?? $division }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <span aria-current="page">{{ $itemDescription }}</span>
+            <span aria-current="page">{{ $itemLabel ?? $itemDescription }}</span>
         </nav>
     </div>
 
     {{-- Hero --}}
     <div class="item-hero">
         <div class="item-hero-text">
-            <h1>{{ $itemDescription }} —<br>Specifications, Standards, Applications</h1>
+            <h1>{{ $itemLabel ?? $itemDescription }} —<br>{{ __('catalog.item.hero_suffix') }}</h1>
             <p>
-                {{ $itemDescription }} is used in {{ strtolower($division) }} systems to ensure reliability, performance, and compliance.
-                Qimta indexes item families by material, size, connection type, pressure rating, applicable standard, and installation context.
+                {{ __('catalog.item.hero_intro', ['item' => ($itemLabel ?? $itemDescription), 'division' => ($divisionLabel ?? $division)]) }}
             </p>
         </div>
     </div>
@@ -159,32 +158,32 @@ $_productSchema = json_encode([
 
         {{-- Item Overview --}}
         <div class="overview-card">
-            <div class="ov-title">Item Overview</div>
-            <div class="ov-label">Division</div>
-            <div class="ov-val">{{ catalog_value_t('divisions', $division) }}</div>
+            <div class="ov-title">{{ __('catalog.item.overview_title') }}</div>
+            <div class="ov-label">{{ __('catalog.item.division') }}</div>
+            <div class="ov-val">{{ $divisionLabel ?? catalog_value_t('divisions', $division) }}</div>
             @if($product->category)
-            <div class="ov-label">Category</div>
-            <div class="ov-val">{{ catalog_value_t('categories', $product->category) }}</div>
+            <div class="ov-label">{{ __('catalog.item.category') }}</div>
+            <div class="ov-val">{{ $product->category }}</div>
             @endif
             @if($product->lead_time)
-            <div class="ov-label">Pricing Layer</div>
-            <div class="ov-val">{{ $product->lead_time }}</div>
+            <div class="ov-label">{{ __('catalog.item.pricing_layer') }}</div>
+            <div class="ov-val"><span class="en">{{ $product->lead_time }}</span></div>
             @endif
             <div class="ov-lead">
                 <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
-                Lead Time: Project-dependent
+                {{ __('catalog.item.lead_time') }}
             </div>
         </div>
 
         {{-- Technical Configuration Matrix --}}
         <div class="matrix-card">
-            <div class="mat-title">Technical Configuration Matrix</div>
+            <div class="mat-title">{{ __('catalog.item.matrix_title') }}</div>
 
             @if($materials->isNotEmpty())
             <div class="matrix-section">
-                <div class="matrix-section-label">Available Materials</div>
+                <div class="matrix-section-label">{{ __('catalog.item.available_materials') }}</div>
                 <div class="chip-row">
                     @foreach($materials as $mat)
                         <span class="chip">{{ $mat }}</span>
@@ -195,7 +194,7 @@ $_productSchema = json_encode([
 
             @if($sizes->isNotEmpty())
             <div class="matrix-section">
-                <div class="matrix-section-label">Size Range</div>
+                <div class="matrix-section-label">{{ __('catalog.item.size_range') }}</div>
                 <div class="chip-row">
                     @foreach($sizes as $sz)
                         <span class="chip">{{ $sz }}</span>
@@ -207,19 +206,19 @@ $_productSchema = json_encode([
             <div class="matrix-grid">
                 @if($product->category)
                 <div>
-                    <div class="matrix-cell-label">Category</div>
-                    <div class="matrix-cell-val">{{ catalog_value_t('categories', $product->category) }}</div>
+                    <div class="matrix-cell-label">{{ __('catalog.item.category') }}</div>
+                    <div class="matrix-cell-val">{{ $product->category }}</div>
                 </div>
                 @endif
                 @if($product->sub_type)
                 <div>
-                    <div class="matrix-cell-label">Type</div>
+                    <div class="matrix-cell-label">{{ __('catalog.item.type') }}</div>
                     <div class="matrix-cell-val">{{ $product->sub_type }}</div>
                 </div>
                 @endif
                 <div>
-                    <div class="matrix-cell-label">Products Indexed</div>
-                    <div class="matrix-cell-val">{{ number_format($product->product_count) }}</div>
+                    <div class="matrix-cell-label">{{ __('catalog.item.products_indexed') }}</div>
+                    <div class="matrix-cell-val"><span class="en">{{ number_format($product->product_count) }}</span></div>
                 </div>
             </div>
         </div>
@@ -233,8 +232,8 @@ $_productSchema = json_encode([
                     <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
                 </svg>
             </div>
-            <h2>System Performance</h2>
-            <p>Use in {{ strtolower($division) }} networks where {{ strtolower($itemDescription) }} affects system stability and operational efficiency.</p>
+            <h2>{{ __('catalog.item.uc_performance_title') }}</h2>
+            <p>{{ __('catalog.item.uc_performance_body', ['division' => ($divisionLabel ?? $division), 'item' => ($itemLabel ?? $itemDescription)]) }}</p>
         </div>
         <div class="use-case-card">
             <div class="uc-icon">
@@ -242,8 +241,8 @@ $_productSchema = json_encode([
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
             </div>
-            <h2>Pressure Rating</h2>
-            <p>Use where project specifications require pressure-rated components for high-rise or industrial safety.</p>
+            <h2>{{ __('catalog.item.uc_pressure_title') }}</h2>
+            <p>{{ __('catalog.item.uc_pressure_body') }}</p>
         </div>
         <div class="use-case-card">
             <div class="uc-icon">
@@ -251,17 +250,17 @@ $_productSchema = json_encode([
                     <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
                 </svg>
             </div>
-            <h2>BOQ Consistency</h2>
-            <p>Use when BOQ lines need brand-visible matching across multiple manufacturers for unified procurement packages.</p>
+            <h2>{{ __('catalog.item.uc_boq_title') }}</h2>
+            <p>{{ __('catalog.item.uc_boq_body') }}</p>
         </div>
     </div>
 
     {{-- Standards --}}
     <div class="standards-section">
-        <div class="std-eyebrow">Certification &amp; Compliance</div>
-        <h2>Technical Standards Framework</h2>
+        <div class="std-eyebrow">{{ __('catalog.item.std_eyebrow') }}</div>
+        <h2>{{ __('catalog.item.std_title') }}</h2>
         <div class="std-badges">
-            @foreach([['UL Listed','M'], ['FM Approved','person'], ['EN Compliance','euro'], ['ISO Standards','globe'], ['Project Spec','file']] as [$label, $icon])
+            @foreach([[__('catalog.item.std_ul'),'M'], [__('catalog.item.std_fm'),'person'], [__('catalog.item.std_en'),'euro'], [__('catalog.item.std_iso'),'globe'], [__('catalog.item.std_spec'),'file']] as [$label, $icon])
             <div class="std-badge">
                 <div class="std-icon">
                     @if($icon === 'M')
@@ -284,35 +283,33 @@ $_productSchema = json_encode([
 
     {{-- CTA --}}
     <div class="cta-block">
-        <h2>See all products, prices, and order directly.</h2>
-        <p>Register once to access the full catalog of sizes, materials, and brand options for {{ $itemDescription }}. Ordering walks through a short video — fewer clicks than your last procurement email.</p>
-        <a href="{{ route('enduser.register') }}">Register &amp; See Products — Free</a>
-        <div class="cta-meta">Free to register &nbsp;·&nbsp; Pricing always free inside &nbsp;·&nbsp; 15-minute setup</div>
+        <h2>{{ __('catalog.item.cta_title') }}</h2>
+        <p>{{ __('catalog.item.cta_body', ['item' => ($itemLabel ?? $itemDescription)]) }}</p>
+        <a href="{{ route('enduser.register') }}">{{ __('catalog.item.cta_button') }}</a>
+        <div class="cta-meta">{{ __('catalog.item.cta_meta') }}</div>
     </div>
 
     {{-- FAQ --}}
     <div class="faq-section">
         <div class="faq-section-left">
-            <h3>Common Questions</h3>
-            <p>Technical insights for procurement and engineering teams regarding {{ strtolower($itemDescription) }} systems.</p>
+            <h3>{{ __('catalog.item.faq_title') }}</h3>
+            <p>{{ __('catalog.item.faq_intro', ['item' => ($itemLabel ?? $itemDescription)]) }}</p>
         </div>
         <div class="faq-list">
             @php
+                $__item = $itemLabel ?? $itemDescription;
+                $__div  = $divisionLabel ?? $division;
                 $faqs = [
-                    ["What is a {$itemDescription} used for?",
-                     "A {$itemDescription} is used in {$division} systems to ensure reliable operation, proper flow control, and system safety across various installation contexts."],
-                    ["Which materials are available?",
+                    [__('catalog.item.faq_q1', ['item' => $__item]),
+                     __('catalog.item.faq_a1', ['item' => $__item, 'division' => $__div])],
+                    [__('catalog.item.faq_q2'),
                      $materials->isNotEmpty()
-                        ? "Available materials include: " . $materials->join(', ') . "."
-                        : "Material options depend on project specifications and applicable standards."],
-                    ["Which connection types are common?",
-                     "Connection types vary by size and application. Common options include threaded, flanged, and grooved connections depending on the system design."],
-                    ["What standards can apply?",
-                     "Standards such as UL, FM, EN, and ISO may apply depending on the project location, authority having jurisdiction, and system type."],
-                    ["How do I see full product options?",
-                     "Register on Qimta to access the full product catalog including all sizes, brands, and pricing information for {$itemDescription}."],
-                    ["Can I price this item inside a BOQ?",
-                     "Yes. Qimta allows you to price {$itemDescription} directly inside a BOQ with brand-matching across multiple suppliers for unified procurement."],
+                        ? __('catalog.item.faq_a2_with', ['materials' => $materials->join(($isAr ?? false) ? '، ' : ', ')])
+                        : __('catalog.item.faq_a2_without')],
+                    [__('catalog.item.faq_q3'), __('catalog.item.faq_a3')],
+                    [__('catalog.item.faq_q4'), __('catalog.item.faq_a4')],
+                    [__('catalog.item.faq_q5'), __('catalog.item.faq_a5', ['item' => $__item])],
+                    [__('catalog.item.faq_q6'), __('catalog.item.faq_a6', ['item' => $__item])],
                 ];
             @endphp
             @foreach($faqs as [$q, $a])
@@ -330,11 +327,11 @@ $_productSchema = json_encode([
     {{-- Related Items (from database) --}}
     @if($related->isNotEmpty())
     <div class="related-section">
-        <h3>Related {{ $division }} Components</h3>
+        <h3>{{ __('catalog.item.related_title', ['division' => ($divisionLabel ?? $division)]) }}</h3>
         <div class="related-tags">
             @foreach($related as $rel)
                 <a href="{{ route('catalog.item', [$divisionSlug, $rel->slug]) }}" class="related-tag">
-                    {{ strtoupper($rel->name) }}
+                    {{ ($isAr ?? false) ? $rel->name : strtoupper($rel->name) }}
                 </a>
             @endforeach
         </div>
@@ -343,7 +340,7 @@ $_productSchema = json_encode([
 
     {{-- Bottom CTA --}}
     <div class="bottom-cta">
-        <a href="{{ route('enduser.register') }}">Register &amp; See Products — Free</a>
+        <a href="{{ route('enduser.register') }}">{{ __('catalog.item.bottom_cta') }}</a>
     </div>
 
 </div>

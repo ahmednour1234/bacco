@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             EmployeeSeeder::class,
             ArticleSeeder::class,
             SeoMetaSeeder::class,
+            CatalogArabicNameSeeder::class,
         ]);
     }
 }

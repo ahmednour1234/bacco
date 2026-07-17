@@ -112,6 +112,8 @@
                            U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        /* Latin/numeric tokens kept LTR when embedded in RTL Arabic text */
+        .en { unicode-bidi: isolate; direction: ltr; }
         :root {
             --green: #006A3B;
             --green-btn: #006A3B;

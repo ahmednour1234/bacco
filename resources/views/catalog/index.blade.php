@@ -101,7 +101,7 @@ $_catSchema = json_encode([
 
     {{-- Breadcrumb --}}
     <div style="padding-top:32px;">
-        <nav aria-label="breadcrumb" class="breadcrumb">
+        <nav aria-label="{{ __('catalog.index.breadcrumb_aria') }}" class="breadcrumb">
             <a href="/">{{ __('catalog.breadcrumb_home') }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             <span aria-current="page">{{ __('catalog.breadcrumb_catalog') }}</span>

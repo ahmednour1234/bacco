@@ -181,9 +181,9 @@ $_itemListSchema = json_encode([
     {{-- Breadcrumb --}}
     <div style="padding-top:32px;">
         <nav aria-label="breadcrumb" class="breadcrumb">
-            <a href="/">Home</a>
+            <a href="/">{{ __('catalog.division.home') }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <a href="{{ route('catalog.index') }}">Catalog</a>
+            <a href="{{ route('catalog.index') }}">{{ __('catalog.division.catalog') }}</a>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             <span aria-current="page">{{ $division }}</span>
         </nav>
@@ -203,9 +203,9 @@ $_itemListSchema = json_encode([
         <div>
             <div class="cat-title">{{ $division }}</div>
             <div class="cat-sub">
-                <span>{{ $__prodN }} {{ $__isAr ? 'منتج' : 'products' }}</span>
+                <span>{{ $__prodN }} {{ __('catalog.division.products') }}</span>
                 <span class="dot">·</span>
-                <span>{{ $__itemN }} {{ $__isAr ? 'عائلة' : 'families' }}</span>
+                <span>{{ $__itemN }} {{ __('catalog.division.families') }}</span>
             </div>
         </div>
         <div class="cat-code">{{ $__catCode }}</div>
@@ -214,41 +214,35 @@ $_itemListSchema = json_encode([
 
     {{-- GEO Fact Block — machine-readable citation paragraph for LLMs/AI overviews --}}
     @php
-        $__factSlug = request()->getPathInfo();
-        $__factUrl  = 'qimta.com' . $__factSlug;
-        $__factItems = number_format($stats['items']);
-        $__factProducts = number_format($stats['products']);
+        $__factUrl  = 'qimta.com' . request()->getPathInfo();
     @endphp
-    <p id="fact-block" style="font-size:13px;color:#666;line-height:1.75;border-left:3px solid var(--green);padding:12px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin-bottom:28px;">
-        Qimta indexes {{ $__factProducts }} verified {{ strtolower($division) }} products across {{ $__factItems }} item families.
-        All products are priced via RAG retrieval from manufacturer databases.
-        Delivery lead times range from 2 to 8 weeks depending on specification.
-        Pricing is free for construction buyers and procurement teams across Saudi Arabia and GCC.
-        Accessible at: {{ $__factUrl }}
+    <p id="fact-block" style="font-size:13px;color:#666;line-height:1.75;border-inline-start:3px solid var(--green);padding:12px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin-bottom:28px;">
+        {{ __('catalog.division.fact', [
+            'products' => $__prodN,
+            'division' => $division,
+            'items'    => $__itemN,
+            'url'      => $__factUrl,
+        ]) }}
     </p>
 
     {{-- Header --}}
     <div class="div-header">
-        <h1>{{ $division }} — All Item Descriptions</h1>
-        <p>Browse {{ strtolower($division) }} item families, technical specifications, standards, materials, and indexed product coverage inside Qimta's construction catalog.</p>
+        <h1>{{ __('catalog.division.all_items', ['division' => $division]) }}</h1>
+        <p>{{ __('catalog.division.all_items_intro', ['division' => $division]) }}</p>
     </div>
 
     {{-- Item families available for pricing (mockup grid) --}}
     @if($items->isNotEmpty())
-    <div class="fam-section-title">{{ $__isAr ? 'عائلات البنود المتاحة للتسعير' : 'Item Families Available for Pricing' }}</div>
-    <p class="fam-section-sub">{{ $__isAr ? 'تتضمن هذه الفئة بنوداً للعزل الصوتي بمواصفات ومواد محددة، مُتقاطعة مع قواعد بيانات المصنّعين.' : 'These families cross-reference manufacturer databases with verified specs and materials.' }}</p>
+    <div class="fam-section-title">{{ __('catalog.division.families_title') }}</div>
+    <p class="fam-section-sub">{{ __('catalog.division.families_sub') }}</p>
     <div class="fam-grid">
         @foreach($items as $fam)
-            @php
-                $__famKey   = 'catalog.items.' . $fam->item_description;
-                $__famTitle = ($__isAr && Lang::has($__famKey)) ? __($__famKey) : $fam->item_description;
-            @endphp
             <a href="{{ route('catalog.item', [$slug, Str::slug($fam->item_description)]) }}" class="fam-card">
                 <div class="fam-en">{{ $fam->item_description }}</div>
-                <div class="fam-ar">{{ $__famTitle }}</div>
+                <div class="fam-ar">{{ $fam->item_label ?: $fam->item_description }}</div>
                 <div class="fam-meta">
                     @if($fam->common_materials)<span>{{ Str::limit($fam->common_materials, 30) }}</span><span class="sep">·</span>@endif
-                    <span>{{ number_format($fam->products) }} {{ $__isAr ? 'منتجات' : 'products' }}</span>
+                    <span>{{ number_format($fam->products) }} {{ __('catalog.division.products_count') }}</span>
                 </div>
             </a>
         @endforeach
@@ -257,33 +251,25 @@ $_itemListSchema = json_encode([
 
     {{-- Available materials --}}
     @if($materials->isNotEmpty())
-    <div class="mat-section-title">{{ $__isAr ? 'المواد المتوفرة' : 'Available Materials' }}</div>
+    <div class="mat-section-title">{{ __('catalog.division.materials_title') }}</div>
     <div class="mat-list">
-        @foreach($materials as $m)
-            <span class="mat-pill">{{ $m }}</span>
+        @foreach($materials as $key => $label)
+            <span class="mat-pill">{{ $label }}</span>
         @endforeach
     </div>
     @endif
 
     {{-- Pricing layers — Standard & Engineered --}}
-    <div class="seo-section-title">{{ $__isAr ? 'طبقات التسعير — Standard وEngineered' : 'Pricing Layers — Standard & Engineered' }}</div>
-    <div class="seo-section-body">
-        {{ $__isAr
-            ? 'Standard (STD): 2-6 أسابيع · Engineered (ENG): حتى 12-18 أسبوعاً للمواصفات المُخصّصة. كلاهما يُسعَّر عبر RAG مجاناً.'
-            : 'Standard (STD): 2-6 weeks · Engineered (ENG): up to 12-18 weeks for custom specs. Both priced via the RAG engine for free.' }}
-    </div>
+    <div class="seo-section-title">{{ __('catalog.division.pricing_layers_title') }}</div>
+    <div class="seo-section-body">{{ __('catalog.division.pricing_layers_body') }}</div>
 
     {{-- How pricing works with Qimta --}}
-    <div class="seo-section-title">{{ $__isAr ? 'كيف تُسعّر ' . $division . ' مع كيمتا' : 'How to Price ' . $division . ' with Qimta' }}</div>
-    <div class="seo-section-body">
-        {{ $__isAr
-            ? 'ارفع جدول الكميات بصيغة Excel أو PDF أو CSV. يُطابق محرك RAG بنود ' . $division . ' تلقائياً مع الـ ' . $__prodN . ' منتج ويُخرج تسعيراً مكتملاً في أقل من 60 ثانية.'
-            : 'Upload your BOQ as Excel, PDF, or CSV. The RAG engine auto-matches ' . strtolower($division) . ' line items against ' . $__prodN . ' products and returns a complete quote in under 60 seconds.' }}
-    </div>
+    <div class="seo-section-title">{{ __('catalog.division.howto_title', ['division' => $division]) }}</div>
+    <div class="seo-section-body">{{ __('catalog.division.howto_body', ['division' => $division, 'products' => $__prodN]) }}</div>
 
     {{-- Related categories --}}
     @if(($relatedCategories ?? collect())->isNotEmpty())
-    <div class="seo-section-title">{{ $__isAr ? 'الفئات المرتبطة' : 'Related Categories' }}</div>
+    <div class="seo-section-title">{{ __('catalog.division.related_title') }}</div>
     <div class="relcat-list">
         @foreach($relatedCategories as $i => $rc)
             <a href="{{ route('catalog.category', $rc->slug) }}">{{ $rc->name }}</a>@if(!$loop->last)<span class="sep">·</span>@endif
@@ -292,12 +278,8 @@ $_itemListSchema = json_encode([
     @endif
 
     {{-- Accreditation & standards --}}
-    <div class="seo-section-title">{{ $__isAr ? 'معايير الاعتماد — SASO والمعايير الدولية' : 'Accreditation — SASO & International Standards' }}</div>
-    <div class="seo-section-body">
-        {{ $__isAr
-            ? 'توضّح منتجات ' . $division . ' معايير SASO والمعايير الدولية ISO وASTM لتسهيل القبول في مشاريع المباني السعودية.'
-            : $division . ' products document SASO, ISO, and ASTM standards to ease approval on Saudi building projects.' }}
-    </div>
+    <div class="seo-section-title">{{ __('catalog.division.standards_title') }}</div>
+    <div class="seo-section-body">{{ __('catalog.division.standards_body', ['division' => $division]) }}</div>
 
     {{-- FAQ --}}
     @php
@@ -313,7 +295,7 @@ $_itemListSchema = json_encode([
             ['q' => 'Are the materials suitable for the hot Saudi climate?', 'a' => 'Yes. Products document heat- and UV-resistance ratings against approved standards.'],
         ];
     @endphp
-    <div class="seo-section-title">{{ $__isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions' }}</div>
+    <div class="seo-section-title">{{ __('catalog.division.faq_title') }}</div>
     <div>
         @foreach($__faqs as $faq)
         <div class="faq-item">
@@ -340,24 +322,24 @@ $_itemListSchema = json_encode([
     {{-- Stats --}}
     <div class="stats-row">
         <div class="stat-card">
-            <div class="label">System Capacity</div>
-            <div class="value">{{ number_format($stats['products']) }}</div>
-            <div class="sub">Products in {{ Illuminate\Support\Str::words($division, 2, '') }}</div>
+            <div class="label">{{ __('catalog.division.stat_capacity') }}</div>
+            <div class="value"><span class="en">{{ number_format($stats['products']) }}</span></div>
+            <div class="sub">{{ __('catalog.division.stat_capacity_sub', ['division' => Illuminate\Support\Str::words($division, 2, '')]) }}</div>
         </div>
         <div class="stat-card">
-            <div class="label">Item Definitions</div>
-            <div class="value green">{{ number_format($stats['items']) }}</div>
-            <div class="sub">Active Item Descriptions</div>
+            <div class="label">{{ __('catalog.division.stat_items') }}</div>
+            <div class="value green"><span class="en">{{ number_format($stats['items']) }}</span></div>
+            <div class="sub">{{ __('catalog.division.stat_items_sub') }}</div>
         </div>
         <div class="stat-card">
-            <div class="label">Pricing Layers</div>
-            <div class="value green" style="font-size:20px; letter-spacing:-0.5px;">STD/ENG</div>
-            <div class="sub">Standard &amp; Engineered</div>
+            <div class="label">{{ __('catalog.division.stat_layers') }}</div>
+            <div class="value green" style="font-size:20px; letter-spacing:-0.5px;"><span class="en">STD/ENG</span></div>
+            <div class="sub">{{ __('catalog.division.stat_layers_sub') }}</div>
         </div>
         <div class="stat-card">
-            <div class="label">Est. Lead Time</div>
-            <div class="value green" style="font-size:20px; letter-spacing:-0.5px;">PROJECT</div>
-            <div class="sub">Based on BOQ Scale</div>
+            <div class="label">{{ __('catalog.division.stat_lead') }}</div>
+            <div class="value green" style="font-size:20px; letter-spacing:-0.5px;"><span class="en">PROJECT</span></div>
+            <div class="sub">{{ __('catalog.division.stat_lead_sub') }}</div>
         </div>
     </div>
 
@@ -367,52 +349,52 @@ $_itemListSchema = json_encode([
         {{-- Sidebar Filters --}}
         <aside class="filter-sidebar" x-data="{ open: window.innerWidth > 820 }">
             <button type="button" class="filter-toggle-btn" @click="open = !open" aria-expanded="open" aria-controls="filter-body">
-                <span>Filter Selection</span>
+                <span>{{ __('catalog.division.filter_selection') }}</span>
                 <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" :class="open ? 'open' : ''"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             <div id="filter-body" x-show="open" x-collapse.duration.200ms>
             <form method="GET" action="{{ route($filterRoute, $slug) }}">
-                <h2>Filter Selection</h2>
+                <h2>{{ __('catalog.division.filter_selection') }}</h2>
 
                 @if($materials->isNotEmpty())
-                <h2>Material</h2>
+                <h2>{{ __('catalog.division.filter_material') }}</h2>
                 <select name="material">
-                    <option value="">— All Materials —</option>
-                    @foreach($materials as $m)
-                        <option value="{{ $m }}" {{ request('material') == $m ? 'selected' : '' }}>{{ $m }}</option>
+                    <option value="">{{ __('catalog.division.filter_all_materials') }}</option>
+                    @foreach($materials as $key => $label)
+                        <option value="{{ $key }}" {{ request('material') == $key ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
                 @endif
 
                 @if($sizes->isNotEmpty())
-                <h2>Size Range</h2>
+                <h2>{{ __('catalog.division.filter_size') }}</h2>
                 <select name="size">
-                    <option value="">— All Sizes —</option>
-                    @foreach($sizes as $s)
-                        <option value="{{ $s }}" {{ request('size') == $s ? 'selected' : '' }}>{{ $s }}</option>
+                    <option value="">{{ __('catalog.division.filter_all_sizes') }}</option>
+                    @foreach($sizes as $key => $label)
+                        <option value="{{ $key }}" {{ request('size') == $key ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
                 @endif
 
                 @if($leadTimes->isNotEmpty())
-                <h2>Pricing Layer</h2>
+                <h2>{{ __('catalog.division.filter_pricing') }}</h2>
                 <select name="lead_time">
-                    <option value="">— All —</option>
-                    @foreach($leadTimes as $lt)
-                        <option value="{{ $lt }}" {{ request('lead_time') == $lt ? 'selected' : '' }}>{{ $lt }}</option>
+                    <option value="">{{ __('catalog.division.filter_all') }}</option>
+                    @foreach($leadTimes as $key => $label)
+                        <option value="{{ $key }}" {{ request('lead_time') == $key ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
                 @endif
 
-                <button type="submit" class="filter-apply">Apply Filters</button>
+                <button type="submit" class="filter-apply">{{ __('catalog.division.filter_apply') }}</button>
                 @if(request()->hasAny(['material','size','lead_time','q']))
-                    <a href="{{ route($filterRoute, $slug) }}" class="filter-reset">Clear all filters</a>
+                    <a href="{{ route($filterRoute, $slug) }}" class="filter-reset">{{ __('catalog.division.filter_clear') }}</a>
                 @endif
             </form>
 
             <div class="compliance-note">
                 <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span>Compliance verification is available for all technical items in this catalog.</span>
+                <span>{{ __('catalog.division.compliance_note') }}</span>
             </div>
             </div>{{-- /filter-body --}}
         </aside>
@@ -426,12 +408,16 @@ $_itemListSchema = json_encode([
                     @endforeach
                     <div class="items-search-wrap">
                         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        <input class="items-search" type="text" name="q" value="{{ request('q') }}" placeholder="Search items...">
+                        <input class="items-search" type="text" name="q" value="{{ request('q') }}" placeholder="{{ __('catalog.division.search_items') }}">
                     </div>
                 </form>
                 {{-- Topbar form action must also use $filterRoute --}}
                 <div class="items-count">
-                    Showing <strong>{{ $items->firstItem() }}–{{ $items->lastItem() }}</strong> of <strong>{{ number_format($items->total()) }}</strong> items
+                    {!! __('catalog.division.showing', [
+                        'from'  => '<strong>' . $items->firstItem() . '</strong>',
+                        'to'    => '<strong>' . $items->lastItem() . '</strong>',
+                        'total' => '<strong>' . number_format($items->total()) . '</strong>',
+                    ]) !!}
                 </div>
             </div>
 
@@ -439,28 +425,21 @@ $_itemListSchema = json_encode([
                 @forelse($items as $item)
                 <div class="item-card">
                     <div class="item-card-head">
-                        @php
-                            // Arabic locale → translated family name, else the English source text.
-                            $__itemKey   = 'catalog.items.' . $item->item_description;
-                            $__itemTitle = (app()->getLocale() === 'ar' && Lang::has($__itemKey))
-                                ? __($__itemKey)
-                                : $item->item_description;
-                        @endphp
-                        <h3>{{ $__itemTitle }}</h3>
-                        <span class="item-badge">{{ number_format($item->products) }} PRODUCTS</span>
+                        <h3>{{ $item->item_label ?: $item->item_description }}</h3>
+                        <span class="item-badge"><span class="en">{{ number_format($item->products) }}</span> {{ __('catalog.division.products_count') }}</span>
                     </div>
                     @if($item->common_materials)
-                        <div class="item-materials-label">Common Materials</div>
+                        <div class="item-materials-label">{{ __('catalog.division.common_materials') }}</div>
                         <div class="item-materials-val">{{ Str::limit($item->common_materials, 80) }}</div>
                     @endif
                     <a href="{{ route('catalog.item', [$slug, Str::slug($item->item_description)]) }}" class="item-view-btn">
-                        View Specifications
+                        {{ __('catalog.division.view_specs') }}
                     </a>
                 </div>
                 @empty
                 <div class="items-empty">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <p>No items match your filters. <a href="{{ route($filterRoute, $slug) }}" style="color:var(--green);">Clear filters</a></p>
+                    <p>{{ __('catalog.division.no_items') }} <a href="{{ route($filterRoute, $slug) }}" style="color:var(--green);">{{ __('catalog.division.clear_filters') }}</a></p>
                 </div>
                 @endforelse
             </div>
@@ -471,7 +450,7 @@ $_itemListSchema = json_encode([
                 @if($items->onFirstPage())
                     <span class="disabled">&laquo;</span>
                 @else
-                    <a href="{{ $items->previousPageUrl() }}" aria-label="Previous page">&laquo;</a>
+                    <a href="{{ $items->previousPageUrl() }}" aria-label="{{ __('catalog.division.prev_page') }}">&laquo;</a>
                 @endif
 
                 @foreach($items->getUrlRange(max(1, $items->currentPage()-2), min($items->lastPage(), $items->currentPage()+2)) as $page => $url)
@@ -483,7 +462,7 @@ $_itemListSchema = json_encode([
                 @endforeach
 
                 @if($items->hasMorePages())
-                    <a href="{{ $items->nextPageUrl() }}" aria-label="Next page">&raquo;</a>
+                    <a href="{{ $items->nextPageUrl() }}" aria-label="{{ __('catalog.division.next_page') }}">&raquo;</a>
                 @else
                     <span class="disabled">&raquo;</span>
                 @endif
@@ -505,7 +484,7 @@ $_itemListSchema = json_encode([
 <div class="container" style="padding-bottom:64px;">
     <div style="border-top:1px solid var(--border);padding-top:48px;">
         <h2 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:24px;color:var(--dark);">
-            {{ $__catIsAr ? 'مقالات ذات صلة' : 'Related Articles' }}
+            {{ __('catalog.division.related_articles') }}
         </h2>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;">
             @foreach($relatedArticles as $ra)
