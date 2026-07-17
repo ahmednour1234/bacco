@@ -35,7 +35,8 @@ class ImportCatalogArabic extends Command
     protected $signature = 'catalog:import-arabic
                             {file : Path to the .xlsx or .csv file (absolute or relative to project root)}
                             {--sheet= : Worksheet name to read (defaults to the active sheet)}
-                            {--dry-run : Parse and report without writing any changes}';
+                            {--dry-run : Parse and report without writing any changes}
+                            {--inspect : Print the first rows + detected sheets/headers, then exit (diagnostic)}';
 
     protected $description = 'Backfill Arabic catalog fields from the QIMTA workbook (xlsx/csv), keyed by qimta_code + sub_type.';
 
@@ -73,6 +74,11 @@ class ImportCatalogArabic extends Command
         }
 
         $dryRun = (bool) $this->option('dry-run');
+
+        // Diagnostic: dump sheets + first rows so we can see the real headers.
+        if ($this->option('inspect')) {
+            return $this->inspect($path);
+        }
 
         try {
             $db = DB::connection('catalog');
@@ -179,6 +185,63 @@ class ImportCatalogArabic extends Command
 
         if ($stats['unmatched'] > 30) {
             $this->warn('… and ' . ($stats['unmatched'] - 30) . ' more unmatched rows not listed.');
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Diagnostic dump: list worksheets and print the first 6 rows of the target
+     * sheet (cell-by-cell) so the real header labels are visible. Also reports
+     * which header row (if any) the matcher would detect.
+     */
+    private function inspect(string $path): int
+    {
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        try {
+            if ($ext === 'csv') {
+                $this->line('<info>File type:</info> CSV');
+                $grid = $this->readCsvGrid($path);
+            } else {
+                $reader = IOFactory::createReaderForFile($path);
+                $reader->setReadDataOnly(true);
+                $spreadsheet = $reader->load($path);
+
+                $names = $spreadsheet->getSheetNames();
+                $this->line('<info>Worksheets:</info> ' . implode(' | ', $names));
+
+                $sheetName = $this->option('sheet');
+                $sheet = $sheetName ? $spreadsheet->getSheetByName($sheetName) : $spreadsheet->getActiveSheet();
+                if (! $sheet) {
+                    $this->error("Worksheet not found: {$sheetName}");
+                    return self::FAILURE;
+                }
+                $this->line('<info>Reading sheet:</info> ' . $sheet->getTitle());
+                $grid = $sheet->toArray(null, true, false, false);
+            }
+        } catch (\Throwable $e) {
+            $this->error('Could not read file: ' . $e->getMessage());
+            return self::FAILURE;
+        }
+
+        $this->line('<info>Total grid rows:</info> ' . count($grid));
+        $this->newLine();
+
+        foreach (array_slice($grid, 0, 6) as $i => $cells) {
+            $this->line("<comment>Row {$i}:</comment>");
+            foreach ($cells as $idx => $cell) {
+                $val = trim((string) $cell);
+                if ($val === '') {
+                    continue;
+                }
+                $this->line("   [{$idx}] " . mb_substr($val, 0, 60));
+            }
+            $map = $this->matchHeader($cells);
+            if (! empty($map)) {
+                $this->line('   <info>→ matched header fields:</info> ' . implode(', ', array_keys($map)));
+            }
+            $this->newLine();
         }
 
         return self::SUCCESS;
