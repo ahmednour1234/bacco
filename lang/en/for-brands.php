@@ -12,10 +12,12 @@ return [
         'sub'       => 'Qimta acts as your global merchant partner, managing the complexity of international procurement while preserving your brand identity and technical integrity.',
         'cta_join'  => 'Join Qimta as a Brand',
         'cta_browse'=> 'Browse Catalog',
+        'img_alt'   => 'Modern building facade from a manufacturer project listed on Qimta',
     ],
 
     // ── STATS ──────────────────────────────────────────────────────────────────
     'stats' => [
+        'heading'          => 'Qimta figures for brands',
         'divisions_label'  => 'Divisions',
         'divisions_sub'    => 'Engineering verticals',
         'categories_label' => 'Categories',
@@ -105,11 +107,8 @@ return [
         'cat_plumb'     => 'Plumbing',
         'cat_civil'     => 'Civil / Architecture',
         'cat_other'     => 'Other',
-        'reg_na'        => 'North America',
-        'reg_eu'        => 'Europe',
-        'reg_me'        => 'Middle East',
-        'reg_apac'      => 'Asia Pacific',
-        'reg_africa'    => 'Africa',
+        'reg_ksa'       => 'Saudi Arabia',
+        'reg_gcc'       => 'Other GCC',
         'reg_other'     => 'Other',
     ],
 

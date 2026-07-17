@@ -9,6 +9,13 @@
 
 @section('styles')
 <style>
+    /* -- A11Y HELPERS -- */
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    /* Latin numerals / tokens kept LTR inside RTL text */
+    .en { unicode-bidi: isolate; direction: ltr; }
+    /* Lists repurposed as semantic groups — strip default list chrome */
+    .advantages-grid, .how-steps, .form-bullets { list-style: none; margin: 0; padding: 0; }
+
     /* -- HERO -- */
     .brands-hero {
         display: grid;
@@ -76,10 +83,10 @@
     }
     @media (max-width: 700px) { .stats-bar { grid-template-columns: repeat(2, 1fr); } }
     .stat-cell {
-        padding: 28px 24px; border-right: 1.5px solid var(--border);
+        padding: 28px 24px; border-inline-end: 1.5px solid var(--border);
         text-align: center;
     }
-    .stat-cell:last-child { border-right: none; }
+    .stat-cell:last-child { border-inline-end: none; }
     .stat-cell .s-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; margin-bottom: 6px; }
     .stat-cell .s-val { font-size: 32px; font-weight: 900; letter-spacing: -1.5px; color: var(--green); line-height: 1; }
     .stat-cell .s-sub { font-size: 12px; color: #888; margin-top: 4px; }
@@ -140,7 +147,7 @@
         box-shadow: 0 8px 40px rgba(0,106,59,.12);
     }
     .pricing-badge {
-        position: absolute; top: -13px; right: 24px;
+        position: absolute; top: -13px; inset-inline-end: 24px;
         background: var(--green); color: #fff;
         font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
         padding: 4px 14px; border-radius: 20px;
@@ -220,9 +227,9 @@ $_brandsSchema = json_encode([
             '@type'       => 'WebPage',
             '@id'         => 'https://www.qimta.com/for-brands#webpage',
             'url'         => 'https://www.qimta.com/for-brands',
-            'name'        => 'List Your Products on Qimta | Reach BOQ Buyers in Saudi Arabia & GCC',
-            'description' => 'List your construction product catalog on Qimta and get direct visibility to B2B buyers in GCC when they upload a BOQ. RAG Engine � API Integration � Free for buyers.',
-            'inLanguage'  => 'en',
+            'name'        => __('for-brands.title'),
+            'description' => __('for-brands.description'),
+            'inLanguage'  => app()->getLocale(),
             'isPartOf'    => ['@id' => 'https://www.qimta.com/#website'],
         ],
     ],
@@ -233,41 +240,42 @@ $_brandsSchema = json_encode([
 
 @section('content')
 
-{{-- GEO Fact Block --}}
-<div class="container">
-<p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
-@if(app()->getLocale() === 'ar')
-    تتيح شركة كيمتا للتكنولوجيا للعلامات التجارية ومصنّعي مواد البناء إدراج بيانات منتجاتهم المعتمدة عبر {{ $catalogStats['categories'] }} فئة و{{ $catalogStats['divisions'] }} قسماً. يُفهرس كل منتج مقابل {{ number_format($catalogStats['products']) }} رقم SKU ويُطابق مع طلبات جداول الكميات الفعلية من مقاولين وفرق مشتريات في السعودية ودول الخليج.
-@else
-    Qimta Technology Company enables construction material brands and manufacturers to list verified product data across {{ $catalogStats['categories'] }} categories and {{ $catalogStats['divisions'] }} divisions. Listed products are indexed against {{ number_format($catalogStats['products']) }} SKUs and matched to live BOQ requests from contractors and procurement teams in Saudi Arabia and GCC.
-@endif
-</p>
-</div>
-
 {{-- -- HERO --------------------------------------------------- --}}
+{{-- H1 opens the main content; the GEO fact-block follows it (P1: h1 first, then paragraph) --}}
 <div class="container">
     <div class="brands-hero">
         <div>
             <div class="brands-hero-eyebrow">{{ __('for-brands.hero.eyebrow') }}</div>
             <h1>{{ __('for-brands.hero.h1') }}</h1>
+
+            {{-- GEO Fact Block (moved below the H1) --}}
+            <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-inline-start:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0 0 24px;">
+            @if(app()->getLocale() === 'ar')
+                تتيح شركة كيمتا للتكنولوجيا للعلامات التجارية ومصنّعي مواد البناء إدراج بيانات منتجاتهم المعتمدة عبر {{ $catalogStats['categories'] }} فئة و{{ $catalogStats['divisions'] }} قسماً. يُفهرس كل منتج مقابل <span class="en">{{ number_format($catalogStats['products']) }}</span> رقم SKU ويُطابق مع طلبات جداول الكميات الفعلية من مقاولين وفرق مشتريات في السعودية ودول الخليج.
+            @else
+                Qimta Technology Company enables construction material brands and manufacturers to list verified product data across {{ $catalogStats['categories'] }} categories and {{ $catalogStats['divisions'] }} divisions. Listed products are indexed against {{ number_format($catalogStats['products']) }} SKUs and matched to live BOQ requests from contractors and procurement teams in Saudi Arabia and GCC.
+            @endif
+            </p>
+
             <p>{{ __('for-brands.hero.sub') }}</p>
             <div class="hero-cta">
                 <a href="#apply" class="btn-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     {{ __('for-brands.hero.cta_join') }}
                 </a>
                 <a href="{{ route('catalog.index') }}" class="btn-outline-dark">{{ __('for-brands.hero.cta_browse') }}</a>
             </div>
         </div>
         <div class="hero-img-wrap">
-            <img src="https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=800&q=80" alt="Manufacturing facility" onerror="this.style.display='none'">
+            <img src="{{ asset('images/for-brands-hero.webp') }}" alt="{{ __('for-brands.hero.img_alt') }}" width="800" height="600" loading="eager" onerror="this.style.display='none'">
             <div class="hero-img-overlay"></div>
         </div>
     </div>
 </div>
 
 {{-- -- STATS BAR --------------------------------------------- --}}
-<div class="container">
+<section class="container" aria-labelledby="fb-stats">
+    <h2 id="fb-stats" class="sr-only">{{ __('for-brands.stats.heading') }}</h2>
     <div class="stats-bar">
         @php
                 $divisions  = $catalogStats['divisions'];
@@ -275,149 +283,149 @@ $_brandsSchema = json_encode([
                 $products   = $catalogStats['products'];
         @endphp
         <div class="stat-cell">
-            <div class="s-label">{{ __('for-brands.stats.divisions_label') }}</div>
-            <div class="s-val">{{ $divisions }}</div>
+            <h3 class="s-label">{{ __('for-brands.stats.divisions_label') }}</h3>
+            <div class="s-val"><span class="en">{{ $divisions }}</span></div>
             <div class="s-sub">{{ __('for-brands.stats.divisions_sub') }}</div>
         </div>
         <div class="stat-cell">
-            <div class="s-label">{{ __('for-brands.stats.categories_label') }}</div>
-            <div class="s-val">{{ number_format($categories) }}</div>
+            <h3 class="s-label">{{ __('for-brands.stats.categories_label') }}</h3>
+            <div class="s-val"><span class="en">{{ number_format($categories) }}</span></div>
             <div class="s-sub">{{ __('for-brands.stats.categories_sub') }}</div>
         </div>
         <div class="stat-cell">
-            <div class="s-label">{{ __('for-brands.stats.products_label') }}</div>
-            <div class="s-val">{{ number_format($products) }}</div>
+            <h3 class="s-label">{{ __('for-brands.stats.products_label') }}</h3>
+            <div class="s-val"><span class="en">{{ number_format($products) }}</span></div>
             <div class="s-sub">{{ __('for-brands.stats.products_sub') }}</div>
         </div>
         <div class="stat-cell">
-            <div class="s-label">{{ __('for-brands.stats.specs_label') }}</div>
-            <div class="s-val">{{ __('for-brands.stats.specs_val') }}</div>
+            <h3 class="s-label">{{ __('for-brands.stats.specs_label') }}</h3>
+            <div class="s-val"><span class="en">{{ __('for-brands.stats.specs_val') }}</span></div>
             <div class="s-sub">{{ __('for-brands.stats.specs_sub') }}</div>
         </div>
     </div>
-</div>
+</section>
 
 {{-- -- THE QIMTA ADVANTAGE ------------------------------------ --}}
-<div class="container">
+<section class="container" aria-labelledby="fb-why">
     <div class="advantages-section">
-        <div class="section-eyebrow">{{ __('for-brands.adv.eyebrow') }}</div>
-        <div class="section-title">{{ __('for-brands.adv.title') }}<span>{{ __('for-brands.adv.highlight') }}</span></div>
-        <div class="advantages-grid">
-            <div class="adv-card">
-                <div class="adv-icon">
+        <p class="section-eyebrow">{{ __('for-brands.adv.eyebrow') }}</p>
+        <h2 id="fb-why" class="section-title">{{ __('for-brands.adv.title') }}<span>{{ __('for-brands.adv.highlight') }}</span></h2>
+        <ul class="advantages-grid">
+            <li class="adv-card">
+                <div class="adv-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
                 </div>
-                <h2>{{ __('for-brands.adv.demand_title') }}</h2>
+                <h3>{{ __('for-brands.adv.demand_title') }}</h3>
                 <p>{{ __('for-brands.adv.demand_desc') }}</p>
-            </div>
-            <div class="adv-card">
-                <div class="adv-icon">
+            </li>
+            <li class="adv-card">
+                <div class="adv-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
                 </div>
-                <h2>{{ __('for-brands.adv.identity_title') }}</h2>
+                <h3>{{ __('for-brands.adv.identity_title') }}</h3>
                 <p>{{ __('for-brands.adv.identity_desc') }}</p>
-            </div>
-            <div class="adv-card">
-                <div class="adv-icon">
+            </li>
+            <li class="adv-card">
+                <div class="adv-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
                         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                     </svg>
                 </div>
-                <h2>{{ __('for-brands.adv.visibility_title') }}</h2>
+                <h3>{{ __('for-brands.adv.visibility_title') }}</h3>
                 <p>{{ __('for-brands.adv.visibility_desc') }}</p>
-            </div>
-            <div class="adv-card">
-                <div class="adv-icon">
+            </li>
+            <li class="adv-card">
+                <div class="adv-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                     </svg>
                 </div>
-                <h2>{{ __('for-brands.adv.path_title') }}</h2>
+                <h3>{{ __('for-brands.adv.path_title') }}</h3>
                 <p>{{ __('for-brands.adv.path_desc') }}</p>
-            </div>
-        </div>
+            </li>
+        </ul>
     </div>
-</div>
+</section>
 
 {{-- -- HOW IT WORKS ------------------------------------------- --}}
-<div class="container">
+<section class="container" aria-labelledby="fb-how">
     <div class="how-section">
-        <div class="section-eyebrow">{{ __('for-brands.how.eyebrow') }}</div>
-        <div class="section-title">{{ __('for-brands.how.title') }}</div>
-        <div class="how-steps">
-            <div class="how-step">
-                <div class="step-num">1</div>
+        <p class="section-eyebrow">{{ __('for-brands.how.eyebrow') }}</p>
+        <h2 id="fb-how" class="section-title">{{ __('for-brands.how.title') }}</h2>
+        <ol class="how-steps">
+            <li class="how-step">
+                <div class="step-num" aria-hidden="true">1</div>
                 <h3>{{ __('for-brands.how.step1_title') }}</h3>
                 <p>{{ __('for-brands.how.step1_desc') }}</p>
-            </div>
-            <div class="how-step">
-                <div class="step-num">2</div>
+            </li>
+            <li class="how-step">
+                <div class="step-num" aria-hidden="true">2</div>
                 <h3>{{ __('for-brands.how.step2_title') }}</h3>
                 <p>{{ __('for-brands.how.step2_desc') }}</p>
-            </div>
-            <div class="how-step">
-                <div class="step-num">3</div>
+            </li>
+            <li class="how-step">
+                <div class="step-num" aria-hidden="true">3</div>
                 <h3>{{ __('for-brands.how.step3_title') }}</h3>
                 <p>{{ __('for-brands.how.step3_desc') }}</p>
-            </div>
-            <div class="how-step">
-                <div class="step-num">4</div>
+            </li>
+            <li class="how-step">
+                <div class="step-num" aria-hidden="true">4</div>
                 <h3>{{ __('for-brands.how.step4_title') }}</h3>
                 <p>{{ __('for-brands.how.step4_desc') }}</p>
-            </div>
-        </div>
+            </li>
+        </ol>
     </div>
-</div>
+</section>
 
 {{-- -- MARKET POSITIONING ------------------------------------- --}}
-<div class="container">
+<section class="container" aria-labelledby="fb-plans">
     <div class="pricing-section">
-        <div class="section-eyebrow">{{ __('for-brands.pricing.eyebrow') }}</div>
-        <div class="section-title">{{ __('for-brands.pricing.title') }}<span>{{ __('for-brands.pricing.highlight') }}</span></div>
+        <p class="section-eyebrow">{{ __('for-brands.pricing.eyebrow') }}</p>
+        <h2 id="fb-plans" class="section-title">{{ __('for-brands.pricing.title') }}<span>{{ __('for-brands.pricing.highlight') }}</span></h2>
         <div class="pricing-grid">
-            <div class="pricing-card">
-                <div class="pricing-tier">{{ __('for-brands.pricing.standard_tier') }}</div>
-                <div class="pricing-name">{{ __('for-brands.pricing.standard_name') }}</div>
-                <div class="pricing-desc">{{ __('for-brands.pricing.standard_desc') }}</div>
+            <article class="pricing-card" aria-label="{{ __('for-brands.pricing.standard_name') }}">
+                <p class="pricing-tier">{{ __('for-brands.pricing.standard_tier') }}</p>
+                <h3 class="pricing-name">{{ __('for-brands.pricing.standard_name') }}</h3>
+                <p class="pricing-desc">{{ __('for-brands.pricing.standard_desc') }}</p>
                 <ul class="pricing-features">
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.standard_f1') }}</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.standard_f2') }}</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.standard_f3') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.standard_f1') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.standard_f2') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.standard_f3') }}</li>
                 </ul>
                 <a href="#apply" class="pricing-btn outline">{{ __('for-brands.pricing.standard_cta') }}</a>
-            </div>
-            <div class="pricing-card featured">
-                <div class="pricing-badge">{{ __('for-brands.pricing.recommended') }}</div>
-                <div class="pricing-tier">{{ __('for-brands.pricing.premium_tier') }}</div>
-                <div class="pricing-name">{{ __('for-brands.pricing.premium_name') }}</div>
-                <div class="pricing-desc">{{ __('for-brands.pricing.premium_desc') }}</div>
+            </article>
+            <article class="pricing-card featured" aria-label="{{ __('for-brands.pricing.premium_name') }} — {{ __('for-brands.pricing.recommended') }}">
+                <p class="pricing-badge">{{ __('for-brands.pricing.recommended') }}</p>
+                <p class="pricing-tier">{{ __('for-brands.pricing.premium_tier') }}</p>
+                <h3 class="pricing-name">{{ __('for-brands.pricing.premium_name') }}</h3>
+                <p class="pricing-desc">{{ __('for-brands.pricing.premium_desc') }}</p>
                 <ul class="pricing-features">
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f1') }}</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f2') }}</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f3') }}</li>
-                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f4') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f1') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f2') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f3') }}</li>
+                    <li><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> {{ __('for-brands.pricing.premium_f4') }}</li>
                 </ul>
                 <a href="#apply" class="pricing-btn solid">{{ __('for-brands.pricing.premium_cta') }}</a>
-            </div>
+            </article>
         </div>
     </div>
-</div>
+</section>
 
 {{-- -- APPLICATION FORM --------------------------------------- --}}
-<div class="container" id="apply">
+<section class="container" id="apply" aria-labelledby="fb-apply">
     <div class="form-section">
         <div class="form-section-left">
-            <h2>{{ __('for-brands.form.title') }}</h2>
+            <h2 id="fb-apply">{{ __('for-brands.form.title') }}</h2>
             <p>{{ __('for-brands.form.sub') }}</p>
-            <div class="form-bullets">
-                <div class="form-bullet">
-                    <div class="form-bullet-icon">
+            <ul class="form-bullets">
+                <li class="form-bullet">
+                    <div class="form-bullet-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
                         </svg>
@@ -426,9 +434,9 @@ $_brandsSchema = json_encode([
                         <h3>{{ __('for-brands.form.bullet1_title') }}</h3>
                         <p>{{ __('for-brands.form.bullet1_desc') }}</p>
                     </div>
-                </div>
-                <div class="form-bullet">
-                    <div class="form-bullet-icon">
+                </li>
+                <li class="form-bullet">
+                    <div class="form-bullet-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
                             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
@@ -438,31 +446,32 @@ $_brandsSchema = json_encode([
                         <h3>{{ __('for-brands.form.bullet2_title') }}</h3>
                         <p>{{ __('for-brands.form.bullet2_desc') }}</p>
                     </div>
-                </div>
-            </div>
+                </li>
+            </ul>
         </div>
 
         <div class="brand-form">
+            {{-- TODO: wire a real POST route (e.g. /{locale}/for-brands/apply) before launch --}}
             <form action="#" method="POST">
                 @csrf
                 <div class="form-row">
                     <div class="form-group">
-                        <label>{{ __('for-brands.form.company') }}</label>
-                        <input type="text" name="company" placeholder="{{ __('for-brands.form.company_ph') }}" required>
+                        <label for="fb-company">{{ __('for-brands.form.company') }}</label>
+                        <input type="text" id="fb-company" name="company" autocomplete="organization" placeholder="{{ __('for-brands.form.company_ph') }}" required>
                     </div>
                     <div class="form-group">
-                        <label>{{ __('for-brands.form.contact') }}</label>
-                        <input type="text" name="contact" placeholder="{{ __('for-brands.form.contact_ph') }}" required>
+                        <label for="fb-contact">{{ __('for-brands.form.contact') }}</label>
+                        <input type="text" id="fb-contact" name="contact" autocomplete="name" placeholder="{{ __('for-brands.form.contact_ph') }}" required>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>{{ __('for-brands.form.email') }}</label>
-                    <input type="email" name="email" placeholder="{{ __('for-brands.form.email_ph') }}" required>
+                    <label for="fb-email">{{ __('for-brands.form.email') }}</label>
+                    <input type="email" id="fb-email" name="email" autocomplete="email" placeholder="{{ __('for-brands.form.email_ph') }}" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>{{ __('for-brands.form.category') }}</label>
-                        <select name="category">
+                        <label for="fb-category">{{ __('for-brands.form.category') }}</label>
+                        <select id="fb-category" name="category">
                             <option>{{ __('for-brands.form.cat_steel') }}</option>
                             <option>{{ __('for-brands.form.cat_fire') }}</option>
                             <option>{{ __('for-brands.form.cat_elec') }}</option>
@@ -473,25 +482,23 @@ $_brandsSchema = json_encode([
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>{{ __('for-brands.form.region') }}</label>
-                        <select name="region">
-                            <option>{{ __('for-brands.form.reg_na') }}</option>
-                            <option>{{ __('for-brands.form.reg_eu') }}</option>
-                            <option>{{ __('for-brands.form.reg_me') }}</option>
-                            <option>{{ __('for-brands.form.reg_apac') }}</option>
-                            <option>{{ __('for-brands.form.reg_africa') }}</option>
+                        <label for="fb-region">{{ __('for-brands.form.region') }}</label>
+                        {{-- Region scoped to Saudi Arabia & GCC to match the page's target market --}}
+                        <select id="fb-region" name="region">
+                            <option>{{ __('for-brands.form.reg_ksa') }}</option>
+                            <option>{{ __('for-brands.form.reg_gcc') }}</option>
                             <option>{{ __('for-brands.form.reg_other') }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>{{ __('for-brands.form.message') }}</label>
-                    <textarea name="message" placeholder="{{ __('for-brands.form.message_ph') }}"></textarea>
+                    <label for="fb-message">{{ __('for-brands.form.message') }}</label>
+                    <textarea id="fb-message" name="message" placeholder="{{ __('for-brands.form.message_ph') }}"></textarea>
                 </div>
                 <button type="submit" class="form-submit">{{ __('for-brands.form.submit') }}</button>
             </form>
         </div>
     </div>
-</div>
+</section>
 
 @endsection

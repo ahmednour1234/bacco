@@ -46,7 +46,7 @@
     .div-card:hover { border-color: var(--green); box-shadow: 0 4px 24px rgba(0,106,59,0.08); transform: translateY(-2px); }
     .div-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
     .div-card-num { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #bbb; }
-    .div-card h3 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 4px; line-height: 1.3; }
+    .div-card h2 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 4px; line-height: 1.3; }
     .div-card .div-name-ar { font-size: 12px; color: #999; margin-bottom: 18px; }
     .div-stats { display: flex; gap: 20px; border-top: 1px solid var(--border); padding-top: 16px; margin-top: auto; }
     .div-stat { display: flex; flex-direction: column; gap: 2px; }
@@ -153,7 +153,7 @@ $_catSchema = json_encode([
                 <div class="div-card-top">
                     <span class="div-card-num">CAT-{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
                 </div>
-                <h3>{{ $d->name }}</h3>
+                <h2>{{ $d->name }}</h2>
                 <div class="div-stats">
                     <div class="div-stat">
                         <strong>{{ number_format($d->products) }}</strong>
