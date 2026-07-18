@@ -266,6 +266,63 @@ class FixCatalogTranslations extends Command
             'Signage'                                 => 'اللافتات والإرشادات',
             'Formwork & Scaffolding'                  => 'القوالب والسقالات',
             'Adhesives & Sealants'                    => 'المواد اللاصقة ومواد السد',
+
+            // ── Electrical / ELV ────────────────────────────────────────────
+            'Battery Energy Storage Systems'          => 'أنظمة تخزين الطاقة بالبطاريات',
+            'Cables & Containment'                    => 'الكابلات ومساراتها',
+
+            // ── Architectural / interior ────────────────────────────────────
+            'Architectural Metalwork'                 => 'الأعمال المعدنية المعمارية',
+            'Carpet & Soft Flooring'                  => 'السجاد والأرضيات اللينة',
+            'Ceiling Systems'                         => 'أنظمة الأسقف',
+            'Curtain Wall & Glazing'                  => 'الحوائط الستائرية والتزجيج',
+            'Decorative Plaster & Coatings'           => 'اللياسة الزخرفية والطلاءات',
+            'Doors'                                   => 'الأبواب',
+            'Drywall Partitions'                      => 'القواطع الجافة (الجبس بورد)',
+            'Expansion Joints'                        => 'فواصل التمدد',
+            'Facade & Cladding Systems'               => 'أنظمة الواجهات والكسوة',
+            'Fire Stopping & Penetration Seals'       => 'موانع انتشار الحريق وسدادات الاختراقات',
+            'Interior Specialties'                    => 'التجهيزات الداخلية المتخصصة',
+            'Joinery & Carpentry'                     => 'أعمال النجارة والتجهيزات الخشبية',
+            'Masonry & Blockwork'                     => 'أعمال البناء والطابوق',
+            'Paint & Protective Coatings'             => 'الدهانات والطلاءات الواقية',
+            'Raised Floor & Technical Floor'          => 'الأرضيات المرتفعة والتقنية',
+            'Resilient & Wood Flooring'               => 'الأرضيات المرنة والخشبية',
+            'Roofing Systems'                         => 'أنظمة الأسقف والتسقيف',
+            'Signage & Wayfinding'                    => 'اللافتات وأنظمة الإرشاد',
+            'Subfloor, Screed & Underlayment'         => 'الأرضيات التحتية والصبات والطبقات السفلية',
+            'Thermal & Fire Insulation'               => 'العزل الحراري ومقاومة الحريق',
+            'Tile & Stone Flooring'                   => 'أرضيات البلاط والحجر',
+            'Toilet Partitions & Accessories'         => 'قواطع دورات المياه وملحقاتها',
+            'Wall Build-Up & Backing Materials'       => 'مواد تكوين وتبطين الجدران',
+            'Wall Finishes'                           => 'تشطيبات الجدران',
+            'Windows & Louvres'                       => 'النوافذ والشيش',
+
+            // ── Civil / infrastructure ──────────────────────────────────────
+            'Bridge Works'                            => 'أعمال الجسور',
+            'Communication Tower Civil Works'         => 'الأعمال المدنية لأبراج الاتصالات',
+            'Communication Tower Structures'          => 'هياكل أبراج الاتصالات',
+            'Marine & Port Works'                     => 'الأعمال البحرية والموانئ',
+            'Railway Works'                           => 'أعمال السكك الحديدية',
+            'Road Marking & Traffic Materials'        => 'دهانات الطرق ومواد المرور',
+            'Road Works - Kerbs & Ancillaries'        => 'أعمال الطرق - الأرصفة والملحقات',
+            'Road Works - Pavement Layers'            => 'أعمال الطرق - طبقات الرصف',
+            'Stormwater & Road Drainage'              => 'تصريف مياه الأمطار والطرق',
+            'Tunnel & Retaining Structures'           => 'الأنفاق والجدران الساندة',
+            'Utility & Service Corridors'             => 'ممرات الخدمات والمرافق',
+            'Concrete Constituents & Admixtures'      => 'مكونات الخرسانة والإضافات',
+            'Concrete Joints, Repairs & Grouts'       => 'فواصل الخرسانة وإصلاحها ومواد الحقن',
+
+            // ── Product-table divisions ─────────────────────────────────────
+            'Civil Infrastructure'                    => 'البنية التحتية المدنية',
+            'Civil Works'                             => 'الأعمال المدنية',
+            'External & Landscape'                    => 'الأعمال الخارجية وتنسيق المواقع',
+            'Conveying Systems'                        => 'أنظمة النقل والمصاعد',
+            'Fuel & Gas Infrastructure'               => 'البنية التحتية للوقود والغاز',
+            'Special Facility Works'                   => 'أعمال المنشآت الخاصة',
+            'Transportation Systems'                   => 'أنظمة النقل',
+            'Waste Management Systems'                 => 'أنظمة إدارة النفايات',
+            'Water & Wastewater Treatment'             => 'معالجة المياه ومياه الصرف',
         ];
 
         // Fix a typo introduced above (mدنية) defensively, then key it.
