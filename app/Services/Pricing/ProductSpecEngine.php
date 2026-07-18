@@ -181,11 +181,17 @@ class ProductSpecEngine
             . 'SERVICE, INSTALLATION, CONSULTATION, UNSUPPORTED_ITEM, UNCLEAR_ITEM. '
             . 'Installation, testing, commissioning, supervision, training, maintenance and consultancy are NOT supply products. '
             . 'If a line mixes supply AND installation, classify it as SUPPLY_PRODUCT and set "split":true so the caller separates the service. '
-            . '(2) SEPARATE SPECIFICATIONS. "cs" = specs the description or project context actually states. '
-            . '"is" = safe industry-standard defaults you applied. Every entry in "is" MUST also appear as a plain-language sentence in "as" (assumptions). '
+            . '(2) SEPARATE SPECIFICATIONS. Work through the item\'s "blocking" list one entry at a time. '
+            . 'Each one lands in exactly ONE of three places: "cs" if the description or project context '
+            . 'states it; "is" if you can apply a defensible market-standard default; "mb" if it genuinely '
+            . 'cannot be defaulted (a brand, a model number, an electrical rating, a custom dimension). '
+            . 'Together, "cs" + "is" + "mb" MUST cover every entry in the "blocking" list — none may be skipped. '
+            . 'Prefer "is" over "mb": most specs (processor generation, screen size, OS, warranty, colour '
+            . 'temperature, IP rating) have a standard answer for this market, so default them and move on. '
+            . 'Every entry in "is" MUST also appear as a plain-language sentence in "as" (assumptions). '
             . '(3) MISSING BLOCKING SPECS. "mb" = ONLY specs without which a defensible price is impossible. '
-            . 'Use the per-item "blocking" list as your rubric. Do NOT list something already answered by the description, '
-            . 'the project context, the product category, or a safe standard default. '
+            . 'Do NOT list something already answered by the description, the project context, the product '
+            . 'category, or a safe standard default. An empty "mb" is the expected outcome for most items. '
             . '(4) ONE GROUPED QUESTION. If "mb" is non-empty, "q" = a SINGLE Arabic question asking for all of them together '
             . '(maximum ' . self::MAX_QUESTION_PARTS . ' sub-parts, comma-separated in one sentence). Never one question per field. '
             . 'If "mb" is empty, "q" = "". '
@@ -193,8 +199,18 @@ class ProductSpecEngine
             . 'READY_WITH_ASSUMPTIONS (priceable as a budgetary estimate using stated assumptions), '
             . 'BLOCKED_MISSING_SPECIFICATIONS (a blocking spec is genuinely unknowable), '
             . 'NOT_A_SUPPLY_PRODUCT (service/installation/unsupported). '
-            . '(6) "fd" = the clean final product description containing ONLY confirmed and assumed specifications. '
+            . '(6) "fd" = the FULL procurement-grade product description. This is the single most '
+            . 'important field: a buyer must be able to source and price the item from "fd" ALONE, '
+            . 'without seeing the original BOQ line. Write out EVERY spec in the "blocking" list for '
+            . 'this item — the ones the client stated, plus the ones you inferred — as one comma-separated '
+            . 'specification string. Expand vague trade shorthand into the real specification. '
             . 'It must NEVER contain questions, placeholders, or the words "TBD"/"to be confirmed". '
+            . 'EXAMPLE — input "Laptop for work - Core i7 / 16 GB / 512 GB SSD" must become: '
+            . '"Business Laptop, Intel Core i7-1355U (13th Gen), 16 GB DDR4 RAM, 512 GB NVMe SSD, '
+            . '14-inch FHD (1920x1080) Display, Intel Iris Xe Integrated Graphics, Windows 11 Pro, '
+            . '3-Year Manufacturer Warranty". Note how the generation, GPU, screen size, OS and warranty '
+            . 'are all present even though the client never wrote them — each one is listed in "is" and '
+            . 'restated in "as" as an assumption. A description that merely repeats the client\'s words is WRONG. '
             . '(7) "pb" = one short phrase stating the pricing basis (e.g. "budgetary, standard configuration assumed"). '
             . '(8) "cf" = confidence 0-100 that this description can be priced accurately. '
             . 'HARD RULES: never invent a brand, model number, electrical rating, dimension for a custom-manufactured item, '
@@ -351,6 +367,16 @@ class ProductSpecEngine
             $finalDescription = $record['original_item_name'];
         }
 
+        // The whole point of the pass is a description a buyer can source from.
+        // If the model handed back the client's own wording, the line was not
+        // actually enriched — surface it rather than letting it pass as qualified.
+        if ($this->isNotEnriched($finalDescription, $record['original_item_name'])) {
+            Log::info('ProductSpecEngine: description not enriched by the model.', [
+                'item'   => mb_substr($record['original_item_name'], 0, 120),
+                'family' => $record['catalog_key'],
+            ]);
+        }
+
         $question = trim((string) ($entry['q'] ?? ''));
 
         return array_merge($record, [
@@ -401,6 +427,25 @@ class ProductSpecEngine
             }
         }
         return false;
+    }
+
+    /**
+     * True when the "enriched" description is really just the client's own line.
+     *
+     * A genuine qualification expands trade shorthand into a full specification,
+     * so it is materially longer and carries more comma-separated parts. This is
+     * a heuristic, used only to flag the case for review — never to block a line.
+     */
+    private function isNotEnriched(string $final, string $original): bool
+    {
+        $normalise = static fn (string $s) => mb_strtolower(preg_replace('/\s+/u', ' ', trim($s)));
+
+        if ($normalise($final) === $normalise($original)) {
+            return true;
+        }
+
+        // Fewer than two spec separators means it is still a bare product name.
+        return substr_count($final, ',') < 2 && mb_strlen($final) < mb_strlen($original) * 1.5;
     }
 
     /** Guards rule 7: a question must never leak into the final description. */
