@@ -15,6 +15,7 @@ use App\Services\BoqValidationService;
 use App\Services\PriceAnalysisService;
 use App\Services\PricingService;
 use App\Services\QuotationAiService;
+use App\Services\SpecValidationService;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -609,182 +610,146 @@ class CreateQuotation extends Component
     }
 
     /**
-     * Flag every item that is still missing something essential as NEEDS_REVIEW.
+     * Resolve every incomplete row with DeepSeek instead of flagging it.
      *
-     * A row needs review when ANY of these hold after the user's corrections:
-     *   - the unit is empty or not a recognizable unit;
-     *   - mandatory technical specs are missing (no brand/grade AND a bare description);
-     *   - the description mentions a "complete system" with no component schedule;
-     *   - it is a probable duplicate of another non-review row.
+     * The AI reviewer audits each line for unit correctness and spec completeness
+     * and returns, per finding, the value it would use. We apply those directly:
+     * wrong units are corrected, missing specs are folded into the description.
+     * A row that still cannot be priced is dropped — the user is never handed a
+     * red row to fix, which is the whole point of this pass.
      *
-     * Flagged rows get price_status='needs_review' and their price zeroed so they fall
-     * out of the subtotal. Rows that come back clean are un-flagged (a later correction
-     * can clear a previous review flag). This is the gate behind quotationBlocked.
+     * Rows the user explicitly rejected are left untouched.
      */
     private function flagNeedsReview(): void
     {
-        // Signatures of the currently-clean rows, to detect leftover duplicates.
-        $seen = [];
-
+        $candidates = [];
         foreach ($this->items as $i => $item) {
-            // Never touch rows the user explicitly rejected.
             if (($item['price_status'] ?? '') === 'rejected'
                 || ($item['status'] ?? '') === QuotationItemStatusEnum::Rejected->value) {
                 continue;
             }
+            $candidates[$i] = [
+                'id'          => $i,
+                'description' => (string) ($item['description'] ?? ''),
+                'unit'        => (string) ($item['unit'] ?? ''),
+                'quantity'    => (float) ($item['quantity'] ?? 0),
+                'category'    => (string) ($item['category'] ?? ''),
+                'brand'       => (string) ($item['brand'] ?? ''),
+            ];
+        }
 
-            $reasons = $this->reviewReasons($item, $seen);
+        if (empty($candidates)) {
+            return;
+        }
 
-            if (! empty($reasons)) {
-                $this->items[$i]['price_status']        = self::NEEDS_REVIEW;
-                $this->items[$i]['unit_price']          = null;
-                $this->items[$i]['price_source']        = null;
-                $this->items[$i]['needs_review_reason'] = implode(' · ', $reasons);
-            } else {
-                // Clean now: clear any stale review flag but keep other statuses intact.
+        try {
+            $validated = app(SpecValidationService::class)->validate(array_values($candidates));
+        } catch (\Throwable $e) {
+            // Never block the quotation on a validation outage — leave rows as-is.
+            Log::error('CreateQuotation: spec validation failed, skipping auto-resolve.', ['message' => $e->getMessage()]);
+            return;
+        }
+
+        $indices  = array_keys($candidates);
+        $dropRows = [];
+        $fixed    = 0;
+
+        foreach ($validated as $pos => $row) {
+            $i = $indices[$pos] ?? null;
+            if ($i === null || ! array_key_exists($i, $this->items)) {
+                continue;
+            }
+
+            $status = $row['validation_status'] ?? 'valid';
+            $specs  = is_array($row['missing_specs'] ?? null) ? $row['missing_specs'] : [];
+
+            if ($status === 'valid') {
                 if (($this->items[$i]['price_status'] ?? '') === self::NEEDS_REVIEW) {
                     $this->items[$i]['price_status'] = 'pending';
                 }
                 unset($this->items[$i]['needs_review_reason']);
-
-                // Record signature so later identical rows are caught as duplicates.
-                $sig = $this->itemSignature($item);
-                if ($sig !== '') {
-                    $seen[$sig] = true;
-                }
+                continue;
             }
+
+            if ($this->autoResolveRow($i, $status, $row['suggested_unit'] ?? null, $specs)) {
+                $fixed++;
+                continue;
+            }
+
+            $dropRows[] = $i;
+        }
+
+        if (! empty($dropRows)) {
+            $this->removeRows($dropRows);
+        }
+
+        if ($fixed > 0) {
+            $this->dispatch('toast', message: __('app.spec_auto_resolved', ['count' => $fixed]), type: 'info');
+        }
+
+        if (! empty($dropRows)) {
+            $this->dispatch('toast', message: __('app.spec_auto_dropped', ['count' => count($dropRows)]), type: 'warning');
         }
     }
 
     /**
-     * Reasons a single item needs review, or [] when it is complete.
+     * Apply the AI's corrections to one row in $items.
      *
-     * @param  array<string, bool>  $seen  Signatures of already-accepted rows.
-     * @return list<string>
+     * A wrong unit is always recoverable — take the suggestion, or fall back to a
+     * countable default, since correcting a unit cannot distort the price the way
+     * an invented technical spec would. Missing specs are filled from whatever
+     * suggestions the AI could stand behind; a row with none is not fixable.
+     *
+     * @param  array<int, array<string, mixed>>  $specs
      */
-    private function reviewReasons(array $item, array $seen): array
+    private function autoResolveRow(int $i, string $status, ?string $suggestedUnit, array $specs): bool
     {
-        $reasons     = [];
-        $description = trim((string) ($item['description'] ?? ''));
-        $unit        = trim((string) ($item['unit'] ?? ''));
-        $brand       = trim((string) ($item['brand'] ?? ''));
-
-        // Invalid / missing unit.
-        if ($unit === '' || $this->isVagueValue($unit)) {
-            $reasons[] = __('app.review_reason_unit');
-        }
-
-        // Generic / incomplete descriptions (constraint 17): any of the listed vague
-        // phrases makes the item incomplete unless a real component breakdown is present.
-        if ($this->hasGenericPhrase($description) && ! $this->hasComponentSchedule($description)) {
-            $reasons[] = __('app.review_reason_generic');
-        }
-
-        // Wrong unit for the product type (constraints 33-39), e.g. concrete not in m³,
-        // rebar not in Ton/kg. Kept separate from the "missing unit" reason above.
-        if ($unit !== '' && ! $this->isVagueValue($unit) && $this->unitMismatchesType($description, $unit)) {
-            $reasons[] = __('app.review_reason_unit_type');
-        }
-
-        // Missing mandatory technical specs: a short, bare description with no
-        // brand/grade and no numbers (size/diameter/strength) to price against.
-        $hasNumbers = preg_match('/\d/', $description) === 1;
-        if ($brand === '' && ! $hasNumbers && mb_strlen($description) < 25) {
-            $reasons[] = __('app.review_reason_specs');
-        }
-
-        // Leftover duplicate of an already-accepted row.
-        $sig = $this->itemSignature($item);
-        if ($sig !== '' && isset($seen[$sig])) {
-            $reasons[] = __('app.review_reason_duplicate');
-        }
-
-        return $reasons;
-    }
-
-    /**
-     * True when the description contains a generic/placeholder phrase that makes it
-     * impossible to price precisely (constraint 17). The list mirrors the constraint's
-     * generic phrases, in both English and common Arabic equivalents.
-     */
-    private function hasGenericPhrase(string $description): bool
-    {
-        $d = mb_strtolower($description);
-
-        static $phrases = [
-            // English (constraint 17 list)
-            'various sizes', 'all sizes', 'various capacities', 'complete system',
-            'complete set', 'complete equipment', 'as required', 'as per drawings',
-            'approved brand', 'including all accessories', 'full system',
-            // Arabic equivalents
-            'مقاسات مختلفة', 'جميع المقاسات', 'كل المقاسات', 'سعات مختلفة',
-            'نظام كامل', 'منظومة كاملة', 'طقم كامل', 'حسب المطلوب', 'حسب الرسومات',
-            'ماركة معتمدة', 'شاملة جميع الملحقات', 'شامل كافة الملحقات', 'توريد وتركيب كامل',
-        ];
-
-        foreach ($phrases as $p) {
-            if (mb_stripos($d, $p) !== false) {
-                return true;
+        if ($status === 'unit_error') {
+            $unit = trim((string) $suggestedUnit);
+            if ($unit === '' || $this->isVagueValue($unit)) {
+                $unit = app()->getLocale() === 'ar' ? 'قطعة' : 'pcs';
             }
+
+            $this->setCorrectedUnit($i, $this->extractUnitToken($unit));
+            $this->items[$i]['price_status'] = 'pending';
+            unset($this->items[$i]['needs_review_reason']);
+
+            return true;
+        }
+
+        if ($status === 'needs_information' && ! empty($specs)) {
+            $answers = [];
+            foreach ($specs as $spec) {
+                $key   = trim((string) ($spec['key'] ?? ''));
+                $value = trim((string) ($spec['suggested'] ?? ''));
+                if ($key === '' || $value === '' || $this->isVagueValue($value)) {
+                    continue;
+                }
+                $answers[$key] = $value;
+            }
+
+            if (empty($answers)) {
+                return false;
+            }
+
+            $suffix = $this->buildSpecSuffix($specs, $answers);
+            if ($suffix === '') {
+                return false;
+            }
+
+            $this->items[$i]['description']  = $this->appendSpec(
+                (string) ($this->items[$i]['description'] ?? ''),
+                $suffix
+            );
+            $this->items[$i]['price_status'] = 'pending';
+            unset($this->items[$i]['needs_review_reason']);
+
+            return true;
         }
 
         return false;
     }
 
-    /**
-     * A component schedule / breakdown that would justify a "complete X" description —
-     * a list, an itemization, or explicit numbers.
-     */
-    private function hasComponentSchedule(string $description): bool
-    {
-        $d = mb_strtolower($description);
-
-        return mb_stripos($d, 'يشمل') !== false
-            || mb_stripos($d, 'includes') !== false
-            || mb_stripos($d, 'consisting') !== false
-            || mb_stripos($d, 'مكوّن من') !== false
-            || mb_stripos($d, 'مكون من') !== false
-            || mb_strpos($d, '-') !== false
-            || preg_match('/\d/', $d) === 1;
-    }
-
-    /**
-     * Whether the item's unit is wrong for its product type (constraints 33-39).
-     *
-     * Detects the product type from keywords in the description, then checks the unit
-     * against the units normally valid for that type. Returns false (no complaint)
-     * when the type is unknown — we only flag units we are confident are wrong, never
-     * guess. Uses PricingService-style normalization so "م3"/"m³"/"cbm" all match.
-     */
-    private function unitMismatchesType(string $description, string $unit): bool
-    {
-        $d = mb_strtolower($description);
-        $u = $this->normalizeUnitToken($unit);
-
-        // type keyword(s) => list of acceptable normalized units
-        static $rules = [
-            // Ready-mix concrete → m³ (constraint 34)
-            'concrete|خرسانة|ready-mix|readymix|خرسانه' => ['م3'],
-            // Reinforcement / structural steel → Ton or kg (constraints 35, 39)
-            'reinforcement|rebar|حديد تسليح|structural steel|حديد إنشائي|هيكل معدني' => ['طن', 'كجم'],
-            // Tiles / boards / membranes / sheet finishes → m² (constraint 37)
-            'tile|بلاط|board|لوح|membrane|عازل مائي صفائح|gypsum|جبس بورد' => ['م2'],
-            // Equipment (pumps, generators, AHU, panels, tanks…) → No or Set (constraint 38)
-            'pump|طلمبة|مضخة|generator|مولد|ahu|وحدة مناولة|panel|لوحة|mdb|tank|خزان|ups' => ['عدد', 'set', 'طقم'],
-        ];
-
-        foreach ($rules as $keywords => $validUnits) {
-            foreach (explode('|', $keywords) as $kw) {
-                if ($kw !== '' && mb_stripos($d, $kw) !== false) {
-                    // Type matched. Flag only if the unit is NOT in the valid set.
-                    $normValid = array_map(fn($v) => $this->normalizeUnitToken($v), $validUnits);
-                    return ! in_array($u, $normValid, true);
-                }
-            }
-        }
-
-        return false;
-    }
 
     /**
      * Canonicalize a unit string so equivalent spellings compare equal.
@@ -1006,6 +971,26 @@ class CreateQuotation extends Component
 
             array_splice($this->items, $row, 1);
         }
+    }
+
+    /**
+     * Turn resolved spec answers into a readable suffix for the description,
+     * e.g. "المقاس: 110mm | الخامة: PVC".
+     *
+     * @param  array<int, array<string, mixed>>  $missingSpecs
+     * @param  array<string, string>             $answers
+     */
+    private function buildSpecSuffix(array $missingSpecs, array $answers): string
+    {
+        $parts = [];
+        foreach ($missingSpecs as $spec) {
+            $key = $spec['key'] ?? null;
+            if ($key !== null && isset($answers[$key]) && trim((string) $answers[$key]) !== '') {
+                $label   = trim((string) ($spec['question'] ?? $key));
+                $parts[] = $label . ': ' . trim((string) $answers[$key]);
+            }
+        }
+        return implode(' | ', $parts);
     }
 
     /**
