@@ -127,11 +127,16 @@
         </style>
     </div>
 
-    {{-- Generic loading overlay --}}
+    {{-- Generic loading overlay.
+         wire:loading alone ends as soon as the request returns, which since the
+         extraction moved to the queue is under a second — the popup vanished
+         while the job was still running. `busy` keeps it up for the whole
+         queued run, until polling reports the job finished. --}}
     <div
         wire:loading
         wire:loading.except.target="submit"
         x-data="{
+            busy: @js($processing || $pricingLoading),
             dismissed: false,
             ar: ['جاري المعالجة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري الاستخراج...', 'تقريباً خلصنا...'],
             en: ['Processing...', 'Updating data...', 'Just a moment ⚡', 'Extracting...', 'Almost done...'],
@@ -140,10 +145,29 @@
             init() {
                 setInterval(() => { this.idx = (this.idx + 1) % this.ar.length; }, 1800);
                 new MutationObserver(() => {
-                    if (this.$el.style.display !== 'none') { this.dismissed = false; }
+                    // Livewire clears display when its request ends. While a queued
+                    // job is still running, put it back — otherwise the popup
+                    // disappears seconds into a run that takes minutes. Skipped
+                    // once the user has dismissed it, so "hide & keep browsing"
+                    // is not undone on the next 4s poll.
+                    if (this.busy && !this.dismissed && this.$el.style.display === 'none') {
+                        this.$el.style.display = 'block';
+                        return;
+                    }
+                    if (this.$el.style.display !== 'none' && !this.busy) { this.dismissed = false; }
                 }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
+
+                // Show immediately on load if a job is already in flight (e.g. the
+                // user reloaded the page while extraction was running).
+                if (this.busy && !this.dismissed) { this.$el.style.display = 'block'; }
             }
         }"
+        {{-- Re-evaluated on every Livewire render, so when polling clears
+             $processing the popup closes on its own. --}}
+        x-effect="
+            busy = @js($processing || $pricingLoading);
+            if (busy && !dismissed) { $el.style.display = 'block'; }
+        "
         style="display: none; position: fixed; inset: 0; z-index: 99999; pointer-events: none;"
     >
         <div x-show="!dismissed" style="position:absolute;inset:0;background:rgba(15,23,42,0.60);backdrop-filter:blur(7px);"></div>
