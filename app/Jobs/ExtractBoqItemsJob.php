@@ -40,6 +40,16 @@ class ExtractBoqItemsJob implements ShouldQueue
     /** No retries — a second AI pass would double-charge and duplicate items. */
     public int $tries = 1;
 
+    /**
+     * Only cache extractions for files at least this large (500 KB). Below it the
+     * parse is quick and the AI call cheap, so the hashing and lookup would cost
+     * more than they save.
+     */
+    private const CACHE_MIN_BYTES = 512000;
+
+    /** How long a cached extraction stays reusable. */
+    private const CACHE_TTL_DAYS = 30;
+
     public function __construct(
         private int $boqId,
         private string $storedPath,
@@ -60,22 +70,54 @@ class ExtractBoqItemsJob implements ShouldQueue
                 throw new \RuntimeException("Uploaded BOQ file is missing: {$this->storedPath}");
             }
 
-            $result = $ai->parseBoq($absPath, [
-                'boq_id'       => $this->boqId,
-                'project_name' => $this->projectName,
-            ]);
+            // ── Reuse a previous extraction of the same file ─────────────────
+            // Parsing a large BOQ is slow and costs an AI call per upload, and
+            // the same sheet gets re-uploaded often (a retry, a second project,
+            // a colleague). Key on the file's content hash, not its name, so a
+            // renamed copy still hits. Only worth caching above a size floor —
+            // small files parse fast enough that the lookup is not worth it.
+            $cacheKey = null;
+            $size     = @filesize($absPath) ?: 0;
 
-            if (! ($result['success'] ?? false)) {
-                $this->status('failed', $result['error'] ?? 'Extraction failed. Please try again.');
-                return;
+            if ($size >= self::CACHE_MIN_BYTES) {
+                $hash     = @hash_file('sha256', $absPath);
+                $cacheKey = $hash ? 'boq_extraction_' . $hash : null;
             }
 
-            if (empty($result['items'])) {
-                $this->status('no_items', 'No items found in the file. Please add items manually.');
-                return;
+            $items  = $cacheKey ? Cache::get($cacheKey) : null;
+            $cached = is_array($items) && $items !== [];
+
+            if ($cached) {
+                Log::info('ExtractBoqItemsJob: reusing cached extraction.', [
+                    'boq_id' => $this->boqId,
+                    'items'  => count($items),
+                    'bytes'  => $size,
+                ]);
+            } else {
+                $result = $ai->parseBoq($absPath, [
+                    'boq_id'       => $this->boqId,
+                    'project_name' => $this->projectName,
+                ]);
+
+                if (! ($result['success'] ?? false)) {
+                    $this->status('failed', $result['error'] ?? 'Extraction failed. Please try again.');
+                    return;
+                }
+
+                if (empty($result['items'])) {
+                    $this->status('no_items', 'No items found in the file. Please add items manually.');
+                    return;
+                }
+
+                $items = $result['items'];
+
+                // Only a successful, non-empty parse is worth keeping.
+                if ($cacheKey !== null) {
+                    Cache::put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
+                }
             }
 
-            $count = $this->persistItems($result['items']);
+            $count = $this->persistItems($items);
 
             $this->status('done', $count . ' items extracted from your file.');
 
