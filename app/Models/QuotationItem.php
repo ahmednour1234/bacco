@@ -26,6 +26,15 @@ class QuotationItem extends BaseModel
             'missing_specs'        => 'array',
             'spec_answers'         => 'array',
             'validated_at'         => 'datetime',
+            // Product Specification & Pricing Qualification Engine
+            'supplyable'                 => 'boolean',
+            'confirmed_specifications'   => 'array',
+            'inferred_specifications'    => 'array',
+            'assumptions'                => 'array',
+            'quantity_warnings'          => 'array',
+            'unit_warnings'              => 'array',
+            'compatibility_warnings'     => 'array',
+            'confidence_score'           => 'integer',
         ]);
     }
 

@@ -1047,4 +1047,6 @@ return [
     'spec_note_unit_fixed'          => 'صُحّحت الوحدة تلقائياً إلى :unit',
     'spec_note_auto_filled'         => 'استُكملت المواصفات الناقصة تلقائياً',
     'spec_auto_dropped'             => 'تم استبعاد :count بند تعذّر تحديد مواصفاته بدقة كافية للتسعير.',
+    'spec_non_supply_removed'       => 'تم استبعاد :count بند لأنه خدمة أو تركيب وليس منتج توريد.',
+    'validation_specify_option'     => 'تحديد المواصفات',
 ];

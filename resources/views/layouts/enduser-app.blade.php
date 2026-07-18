@@ -14,6 +14,8 @@
     <style>
         * { font-family: 'Cairo', sans-serif; }
         [x-cloak] { display: none !important; }
+        /* Latin numerals / tokens keep LTR order inside RTL text. */
+        .en { unicode-bidi: isolate; direction: ltr; }
         html { overflow-x: clip; }
         @media (min-width: 1024px) {
             .sidebar-offset { margin-inline-start: 16rem; }

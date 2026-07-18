@@ -1082,4 +1082,6 @@ return [
     'spec_note_unit_fixed'          => 'Unit auto-corrected to :unit',
     'spec_note_auto_filled'         => 'Missing specifications auto-completed',
     'spec_auto_dropped'             => ':count item(s) were removed — their specifications could not be determined accurately enough to price.',
+    'spec_non_supply_removed'       => ':count item(s) were removed because they are services or installation, not supply products.',
+    'validation_specify_option'     => 'Specify the specifications',
 ];

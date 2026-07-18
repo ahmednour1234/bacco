@@ -15,7 +15,7 @@ use App\Services\BoqValidationService;
 use App\Services\PriceAnalysisService;
 use App\Services\PricingService;
 use App\Services\QuotationAiService;
-use App\Services\SpecValidationService;
+use App\Services\Pricing\ProductSpecEngine;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -585,10 +585,10 @@ class CreateQuotation extends Component
         $this->validationAnswers   = [];
         $this->currentQuestion     = 0;
 
-        // Second-pass: anything STILL missing something essential after the user's
-        // corrections gets flagged NEEDS_REVIEW — pulled out of pricing and totals,
-        // and it blocks the quotation until fixed or removed.
-        $this->flagNeedsReview();
+        // The engine already qualified every line before these questions were
+        // raised, and the answers have now been folded into the descriptions.
+        // Re-running it here would re-derive the same blocking gaps and ask the
+        // user again, so the gate stays closed once answered.
 
         // Persist the corrections if we already have a draft.
         if ($this->quotationId !== null) {
@@ -610,13 +610,16 @@ class CreateQuotation extends Component
     }
 
     /**
-     * Resolve every incomplete row with DeepSeek instead of flagging it.
+     * Qualify every line through the Product Specification & Pricing Engine.
      *
-     * The AI reviewer audits each line for unit correctness and spec completeness
-     * and returns, per finding, the value it would use. We apply those directly:
-     * wrong units are corrected, missing specs are folded into the description.
-     * A row that still cannot be priced is dropped — the user is never handed a
-     * red row to fix, which is the whole point of this pass.
+     * The engine classifies each line (supply vs service), normalises its unit,
+     * applies safe industry defaults as labelled assumptions, and runs the
+     * project-level cross-item checks. Policy here:
+     *
+     *   - BLOCKING specs missing        → one grouped question for the user.
+     *   - Non-blocking gaps             → assumed, labelled, and priced.
+     *   - Service / installation lines  → pulled out of the supply quotation.
+     *   - Quantity / unit / compatibility conflicts → surfaced, never silently fixed.
      *
      * Rows the user explicitly rejected are left untouched.
      */
@@ -629,7 +632,6 @@ class CreateQuotation extends Component
                 continue;
             }
             $candidates[$i] = [
-                'id'          => $i,
                 'description' => (string) ($item['description'] ?? ''),
                 'unit'        => (string) ($item['unit'] ?? ''),
                 'quantity'    => (float) ($item['quantity'] ?? 0),
@@ -638,118 +640,109 @@ class CreateQuotation extends Component
             ];
         }
 
-        if (empty($candidates)) {
+        if ($candidates === []) {
             return;
         }
 
         try {
-            $validated = app(SpecValidationService::class)->validate(array_values($candidates));
+            $qualified = app(ProductSpecEngine::class)->qualify(
+                array_values($candidates),
+                ['name' => $this->projectName, 'type' => $this->projectStatus],
+            );
         } catch (\Throwable $e) {
-            // Never block the quotation on a validation outage — leave rows as-is.
-            Log::error('CreateQuotation: spec validation failed, skipping auto-resolve.', ['message' => $e->getMessage()]);
+            // Never block the quotation on an engine outage — leave rows as-is.
+            Log::error('CreateQuotation: spec engine failed, skipping qualification.', ['message' => $e->getMessage()]);
             return;
         }
 
-        $indices  = array_keys($candidates);
-        $dropRows = [];
-        $fixed    = 0;
+        $indices     = array_keys($candidates);
+        $nonSupply   = [];
+        $assumed     = 0;
+        $questions   = [];
 
-        foreach ($validated as $pos => $row) {
+        foreach ($qualified as $pos => $q) {
             $i = $indices[$pos] ?? null;
             if ($i === null || ! array_key_exists($i, $this->items)) {
                 continue;
             }
 
-            $status = $row['validation_status'] ?? 'valid';
-            $specs  = is_array($row['missing_specs'] ?? null) ? $row['missing_specs'] : [];
-
-            if ($status === 'valid') {
-                if (($this->items[$i]['price_status'] ?? '') === self::NEEDS_REVIEW) {
-                    $this->items[$i]['price_status'] = 'pending';
-                }
-                unset($this->items[$i]['needs_review_reason']);
+            // Services and installation never belong in a supply quotation.
+            if (! ($q['supplyable'] ?? true)) {
+                $nonSupply[] = $i;
                 continue;
             }
 
-            if ($this->autoResolveRow($i, $status, $row['suggested_unit'] ?? null, $specs)) {
-                $fixed++;
-                continue;
+            $this->applyQualification($i, $q);
+
+            if (($q['missing_blocking_specifications'] ?? []) !== []) {
+                // A blocking-spec question is free text — the answer is a
+                // specification, not a choice from a list. The custom option is
+                // the only offered option so answerValidation() accepts it and
+                // routes the typed value into the item description.
+                $customOption = __('app.validation_specify_option');
+
+                $questions[] = [
+                    'row'           => $i,
+                    'gate'          => 'specs',
+                    'question'      => (string) ($q['grouped_question'] ?? ''),
+                    'options'       => [$customOption],
+                    'custom_option' => $customOption,
+                    'custom_field'  => 'spec',
+                ];
+            } elseif (($q['assumptions'] ?? []) !== []) {
+                $assumed++;
             }
-
-            $dropRows[] = $i;
         }
 
-        if (! empty($dropRows)) {
-            $this->removeRows($dropRows);
+        if ($nonSupply !== []) {
+            $this->removeRows($nonSupply);
+            $this->dispatch('toast', message: __('app.spec_non_supply_removed', ['count' => count($nonSupply)]), type: 'warning');
         }
 
-        if ($fixed > 0) {
-            $this->dispatch('toast', message: __('app.spec_auto_resolved', ['count' => $fixed]), type: 'info');
+        if ($assumed > 0) {
+            $this->dispatch('toast', message: __('app.spec_auto_resolved', ['count' => $assumed]), type: 'info');
         }
 
-        if (! empty($dropRows)) {
-            $this->dispatch('toast', message: __('app.spec_auto_dropped', ['count' => count($dropRows)]), type: 'warning');
+        // Only genuinely blocking gaps reach the user, capped and grouped.
+        if ($questions !== []) {
+            $this->validationQuestions = array_slice($questions, 0, self::MAX_QUESTIONS);
+            $this->validationAnswers   = [];
+            $this->currentQuestion     = 0;
         }
     }
 
     /**
-     * Apply the AI's corrections to one row in $items.
+     * Write one engine verdict onto the in-memory row.
      *
-     * A wrong unit is always recoverable — take the suggestion, or fall back to a
-     * countable default, since correcting a unit cannot distort the price the way
-     * an invented technical spec would. Missing specs are filled from whatever
-     * suggestions the AI could stand behind; a row with none is not fixable.
+     * The normalised unit and clean final description replace the raw values so
+     * the quotation carries specifications only — never questions or placeholders.
      *
-     * @param  array<int, array<string, mixed>>  $specs
+     * @param  array<string, mixed>  $q
      */
-    private function autoResolveRow(int $i, string $status, ?string $suggestedUnit, array $specs): bool
+    private function applyQualification(int $i, array $q): void
     {
-        if ($status === 'unit_error') {
-            $unit = trim((string) $suggestedUnit);
-            if ($unit === '' || $this->isVagueValue($unit)) {
-                $unit = app()->getLocale() === 'ar' ? 'قطعة' : 'pcs';
-            }
-
-            $this->setCorrectedUnit($i, $this->extractUnitToken($unit));
-            $this->items[$i]['price_status'] = 'pending';
-            unset($this->items[$i]['needs_review_reason']);
-
-            return true;
+        if (! empty($q['normalized_unit'])) {
+            $this->setCorrectedUnit($i, (string) $q['normalized_unit']);
         }
 
-        if ($status === 'needs_information' && ! empty($specs)) {
-            $answers = [];
-            foreach ($specs as $spec) {
-                $key   = trim((string) ($spec['key'] ?? ''));
-                $value = trim((string) ($spec['suggested'] ?? ''));
-                if ($key === '' || $value === '' || $this->isVagueValue($value)) {
-                    continue;
-                }
-                $answers[$key] = $value;
-            }
-
-            if (empty($answers)) {
-                return false;
-            }
-
-            $suffix = $this->buildSpecSuffix($specs, $answers);
-            if ($suffix === '') {
-                return false;
-            }
-
-            $this->items[$i]['description']  = $this->appendSpec(
-                (string) ($this->items[$i]['description'] ?? ''),
-                $suffix
-            );
-            $this->items[$i]['price_status'] = 'pending';
-            unset($this->items[$i]['needs_review_reason']);
-
-            return true;
+        $finalDescription = trim((string) ($q['recommended_final_description'] ?? ''));
+        if ($finalDescription !== '') {
+            $this->items[$i]['description'] = $finalDescription;
         }
 
-        return false;
+        $this->items[$i]['classification']         = $q['classification']    ?? null;
+        $this->items[$i]['pricing_status']         = $q['pricing_status']    ?? null;
+        $this->items[$i]['assumptions']            = $q['assumptions']       ?? [];
+        $this->items[$i]['confidence_score']       = $q['confidence_score']  ?? 0;
+        $this->items[$i]['quantity_warnings']      = $q['quantity_warnings'] ?? [];
+        $this->items[$i]['unit_warnings']          = $q['unit_warnings']     ?? [];
+        $this->items[$i]['compatibility_warnings'] = $q['compatibility_warnings'] ?? [];
+
+        // The legacy red-row flag is retired: the engine's pricing_status is the
+        // single source of truth for whether a line can be priced.
+        $this->items[$i]['price_status'] = 'pending';
+        unset($this->items[$i]['needs_review_reason']);
     }
-
 
     /**
      * Canonicalize a unit string so equivalent spellings compare equal.
@@ -905,6 +898,13 @@ class CreateQuotation extends Component
             } elseif ($field === 'description') {
                 // generic/scope: the answer replaces the vague description outright.
                 $this->items[$row]['description'] = $value;
+            } elseif ($field === 'spec') {
+                // Engine blocking-spec answer: the description is already a clean
+                // qualified spec, so the answer is appended rather than replacing it.
+                $this->items[$row]['description'] = $this->appendSpec(
+                    (string) ($this->items[$row]['description'] ?? ''),
+                    $value
+                );
             }
             return [];
         }
@@ -1370,6 +1370,17 @@ class CreateQuotation extends Component
                 'price_status'         => $row['price_status'] ?? 'pending',
                 'is_selected'          => (bool) ($row['is_selected'] ?? false),
             ];
+
+            // Engine verdicts, persisted so the quotation carries its qualification
+            // trail (assumptions, warnings, readiness) rather than only a price.
+            foreach ([
+                'classification', 'pricing_status', 'assumptions', 'confidence_score',
+                'quantity_warnings', 'unit_warnings', 'compatibility_warnings',
+            ] as $field) {
+                if (array_key_exists($field, $row)) {
+                    $data[$field] = $row[$field];
+                }
+            }
 
             if (! empty($row['id'])) {
                 $item = QuotationItem::find($row['id']);
