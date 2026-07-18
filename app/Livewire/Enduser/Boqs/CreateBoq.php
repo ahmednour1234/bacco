@@ -11,6 +11,7 @@ use App\Enums\QuotationItemStatusEnum;
 use App\Enums\QuotationRequestStatusEnum;
 use App\Enums\QuotationSourceTypeEnum;
 use App\Enums\QuotationVersionStatusEnum;
+use App\Jobs\ExtractBoqItemsJob;
 use App\Jobs\FetchQuotationPricesJob;
 use App\Models\Boq;
 use App\Models\BoqItem;
@@ -25,7 +26,6 @@ use App\Models\Unit;
 use App\Models\UploadedDocument;
 use App\Services\Catalog\SaveQuotationProductsToCatalog;
 use App\Services\NotificationService;
-use App\Services\QuotationAiService;
 use App\Services\SpecValidationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -50,6 +50,13 @@ class CreateBoq extends Component
 
     /** Interstitial spec-questions step, shown between confirmation (2) and pricing (3). */
     public const STEP_QUESTIONS = 25;
+
+    /**
+     * Seconds before a queued extraction is treated as dead. Generous, because a
+     * multi-thousand-row BOQ genuinely takes many minutes; it only trips when the
+     * job is stuck or no queue worker is running.
+     */
+    private const EXTRACTION_TIMEOUT = 1800;
 
     /**
      * Items awaiting user answers before pricing, built during confirmItems().
@@ -247,11 +254,11 @@ class CreateBoq extends Component
         }
     }
 
-    /** Returns true if the AI job started > 5 minutes ago (i.e. it timed out). */
+    /** Returns true if the queued extraction has outlived EXTRACTION_TIMEOUT. */
     private function isJobTimedOut(): bool
     {
         $startedAt = Cache::get($this->cacheKeyFor('boq_ai_started_at'));
-        return $startedAt !== null && (now()->timestamp - $startedAt) > 300;
+        return $startedAt !== null && (now()->timestamp - $startedAt) > self::EXTRACTION_TIMEOUT;
     }
 
     /** Build a per-user (or per-guest) cache key. */
@@ -370,72 +377,26 @@ class CreateBoq extends Component
 
             $this->boqFile = null;
 
-            // ── Call AI service (synchronous — runs in the same request) ──────
-            $absPath = Storage::disk('local')->path($storedPath);
-            $ai      = app(QuotationAiService::class);
-            $result  = $ai->parseBoq($absPath, [
-                'boq_id'       => $boq->id,
-                'project_name' => $this->projectName,
-            ]);
+            // ── Queue the AI extraction ───────────────────────────────────────
+            // Large BOQs take minutes to parse. Running that inline exceeds the
+            // request timeout, which kills the Livewire request and makes the
+            // browser retry as a plain POST (405 on the GET-only /try route).
+            // Dispatch instead and let checkAiStatus() poll for the result.
+            Cache::put($this->cacheKeyFor('boq_ai_status'), 'pending', now()->addHours(2));
+            Cache::put($this->cacheKeyFor('boq_ai_message'), '', now()->addHours(2));
+            Cache::put($this->cacheKeyFor('boq_ai_started_at'), now()->timestamp, now()->addHours(2));
 
-            if (! $result['success']) {
-                $this->dispatch('boq-upload-done');
-                $this->dispatch('toast', message: $result['error'] ?? 'Extraction failed. Please try again.', type: 'error');
-                return;
-            }
+            ExtractBoqItemsJob::dispatch(
+                $boq->id,
+                $storedPath,
+                $this->projectName,
+                (string) ($this->guestMode ? $this->guestToken : Auth::id()),
+            );
 
-            if (empty($result['items'])) {
-                $this->dispatch('boq-upload-done');
-                $this->dispatch('toast', message: 'No items found in the file. Please add items manually.', type: 'warning');
-                return;
-            }
+            // Start the polling UI; checkAiStatus() advances to step 2 when done.
+            $this->processing = true;
 
-            // ── Persist extracted items ───────────────────────────────────────
-            BoqItem::where('boq_id', $boq->id)->delete();
-            foreach ($result['items'] as $aiItem) {
-                $item = array_merge([
-                    'description'          => '',
-                    'quantity'             => 1,
-                    'unit_id'              => null,
-                    'category'             => '',
-                    'brand'                => '',
-                    'status'               => 'pending',
-                    'engineering_required' => false,
-                    'confidence'           => null,
-                    'unit_price'           => null,
-                    'raw_data'             => null,
-                    'ai_extracted'         => true,
-                    'is_selected'          => true,
-                ], $aiItem);
-
-                BoqItem::create([
-                    'boq_id'               => $boq->id,
-                    'description'          => (string) ($item['description'] ?? ''),
-                    'quantity'             => is_numeric($item['quantity']) ? (float) $item['quantity'] : 1,
-                    'unit_id'              => $this->resolveUnitId($item['unit_id'] ?? null, $item['unit'] ?? null),
-                    'category'             => (string) ($item['category'] ?? ''),
-                    'brand'                => (string) ($item['brand'] ?? ''),
-                    'status'               => $item['status'] ?? 'pending',
-                    'engineering_required' => (bool) ($item['engineering_required'] ?? false),
-                    'confidence'           => is_numeric($item['confidence'] ?? null) ? (float) $item['confidence'] : null,
-                    'unit_price'           => is_numeric($item['unit_price'] ?? null) ? (float) $item['unit_price'] : null,
-                    'raw_data'             => $item['raw_data'] ?? null,
-                    'ai_extracted'         => true,
-                    'is_selected'          => true,
-                ]);
-            }
-
-            // ── Reload items into component state ─────────────────────────────
-            $boq = Boq::where('id', $boq->id)->with(['items.unit'])->first();
-            if ($boq) {
-                $this->loadFromBoq($boq);
-            }
-
-            $this->dispatch('boq-upload-done');
-            $this->dispatch('toast', message: count($this->items) . ' items extracted from your file.', type: 'success');
-
-            // Advance wizard to step 2 (item confirmation)
-            $this->currentStep = 2;
+            $this->dispatch('toast', message: __('app.boq_extraction_queued'), type: 'info');
 
         } catch (\Throwable $e) {
             Log::error('CreateBoq::uploadBoq failed.', [
@@ -461,18 +422,25 @@ class CreateBoq extends Component
             return;
         }
 
-        // ── Auto-fail if the job has been running for more than 5 minutes ────
+        // ── Auto-fail a job that has outlived the extraction window ──────────
+        // Large BOQs legitimately run for many minutes, so this only trips when
+        // the job is genuinely stuck (or no worker is consuming the queue).
         $startedAt = Cache::get($this->cacheKeyFor('boq_ai_started_at'));
-        if ($startedAt && (now()->timestamp - $startedAt) > 300) {
+        if ($startedAt && (now()->timestamp - $startedAt) > self::EXTRACTION_TIMEOUT) {
             Cache::put($this->cacheKeyFor('boq_ai_status'), 'failed', now()->addMinutes(30));
             Cache::put($this->cacheKeyFor('boq_ai_message'),
-                'Processing timed out after 5 minutes. The file may be too large, or the background worker may not be running. Please try again.',
+                __('app.boq_extraction_timeout'),
                 now()->addMinutes(30)
             );
         }
 
         $status  = Cache::get($this->cacheKeyFor('boq_ai_status'));
         $message = (string) Cache::get($this->cacheKeyFor('boq_ai_message'), '');
+
+        // Queued but not picked up yet — keep polling, nothing to report.
+        if ($status === 'pending' || $status === 'running') {
+            return;
+        }
 
         if ($status === 'done') {
             $boq = Boq::where('id', $this->boqId)->with(['items.unit'])->first();
@@ -1448,20 +1416,4 @@ class CreateBoq extends Component
         return $candidate;
     }
 
-    private function resolveUnitId(?int $unitId, mixed $unitText): ?int
-    {
-        if ($unitId !== null) {
-            return $unitId;
-        }
-
-        $label = trim((string) ($unitText ?? ''));
-        if ($label === '') {
-            return null;
-        }
-
-        return Unit::firstOrCreate(
-            ['name' => $label],
-            ['symbol' => mb_strtolower(mb_substr($label, 0, 20))]
-        )->id;
-    }
 }
