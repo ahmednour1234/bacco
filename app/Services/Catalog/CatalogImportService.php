@@ -55,6 +55,19 @@ class CatalogImportService
         return $this->importRepo->find($id);
     }
 
+    /**
+     * Reset an existing import and re-dispatch its job so the same file is
+     * processed again (e.g. after fixing the file, or to re-map headers).
+     */
+    public function rerun(int $id): CatalogImport
+    {
+        $import = $this->importRepo->find($id);
+        $this->importRepo->resetForRerun($import);
+        ProcessCatalogImportJob::dispatch($import->id);
+
+        return $import;
+    }
+
     public function failedRows(int $importId, int $perPage = 50)
     {
         return $this->importRepo->failedRows($importId, $perPage);

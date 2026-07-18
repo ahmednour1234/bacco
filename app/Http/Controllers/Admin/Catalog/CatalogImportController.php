@@ -49,6 +49,38 @@ class CatalogImportController extends Controller
         return view('admin.catalog.imports.show', compact('import'));
     }
 
+    /**
+     * Download the original uploaded file for an import. Handles both the legacy
+     * storage/app/ path and Laravel 11+ storage/app/private/ path.
+     */
+    public function download(int $id): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        $import = $this->importService->find($id);
+
+        $path = storage_path('app/' . $import->file_path);
+        if (! is_file($path)) {
+            $path = storage_path('app/private/' . $import->file_path);
+        }
+
+        abort_unless(is_file($path), 404, 'Import file not found on disk.');
+
+        return response()->download($path, $import->file_name);
+    }
+
+    /**
+     * Re-run an existing import: reset its counters/status and re-dispatch the
+     * queue job for the same file. The user still presses "Run Queue" (or has a
+     * worker running) to actually process the freshly-queued job.
+     */
+    public function rerun(int $id): RedirectResponse
+    {
+        $import = $this->importService->rerun($id);
+
+        return redirect()
+            ->route('admin.catalog.imports.index')
+            ->with('success', "Import #{$import->id} ({$import->file_name}) re-queued. Press \"Run Queue\" to process it.");
+    }
+
     public function failedRows(int $id): View
     {
         $import     = $this->importService->find($id);

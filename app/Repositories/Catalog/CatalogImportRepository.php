@@ -52,6 +52,29 @@ class CatalogImportRepository
     }
 
     /**
+     * Reset an import back to "pending" so it can be re-run from scratch. Clears
+     * the progress counters, timings, error, and any previously-recorded failed
+     * rows, so the second pass starts clean. The upsert on catalog_products means
+     * re-running never duplicates rows — it re-inserts or updates by unique key.
+     */
+    public function resetForRerun(CatalogImport $import): void
+    {
+        CatalogImportFailedRow::where('catalog_import_id', $import->id)->delete();
+
+        $import->update([
+            'status'         => 'pending',
+            'processed_rows' => 0,
+            'inserted_rows'  => 0,
+            'updated_rows'   => 0,
+            'failed_rows'    => 0,
+            'total_rows'     => 0,
+            'error_message'  => null,
+            'started_at'     => null,
+            'finished_at'    => null,
+        ]);
+    }
+
+    /**
      * Atomic increment for progress counters — safe with concurrent chunk processing.
      */
     public function incrementProgress(int $importId, int $processed, int $inserted, int $updated, int $failed): void

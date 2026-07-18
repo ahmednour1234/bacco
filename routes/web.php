@@ -318,6 +318,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('imports/create',        [CatalogImportController::class, 'create'])->name('imports.create');
             Route::post('imports',              [CatalogImportController::class, 'store'])->name('imports.store');
             Route::get('imports/{id}',          [CatalogImportController::class, 'show'])->name('imports.show');
+            Route::get('imports/{id}/download', [CatalogImportController::class, 'download'])->name('imports.download');
+            Route::post('imports/{id}/rerun',   [CatalogImportController::class, 'rerun'])->name('imports.rerun');
             Route::get('imports/{id}/failed',   [CatalogImportController::class, 'failedRows'])->name('imports.failed-rows');
             Route::get('imports/{id}/progress', [CatalogImportController::class, 'progress'])->name('imports.progress');
             Route::post('queue/run',              [CatalogImportController::class, 'runQueue'])->name('queue.run');

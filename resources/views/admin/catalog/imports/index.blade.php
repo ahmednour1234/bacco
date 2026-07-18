@@ -94,13 +94,41 @@
                             </div>
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $import->created_at->diffForHumans() }}</td>
-                        <td class="px-4 py-3 text-right space-x-2">
-                            <a href="{{ route('admin.catalog.imports.show', $import->id) }}"
-                               class="text-blue-600 hover:underline text-xs">View</a>
-                            @if($import->failed_rows > 0)
-                                <a href="{{ route('admin.catalog.imports.failed-rows', $import->id) }}"
-                                   class="text-red-600 hover:underline text-xs">Failed rows</a>
-                            @endif
+                        <td class="px-4 py-3 text-right">
+                            <div class="inline-flex items-center gap-2 whitespace-nowrap">
+                                <a href="{{ route('admin.catalog.imports.show', $import->id) }}"
+                                   class="text-blue-600 hover:underline text-xs">View</a>
+
+                                {{-- Download the original uploaded file --}}
+                                <a href="{{ route('admin.catalog.imports.download', $import->id) }}"
+                                   class="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 text-xs" title="Download file">
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+                                    </svg>
+                                    Download
+                                </a>
+
+                                {{-- Re-run this import (reset + re-queue) --}}
+                                @if(in_array($import->status, ['completed', 'failed'], true))
+                                    <form method="POST" action="{{ route('admin.catalog.imports.rerun', $import->id) }}" class="inline">
+                                        @csrf
+                                        <button type="submit"
+                                                wire:loading.attr="disabled"
+                                                onclick="return confirm('Re-run this import? It will reset progress and re-queue the same file.');"
+                                                class="inline-flex items-center gap-1 text-amber-600 hover:text-amber-800 text-xs" title="Re-run import">
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992V4.356M2.985 19.644v-4.992h4.992m-4.992 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                                            </svg>
+                                            Re-run
+                                        </button>
+                                    </form>
+                                @endif
+
+                                @if($import->failed_rows > 0)
+                                    <a href="{{ route('admin.catalog.imports.failed-rows', $import->id) }}"
+                                       class="text-red-600 hover:underline text-xs">Failed rows</a>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty
