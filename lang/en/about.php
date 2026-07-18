@@ -55,7 +55,7 @@ return [
         'a2_title' => 'Instant Retrieval',
         'a2_desc'  => "Utilizing state-of-the-art vector search and RAG architectures to find the exact pricing for any specification in milliseconds.",
         'a3_title' => 'Transparent Purchasing',
-        'a3_desc'  => "Removing the 'middle-man' cloud. We provide direct brand visibility and open market rates to ensure competitive procurement.",
+        'a3_desc'  => "Removing the intermediaries between buyer and manufacturer. We provide direct brand visibility and open market rates to ensure competitive procurement.",
     ],
 
     // ── Gulf Section ─────────────────────────────────────────────────────────

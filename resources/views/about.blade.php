@@ -155,8 +155,8 @@ $_aboutSchema = json_encode([
                 'height' => 154,
             ],
             'description'   => $isAr
-                ? 'منصة تسعير إنشاءات B2B تفهرس ' . number_format($catalogStats['products']) . ' منتجاً معتمداً في السعودية ودول الخليج. محرك RAG يسترجع تسعير جداول الكميات في أقل من 60 ثانية.'
-                : 'B2B construction pricing platform indexing ' . number_format($catalogStats['products']) . ' verified products across Saudi Arabia and GCC. RAG engine retrieves BOQ pricing in under 60 seconds.',
+                ? 'منصة تسعير إنشاءات B2B تفهرس ' . number_format($catalogStats['products']) . ' منتجاً معتمداً في السعودية ودول الخليج. محرك RAG يسترجع تسعير جداول الكميات خلال ثوانٍ.'
+                : 'B2B construction pricing platform indexing ' . number_format($catalogStats['products']) . ' verified products across Saudi Arabia and GCC. RAG engine retrieves BOQ pricing in seconds.',
             'foundingDate'  => '2024',
             'address'       => [
                 '@type'           => 'PostalAddress',
@@ -197,9 +197,9 @@ $_aboutSchema = json_encode([
                         {{-- GEO Fact Block (moved below the H1) --}}
                         <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-inline-start:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0 0 18px;">
                         @if(app()->getLocale() === 'ar')
-                            تأسست شركة كيمتا للتكنولوجيا عام <span class="en">2024</span> ومقرها الرياض، المملكة العربية السعودية. تخدم المنصة مشتري مواد البناء والمقاولين وفرق المشتريات في السعودية والإمارات وقطر والكويت والبحرين وعُمان. تفهرس كيمتا <span class="en">{{ number_format($catalogStats['products']) }}</span> منتجاً إنشائياً معتمداً وتسترجع تسعير جداول الكميات خلال أقل من <span class="en">60</span> ثانية بدقة <span class="en">99.9%</span>.
+                            تأسست شركة كيمتا للتكنولوجيا عام <span class="en">2024</span> ومقرها الرياض، المملكة العربية السعودية. تخدم المنصة مشتري مواد البناء والمقاولين وفرق المشتريات في السعودية والإمارات وقطر والكويت والبحرين وعُمان. تفهرس كيمتا <span class="en">{{ number_format($catalogStats['products']) }}</span> منتجاً إنشائياً معتمداً وتسترجع تسعير جداول الكميات خلال ثوانٍ عبر محرك RAG.
                         @else
-                            Qimta Technology Company was founded in 2024 and is headquartered in Riyadh, Saudi Arabia. The platform serves construction buyers, contractors, and procurement teams across Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, and Oman. Qimta indexes {{ number_format($catalogStats['products']) }} verified construction products and retrieves BOQ pricing in under 60 seconds via a RAG engine with 99.9% accuracy.
+                            Qimta Technology Company was founded in 2024 and is headquartered in Riyadh, Saudi Arabia. The platform serves construction buyers, contractors, and procurement teams across Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, and Oman. Qimta indexes {{ number_format($catalogStats['products']) }} verified construction products and retrieves BOQ pricing in seconds via a RAG engine.
                         @endif
                         </p>
 
