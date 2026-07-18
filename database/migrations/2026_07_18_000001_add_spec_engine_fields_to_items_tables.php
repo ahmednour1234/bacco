@@ -91,6 +91,12 @@ return new class extends Migration
                 if (! Schema::hasColumn($table, 'confidence_score')) {
                     $t->unsignedTinyInteger('confidence_score')->nullable();
                 }
+
+                // The concrete "Brand Model" the quoted price was taken against,
+                // so a buyer can source exactly what was priced.
+                if (! Schema::hasColumn($table, 'priced_product')) {
+                    $t->string('priced_product', 255)->nullable();
+                }
             });
         }
     }
@@ -102,6 +108,7 @@ return new class extends Migration
             'normalized_product_name', 'confirmed_specifications', 'inferred_specifications',
             'assumptions', 'quantity_warnings', 'unit_warnings', 'compatibility_warnings',
             'recommended_final_description', 'pricing_basis', 'confidence_score',
+            'priced_product',
         ];
 
         foreach (self::TABLES as $table) {

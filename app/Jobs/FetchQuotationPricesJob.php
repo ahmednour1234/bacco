@@ -110,7 +110,7 @@ class FetchQuotationPricesJob implements ShouldQueue
                 $finalPrice  = in_array($verdict, ['confirmed', 'corrected'], true) ? $verified : $original;
                 $priceStatus = ($verdict === 'flagged') ? 'needs_review' : 'pending';
 
-                QuotationItem::where('id', $row['id'])->update([
+                $attrs = [
                     'unit_price'              => $finalPrice,
                     'price_source'            => $row['price_source'] ?? null,
                     'verified_price'          => $verified,
@@ -118,7 +118,19 @@ class FetchQuotationPricesJob implements ShouldQueue
                     'price_verification_note' => $row['price_verification_note'] ?? null,
                     'price_verified_at'       => $verdict !== null ? now() : null,
                     'price_status'            => $priceStatus,
-                ]);
+                ];
+
+                // The pricing pass names the real product it quoted against and
+                // folds it into the description. Persist both, otherwise the
+                // quotation shows a price with no traceable product behind it.
+                if (! empty($row['priced_product'])) {
+                    $attrs['priced_product'] = $row['priced_product'];
+                }
+                if (! empty($row['description'])) {
+                    $attrs['description'] = $row['description'];
+                }
+
+                QuotationItem::where('id', $row['id'])->update($attrs);
                 $gotPrices++;
             }
 

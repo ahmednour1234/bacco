@@ -171,7 +171,9 @@ class PricingService
         foreach ($indices as $idx) {
             $payload[] = [
                 'i'    => $idx,
-                'd'    => mb_substr((string) ($items[$idx]['description'] ?? ''), 0, 80),
+                // 400 chars, not 80: the spec engine writes a full specification
+                // here and truncating it would price a different product.
+                'd'    => mb_substr((string) ($items[$idx]['description'] ?? ''), 0, 400),
                 'cat'  => mb_substr((string) ($items[$idx]['category']    ?? ''), 0, 30),
                 'br'   => mb_substr((string) ($items[$idx]['brand']       ?? ''), 0, 30),
                 'unit' => mb_substr((string) ($items[$idx]['unit']        ?? ''), 0, 15),
@@ -185,15 +187,23 @@ class PricingService
      */
     private function buildPricingPrompt(array $payload): string
     {
-        return 'You are a procurement pricing expert for the Saudi Arabia construction and MEP materials market. '
-            . 'Estimate a realistic current unit price in SAR for each item below. '
+        return 'You are a procurement pricing expert for the Saudi Arabia construction, MEP and IT market. '
+            . 'For each item below, pick the specific real product a Saudi supplier would actually quote '
+            . 'against that specification, then price THAT product. '
             . 'RULES: '
-            . '(1) Always return a positive non-zero price — use your best market estimate, never 0. '
-            . '(2) Base prices on typical Saudi supplier/contractor rates for 2024-2026. '
-            . '(3) Return ONLY a valid compact JSON array with NO whitespace or newlines between elements. '
-            . '(4) Each element must be exactly: {"i":<index>,"p":<price_number>} '
-            . '(5) No markdown, no explanation, no extra keys, no pretty-printing. '
-            . 'Example output: [{"i":0,"p":1500},{"i":1,"p":350}] '
+            . '(1) "m" = the concrete product you priced, as "Brand Model" — e.g. "HP ProBook 450 G10", '
+            . '"Schneider Easy9 EZ9F56220", "Grundfos CR 5-8". It must be a real, currently-sold product '
+            . 'from a brand available in Saudi Arabia, and it must genuinely match the specification given. '
+            . '(2) NEVER fabricate a model number. If you are not confident a specific model exists and fits, '
+            . 'return "m":"" and price the specification generically — an empty "m" is far better than an '
+            . 'invented one, because a buyer will try to source exactly what you name. '
+            . '(3) "p" = the unit price in SAR for that product, for the unit given in the item. '
+            . 'Always a positive non-zero number, based on typical Saudi supplier/contractor rates for 2024-2026. '
+            . '(4) Price the SPECIFICATION as written. If it states 16 GB RAM, do not price an 8 GB model. '
+            . '(5) Return ONLY a valid compact JSON array with NO whitespace or newlines between elements. '
+            . '(6) Each element must be exactly: {"i":<index>,"m":"<brand model>","p":<price_number>} '
+            . '(7) No markdown, no explanation, no extra keys, no pretty-printing. '
+            . 'Example output: [{"i":0,"m":"HP ProBook 450 G10","p":4200},{"i":1,"m":"","p":350}] '
             . 'Items: ' . json_encode($payload, JSON_UNESCAPED_UNICODE);
     }
 
@@ -208,9 +218,19 @@ class PricingService
         $priceData = json_decode($text, true);
 
         if (! is_array($priceData)) {
-            preg_match_all('/\{\s*"i"\s*:\s*(\d+)\s*,\s*"p"\s*:\s*([\d.]+)\s*\}/', $text, $matches, PREG_SET_ORDER);
+            // Salvage whole entries from a truncated or malformed response. "m" is
+            // optional so this still recovers prices when the model name is absent.
+            preg_match_all(
+                '/\{\s*"i"\s*:\s*(\d+)\s*(?:,\s*"m"\s*:\s*"([^"]*)"\s*)?,\s*"p"\s*:\s*([\d.]+)\s*\}/',
+                $text,
+                $matches,
+                PREG_SET_ORDER
+            );
             if (! empty($matches)) {
-                $priceData = array_map(fn($m) => ['i' => (int) $m[1], 'p' => (float) $m[2]], $matches);
+                $priceData = array_map(
+                    fn ($m) => ['i' => (int) $m[1], 'm' => $m[2] ?? '', 'p' => (float) $m[3]],
+                    $matches
+                );
                 Log::info('PricingService: Partial extraction recovered ' . count($priceData) . ' price(s).');
             }
         }
@@ -236,6 +256,19 @@ class PricingService
             if ($price > 0) {
                 $items[$idx]['unit_price']   = $price;
                 $items[$idx]['price_source'] = 'deepseek';
+
+                // Record which real product the price belongs to, so the quotation
+                // names something a buyer can actually go and source. Prepended to
+                // the description because that is what the client reads.
+                $priced = trim((string) ($entry['m'] ?? ''));
+                if ($priced !== '') {
+                    $items[$idx]['priced_product'] = $priced;
+
+                    $description = (string) ($items[$idx]['description'] ?? '');
+                    if (mb_stripos($description, $priced) === false) {
+                        $items[$idx]['description'] = $priced . ' — ' . $description;
+                    }
+                }
             }
         }
 
