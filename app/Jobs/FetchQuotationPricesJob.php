@@ -9,6 +9,7 @@ use App\Models\QuotationRequest;
 use App\Services\BoqCleaningService;
 use App\Services\NotificationService;
 use App\Services\PriceVerificationService;
+use App\Services\Pricing\ProductSpecEngine;
 use App\Services\PricingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,7 +27,12 @@ class FetchQuotationPricesJob implements ShouldQueue
      * Maximum seconds before the job times out.
      * Generous timeout to allow parallel DeepSeek chunks to all complete.
      */
-    public int $timeout = 180;
+    /**
+     * Generous, because this job makes three AI passes over every line — spec
+     * qualification, pricing, then price verification — each chunked and pooled.
+     * A large BOQ legitimately runs for several minutes.
+     */
+    public int $timeout = 1800;
 
     public function __construct(
         private readonly int    $quotationId,
@@ -80,6 +86,44 @@ class FetchQuotationPricesJob implements ShouldQueue
                     'reasons'      => $blockers,
                 ]);
             }
+        }
+
+        // ── Spec qualification ───────────────────────────────────────────────
+        // Turn each raw BOQ line into a full procurement-grade specification
+        // before anything is priced, so the AI prices a described product rather
+        // than the client's shorthand. Advisory: an engine outage must not stop
+        // the quotation, so on failure we price the lines exactly as they are.
+        try {
+            $qualified = app(ProductSpecEngine::class)->qualify(
+                array_map(fn ($i) => [
+                    'description' => $i['description'],
+                    'unit'        => $i['unit']     ?? '',
+                    'quantity'    => $i['quantity'] ?? 0,
+                    'category'    => $i['category'] ?? '',
+                    'brand'       => $i['brand']    ?? '',
+                ], $guardedItems),
+                ['name' => (string) ($quotation->project_name ?? '')],
+            );
+
+            foreach ($qualified as $pos => $q) {
+                if (! isset($guardedItems[$pos])) {
+                    continue;
+                }
+
+                $spec = trim((string) ($q['recommended_final_description'] ?? ''));
+                if ($spec !== '') {
+                    $guardedItems[$pos]['description'] = $spec;
+                }
+
+                if (! empty($q['normalized_unit'])) {
+                    $guardedItems[$pos]['unit'] = $q['normalized_unit'];
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('FetchQuotationPricesJob: spec qualification failed, pricing raw lines.', [
+                'quotation_id' => $this->quotationId,
+                'message'      => $e->getMessage(),
+            ]);
         }
 
         try {

@@ -747,13 +747,9 @@ class CreateBoq extends Component
                 }
             });
 
-            // ── Spec validation pass (before pricing) ───────────────────────
-            // Audits unit correctness + spec completeness, then resolves every
-            // finding itself: wrong units are corrected, missing specs are filled
-            // from the AI's own suggestions, and anything still unpriceable is
-            // dropped. The user is never shown a row to fix.
-            $this->runSpecValidation();
-
+            // Spec qualification now runs inside FetchQuotationPricesJob, so the
+            // engine and the pricing passes share one background job instead of
+            // stacking several AI round-trips into this request.
             $this->runPricing();
 
         } catch (\Throwable $e) {
@@ -762,123 +758,6 @@ class CreateBoq extends Component
         }
     }
 
-    /**
-     * Qualify every quotation item through the Product Specification & Pricing
-     * Engine before any price is fetched.
-     *
-     * The engine classifies each line, normalises its unit, and — crucially —
-     * returns a complete product description built from the confirmed specs plus
-     * safe industry defaults. That description replaces the raw BOQ text, so the
-     * final quotation reads "Business Laptop, Intel Core i7, 16 GB RAM, 512 GB
-     * NVMe SSD, 14-inch FHD, Windows 11 Pro, 3-Year Warranty" rather than the
-     * bare "Laptop for work" the client typed.
-     *
-     * Services and installation lines are dropped from the supply quotation.
-     *
-     * @return bool  true if the flow paused for questions (caller must return).
-     */
-    private function runSpecValidation(): bool
-    {
-        $qItems = QuotationItem::where('quotation_request_id', $this->quotationId)
-            ->with('unit')
-            ->get();
-
-        if ($qItems->isEmpty()) {
-            return false;
-        }
-
-        $payload = $qItems->map(fn ($qi) => [
-            'description' => (string) $qi->description,
-            'unit'        => $qi->unit?->name ?? '',
-            'quantity'    => (float) $qi->quantity,
-            'category'    => (string) ($qi->category ?? ''),
-            'brand'       => (string) ($qi->brand ?? ''),
-        ])->values()->toArray();
-
-        try {
-            $qualified = app(ProductSpecEngine::class)->qualify($payload, [
-                'name' => $this->projectName,
-                'type' => $this->boqType,
-            ]);
-        } catch (\Throwable $e) {
-            // Never block the flow on an engine outage — price what we have.
-            Log::error('CreateBoq: spec engine failed, continuing to pricing.', ['message' => $e->getMessage()]);
-            return false;
-        }
-
-        $this->questionItems = [];
-        $described = 0;
-        $dropIds   = [];
-
-        foreach ($qualified as $pos => $q) {
-            $qi = $qItems[$pos] ?? null;
-            if ($qi === null) {
-                continue;
-            }
-
-            // Services / installation never belong in a supply quotation.
-            if (! ($q['supplyable'] ?? true)) {
-                $dropIds[] = $qi->id;
-                continue;
-            }
-
-            $originalDescription = (string) $qi->description;
-            $finalDescription    = trim((string) ($q['recommended_final_description'] ?? ''));
-
-            $attrs = [
-                'validation_status'      => 'valid',
-                'validated_at'           => now(),
-                'classification'         => $q['classification']    ?? null,
-                'pricing_status'         => $q['pricing_status']    ?? null,
-                'assumptions'            => $q['assumptions']       ?? [],
-                'confidence_score'       => $q['confidence_score']  ?? 0,
-                'quantity_warnings'      => $q['quantity_warnings'] ?? [],
-                'unit_warnings'          => $q['unit_warnings']     ?? [],
-                'compatibility_warnings' => $q['compatibility_warnings'] ?? [],
-            ];
-
-            // The engine's description is what the client will actually read on
-            // the quotation, so only overwrite when it genuinely added detail.
-            if ($finalDescription !== '' && $finalDescription !== $originalDescription) {
-                $attrs['description'] = $finalDescription;
-                $described++;
-            }
-
-            // Adopt the normalised unit so the quotation shows PCS/M2/M3, not "No."
-            if (! empty($q['normalized_unit'])) {
-                $attrs['unit_id'] = Unit::firstOrCreate(
-                    ['name' => $q['normalized_unit']],
-                    ['symbol' => mb_strtolower((string) $q['normalized_unit'])]
-                )->id;
-            }
-
-            $qi->update($attrs);
-
-            // Mirror onto the source BoqItem so the BOQ view stays in step.
-            if ($this->boqId !== null) {
-                BoqItem::where('boq_id', $this->boqId)
-                    ->where('description', $originalDescription)
-                    ->update(array_intersect_key($attrs, array_flip([
-                        'description', 'validation_status', 'validated_at',
-                        'classification', 'pricing_status', 'assumptions',
-                        'confidence_score', 'quantity_warnings', 'unit_warnings',
-                        'compatibility_warnings',
-                    ])));
-            }
-        }
-
-        if ($dropIds !== []) {
-            QuotationItem::whereIn('id', $dropIds)->delete();
-            $this->dispatch('toast', message: __('app.spec_non_supply_removed', ['count' => count($dropIds)]), type: 'warning');
-        }
-
-        if ($described > 0) {
-            $this->dispatch('toast', message: __('app.spec_descriptions_enriched', ['count' => $described]), type: 'info');
-        }
-
-        // The engine resolves everything it can; pricing always proceeds.
-        return false;
-    }
 
     /**
      * Merge the user's spec answers into each item, mark them valid, then price.
@@ -966,18 +845,24 @@ class CreateBoq extends Component
         $this->pricedCount    = 0;
         $this->unpricedCount  = count($this->pricedItems);
 
-        // ── Run pricing synchronously so prices appear immediately ────────
+        // ── Queue pricing ────────────────────────────────────────────────
+        // Pricing runs several AI passes (spec qualification, pricing, price
+        // verification) over every line. Running that inline exceeds the request
+        // timeout on any real BOQ — the request dies and the user is left on a
+        // "generating…" banner with nothing priced. Dispatch it and let
+        // pollPriceStatus() pick the results up.
         $this->pricesFetching = true;
-        $this->currentStep = 3;
+        $this->currentStep    = 3;
 
-        try {
-            FetchQuotationPricesJob::dispatchSync($this->quotationId, $this->guestMode ? null : Auth::id(), $this->quotationUuid);
-        } catch (\Throwable $jobEx) {
-            Log::error('CreateBoq: pricing job failed synchronously.', ['message' => $jobEx->getMessage()]);
-        }
+        // Stamped so pollPriceStatus() can tell "still working" from "no worker
+        // is consuming the queue" — otherwise the banner spins forever.
+        Cache::put($this->cacheKeyFor('boq_pricing_started_at'), now()->timestamp, now()->addHours(2));
 
-        // Load results immediately so step 3 renders with real data
-        $this->pollPriceStatus();
+        FetchQuotationPricesJob::dispatch(
+            $this->quotationId,
+            $this->guestMode ? null : Auth::id(),
+            $this->quotationUuid,
+        );
     }
 
     /** Poll called every 5s while prices are being fetched in the background. */
@@ -988,9 +873,21 @@ class CreateBoq extends Component
         }
 
         $quotation = QuotationRequest::find($this->quotationId);
+
         if (! $quotation || ! $quotation->prices_fetched_at) {
+            // Give up once the job has clearly died (or was never picked up) so
+            // the user gets an actionable error instead of an endless spinner.
+            $startedAt = Cache::get($this->cacheKeyFor('boq_pricing_started_at'));
+            if ($startedAt !== null && (now()->timestamp - $startedAt) > self::EXTRACTION_TIMEOUT) {
+                $this->pricesFetching = false;
+                Cache::forget($this->cacheKeyFor('boq_pricing_started_at'));
+                $this->dispatch('toast', message: __('app.pricing_timeout'), type: 'error');
+            }
+
             return;
         }
+
+        Cache::forget($this->cacheKeyFor('boq_pricing_started_at'));
 
         $refreshed         = QuotationItem::where('quotation_request_id', $this->quotationId)->with('unit')->get();
         $this->pricedItems = [];

@@ -1085,4 +1085,5 @@ return [
     'spec_non_supply_removed'       => ':count item(s) were removed because they are services or installation, not supply products.',
     'validation_specify_option'     => 'Specify the specifications',
     'spec_descriptions_enriched'    => ':count item description(s) were completed with technical specifications before pricing.',
+    'pricing_timeout'               => 'Pricing could not be completed — the background worker may not be running. Please try again or contact support.',
 ];
