@@ -1069,4 +1069,7 @@ return [
     'min_price'                     => 'Min',
     'avg_price'                     => 'Avg',
     'max_price'                     => 'Max',
+
+    // ── FAQ ──────────────────────────────────────────────────────────────────
+    'faq_title'                     => 'Frequently asked questions',
 ];

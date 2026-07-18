@@ -112,4 +112,18 @@ return [
         'reg_other'     => 'Other',
     ],
 
+    // ── FAQ ────────────────────────────────────────────────────────────────────
+    'faq' => [
+        'q1' => 'How do I list my products on Qimta?',
+        'a1' => 'Submit the onboarding form above. Our team reviews your data and category fit within 48 hours. Once approved, you send your technical catalog via API or an Excel file and we handle the indexing.',
+        'q2' => 'What data format do you require?',
+        'a2' => 'We accept Excel (xlsx), CSV, or a direct API integration. The minimum required fields are product name, category, technical specification, and unit. The richer the specs, the more accurately we match your products to BOQ requests.',
+        'q3' => 'Does my brand stay visible to the buyer?',
+        'a3' => 'Yes. We never white-label — your brand name and specifications appear exactly as they are to the buyer on every pricing result.',
+        'q4' => 'How long does listing take?',
+        'a4' => 'Applications are reviewed within 48 hours. Once we receive your catalog, indexing and data verification typically take 3 to 7 business days depending on catalog size.',
+        'q5' => 'What is the difference between the Listing and Exclusivity packages?',
+        'a5' => 'The Listing package gives you unified catalog visibility, standard API integration, and monthly refreshes. The Exclusivity package adds priority RAG retrieval, per-category exclusivity, a dedicated account engineer, and real-time inventory sync.',
+    ],
+
 ];

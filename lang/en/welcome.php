@@ -233,4 +233,18 @@ return [
         'privacy'       => 'Privacy',
     ],
 
+    // ── FAQ ────────────────────────────────────────────────────────────────────
+    'faq' => [
+        'q1' => 'What is a BOQ and how does Qimta price it?',
+        'a1' => 'A Bill of Quantities is the list of a project\'s construction line items with their quantities and units. Upload it to Qimta in any format (Excel or PDF) and the system extracts the lines, matches them to verified products, and returns pricing in seconds.',
+        'q2' => 'Is the service free?',
+        'a2' => 'Yes. Uploading a BOQ and receiving pricing is entirely free for buyers, contractors, and procurement teams — with no subscription fees.',
+        'q3' => 'Which file formats can I upload?',
+        'a3' => 'We support Excel (xlsx / xls), CSV, and PDF, as well as scanned images. The extraction engine reads line items automatically, even from unformatted sheets.',
+        'q4' => 'Which regions are prices available for?',
+        'a4' => 'Qimta covers Saudi Arabia, the UAE, Qatar, Kuwait, Bahrain, and Oman, with regional pricing that reflects each country\'s local market.',
+        'q5' => 'How long does pricing a full BOQ take?',
+        'a5' => 'Seconds for most sheets. Large or unformatted BOQs may take up to a minute, and you may be asked to clarify a few lines with missing specifications before pricing.',
+    ],
+
 ];

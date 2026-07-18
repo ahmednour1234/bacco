@@ -175,6 +175,15 @@ $_catSchema = json_encode([
 
 </div>
 
+{{-- FAQ --}}
+<x-faq id="catalog-faq" :items="[
+    ['q' => __('catalog.faq.q1'), 'a' => __('catalog.faq.a1')],
+    ['q' => __('catalog.faq.q2'), 'a' => __('catalog.faq.a2')],
+    ['q' => __('catalog.faq.q3'), 'a' => __('catalog.faq.a3')],
+    ['q' => __('catalog.faq.q4'), 'a' => __('catalog.faq.a4')],
+    ['q' => __('catalog.faq.q5'), 'a' => __('catalog.faq.a5')],
+]" />
+
 <script>
 document.getElementById('divSearch').addEventListener('input', function () {
     const q = this.value.toLowerCase().trim();

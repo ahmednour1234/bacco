@@ -957,6 +957,15 @@ $_faqSchema = json_encode([
         </div>
     </section>
 
+    <!-- FAQ -->
+    <x-faq id="home-faq" :items="[
+        ['q' => __('welcome.faq.q1'), 'a' => __('welcome.faq.a1')],
+        ['q' => __('welcome.faq.q2'), 'a' => __('welcome.faq.a2')],
+        ['q' => __('welcome.faq.q3'), 'a' => __('welcome.faq.a3')],
+        ['q' => __('welcome.faq.q4'), 'a' => __('welcome.faq.a4')],
+        ['q' => __('welcome.faq.q5'), 'a' => __('welcome.faq.a5')],
+    ]" />
+
     <!-- CTA BANNER -->
     <section class="cta-banner">
         <div class="container">

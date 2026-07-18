@@ -89,6 +89,20 @@ return [
         'contact'  => 'Contact',
     ],
 
+    // ── FAQ ──────────────────────────────────────────────────────────────────
+    'faq' => [
+        'q1' => 'What is Qimta?',
+        'a1' => 'Qimta is a B2B construction materials pricing platform. It indexes manufacturer catalogs into a unified database and retrieves Bill of Quantities (BOQ) pricing in seconds via a RAG engine. The service is completely free for procurement teams and contractors.',
+        'q2' => 'Which countries does Qimta serve?',
+        'a2' => 'Qimta serves Saudi Arabia, the UAE, Qatar, Kuwait, Bahrain, and Oman. The company is headquartered in Riyadh and focuses specifically on the challenges of the GCC construction market.',
+        'q3' => 'How does Qimta source its prices?',
+        'a3' => 'We build a unified data layer from manufacturer catalogs and their verified technical specifications. The retrieval (RAG) engine then matches each BOQ line to the correct product and its regional price — with no hidden intermediaries.',
+        'q4' => 'Is the platform free for buyers?',
+        'a4' => 'Yes. Uploading a BOQ and receiving pricing is entirely free for buyers, contractors, and procurement teams. Our business model is built on brand and manufacturer partnerships.',
+        'q5' => 'When was Qimta founded?',
+        'a5' => 'Qimta Technology Company was founded in 2024 and is headquartered in Riyadh, Saudi Arabia.',
+    ],
+
     // ── Nav ──────────────────────────────────────────────────────────────────
     'nav' => [
         'for_buyers'  => 'For Buyers',

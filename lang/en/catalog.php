@@ -146,4 +146,18 @@ return [
         'related_title'      => 'Related :division Components',
         'bottom_cta'         => 'Register & See Products — Free',
     ],
+
+    // ── FAQ ────────────────────────────────────────────────────────────────────
+    'faq' => [
+        'q1' => 'What does the Qimta catalog contain?',
+        'a1' => 'The catalog holds verified construction products from approved manufacturers and brands, organised by engineering divisions and categories, along with their technical specifications, sizes, and units of measure.',
+        'q2' => 'Is browsing the catalog free?',
+        'a2' => 'Yes, browsing divisions, categories, and products is completely free. Viewing prices and pricing a Bill of Quantities requires a free account.',
+        'q3' => 'How do I get a price for a specific product?',
+        'a3' => 'Upload your Bill of Quantities (BOQ) and the retrieval engine will match your lines to the right products and return regional pricing in seconds. Alternatively, sign in and browse the product directly.',
+        'q4' => 'Are the technical specifications up to date?',
+        'a4' => 'Yes. Data comes straight from manufacturer catalogs and is refreshed regularly — monthly on the standard package, and in real time for brands on the Exclusivity package.',
+        'q5' => 'What if I cannot find a product in the catalog?',
+        'a5' => 'Upload your BOQ anyway — the matching engine can find equivalent alternatives with the same technical specification. You can also contact us to request that a product or brand be added.',
+    ],
 ];

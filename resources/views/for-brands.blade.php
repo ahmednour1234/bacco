@@ -417,6 +417,15 @@ $_brandsSchema = json_encode([
     </div>
 </section>
 
+{{-- -- FAQ ---------------------------------------------------- --}}
+<x-faq id="brands-faq" :items="[
+    ['q' => __('for-brands.faq.q1'), 'a' => __('for-brands.faq.a1')],
+    ['q' => __('for-brands.faq.q2'), 'a' => __('for-brands.faq.a2')],
+    ['q' => __('for-brands.faq.q3'), 'a' => __('for-brands.faq.a3')],
+    ['q' => __('for-brands.faq.q4'), 'a' => __('for-brands.faq.a4')],
+    ['q' => __('for-brands.faq.q5'), 'a' => __('for-brands.faq.a5')],
+]" />
+
 {{-- -- APPLICATION FORM --------------------------------------- --}}
 <section class="container" id="apply" aria-labelledby="fb-apply">
     <div class="form-section">

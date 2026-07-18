@@ -368,6 +368,15 @@ $_aboutSchema = json_encode([
         </div>
     </section>
 
+    <!-- FAQ -->
+    <x-faq id="about-faq" :items="[
+        ['q' => __('about.faq.q1'), 'a' => __('about.faq.a1')],
+        ['q' => __('about.faq.q2'), 'a' => __('about.faq.a2')],
+        ['q' => __('about.faq.q3'), 'a' => __('about.faq.a3')],
+        ['q' => __('about.faq.q4'), 'a' => __('about.faq.a4')],
+        ['q' => __('about.faq.q5'), 'a' => __('about.faq.a5')],
+    ]" />
+
     <!-- FINAL CTA -->
     <div class="cta-wrap">
         <div class="container" style="padding: 0;">
