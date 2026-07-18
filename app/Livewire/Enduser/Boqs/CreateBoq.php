@@ -747,14 +747,13 @@ class CreateBoq extends Component
                 }
             });
 
-            // ── Spec validation gate (before pricing) ───────────────────────
-            // Audit unit correctness + spec completeness. If anything needs the
-            // user's input, pause on the questions step instead of pricing blind.
-            if ($this->runSpecValidation()) {
-                return; // paused on STEP_QUESTIONS
-            }
+            // ── Spec validation pass (before pricing) ───────────────────────
+            // Audits unit correctness + spec completeness, then resolves every
+            // finding itself: wrong units are corrected, missing specs are filled
+            // from the AI's own suggestions, and anything still unpriceable is
+            // dropped. The user is never shown a row to fix.
+            $this->runSpecValidation();
 
-            // Nothing to ask → price now.
             $this->runPricing();
 
         } catch (\Throwable $e) {
@@ -793,7 +792,10 @@ class CreateBoq extends Component
         }
 
         $this->questionItems = [];
-        $autoFixed = 0;
+        $autoFixed   = 0;
+        $dropped     = 0;
+        $dropIds     = [];
+        $dropDescriptions = [];
 
         foreach ($validated as $row) {
             $id     = $row['id'] ?? null;
@@ -812,56 +814,72 @@ class CreateBoq extends Component
 
             // ── Auto-resolve with the AI's own suggestions ───────────────────
             // The reviewer already inferred the correct unit and the most likely
-            // value for each missing spec, so apply them instead of stopping to
-            // ask. Only lines the AI could not resolve reach the user.
+            // value for each missing spec, so apply them here.
             $resolved = $this->autoResolveItem($item, $status, $row['suggested_unit'] ?? null, $specs);
 
             if ($resolved['fixed']) {
                 $autoFixed++;
                 $status = 'valid';
                 $specs  = [];
+            } elseif ($status !== 'valid') {
+                // ── Could not be resolved → drop it, never surface it ────────
+                // Policy: a line is either priceable after the AI pass or it
+                // leaves the quotation. We refuse to price against specs we
+                // invented, and we refuse to hand the user a red row to fix.
+                $dropIds[]          = $id;
+                $dropDescriptions[] = $originalDescription;
+                $dropped++;
+                continue;
             }
 
-            $attrs = [
-                'validation_status' => $status,
-                'suggested_unit'    => $status === 'valid' ? null : ($row['suggested_unit'] ?? null),
-                'missing_specs'     => $specs,
+            QuotationItem::where('id', $id)->update([
+                'validation_status' => 'valid',
+                'suggested_unit'    => null,
+                'missing_specs'     => [],
                 'validation_note'   => $resolved['note'] ?? ($row['validation_note'] ?? null),
                 'validated_at'      => now(),
-            ];
-
-            QuotationItem::where('id', $id)->update($attrs);
+            ]);
 
             // Mirror the verdict onto the source BoqItem (matched by description).
             if ($this->boqId !== null) {
                 BoqItem::where('boq_id', $this->boqId)
                     ->where('description', $originalDescription)
-                    ->update($attrs);
+                    ->update([
+                        'validation_status' => 'valid',
+                        'suggested_unit'    => null,
+                        'missing_specs'     => [],
+                        'validation_note'   => $resolved['note'] ?? ($row['validation_note'] ?? null),
+                        'validated_at'      => now(),
+                    ]);
+            }
+        }
+
+        // Remove the unresolvable lines in one pass.
+        if (! empty($dropIds)) {
+            QuotationItem::whereIn('id', $dropIds)->delete();
+
+            if ($this->boqId !== null) {
+                BoqItem::where('boq_id', $this->boqId)
+                    ->whereIn('description', $dropDescriptions)
+                    ->delete();
             }
 
-            // Still unresolved → this is the only case the user must answer.
-            if ($status === 'needs_information' && ! empty($specs)) {
-                $this->questionItems[] = [
-                    'id'                => $id,
-                    'description'       => (string) $item->description,
-                    'unit'              => (string) ($row['unit'] ?? ''),
-                    'validation_status' => $status,
-                    'suggested_unit'    => $row['suggested_unit'] ?? null,
-                    'missing_specs'     => $specs,
-                    'answers'           => [],
-                ];
-            }
+            // Keep the in-memory table in sync so step 2 does not show ghosts.
+            $this->items = array_values(array_filter(
+                $this->items,
+                fn ($i) => ! in_array((string) ($i['description'] ?? ''), $dropDescriptions, true)
+            ));
         }
 
         if ($autoFixed > 0) {
             $this->dispatch('toast', message: __('app.spec_auto_resolved', ['count' => $autoFixed]), type: 'info');
         }
 
-        if (! empty($this->questionItems)) {
-            $this->currentStep = self::STEP_QUESTIONS;
-            return true;
+        if ($dropped > 0) {
+            $this->dispatch('toast', message: __('app.spec_auto_dropped', ['count' => $dropped]), type: 'warning');
         }
 
+        // Nothing is ever queued for the user now — pricing always proceeds.
         return false;
     }
 
@@ -883,8 +901,13 @@ class CreateBoq extends Component
     {
         if ($status === 'unit_error') {
             $unit = trim((string) $suggestedUnit);
+
+            // A wrong unit is always recoverable: take the AI's correction, or
+            // fall back to a countable default. Discrete goods (a panel, a UPS,
+            // a desk) are quoted per piece, so this is safe — unlike inventing
+            // a technical spec, it cannot distort the price.
             if ($unit === '' || $this->isVagueValue($unit)) {
-                return ['fixed' => false, 'note' => null];
+                $unit = app()->getLocale() === 'ar' ? 'قطعة' : 'pcs';
             }
 
             $unitId = Unit::firstOrCreate(
@@ -898,17 +921,23 @@ class CreateBoq extends Component
         }
 
         if ($status === 'needs_information' && ! empty($specs)) {
+            // Take every suggestion the AI could stand behind; skip the rest.
             $answers = [];
             foreach ($specs as $spec) {
                 $key   = trim((string) ($spec['key'] ?? ''));
                 $value = trim((string) ($spec['suggested'] ?? ''));
 
-                // One unusable suggestion means we cannot price this line safely.
                 if ($key === '' || $value === '' || $this->isVagueValue($value)) {
-                    return ['fixed' => false, 'note' => null];
+                    continue;
                 }
 
                 $answers[$key] = $value;
+            }
+
+            // Nothing usable came back → the line stays unpriceable and the
+            // caller drops it. We never fabricate specs to force it through.
+            if (empty($answers)) {
+                return ['fixed' => false, 'note' => null];
             }
 
             $suffix = $this->buildSpecSuffix($specs, $answers);

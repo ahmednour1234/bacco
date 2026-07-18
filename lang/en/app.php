@@ -1081,4 +1081,5 @@ return [
     'spec_auto_resolved'            => ':count item(s) were completed automatically with suggested specs and units.',
     'spec_note_unit_fixed'          => 'Unit auto-corrected to :unit',
     'spec_note_auto_filled'         => 'Missing specifications auto-completed',
+    'spec_auto_dropped'             => ':count item(s) were removed — their specifications could not be determined accurately enough to price.',
 ];
