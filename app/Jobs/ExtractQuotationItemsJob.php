@@ -35,8 +35,13 @@ class ExtractQuotationItemsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /** Large files legitimately take minutes; keep well above the AI call. */
-    public int $timeout = 1800;
+    /**
+     * A very large BOQ is parsed in sequential slices — a 20 000-row file splits
+     * into roughly 28 AI calls — and then the validation gate makes another pass.
+     * Two hours is generous, but the job only ever runs as long as it needs to,
+     * and a premature timeout would discard a nearly-finished parse.
+     */
+    public int $timeout = 7200;
 
     /** No retries — a second AI pass would double-charge and duplicate items. */
     public int $tries = 1;
@@ -87,6 +92,10 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
             $items = $cacheKey ? Cache::get($cacheKey) : null;
 
+            // Default for the cache-hit path: only complete parses are ever
+            // cached, so a hit is by definition not partial.
+            $result = [];
+
             if (is_array($items) && $items !== []) {
                 Log::info('ExtractQuotationItemsJob: reusing cached extraction.', [
                     'quotation_id' => $this->quotationId,
@@ -94,6 +103,12 @@ class ExtractQuotationItemsJob implements ShouldQueue
                     'bytes'        => $size,
                 ]);
             } else {
+                // A very large BOQ is parsed in slices. Report each one so the
+                // polling UI shows progress rather than a frozen spinner.
+                $ai->onChunkProgress(function (int $part, int $total): void {
+                    $this->status('running', "Extracting items… part {$part} of {$total}.");
+                });
+
                 $result = $ai->parseBoq($absPath, [
                     'quotation_id'   => $this->quotationId,
                     'project_name'   => $this->projectName,
@@ -115,7 +130,12 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
                 $items = $result['items'];
 
-                if ($cacheKey !== null) {
+                // Only cache a complete parse. When some slices of a large BOQ
+                // failed, the result is missing rows — caching it would serve the
+                // same incomplete set for 30 days and make a retry pointless.
+                $partial = (bool) ($result['partial'] ?? false);
+
+                if ($cacheKey !== null && ! $partial) {
                     Cache::put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
                 }
             }
@@ -123,6 +143,17 @@ class ExtractQuotationItemsJob implements ShouldQueue
             $count = $this->persistItems($items);
 
             $quotation->update(['source_type' => QuotationSourceTypeEnum::Api]);
+
+            // Never let a partial extraction pass as complete: the user must know
+            // rows are missing before they price or send the quotation.
+            if (! empty($result['partial'])) {
+                $failedChunks = (int) ($result['failed_chunks'] ?? 0);
+                $totalChunks  = (int) ($result['total_chunks'] ?? 0);
+
+                $this->runValidationGate($items);
+                $this->status('partial', "Extracted {$count} items, but {$failedChunks} of {$totalChunks} parts of this file could not be read, so some rows are missing. Please re-upload to try again.");
+                return;
+            }
 
             // Run the validation gate here too. It makes a chunked AI call per
             // batch of rows, so on a large BOQ it is every bit as slow as the

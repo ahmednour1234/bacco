@@ -110,7 +110,13 @@
                     :style="'width:' + progressPct + '%'"></div>
             </div>
 
-            <p class="mt-6 text-xs text-slate-400">{{ __('app.ai_analyzing_rates') }}</p>
+            {{-- Real slice-by-slice progress on a large BOQ; falls back to the
+                 generic line when the job has not reported a part yet. --}}
+            @if($extractionProgress !== '')
+                <p class="mt-6 text-xs font-medium text-emerald-600">{{ $extractionProgress }}</p>
+            @else
+                <p class="mt-6 text-xs text-slate-400">{{ __('app.ai_analyzing_rates') }}</p>
+            @endif
         </div>
 
         <style>

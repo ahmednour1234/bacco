@@ -59,6 +59,9 @@ class CreateQuotation extends Component
 
     public bool $processing = false;
 
+    /** Live progress text while a large BOQ is parsed slice by slice. */
+    public string $extractionProgress = '';
+
     public string $boqFileName = '';
 
     public bool $showPricing = false;
@@ -267,8 +270,13 @@ class CreateQuotation extends Component
     // AI status polling (called by wire:poll every 4 s while $processing)
     // -------------------------------------------------------------------------
 
-    /** How long a queued extraction may run before we call it stuck (30 min). */
-    private const EXTRACTION_TIMEOUT = 1800;
+    /**
+     * How long a queued extraction may run before the UI calls it stuck.
+     *
+     * Must stay >= ExtractQuotationItemsJob::$timeout, otherwise the page reports
+     * failure while the job is still legitimately parsing a very large BOQ.
+     */
+    private const EXTRACTION_TIMEOUT = 7200;
 
     /** Build a per-user cache key, shared with ExtractQuotationItemsJob. */
     private function cacheKeyFor(string $type): string
@@ -294,21 +302,31 @@ class CreateQuotation extends Component
         $status  = Cache::get($this->cacheKeyFor('boq_ai_status'));
         $message = (string) Cache::get($this->cacheKeyFor('boq_ai_message'), '');
 
-        // Queued but not picked up yet — keep polling, nothing to report.
+        // Still working — keep polling. On a chunked parse the job reports which
+        // slice it is on, so show that instead of an unchanging spinner.
         if ($status === 'pending' || $status === 'running') {
+            $this->extractionProgress = $message;
             return;
         }
 
+        $this->extractionProgress = '';
+
         $this->processing = false;
 
-        if ($status === 'done') {
+        // 'partial' loads exactly like 'done' — the rows that were extracted are
+        // real and usable — but the user is warned that some are missing.
+        if ($status === 'done' || $status === 'partial') {
             $quotation = QuotationRequest::with(['items.unit'])->find($this->quotationId);
             if ($quotation) {
                 $this->loadItemsFrom($quotation);
             }
 
             $this->dispatch('boq-upload-done');
-            $this->dispatch('toast', message: $message ?: (count($this->items) . ' items extracted successfully from the BOQ file.'), type: 'success');
+            $this->dispatch(
+                'toast',
+                message: $message ?: (count($this->items) . ' items extracted successfully from the BOQ file.'),
+                type: $status === 'partial' ? 'warning' : 'success',
+            );
 
             // The validation gate ran inside the job (it is another chunked AI
             // pass, far too slow for a poll request). Just pick up its result.

@@ -13,9 +13,19 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class QuotationAiService
 {
     /** Increment this whenever BOQ parsing logic changes to invalidate old caches. */
-    private const PARSER_VERSION = 9;
+    private const PARSER_VERSION = 10;
     private const LARGE_BOQ_VERIFICATION_THRESHOLD = 2000;
     private const LARGE_BOQ_VERIFICATION_CHUNK_SIZE = 120;
+
+    /**
+     * Characters of document text sent per AI call.
+     *
+     * Above this the document is split and parsed over several calls. Sized well
+     * under the model's context so the prompt, the slice, and a full JSON answer
+     * for every row in it all fit — the binding limit is the *output* budget, not
+     * the input, since each input row produces a JSON object.
+     */
+    private const TEXT_CHUNK_CHARS = 60000;
 
     private string $baseUrl;
     private string $parseEndpoint;
@@ -23,6 +33,23 @@ class QuotationAiService
     private int $timeout;
     private bool $testMode;
     private BoqCleaningService $boqCleaner;
+
+    /**
+     * Optional progress reporter for chunked parsing, called as ($part, $total).
+     *
+     * Set by the queue job so the polling UI can show real progress on a large
+     * BOQ instead of a spinner that appears frozen for many minutes.
+     *
+     * @var (callable(int, int): void)|null
+     */
+    private $onChunkProgress = null;
+
+    /** @param  callable(int, int): void  $callback */
+    public function onChunkProgress(callable $callback): self
+    {
+        $this->onChunkProgress = $callback;
+        return $this;
+    }
 
     public function __construct(BoqCleaningService $boqCleaner)
     {
@@ -526,7 +553,15 @@ class QuotationAiService
                 if ($text === null || trim($text) === '') {
                     return $this->failure('Could not convert spreadsheet to readable text.');
                 }
-                $text        = $this->sanitizeUtf8(mb_substr($text, 0, 180000));
+
+                $text = $this->sanitizeUtf8($text);
+
+                // A large BOQ exceeds what one request can carry, so send it in
+                // sequential slices and merge. Anything that fits goes as-is.
+                if (mb_strlen($text) > self::TEXT_CHUNK_CHARS) {
+                    return $this->parseTextInChunks($text, 'BOQ spreadsheet converted to CSV', $apiKey, $context);
+                }
+
                 $userContent = "BOQ spreadsheet converted to CSV:\n\n" . $text . "\n\n" . $this->buildDeepSeekPrompt($context, 'text/plain');
                 return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
             }
@@ -535,7 +570,12 @@ class QuotationAiService
             if ($ext === 'pdf') {
                 $extracted = $this->extractPdfText($absPath);
                 if ($extracted !== null && mb_strlen(trim($extracted)) > 50) {
-                    $extracted   = $this->sanitizeUtf8(mb_substr($extracted, 0, 180000));
+                    $extracted = $this->sanitizeUtf8($extracted);
+
+                    if (mb_strlen($extracted) > self::TEXT_CHUNK_CHARS) {
+                        return $this->parseTextInChunks($extracted, 'BOQ PDF extracted text', $apiKey, $context, 'application/pdf');
+                    }
+
                     $userContent = "BOQ PDF extracted text:\n\n" . $extracted . "\n\n" . $this->buildDeepSeekPrompt($context, 'application/pdf');
                     return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
                 }
@@ -548,7 +588,12 @@ class QuotationAiService
                 if ($text === null || trim($text) === '') {
                     return $this->failure('Could not extract text from the Word document. Please convert it to Excel, CSV, or PDF.');
                 }
-                $text        = $this->sanitizeUtf8(mb_substr($text, 0, 180000));
+                $text = $this->sanitizeUtf8($text);
+
+                if (mb_strlen($text) > self::TEXT_CHUNK_CHARS) {
+                    return $this->parseTextInChunks($text, 'BOQ Word document extracted text', $apiKey, $context);
+                }
+
                 $userContent = "BOQ Word document extracted text:\n\n" . $text . "\n\n" . $this->buildDeepSeekPrompt($context, 'text/plain');
                 return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
             }
@@ -774,6 +819,142 @@ class QuotationAiService
 
         $text = (string) $response->json('choices.0.message.content');
         return $this->parseDeepSeekJsonResponse($text);
+    }
+
+    /**
+     * Parse a document too large for one AI call by sending it in slices.
+     *
+     * A 20 000-row BOQ is several megabytes of text — far beyond what a single
+     * request can carry, and beyond what the model can answer without hitting its
+     * output token limit. Previously the text was simply cut at 180 000 chars and
+     * the remainder discarded: the parse "succeeded" while silently dropping most
+     * of the file. Now the text is split and each slice parsed on its own call,
+     * with the items merged.
+     *
+     * Splitting happens on line boundaries so a BOQ row is never cut in half.
+     * Slices run sequentially rather than pooled: DeepSeek rate-limits hard on
+     * concurrent large prompts, and this already runs on the queue where wall
+     * time is cheap.
+     *
+     * A slice that fails does not fail the document — its rows are lost, but the
+     * rest are kept and the shortfall is logged. Total failure is reported only
+     * when every slice fails.
+     *
+     * @param  string  $label   How the payload is introduced to the model.
+     * @return array{success:bool,items:array,rejected:array,error:?string}
+     */
+    private function parseTextInChunks(
+        string $text,
+        string $label,
+        string $apiKey,
+        array $context,
+        string $mime = 'text/plain',
+    ): array {
+        $chunks = $this->splitOnLineBoundaries($text, self::TEXT_CHUNK_CHARS);
+        $total  = count($chunks);
+
+        Log::info('QuotationAiService: large document split for parsing.', [
+            'chars'  => mb_strlen($text),
+            'chunks' => $total,
+        ]);
+
+        $items    = [];
+        $rejected = [];
+        $failed   = 0;
+        $lastError = null;
+
+        foreach ($chunks as $index => $chunk) {
+            $part = $index + 1;
+
+            // Report progress so a 28-slice parse does not look frozen to the user.
+            if ($this->onChunkProgress !== null) {
+                ($this->onChunkProgress)($part, $total);
+            }
+
+            // Tell the model this is a fragment, so it does not try to reconcile
+            // totals or treat a mid-document slice as a complete BOQ.
+            $userContent = "{$label} (part {$part} of {$total}):\n\n"
+                . $chunk . "\n\n"
+                . "NOTE: This is part {$part} of {$total} of a larger document. Extract only the rows present in this part. Do not infer totals for the whole document.\n\n"
+                . $this->buildDeepSeekPrompt($context, $mime);
+
+            $result = $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
+
+            if (! ($result['success'] ?? false)) {
+                $failed++;
+                $lastError = $result['error'] ?? 'Chunk parsing failed.';
+                Log::warning('QuotationAiService: chunk failed, continuing.', [
+                    'part'  => $part,
+                    'of'    => $total,
+                    'error' => $lastError,
+                ]);
+                continue;
+            }
+
+            foreach ($result['items'] as $item) {
+                $items[] = $item;
+            }
+            foreach ($result['rejected'] ?? [] as $row) {
+                $rejected[] = $row;
+            }
+        }
+
+        // Every slice failed — there is nothing to show, so report the failure.
+        if ($failed === $total) {
+            return $this->failure($lastError ?? 'Could not parse the document.');
+        }
+
+        if ($failed > 0) {
+            Log::error('QuotationAiService: document parsed with missing parts.', [
+                'failed_chunks' => $failed,
+                'total_chunks'  => $total,
+                'items_kept'    => count($items),
+            ]);
+        }
+
+        return [
+            'success'             => true,
+            'items'               => $items,
+            'rejected'            => $rejected,
+            'error'               => null,
+            'service_unavailable' => false,
+            'partial'             => $failed > 0,
+            'failed_chunks'       => $failed,
+            'total_chunks'        => $total,
+        ];
+    }
+
+    /**
+     * Split text into slices of at most $limit characters, breaking only at
+     * newlines so no BOQ row is ever cut in half.
+     *
+     * A single line longer than the limit (rare — a pathological cell) is passed
+     * through oversized rather than severed mid-row.
+     *
+     * @return array<int, string>
+     */
+    private function splitOnLineBoundaries(string $text, int $limit): array
+    {
+        $chunks  = [];
+        $current = '';
+
+        foreach (explode("\n", $text) as $line) {
+            $candidate = $current === '' ? $line : $current . "\n" . $line;
+
+            if (mb_strlen($candidate) > $limit && $current !== '') {
+                $chunks[] = $current;
+                $current  = $line;
+                continue;
+            }
+
+            $current = $candidate;
+        }
+
+        if (trim($current) !== '') {
+            $chunks[] = $current;
+        }
+
+        return $chunks;
     }
 
     /**
