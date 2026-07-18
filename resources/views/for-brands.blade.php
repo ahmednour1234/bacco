@@ -267,7 +267,7 @@ $_brandsSchema = json_encode([
             </div>
         </div>
         <div class="hero-img-wrap">
-            <img src="{{ asset('images/for-brands-hero.webp') }}" alt="{{ __('for-brands.hero.img_alt') }}" width="800" height="600" loading="eager" onerror="this.style.display='none'">
+            <img src="https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=800&h=600&q=80&auto=format&fit=crop" alt="{{ __('for-brands.hero.img_alt') }}" width="800" height="600" loading="eager" decoding="async" referrerpolicy="no-referrer" onerror="this.style.display='none'">
             <div class="hero-img-overlay"></div>
         </div>
     </div>

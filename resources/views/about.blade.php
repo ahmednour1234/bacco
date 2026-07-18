@@ -207,7 +207,7 @@ $_aboutSchema = json_encode([
                     </div>
                 </div>
                 <div class="hero-img-wrap">
-                    <img src="{{ asset('images/qimta-boq-pricing-retrieval.webp') }}" alt="{{ __('about.hero.img_alt') }}" width="900" height="600" loading="eager" decoding="async">
+                    <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&h=600&q=80&auto=format&fit=crop" alt="{{ __('about.hero.img_alt') }}" width="900" height="600" loading="eager" decoding="async" referrerpolicy="no-referrer">
                 </div>
             </div>
         </div>
@@ -362,7 +362,7 @@ $_aboutSchema = json_encode([
                     </ul>
                 </div>
                 <div class="gulf-img">
-                    <img src="{{ asset('images/gcc-boq-projects.webp') }}" alt="{{ __('about.gulf.img_alt') }}" width="900" height="300" loading="lazy" decoding="async">
+                    <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=900&h=300&q=80&auto=format&fit=crop" alt="{{ __('about.gulf.img_alt') }}" width="900" height="300" loading="lazy" decoding="async" referrerpolicy="no-referrer">
                 </div>
             </div>
         </div>
