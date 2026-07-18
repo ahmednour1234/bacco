@@ -438,7 +438,20 @@
     @assets
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.store('bgJob', { active: false, done: null });
+            Alpine.store('bgJob', {
+                active: false,
+                done: null,
+                // Page that started the job, so "view data" returns there
+                // instead of always to the BOQ page. Survives a reload.
+                origin: sessionStorage.getItem('bgJobOrigin') || null,
+                setOrigin(url) {
+                    this.origin = url;
+                    sessionStorage.setItem('bgJobOrigin', url);
+                },
+                resumeUrl() {
+                    return this.origin || '{{ route('enduser.boqs.create') }}?resume=1';
+                },
+            });
         });
 
         document.addEventListener('livewire:navigated', () => {
@@ -503,9 +516,10 @@
         <div
             style="background:#0f172a;color:#fff;border-radius:99px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.25);white-space:nowrap;"
         >
-            {{-- Clickable area → navigate back to BOQ create (resumes latest draft) --}}
+            {{-- Clickable area → navigate back to the page that started the job
+                 (falls back to BOQ create, which resumes the latest draft) --}}
             <a
-                href="{{ route('enduser.boqs.create') }}?resume=1"
+                :href="$store.bgJob.resumeUrl()"
                 wire:navigate
                 style="display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;"
             >
@@ -532,6 +546,7 @@
         x-show="$store.bgJob.done !== null"
         x-cloak
         x-on:boq-upload-done.window="if (!window.location.pathname.includes('/boqs/create') && !window.location.pathname.includes('/boqs/create/')) $store.bgJob.done = 'success'; $store.bgJob.active = false;"
+        x-on:boq-job-started.window="$store.bgJob.setOrigin(window.location.pathname + window.location.search)"
         x-on:boq-resume-done.window="$store.bgJob.active = false; $store.bgJob.done = null"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0"
@@ -555,7 +570,7 @@
                     </div>
                     <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'اكتملت المعالجة بنجاح' : 'Processing Complete'"></p>
                     <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'تم استخراج العناصر بنجاح، اضغط لمراجعتها' : 'Items extracted. Tap to review.'"></p>
-                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#10b981;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'عرض البيانات ←' : '→ View Data'"></a>
+                    <a :href="$store.bgJob.resumeUrl()" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#10b981;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'عرض البيانات ←' : '→ View Data'"></a>
                 </div>
             </template>
 
@@ -567,7 +582,7 @@
                     </div>
                     <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'حدثت مشكلة أثناء المعالجة' : 'Processing Failed'"></p>
                     <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'فشل استخراج العناصر. يمكنك إضافتها يدوياً أو إعادة المحاولة.' : 'Item extraction failed. You can add items manually or retry.'"></p>
-                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#ef4444;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'الرجوع وإضافة يدوياً ←' : '→ Add Manually'"></a>
+                    <a :href="$store.bgJob.resumeUrl()" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#ef4444;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'الرجوع وإضافة يدوياً ←' : '→ Add Manually'"></a>
                 </div>
             </template>
 
@@ -579,7 +594,7 @@
                     </div>
                     <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'لم يتم استخراج عناصر' : 'No Items Found'"></p>
                     <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'لم يتمكن الذكاء الاصطناعي من قراءة الملف. يمكنك إضافة العناصر يدوياً.' : 'The AI could not read the file. Add items manually.'"></p>
-                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#f59e0b;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'إضافة يدوياً ←' : '→ Add Manually'"></a>
+                    <a :href="$store.bgJob.resumeUrl()" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#f59e0b;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'إضافة يدوياً ←' : '→ Add Manually'"></a>
                 </div>
             </template>
 

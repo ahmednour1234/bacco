@@ -254,6 +254,10 @@ class CreateQuotation extends Component
                 (string) Auth::id(),
             );
 
+            // Record this page as the job's origin, so if the user navigates away
+            // the background "view data" popup brings them back here rather than
+            // to the BOQ page.
+            $this->dispatch('boq-job-started');
             $this->dispatch('toast', message: __('app.boq_extraction_queued'), type: 'info');
 
         } catch (\Throwable $e) {
