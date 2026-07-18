@@ -136,8 +136,9 @@
         wire:loading
         wire:loading.except.target="submit"
         x-data="{
-            busy: @js($processing || $pricingLoading),
+            get busy() { return $wire.processing || $wire.pricingLoading },
             dismissed: false,
+            forced: false,
             ar: ['جاري المعالجة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري الاستخراج...', 'تقريباً خلصنا...'],
             en: ['Processing...', 'Updating data...', 'Just a moment ⚡', 'Extracting...', 'Almost done...'],
             idx: 0,
@@ -145,28 +146,39 @@
             init() {
                 setInterval(() => { this.idx = (this.idx + 1) % this.ar.length; }, 1800);
                 new MutationObserver(() => {
-                    // Livewire clears display when its request ends. While a queued
+                    // Livewire clears display when a request ends. While a queued
                     // job is still running, put it back — otherwise the popup
                     // disappears seconds into a run that takes minutes. Skipped
-                    // once the user has dismissed it, so "hide & keep browsing"
-                    // is not undone on the next 4s poll.
+                    // once dismissed, so "hide & keep browsing" survives the polls.
                     if (this.busy && !this.dismissed && this.$el.style.display === 'none') {
                         this.$el.style.display = 'block';
                         return;
                     }
+                    // A fresh show for some other request clears any stale dismissal.
                     if (this.$el.style.display !== 'none' && !this.busy) { this.dismissed = false; }
                 }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
 
                 // Show immediately on load if a job is already in flight (e.g. the
                 // user reloaded the page while extraction was running).
-                if (this.busy && !this.dismissed) { this.$el.style.display = 'block'; }
+                if (this.busy && !this.dismissed) {
+                    this.$el.style.display = 'block';
+                    this.forced = true;
+                }
             }
         }"
-        {{-- Re-evaluated on every Livewire render, so when polling clears
-             $processing the popup closes on its own. --}}
+        {{-- $wire.processing is reactive, so this re-runs on every Livewire
+             render: it opens the popup when a job starts and closes it once
+             polling clears the flag. --}}
         x-effect="
-            busy = @js($processing || $pricingLoading);
-            if (busy && !dismissed) { $el.style.display = 'block'; }
+            if ($wire.processing || $wire.pricingLoading) {
+                if (!dismissed) { $el.style.display = 'block'; forced = true; }
+            } else if (forced) {
+                // Only undo our own override — never hide a popup that
+                // wire:loading is legitimately showing for another request.
+                forced = false;
+                dismissed = false;
+                $el.style.display = 'none';
+            }
         "
         style="display: none; position: fixed; inset: 0; z-index: 99999; pointer-events: none;"
     >
