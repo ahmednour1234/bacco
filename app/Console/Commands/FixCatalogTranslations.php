@@ -323,6 +323,54 @@ class FixCatalogTranslations extends Command
             'Transportation Systems'                   => 'أنظمة النقل',
             'Waste Management Systems'                 => 'أنظمة إدارة النفايات',
             'Water & Wastewater Treatment'             => 'معالجة المياه ومياه الصرف',
+
+            // ── Civil / structural (batch 2) ────────────────────────────────
+            'Concrete Testing & Quality'              => 'اختبار الخرسانة والجودة',
+            'Construction Technology'                 => 'تقنيات البناء',
+            'Demolition & Selective Removal'          => 'الهدم والإزالة الانتقائية',
+            'Dewatering'                              => 'نزح المياه',
+            'Earthworks & Excavation'                 => 'الأعمال الترابية والحفر',
+            'Environmental Remediation'               => 'المعالجة البيئية',
+            'Formwork System'                         => 'أنظمة القوالب',
+            'Ground Improvement'                      => 'تحسين التربة',
+            'Piling & Deep Foundations'               => 'الخوازيق والأساسات العميقة',
+            'Post-Tensioning & Prestressing'          => 'الشد اللاحق وسبق الإجهاد',
+            'Precast Concrete'                        => 'الخرسانة سابقة الصب',
+            'Raft / Footing / Foundation Materials'   => 'مواد الأساسات (اللبشة والقواعد)',
+            'Reinforcement System'                    => 'أنظمة التسليح',
+            'Seismic & Structural Protection'         => 'الحماية الزلزالية والإنشائية',
+            'Shoring & Excavation Support'            => 'دعم الحفر والأسناد',
+            'Structural Steel & Metal Deck'           => 'الهياكل الفولاذية والأسقف المعدنية',
+            'Subsurface Investigation'                => 'استكشاف التربة تحت السطحية',
+            'Surveying & Setting Out'                 => 'المساحة والتوقيع',
+            'Temporary Works & Site Enabling'         => 'الأعمال المؤقتة وتجهيز الموقع',
+
+            // ── Landscape / external (batch 2) ──────────────────────────────
+            'Fencing & Barriers'                      => 'الأسوار والحواجز',
+            'Green Infrastructure'                    => 'البنية التحتية الخضراء',
+            'Hard Landscape'                          => 'التنسيق الصلب',
+            'Irrigation Systems'                      => 'أنظمة الري',
+            'Outdoor Electrical & Lighting'           => 'الكهرباء والإنارة الخارجية',
+            'Outdoor Furniture & Fixtures'            => 'الأثاث والتجهيزات الخارجية',
+            'Playgrounds & Leisure Areas'             => 'الملاعب ومناطق الترفيه',
+            'Soft Landscape'                          => 'التنسيق الأخضر',
+            'Urban Realm & Wayfinding'                => 'الفراغات الحضرية والإرشاد',
+
+            // ── Conveying / utilities (batch 2) ─────────────────────────────
+            'Escalators & Moving Walkways'            => 'السلالم والممرات المتحركة',
+            'Material Handling'                       => 'مناولة المواد',
+            'Fuel Systems'                            => 'أنظمة الوقود',
+            'Gas Distribution'                        => 'توزيع الغاز',
+            'Hydrogen Infrastructure'                 => 'البنية التحتية للهيدروجين',
+            'LPG & Gas Systems'                       => 'أنظمة الغاز المسال',
+
+            // ── Special facilities (batch 2) ────────────────────────────────
+            'Aquarium & Vivarium Systems'             => 'أنظمة الأحواض المائية والحيوية',
+            'Blast & Ballistic Protection'            => 'الحماية من الانفجارات والقذائف',
+            'Building Cleaning Systems'               => 'أنظمة تنظيف المباني',
+            'Clean Room Systems'                      => 'أنظمة الغرف النظيفة',
+            'Cold Storage & Food Processing'          => 'التخزين البارد ومعالجة الأغذية',
+            'Communication Tower Shelter'             => 'مأوى أبراج الاتصالات',
         ];
 
         // Fix a typo introduced above (mدنية) defensively, then key it.
