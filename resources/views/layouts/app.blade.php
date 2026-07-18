@@ -80,6 +80,10 @@
     <link rel="preload" href="/fonts/cairo/cairo-latin.woff2" as="font" type="font/woff2" crossorigin>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
+        /* Hide Alpine-controlled elements until Alpine boots, so overlays and
+           dropdowns never flash on first paint. */
+        [x-cloak] { display: none !important; }
+
         /* ── Self-hosted Cairo variable font (no external DNS, no render-block) ── */
         @font-face {
             font-family: 'Cairo';

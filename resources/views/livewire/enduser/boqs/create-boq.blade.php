@@ -58,28 +58,42 @@
         </button>
     </div>
 
-    {{-- Generic loading overlay --}}
+    {{-- Generic loading overlay.
+         Stays up for the whole background extraction, not just the (now very
+         short) Livewire request: `extracting` mirrors $processing, which is true
+         from dispatch until checkAiStatus() sees the job finish. --}}
     <div
-        wire:loading
-        wire:loading.except.target="placeOrder,submit"
         x-data="{
+            reqLoading: false,
+            extracting: @js((bool) $processing),
             dismissed: false,
             ar: ['جاري المعالجة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري الاستخراج...', 'تقريباً خلصنا...'],
             en: ['Processing...', 'Updating data...', 'Just a moment ⚡', 'Extracting...', 'Almost done...'],
             idx: 0,
             isAr: document.documentElement.dir === 'rtl',
+            get visible() { return (this.reqLoading || this.extracting) && !this.dismissed; },
             init() {
                 setInterval(() => { this.idx = (this.idx + 1) % this.ar.length; }, 1800);
-                new MutationObserver(() => {
-                    if (this.$el.style.display !== 'none') { this.dismissed = false; }
-                }).observe(this.$el, { attributes: true, attributeFilter: ['style'] });
+
+                // Track Livewire request lifecycle so short actions still flash
+                // the overlay. Polling requests are excluded — otherwise every
+                // 4s poll would re-show an overlay the user just dismissed.
+                Livewire.hook('commit', ({ component, succeed }) => {
+                    if (component.id !== @js($this->getId())) return;
+                    this.reqLoading = true;
+                    succeed(() => { this.reqLoading = false; });
+                });
             }
         }"
-        style="display: none; position: fixed; inset: 0; z-index: 99999; pointer-events: none;"
+        x-effect="extracting = $wire.processing"
+        wire:ignore.self
+        x-on:boq-upload-done.window="dismissed = false"
+        style="position: fixed; inset: 0; z-index: 99999; pointer-events: none;"
+        x-show="visible"
+        x-cloak
     >
-        <div x-show="!dismissed" style="position:absolute;inset:0;background:rgba(15,23,42,0.60);backdrop-filter:blur(7px);"></div>
+        <div style="position:absolute;inset:0;background:rgba(15,23,42,0.60);backdrop-filter:blur(7px);"></div>
         <div
-            x-show="!dismissed"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
