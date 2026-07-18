@@ -5,9 +5,9 @@ return [
     // ── Hero ─────────────────────────────────────────────────────────────────
     'hero' => [
         'label' => 'About Qimta',
-        'h1'    => "Building the global pricing layer for construction procurement.",
+        'h1'    => "Qimta — the BOQ pricing platform for construction in Saudi Arabia & the GCC.",
         'sub'   => 'Qimta is a unified B2B platform that bridges the gap between complex engineering specs and real-time market pricing, empowering buyers with instant brand visibility and BoQ transparency.',
-        'img_alt' => 'Construction data analysis on tablet',
+        'img_alt' => 'Retrieving BOQ pricing from a technical specifications database',
     ],
 
     // ── Mission ──────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ return [
     'gulf' => [
         'h2'    => 'Built Globally, Deployed Gulf-First',
         'sub'   => "While our engineering architecture is designed for global scale, we are focused on solving the unique challenges of the Gulf region's construction boom. From Riyadh to Dubai, we are the regional layer for the world's most ambitious projects.",
-        'img_alt' => 'Gulf city skyline at night',
+        'img_alt' => 'Qimta coverage map across Saudi Arabia and the GCC',
         'sa'    => 'Saudi Arabia',
         'uae'   => 'UAE',
         'qa'    => 'Qatar',
@@ -72,7 +72,7 @@ return [
     'cta' => [
         'h2'       => "Bring us one BOQ.\nWe'll price it in seconds.",
         'sub'      => 'Experience the power of a unified construction pricing layer. Upload your Bill of Quantities today and get instant market visibility.',
-        'btn_free' => 'Price a BOQ — Free',
+        'btn_free' => 'Price a <span class="en">BOQ</span> — Free',
         'btn_contact' => 'Contact Qimta',
     ],
 

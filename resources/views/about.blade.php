@@ -21,6 +21,15 @@
     }
     .container { max-width: 1080px; padding: 0 32px; }
 
+    /* -- A11Y HELPERS -- */
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    /* Latin numerals / tokens kept LTR inside RTL text (fixes "~1B" flipping). */
+    .en { unicode-bidi: isolate; direction: ltr; }
+    /* Lists repurposed as semantic groups — strip default list chrome. */
+    .pvs-list, .stats-bar-grid, .approach-grid, .gulf-tags { list-style: none; margin: 0; padding: 0; }
+    /* .gulf-tags keeps its flex layout after becoming a <ul>. */
+    .gulf-tags { display: flex; gap: 10px; flex-wrap: wrap; }
+
     /* -- HERO -- */
     .hero { background: var(--cream); padding: 48px 0 56px; }
     .hero-card { border-radius: 14px; overflow: hidden; display: flex; flex-direction: row; min-height: 340px; }
@@ -134,20 +143,28 @@ $_aboutSchema = json_encode([
     '@context' => 'https://schema.org',
     '@graph'   => [
         [
-            '@type'       => 'LocalBusiness',
-            '@id'         => 'https://www.qimta.com/#localbusiness',
-            'name'        => 'Qimta Technology Company',
-            'url'         => 'https://www.qimta.com',
-            'logo'        => 'https://www.qimta.com/images/logo.svg',
-            'description' => 'B2B construction pricing platform indexing ' . number_format($catalogStats['products']) . ' verified products across Saudi Arabia and GCC. RAG engine retrieves BOQ pricing in under 60 seconds.',
-            'foundingDate'=> '2024',
-            'address'     => [
+            '@type'         => 'Organization',
+            '@id'           => 'https://www.qimta.com/#organization',
+            'name'          => $isAr ? 'شركة كيمتا للتكنولوجيا' : 'Qimta Technology Company',
+            'alternateName' => 'Qimta Technology Company',
+            'url'           => 'https://www.qimta.com/',
+            'logo'          => [
+                '@type'  => 'ImageObject',
+                'url'    => 'https://www.qimta.com/images/logo1.png',
+                'width'  => 512,
+                'height' => 154,
+            ],
+            'description'   => $isAr
+                ? 'منصة تسعير إنشاءات B2B تفهرس ' . number_format($catalogStats['products']) . ' منتجاً معتمداً في السعودية ودول الخليج. محرك RAG يسترجع تسعير جداول الكميات في أقل من 60 ثانية.'
+                : 'B2B construction pricing platform indexing ' . number_format($catalogStats['products']) . ' verified products across Saudi Arabia and GCC. RAG engine retrieves BOQ pricing in under 60 seconds.',
+            'foundingDate'  => '2024',
+            'address'       => [
                 '@type'           => 'PostalAddress',
                 'addressLocality' => 'Riyadh',
                 'addressCountry'  => 'SA',
             ],
-            'areaServed'  => ['SA','AE','QA','KW','BH','OM'],
-            'sameAs'      => [
+            'areaServed'    => ['SA','AE','QA','KW','BH','OM'],
+            'sameAs'        => [
                 'https://www.linkedin.com/company/qimta',
                 'https://twitter.com/QimtaSm',
             ],
@@ -166,191 +183,202 @@ $_aboutSchema = json_encode([
 @endpush
 
 @section('content')
-<div class="container">
-<p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-left:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0;" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
-@if(app()->getLocale() === 'ar')
-    تأسست شركة كيمتا للتكنولوجيا عام 2024 ومقرها الرياض، المملكة العربية السعودية. تخدم المنصة مشتري مواد البناء والمقاولين وفرق المشتريات في السعودية والإمارات وقطر والكويت والبحرين وعُمان. تفهرس كيمتا {{ number_format($catalogStats['products']) }} منتجاً إنشائياً معتمداً وتسترجع تسعير جداول الكميات خلال أقل من 60 ثانية بدقة 99.9%.
-@else
-    Qimta Technology Company was founded in 2024 and is headquartered in Riyadh, Saudi Arabia. The platform serves construction buyers, contractors, and procurement teams across Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, and Oman. Qimta indexes {{ number_format($catalogStats['products']) }} verified construction products and retrieves BOQ pricing in under 60 seconds via a RAG engine with 99.9% accuracy.
-@endif
-</p>
-</div>
 
     <!-- HERO -->
-    <section class="hero">
+    {{-- H1 opens the main content; the GEO fact-block follows it (P1: h1 first, then paragraph). --}}
+    <section class="hero" aria-labelledby="ab-hero">
         <div class="container">
             <div class="hero-card">
                 <div class="hero-text">
                     <div class="hero-text-inner">
-                        <span class="hero-label">{{ __('about.hero.label') }}</span>
-                        <h1>{{ __('about.hero.h1') }}</h1>
+                        <p class="hero-label">{{ __('about.hero.label') }}</p>
+                        <h1 id="ab-hero">{{ __('about.hero.h1') }}</h1>
+
+                        {{-- GEO Fact Block (moved below the H1) --}}
+                        <p id="fact-block" style="font-size:13px;color:#777;line-height:1.75;border-inline-start:3px solid #006a3b;padding:10px 16px;background:#f9fdf9;border-radius:0 8px 8px 0;margin:0 0 18px;">
+                        @if(app()->getLocale() === 'ar')
+                            تأسست شركة كيمتا للتكنولوجيا عام <span class="en">2024</span> ومقرها الرياض، المملكة العربية السعودية. تخدم المنصة مشتري مواد البناء والمقاولين وفرق المشتريات في السعودية والإمارات وقطر والكويت والبحرين وعُمان. تفهرس كيمتا <span class="en">{{ number_format($catalogStats['products']) }}</span> منتجاً إنشائياً معتمداً وتسترجع تسعير جداول الكميات خلال أقل من <span class="en">60</span> ثانية بدقة <span class="en">99.9%</span>.
+                        @else
+                            Qimta Technology Company was founded in 2024 and is headquartered in Riyadh, Saudi Arabia. The platform serves construction buyers, contractors, and procurement teams across Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, and Oman. Qimta indexes {{ number_format($catalogStats['products']) }} verified construction products and retrieves BOQ pricing in under 60 seconds via a RAG engine with 99.9% accuracy.
+                        @endif
+                        </p>
+
                         <p class="hero-sub">{{ __('about.hero.sub') }}</p>
                     </div>
                 </div>
                 <div class="hero-img-wrap">
-                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=900&q=80&auto=format&fit=crop" alt="{{ __('about.hero.img_alt') }}" loading="eager">
+                    <img src="{{ asset('images/qimta-boq-pricing-retrieval.webp') }}" alt="{{ __('about.hero.img_alt') }}" width="900" height="600" loading="eager" decoding="async">
                 </div>
             </div>
         </div>
     </section>
 
     <!-- PROBLEM vs STANDARD -->
-    <section class="pvs">
+    <section class="pvs" aria-labelledby="ab-problem ab-solution">
         <div class="container">
             <div class="pvs-grid">
                 <div class="pvs-card problem-col">
                     <div class="pvs-header">
-                        <span class="pvs-icon" style="color:#f87171;">&#9888;</span>
-                        <span class="pvs-header-title">{{ __('about.problem.col1_title') }}</span>
+                        <span class="pvs-icon" style="color:#f87171;" aria-hidden="true">&#9888;</span>
+                        <h2 id="ab-problem" class="pvs-header-title">{{ __('about.problem.col1_title') }}</h2>
                     </div>
-                    <div class="pvs-item">
-                        <div class="pvs-item-bar"></div>
-                        <div>
-                            <p class="pvs-item-title">{{ __('about.problem.p1_title') }}</p>
-                            <p class="pvs-item-desc">{{ __('about.problem.p1_desc') }}</p>
-                        </div>
-                    </div>
-                    <div class="pvs-item">
-                        <div class="pvs-item-bar"></div>
-                        <div>
-                            <p class="pvs-item-title">{{ __('about.problem.p2_title') }}</p>
-                            <p class="pvs-item-desc">{{ __('about.problem.p2_desc') }}</p>
-                        </div>
-                    </div>
-                    <div class="pvs-item">
-                        <div class="pvs-item-bar"></div>
-                        <div>
-                            <p class="pvs-item-title">{{ __('about.problem.p3_title') }}</p>
-                            <p class="pvs-item-desc">{{ __('about.problem.p3_desc') }}</p>
-                        </div>
-                    </div>
+                    <ul class="pvs-list">
+                        <li class="pvs-item">
+                            <div class="pvs-item-bar" aria-hidden="true"></div>
+                            <div>
+                                <h3 class="pvs-item-title">{{ __('about.problem.p1_title') }}</h3>
+                                <p class="pvs-item-desc">{{ __('about.problem.p1_desc') }}</p>
+                            </div>
+                        </li>
+                        <li class="pvs-item">
+                            <div class="pvs-item-bar" aria-hidden="true"></div>
+                            <div>
+                                <h3 class="pvs-item-title">{{ __('about.problem.p2_title') }}</h3>
+                                <p class="pvs-item-desc">{{ __('about.problem.p2_desc') }}</p>
+                            </div>
+                        </li>
+                        <li class="pvs-item">
+                            <div class="pvs-item-bar" aria-hidden="true"></div>
+                            <div>
+                                <h3 class="pvs-item-title">{{ __('about.problem.p3_title') }}</h3>
+                                <p class="pvs-item-desc">{{ __('about.problem.p3_desc') }}</p>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
                 <div class="pvs-card standard-col">
                     <div class="pvs-header">
-                        <span class="pvs-icon" style="color:var(--green);">&#10004;</span>
-                        <span class="pvs-header-title" style="color:var(--green);">{{ __('about.problem.col2_title') }}</span>
+                        <span class="pvs-icon" style="color:var(--green);" aria-hidden="true">&#10004;</span>
+                        <h2 id="ab-solution" class="pvs-header-title" style="color:var(--green);">{{ __('about.problem.col2_title') }}</h2>
                     </div>
-                    <div class="pvs-item">
-                        <div class="pvs-item-bar"></div>
-                        <div>
-                            <p class="pvs-item-title">{{ __('about.problem.s1_title') }}</p>
-                            <p class="pvs-item-desc">{{ __('about.problem.s1_desc') }}</p>
-                        </div>
-                    </div>
-                    <div class="pvs-item">
-                        <div class="pvs-item-bar"></div>
-                        <div>
-                            <p class="pvs-item-title">{{ __('about.problem.s2_title') }}</p>
-                            <p class="pvs-item-desc">{{ __('about.problem.s2_desc') }}</p>
-                        </div>
-                    </div>
-                    <div class="pvs-item">
-                        <div class="pvs-item-bar"></div>
-                        <div>
-                            <p class="pvs-item-title">{{ __('about.problem.s3_title') }}</p>
-                            <p class="pvs-item-desc">{{ __('about.problem.s3_desc') }}</p>
-                        </div>
-                    </div>
+                    <ul class="pvs-list">
+                        <li class="pvs-item">
+                            <div class="pvs-item-bar" aria-hidden="true"></div>
+                            <div>
+                                <h3 class="pvs-item-title">{{ __('about.problem.s1_title') }}</h3>
+                                <p class="pvs-item-desc">{{ __('about.problem.s1_desc') }}</p>
+                            </div>
+                        </li>
+                        <li class="pvs-item">
+                            <div class="pvs-item-bar" aria-hidden="true"></div>
+                            <div>
+                                <h3 class="pvs-item-title">{{ __('about.problem.s2_title') }}</h3>
+                                <p class="pvs-item-desc">{{ __('about.problem.s2_desc') }}</p>
+                            </div>
+                        </li>
+                        <li class="pvs-item">
+                            <div class="pvs-item-bar" aria-hidden="true"></div>
+                            <div>
+                                <h3 class="pvs-item-title">{{ __('about.problem.s3_title') }}</h3>
+                                <p class="pvs-item-desc">{{ __('about.problem.s3_desc') }}</p>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- STATS DARK BAR -->
-    <section class="stats-bar">
+    <section class="stats-bar" aria-labelledby="ab-stats">
         <div class="container">
-            <p class="stats-bar-label">{{ __('about.stats.label') }}</p>
-            <div class="stats-bar-grid">
-                <div class="stat-item">
-                    <div class="stat-val">{{ number_format($catalogStats['products']) }}</div>
+            <h2 id="ab-stats" class="stats-bar-label">{{ __('about.stats.label') }}</h2>
+            <ul class="stats-bar-grid">
+                <li class="stat-item">
+                    <div class="stat-val"><span class="en">{{ number_format($catalogStats['products']) }}</span></div>
                     <div class="stat-label">{{ __('about.stats.products') }}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-val">~1B</div>
+                </li>
+                <li class="stat-item">
+                    {{-- The "~" must sit INSIDE the .en span, else it flips to the right in RTL. --}}
+                    <div class="stat-val"><span class="en">~1B</span></div>
                     <div class="stat-label">{{ __('about.stats.specs') }}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-val">{{ $catalogStats['divisions'] }}</div>
+                </li>
+                <li class="stat-item">
+                    <div class="stat-val"><span class="en">{{ $catalogStats['divisions'] }}</span></div>
                     <div class="stat-label">{{ __('about.stats.divisions') }}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-val">{{ $catalogStats['categories'] }}</div>
+                </li>
+                <li class="stat-item">
+                    <div class="stat-val"><span class="en">{{ $catalogStats['categories'] }}</span></div>
                     <div class="stat-label">{{ __('about.stats.categories') }}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-val">RAG</div>
+                </li>
+                <li class="stat-item">
+                    <div class="stat-val"><span class="en">RAG</span></div>
                     <div class="stat-label">{{ __('about.stats.engine') }}</div>
-                </div>
-            </div>
+                </li>
+            </ul>
         </div>
     </section>
 
-    <!-- APPROACH -->
-    <section class="approach-section">
+    <!-- APPROACH / METHODOLOGY -->
+    <section class="approach-section" aria-labelledby="ab-method">
         <div class="container">
             <div class="approach-header">
-                <h2>{{ __('about.approach.title') }}</h2>
+                <h2 id="ab-method">{{ __('about.approach.title') }}</h2>
                 <p>{{ __('about.approach.sub') }}</p>
             </div>
             <div class="approach-outer">
-                <div class="approach-grid">
-                    <div class="approach-card">
-                        <div class="approach-icon-wrap">
+                <ul class="approach-grid">
+                    <li class="approach-card">
+                        <div class="approach-icon-wrap" aria-hidden="true">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
                         </div>
                         <h3>{{ __('about.approach.a1_title') }}</h3>
                         <p>{{ __('about.approach.a1_desc') }}</p>
-                    </div>
-                    <div class="approach-card">
-                        <div class="approach-icon-wrap">
+                    </li>
+                    <li class="approach-card">
+                        <div class="approach-icon-wrap" aria-hidden="true">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                         </div>
                         <h3>{{ __('about.approach.a2_title') }}</h3>
                         <p>{{ __('about.approach.a2_desc') }}</p>
-                    </div>
-                    <div class="approach-card">
-                        <div class="approach-icon-wrap">
+                    </li>
+                    <li class="approach-card">
+                        <div class="approach-icon-wrap" aria-hidden="true">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         </div>
                         <h3>{{ __('about.approach.a3_title') }}</h3>
                         <p>{{ __('about.approach.a3_desc') }}</p>
-                    </div>
-                </div>
+                    </li>
+                </ul>
             </div>
         </div>
     </section>
 
-    <!-- GULF -->
-    <section class="gulf">
+    <!-- GULF / REGIONAL FOCUS -->
+    <section class="gulf" aria-labelledby="ab-region">
         <div class="container">
             <div class="gulf-inner">
                 <div>
-                    <h2>{{ __('about.gulf.h2') }}</h2>
+                    <h2 id="ab-region">{{ __('about.gulf.h2') }}</h2>
                     <p>{{ __('about.gulf.sub') }}</p>
-                    <div class="gulf-tags">
-                        <span class="gulf-tag">{{ __('about.gulf.sa') }}</span>
-                        <span class="gulf-tag">{{ __('about.gulf.uae') }}</span>
-                        <span class="gulf-tag">{{ __('about.gulf.qa') }}</span>
-                    </div>
+                    {{-- All 6 GCC countries, matching the fact block above (P1: coverage mismatch). --}}
+                    <ul class="gulf-tags" aria-label="{{ __('about.gulf.countries_label') }}">
+                        <li class="gulf-tag">{{ __('about.gulf.sa') }}</li>
+                        <li class="gulf-tag">{{ __('about.gulf.uae') }}</li>
+                        <li class="gulf-tag">{{ __('about.gulf.qa') }}</li>
+                        <li class="gulf-tag">{{ __('about.gulf.kw') }}</li>
+                        <li class="gulf-tag">{{ __('about.gulf.bh') }}</li>
+                        <li class="gulf-tag">{{ __('about.gulf.om') }}</li>
+                    </ul>
                 </div>
                 <div class="gulf-img">
-                    <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=900&q=80&auto=format&fit=crop" alt="{{ __('about.gulf.img_alt') }}" loading="lazy">
+                    <img src="{{ asset('images/gcc-boq-projects.webp') }}" alt="{{ __('about.gulf.img_alt') }}" width="900" height="300" loading="lazy" decoding="async">
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CTA -->
+    <!-- FINAL CTA -->
     <div class="cta-wrap">
         <div class="container" style="padding: 0;">
-            <div class="cta">
-                <h2>{{ __('about.cta.h2') }}</h2>
+            <section class="cta" aria-labelledby="ab-cta">
+                <h2 id="ab-cta">{{ __('about.cta.h2') }}</h2>
                 <p>{{ __('about.cta.sub') }}</p>
                 <div class="cta-btns">
-                    <a href="{{ route('guest.boq.create') }}" class="btn-cta-primary">{{ __('about.cta.btn_free') }}</a>
+                    <a href="{{ route('guest.boq.create') }}" class="btn-cta-primary">{!! __('about.cta.btn_free') !!}</a>
                     <a href="{{ route('contact') }}" class="btn-cta-outline">{{ __('about.cta.btn_contact') }}</a>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 
