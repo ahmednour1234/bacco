@@ -793,6 +793,7 @@ class CreateBoq extends Component
         }
 
         $this->questionItems = [];
+        $autoFixed = 0;
 
         foreach ($validated as $row) {
             $id     = $row['id'] ?? null;
@@ -802,11 +803,30 @@ class CreateBoq extends Component
                 continue;
             }
 
+            $item = QuotationItem::find($id);
+            if (! $item) {
+                continue;
+            }
+
+            $originalDescription = (string) ($row['description'] ?? '');
+
+            // ── Auto-resolve with the AI's own suggestions ───────────────────
+            // The reviewer already inferred the correct unit and the most likely
+            // value for each missing spec, so apply them instead of stopping to
+            // ask. Only lines the AI could not resolve reach the user.
+            $resolved = $this->autoResolveItem($item, $status, $row['suggested_unit'] ?? null, $specs);
+
+            if ($resolved['fixed']) {
+                $autoFixed++;
+                $status = 'valid';
+                $specs  = [];
+            }
+
             $attrs = [
                 'validation_status' => $status,
-                'suggested_unit'    => $row['suggested_unit'] ?? null,
+                'suggested_unit'    => $status === 'valid' ? null : ($row['suggested_unit'] ?? null),
                 'missing_specs'     => $specs,
-                'validation_note'   => $row['validation_note'] ?? null,
+                'validation_note'   => $resolved['note'] ?? ($row['validation_note'] ?? null),
                 'validated_at'      => now(),
             ];
 
@@ -815,14 +835,15 @@ class CreateBoq extends Component
             // Mirror the verdict onto the source BoqItem (matched by description).
             if ($this->boqId !== null) {
                 BoqItem::where('boq_id', $this->boqId)
-                    ->where('description', (string) ($row['description'] ?? ''))
+                    ->where('description', $originalDescription)
                     ->update($attrs);
             }
 
+            // Still unresolved → this is the only case the user must answer.
             if ($status === 'needs_information' && ! empty($specs)) {
                 $this->questionItems[] = [
                     'id'                => $id,
-                    'description'       => (string) ($row['description'] ?? ''),
+                    'description'       => (string) $item->description,
                     'unit'              => (string) ($row['unit'] ?? ''),
                     'validation_status' => $status,
                     'suggested_unit'    => $row['suggested_unit'] ?? null,
@@ -832,9 +853,92 @@ class CreateBoq extends Component
             }
         }
 
+        if ($autoFixed > 0) {
+            $this->dispatch('toast', message: __('app.spec_auto_resolved', ['count' => $autoFixed]), type: 'info');
+        }
+
         if (! empty($this->questionItems)) {
             $this->currentStep = self::STEP_QUESTIONS;
             return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Apply the AI reviewer's own corrections to a single item.
+     *
+     * - unit_error       → adopt the suggested unit (original kept on the BoqItem).
+     * - needs_information → fold each suggested spec value into the description,
+     *                       so the pricing engine sees a complete line.
+     *
+     * A line only counts as fixed when EVERY missing spec had a usable suggestion;
+     * a partially-answered line still needs the user, otherwise we would price
+     * against specs we invented.
+     *
+     * @param  array<int, array<string, mixed>>  $specs
+     * @return array{fixed: bool, note: string|null}
+     */
+    private function autoResolveItem(QuotationItem $item, string $status, ?string $suggestedUnit, array $specs): array
+    {
+        if ($status === 'unit_error') {
+            $unit = trim((string) $suggestedUnit);
+            if ($unit === '' || $this->isVagueValue($unit)) {
+                return ['fixed' => false, 'note' => null];
+            }
+
+            $unitId = Unit::firstOrCreate(
+                ['name' => $unit],
+                ['symbol' => mb_strtolower(mb_substr($unit, 0, 20))]
+            )->id;
+
+            $item->update(['unit_id' => $unitId]);
+
+            return ['fixed' => true, 'note' => __('app.spec_note_unit_fixed', ['unit' => $unit])];
+        }
+
+        if ($status === 'needs_information' && ! empty($specs)) {
+            $answers = [];
+            foreach ($specs as $spec) {
+                $key   = trim((string) ($spec['key'] ?? ''));
+                $value = trim((string) ($spec['suggested'] ?? ''));
+
+                // One unusable suggestion means we cannot price this line safely.
+                if ($key === '' || $value === '' || $this->isVagueValue($value)) {
+                    return ['fixed' => false, 'note' => null];
+                }
+
+                $answers[$key] = $value;
+            }
+
+            $suffix = $this->buildSpecSuffix($specs, $answers);
+            if ($suffix === '') {
+                return ['fixed' => false, 'note' => null];
+            }
+
+            $item->update([
+                'description'  => trim($item->description) . ' — ' . $suffix,
+                'spec_answers' => $answers,
+            ]);
+
+            return ['fixed' => true, 'note' => __('app.spec_note_auto_filled')];
+        }
+
+        return ['fixed' => false, 'note' => null];
+    }
+
+    /**
+     * A placeholder value the AI returns when it genuinely does not know — must
+     * never be written into an item as if it were a real spec.
+     */
+    private function isVagueValue(string $value): bool
+    {
+        $v = mb_strtolower(trim($value));
+
+        foreach (['غير محدد', 'غير معروف', 'غير واضح', 'حسب المواصفات', 'not specified', 'unspecified', 'unknown', 'unclear', 'n/a', 'tbd', '-'] as $needle) {
+            if ($v === mb_strtolower($needle)) {
+                return true;
+            }
         }
 
         return false;

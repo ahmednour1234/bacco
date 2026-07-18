@@ -105,12 +105,18 @@ class SpecValidationService
             . 'RULES: '
             . '(1) "vs" = "valid" | "unit_error" | "needs_information". '
             . '(2) "su" = corrected unit string (only meaningful for unit_error; else ""). '
-            . '(3) "q" = array of missing-info questions, each {"k":"<short_key>","q":"<question in Arabic>","ex":"<example>"}. '
+            . '(3) "q" = array of missing-info questions, each '
+            . '{"k":"<short_key>","q":"<question in Arabic>","ex":"<example>","sv":"<suggested value>"}. '
             . 'Empty array [] when nothing is missing. Keep to the essential questions only (max 4). '
-            . '(4) "n" = a very short note in Arabic (max 10 words) explaining the verdict. '
-            . '(5) Return ONLY a compact JSON array, no whitespace/newlines between elements, no markdown, no extra keys. '
-            . '(6) Each element exactly: {"i":<index>,"vs":"<verdict>","su":"<unit>","q":[...],"n":"<note>"} '
-            . 'Example: [{"i":0,"vs":"needs_information","su":"","q":[{"k":"size","q":"ما مقاس الماسورة؟","ex":"110mm"}],"n":"ينقص المقاس والخامة"},{"i":1,"vs":"unit_error","su":"م3","q":[],"n":"الخرسانة تقاس بالمتر المكعب"}] '
+            . '(4) "sv" is REQUIRED on every question: the single most likely value for this item in the '
+            . 'Saudi market, inferred from the description itself and standard practice — so the line can be '
+            . 'priced WITHOUT asking the user. Infer only what the description reasonably implies (e.g. an '
+            . '"LED panel 60x60" implies a recessed 40W 4000K panel; a "UPS 3 KVA Online" implies a tower '
+            . 'unit with internal batteries). Use "" ONLY when no defensible default exists — never guess a brand. '
+            . '(5) "n" = a very short note in Arabic (max 10 words) explaining the verdict. '
+            . '(6) Return ONLY a compact JSON array, no whitespace/newlines between elements, no markdown, no extra keys. '
+            . '(7) Each element exactly: {"i":<index>,"vs":"<verdict>","su":"<unit>","q":[...],"n":"<note>"} '
+            . 'Example: [{"i":0,"vs":"needs_information","su":"","q":[{"k":"size","q":"ما مقاس الماسورة؟","ex":"110mm","sv":"110mm"}],"n":"ينقص المقاس والخامة"},{"i":1,"vs":"unit_error","su":"م3","q":[],"n":"الخرسانة تقاس بالمتر المكعب"}] '
             . 'Items: ' . json_encode($payload, JSON_UNESCAPED_UNICODE);
     }
 
@@ -248,6 +254,9 @@ class SpecValidationService
                     'key'      => $key !== '' ? $key : 'spec_' . count($questions),
                     'question' => mb_substr($question, 0, 255),
                     'example'  => mb_substr((string) ($q['ex'] ?? ''), 0, 100),
+                    // Most likely value, used to auto-resolve the line without
+                    // interrupting the user. Empty when the AI had no basis.
+                    'suggested' => mb_substr(trim((string) ($q['sv'] ?? '')), 0, 150),
                 ];
             }
 
