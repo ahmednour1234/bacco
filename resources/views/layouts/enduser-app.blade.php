@@ -438,11 +438,33 @@
     @assets
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.store('bgJob', { active: false, done: null });
+            // `origin` remembers which page started the extraction, so the
+            // "view data" button returns there instead of always to the BOQ
+            // page. Persisted because the user may reload while it runs.
+            Alpine.store('bgJob', {
+                active: false,
+                done: null,
+                origin: sessionStorage.getItem('bgJobOrigin') || null,
+                setOrigin(url) {
+                    this.origin = url;
+                    sessionStorage.setItem('bgJobOrigin', url);
+                },
+                resumeUrl() {
+                    return this.origin || '{{ route('enduser.boqs.create') }}?resume=1';
+                },
+            });
         });
 
+        // Pages that own their own in-page extraction UI. While the user is on
+        // one of these, the background popup must stay out of the way entirely:
+        // the page already shows the overlay and will render the items itself.
+        window._bgOwnsExtractionUi = function() {
+            const p = window.location.pathname;
+            return p.includes('/boqs/create') || p.includes('/quotations/create');
+        };
+
         document.addEventListener('livewire:navigated', () => {
-            if (window.location.pathname.includes('/boqs/create')) {
+            if (window._bgOwnsExtractionUi()) {
                 if (window.Alpine && Alpine.store('bgJob')) {
                     Alpine.store('bgJob').done = null;
                 }
@@ -458,9 +480,13 @@
                     return;
                 }
                 try {
+                    // NOTE: this endpoint reports the user's draft BOQ only. The
+                    // quotation flow polls its own component (checkAiStatus) and
+                    // never activates this background poll, so a quotation job is
+                    // never misreported here.
                     const res  = await fetch('{{ route('enduser.boqs.draft-status') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                     const data = await res.json();
-                    const onCreatePage = window.location.pathname.includes('/boqs/create');
+                    const onCreatePage = window._bgOwnsExtractionUi();
 
                     if (data.ai_status === 'done' || data.items_count > 0) {
                         window._bgPollStop();
@@ -531,7 +557,11 @@
         x-data="{ isAr: document.documentElement.dir === 'rtl' }"
         x-show="$store.bgJob.done !== null"
         x-cloak
-        x-on:boq-upload-done.window="if (!window.location.pathname.includes('/boqs/create') && !window.location.pathname.includes('/boqs/create/')) $store.bgJob.done = 'success'; $store.bgJob.active = false;"
+        {{-- Only announce completion when the user has navigated AWAY from the
+             page that started the job. On the create pages the component itself
+             loads the rows and shows a toast, so this popup would both duplicate
+             that and offer a link to the wrong page. --}}
+        x-on:boq-upload-done.window="if (!window._bgOwnsExtractionUi()) $store.bgJob.done = 'success'; $store.bgJob.active = false;"
         x-on:boq-resume-done.window="$store.bgJob.active = false; $store.bgJob.done = null"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0"
@@ -555,7 +585,7 @@
                     </div>
                     <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'اكتملت المعالجة بنجاح' : 'Processing Complete'"></p>
                     <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'تم استخراج العناصر بنجاح، اضغط لمراجعتها' : 'Items extracted. Tap to review.'"></p>
-                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#10b981;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'عرض البيانات ←' : '→ View Data'"></a>
+                    <a :href="$store.bgJob.resumeUrl()" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#10b981;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'عرض البيانات ←' : '→ View Data'"></a>
                 </div>
             </template>
 
@@ -567,7 +597,7 @@
                     </div>
                     <p style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:8px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'حدثت مشكلة أثناء المعالجة' : 'Processing Failed'"></p>
                     <p style="font-size:0.85rem;color:#64748b;margin-bottom:24px;font-family:'Cairo',sans-serif;" x-text="isAr ? 'فشل استخراج العناصر. يمكنك إضافتها يدوياً أو إعادة المحاولة.' : 'Item extraction failed. You can add items manually or retry.'"></p>
-                    <a href="{{ route('enduser.boqs.create') }}?resume=1" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#ef4444;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'الرجوع وإضافة يدوياً ←' : '→ Add Manually'"></a>
+                    <a :href="$store.bgJob.resumeUrl()" wire:navigate @click="$store.bgJob.done = null" style="display:block;background:#ef4444;color:#fff;border-radius:14px;padding:12px 20px;font-size:0.9rem;font-weight:700;font-family:'Cairo',sans-serif;text-decoration:none;" x-text="isAr ? 'الرجوع وإضافة يدوياً ←' : '→ Add Manually'"></a>
                 </div>
             </template>
 

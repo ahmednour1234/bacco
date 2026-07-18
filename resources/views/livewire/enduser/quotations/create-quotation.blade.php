@@ -66,10 +66,19 @@
         </button>
     </div>
 
-    {{-- ───── Submit / Calculating loading overlay ────────────────────────────── --}}
+    {{-- ───── Submit / Extraction / Pricing loading overlay ─────────────────────
+         Stays up for the whole queued run, not just the request that starts it.
+         $processing and $pricingLoading are server flags cleared by the polling
+         methods once the job reports back, so the overlay survives the many
+         minutes a large BOQ takes. `submitting` remains for the submit button,
+         which is still a plain synchronous call. --}}
     <div
-        x-show="submitting"
+        x-show="submitting || @js($processing) || @js($pricingLoading)"
         x-cloak
+        {{-- Remember this page as the job's origin, so if the user navigates away
+             the background "view data" popup brings them back HERE and not to the
+             BOQ page. --}}
+        x-effect="if (@js($processing)) $store.bgJob.setOrigin(window.location.pathname + window.location.search)"
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100"
         style="display:none"
     >
@@ -97,17 +106,30 @@
                 </svg>
             </div>
 
-            <h2 class="text-lg font-bold text-slate-900 mb-1">{{ __('app.calculating_quotation') }}</h2>
-            <p class="text-sm text-slate-500 mb-8">{{ __('app.please_wait_seconds') }}</p>
+            @if($processing)
+                <h2 class="text-lg font-bold text-slate-900 mb-1">{{ __('app.extracting_items') }}</h2>
+                <p class="text-sm text-slate-500 mb-8">{{ __('app.large_file_may_take_minutes') }}</p>
+            @else
+                <h2 class="text-lg font-bold text-slate-900 mb-1">{{ __('app.calculating_quotation') }}</h2>
+                <p class="text-sm text-slate-500 mb-8">{{ __('app.please_wait_seconds') }}</p>
+            @endif
 
-            {{-- Progress bar --}}
+            {{-- Progress bar. A queued run has no meaningful percentage (the job
+                 reports which slice it is on, shown below), so it animates as an
+                 indeterminate bar rather than sitting frozen at 0%. --}}
             <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <span>{{ __('app.processing_data') }}</span>
-                <span x-text="progressPct + '%'"></span>
+                @unless($processing || $pricingLoading)
+                    <span x-text="progressPct + '%'"></span>
+                @endunless
             </div>
             <div class="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                <div class="h-full rounded-full bg-emerald-500 transition-all duration-300"
-                    :style="'width:' + progressPct + '%'"></div>
+                @if($processing || $pricingLoading)
+                    <div class="h-full w-1/3 rounded-full bg-emerald-500" style="animation: qimta-indeterminate 1.4s ease-in-out infinite;"></div>
+                @else
+                    <div class="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                        :style="'width:' + progressPct + '%'"></div>
+                @endif
             </div>
 
             {{-- Real slice-by-slice progress on a large BOQ; falls back to the
@@ -124,10 +146,25 @@
                 0%   { stroke-dashoffset: 176; }
                 100% { stroke-dashoffset: 0; }
             }
+
+            /* Indeterminate sweep for queued work of unknown duration.
+               Uses logical-friendly translate so it reads correctly in RTL. */
+            @keyframes qimta-indeterminate {
+                0%   { transform: translateX(-100%); }
+                100% { transform: translateX(300%); }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                [style*="qimta-indeterminate"] { animation: none !important; width: 100%; opacity: .5; }
+            }
         </style>
     </div>
 
-    {{-- Generic loading overlay --}}
+    {{-- Generic loading overlay.
+         Suppressed entirely while a queued job is running: the dedicated overlay
+         above is already up, and this one keys off wire:loading, so every 4s poll
+         would otherwise flash it on top of that. --}}
+    @unless($processing || $pricingLoading)
     <div
         wire:loading
         wire:loading.except.target="submit"
@@ -177,6 +214,7 @@
             @keyframes gpulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 #10b98140;}50%{transform:scale(1.35);box-shadow:0 0 0 10px #10b9810;} }
         </style>
     </div>
+    @endunless
 
     <div class="space-y-6">
         @php
