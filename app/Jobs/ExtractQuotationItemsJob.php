@@ -6,6 +6,7 @@ use App\Enums\QuotationSourceTypeEnum;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
+use App\Services\BoqValidationService;
 use App\Services\QuotationAiService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -45,6 +46,9 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
     /** How long a cached extraction stays reusable. */
     private const CACHE_TTL_DAYS = 30;
+
+    /** Cap the interactive gate so the user is never asked an endless queue. */
+    private const MAX_QUESTIONS = 10;
 
     public function __construct(
         private int $quotationId,
@@ -120,6 +124,12 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
             $quotation->update(['source_type' => QuotationSourceTypeEnum::Api]);
 
+            // Run the validation gate here too. It makes a chunked AI call per
+            // batch of rows, so on a large BOQ it is every bit as slow as the
+            // extraction — running it from the poll request would reintroduce
+            // the timeout. The questions are cached for the component to pick up.
+            $this->runValidationGate($items);
+
             $this->status('done', $count . ' items extracted successfully from the BOQ file.');
 
         } catch (\Throwable $e) {
@@ -132,6 +142,32 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
             $this->status('failed', 'Extraction failed. Please try uploading the file again.');
         }
+    }
+
+    /**
+     * Audit the extracted rows and cache the questions the user must resolve.
+     *
+     * Never throws: the gate is advisory, so a DeepSeek outage must not fail an
+     * otherwise-good extraction. On failure an empty queue is cached, which the
+     * component reads as "gate passed".
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function runValidationGate(array $items): void
+    {
+        $questions = [];
+
+        try {
+            $result    = app(BoqValidationService::class)->validate($items);
+            $questions = array_slice($result['questions'] ?? [], 0, self::MAX_QUESTIONS);
+        } catch (\Throwable $e) {
+            Log::error('ExtractQuotationItemsJob: validation gate failed.', [
+                'quotation_id' => $this->quotationId,
+                'message'      => $e->getMessage(),
+            ]);
+        }
+
+        Cache::put($this->key('boq_ai_questions'), $questions, now()->addHours(2));
     }
 
     /** Called by the queue when the job blows its timeout or dies hard. */

@@ -7,17 +7,18 @@ use App\Enums\QuotationProjectStatusEnum;
 use App\Enums\QuotationRequestStatusEnum;
 use App\Enums\QuotationSourceTypeEnum;
 use App\Enums\NotificationTypeEnum;
+use App\Jobs\ExtractQuotationItemsJob;
+use App\Jobs\FetchQuotationPricesJob;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
 use App\Models\UploadedDocument;
 use App\Services\BoqValidationService;
 use App\Services\PriceAnalysisService;
-use App\Services\PricingService;
-use App\Services\QuotationAiService;
 use App\Services\Pricing\ProductSpecEngine;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -134,6 +135,18 @@ class CreateQuotation extends Component
             $this->boqFileName = $boqDoc->file_name;
         }
 
+        $this->loadItemsFrom($quotation);
+    }
+
+    /**
+     * Hydrate $items from a quotation's persisted rows.
+     *
+     * Shared by mount() and checkAiStatus() — after a queued extraction the rows
+     * exist only in the database, so the component reloads them the same way an
+     * edit-mode boot does.
+     */
+    private function loadItemsFrom(QuotationRequest $quotation): void
+    {
         $this->items = $quotation->items()
             ->get()
             ->map(fn(QuotationItem $item) => [
@@ -199,7 +212,6 @@ class CreateQuotation extends Component
 
             // Read metadata from the stored file on the local disk — fully safe.
             $fileSize      = Storage::disk('local')->size($storedPath);
-            $storedAbsPath = Storage::disk('local')->path($storedPath);
 
             // Size check after storing (cannot safely read size from temp file).
             if ($fileSize > 50 * 1024 * 1024) {
@@ -219,66 +231,101 @@ class CreateQuotation extends Component
             ]);
 
             $this->boqFileName = $fileName;
+            $this->boqFile     = null;
 
-            // Pass the absolute stored path to the AI service (real filesystem, fully safe).
-            $ai     = app(QuotationAiService::class);
-            $result = $ai->parseBoq($storedAbsPath, [
-                'quotation_id'   => $quotation->id,
-                'project_name'   => $this->projectName,
-                'project_status' => $this->projectStatus,
-            ]);
+            // ── Queue the AI extraction ───────────────────────────────────────
+            // A real BOQ can carry tens of thousands of rows and takes minutes to
+            // parse. Running that inline exceeds the request timeout, which kills
+            // the Livewire request; the browser then retries as a plain POST and
+            // the GET-only route answers 405. Dispatch instead, and let
+            // checkAiStatus() poll for the result.
+            Cache::put($this->cacheKeyFor('boq_ai_status'), 'pending', now()->addHours(2));
+            Cache::put($this->cacheKeyFor('boq_ai_message'), '', now()->addHours(2));
+            Cache::put($this->cacheKeyFor('boq_ai_started_at'), now()->timestamp, now()->addHours(2));
 
-            if (! $result['success']) {
-                $this->dispatch('toast', message: $result['error'] ?? 'AI extraction failed.', type: 'error');
-            } elseif (empty($result['items'])) {
-                $rejectedCount = count($result['rejected'] ?? []);
-                $msg = $rejectedCount > 0
-                    ? "AI extracted {$rejectedCount} rows but all were rejected as non-supply items (labor, headings, etc.). Please verify the file contains actual supply products with quantities."
-                    : 'The AI service could not find any BOQ items in this file. Please check the file has supply products with quantities and units.';
-                $this->dispatch('toast', message: $msg, type: 'warning');
-            } else {
-                // Replace current table rows with the latest AI response.
-                QuotationItem::where('quotation_request_id', $quotation->id)->delete();
-                $this->items = [];
+            ExtractQuotationItemsJob::dispatch(
+                $quotation->id,
+                $storedPath,
+                $this->projectName,
+                $this->projectStatus,
+                (string) Auth::id(),
+            );
 
-                foreach ($result['items'] as $aiItem) {
-                    $this->items[] = array_merge([
-                        'id'                   => null,
-                        'description'          => '',
-                        'quantity'             => 1,
-                        'unit'                 => '',
-                        'category'             => '',
-                        'brand'                => '',
-                        'status'               => 'pending',
-                        'engineering_required' => false,
-                        'confidence'           => null,
-                        'ai_extracted'         => true,
-                        'unit_price'           => null,
-                        'price_source'         => null,
-                        'price_status'         => 'pending',
-                        'is_selected'          => false,
-                    ], $aiItem);
-                }
-
-                $quotation->update(['source_type' => QuotationSourceTypeEnum::Api]);
-                $this->persistItems($quotation);
-
-                $this->dispatch('toast', message: count($result['items']) . ' items extracted successfully from the BOQ file.', type: 'success');
-
-                // Gate: audit the freshly-extracted BOQ before pricing is allowed.
-                $this->runBoqValidation();
-            }
-
-            $this->boqFile = null;
+            $this->dispatch('toast', message: __('app.boq_extraction_queued'), type: 'info');
 
         } catch (\Throwable $e) {
             Log::error('CreateQuotation::uploadBoq failed.', [
                 'message' => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
             ]);
-            $this->dispatch('toast', message: 'Upload failed. Please try again.', type: 'error');
-        } finally {
             $this->processing = false;
+            $this->dispatch('toast', message: 'Upload failed. Please try again.', type: 'error');
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // AI status polling (called by wire:poll every 4 s while $processing)
+    // -------------------------------------------------------------------------
+
+    /** How long a queued extraction may run before we call it stuck (30 min). */
+    private const EXTRACTION_TIMEOUT = 1800;
+
+    /** Build a per-user cache key, shared with ExtractQuotationItemsJob. */
+    private function cacheKeyFor(string $type): string
+    {
+        return $type . '_' . Auth::id();
+    }
+
+    public function checkAiStatus(): void
+    {
+        if (! $this->processing || $this->quotationId === null) {
+            return;
+        }
+
+        // Auto-fail a job that has outlived the extraction window. Large BOQs
+        // legitimately run for minutes, so this only trips when the job is truly
+        // stuck — or when no worker is consuming the queue at all.
+        $startedAt = Cache::get($this->cacheKeyFor('boq_ai_started_at'));
+        if ($startedAt && (now()->timestamp - $startedAt) > self::EXTRACTION_TIMEOUT) {
+            Cache::put($this->cacheKeyFor('boq_ai_status'), 'failed', now()->addMinutes(30));
+            Cache::put($this->cacheKeyFor('boq_ai_message'), __('app.boq_extraction_timeout'), now()->addMinutes(30));
+        }
+
+        $status  = Cache::get($this->cacheKeyFor('boq_ai_status'));
+        $message = (string) Cache::get($this->cacheKeyFor('boq_ai_message'), '');
+
+        // Queued but not picked up yet — keep polling, nothing to report.
+        if ($status === 'pending' || $status === 'running') {
+            return;
+        }
+
+        $this->processing = false;
+
+        if ($status === 'done') {
+            $quotation = QuotationRequest::with(['items.unit'])->find($this->quotationId);
+            if ($quotation) {
+                $this->loadItemsFrom($quotation);
+            }
+
+            $this->dispatch('boq-upload-done');
+            $this->dispatch('toast', message: $message ?: (count($this->items) . ' items extracted successfully from the BOQ file.'), type: 'success');
+
+            // The validation gate ran inside the job (it is another chunked AI
+            // pass, far too slow for a poll request). Just pick up its result.
+            $this->validationRan       = true;
+            $this->validationAnswers   = [];
+            $this->currentQuestion     = 0;
+            $this->validationQuestions = (array) Cache::get($this->cacheKeyFor('boq_ai_questions'), []);
+        } elseif ($status === 'no_items') {
+            $this->dispatch('boq-upload-done');
+            $this->dispatch('toast', message: $message ?: 'No items found in the file. Please add items manually.', type: 'warning');
+        } elseif ($status === 'failed') {
+            $this->dispatch('boq-upload-done');
+            $this->dispatch('toast', message: $message ?: 'Extraction failed. Please try uploading the file again.', type: 'error');
+        } else {
+            // Cache expired or was cleared while processing — treat as failure.
+            $this->dispatch('boq-upload-done');
+            $this->dispatch('toast', message: 'AI extraction status expired. Please try extracting again.', type: 'error');
         }
     }
 
@@ -307,19 +354,55 @@ class CreateQuotation extends Component
             return;
         }
 
-        $this->pricingLoading = true;
-
+        // ── Queue the pricing run ────────────────────────────────────────────
+        // Pricing makes chunked AI passes over every line. Inline, a large BOQ
+        // blows the request timeout — the same failure mode that produced the
+        // 405 on upload. Persist the rows, dispatch, and poll for the result.
         try {
-            $this->items      = app(PricingService::class)->fetchPrices($this->items);
-            $this->showPricing = true;
+            $quotation = QuotationRequest::where('client_id', Auth::id())->find($this->quotationId);
 
-            $this->runPriceAnalysis();
+            if (! $quotation) {
+                $this->dispatch('toast', message: 'Save the quotation before pricing.', type: 'error');
+                return;
+            }
+
+            $this->persistItems($quotation);
+            $quotation->update(['prices_fetched_at' => null]);
+
+            FetchQuotationPricesJob::dispatch($quotation->id, Auth::id(), $quotation->uuid);
+
+            $this->pricingLoading = true;
+            $this->showPricing    = true;
+
+            $this->dispatch('toast', message: __('app.boq_pricing_queued'), type: 'info');
         } catch (\Throwable $e) {
             Log::error('CreateQuotation::fetchPricing failed.', ['message' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Pricing fetch failed. Please try again.', type: 'error');
-        } finally {
             $this->pricingLoading = false;
+            $this->dispatch('toast', message: 'Pricing could not be started. Please try again.', type: 'error');
         }
+    }
+
+    /**
+     * Poll for the queued pricing run (wire:poll while $pricingLoading).
+     *
+     * FetchQuotationPricesJob stamps prices_fetched_at in a finally block, so
+     * this advances whether pricing succeeded, partially succeeded, or failed.
+     */
+    public function checkPricingStatus(): void
+    {
+        if (! $this->pricingLoading || $this->quotationId === null) {
+            return;
+        }
+
+        $quotation = QuotationRequest::with(['items.unit'])->find($this->quotationId);
+
+        if (! $quotation || $quotation->prices_fetched_at === null) {
+            return;
+        }
+
+        $this->pricingLoading = false;
+        $this->loadItemsFrom($quotation);
+        $this->runPriceAnalysis();
 
         $found  = collect($this->items)->filter(fn($i) => ! empty($i['unit_price']))->count();
         $missed = count($this->items) - $found;

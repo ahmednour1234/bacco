@@ -1,4 +1,7 @@
+{{-- Poll only while a queued extraction is in flight; idle pages stay quiet. --}}
 <div
+    @if($processing) wire:poll.4000ms="checkAiStatus"
+    @elseif($pricingLoading) wire:poll.4000ms="checkPricingStatus" @endif
     x-data="{
         step: {{ $showPricing && ! empty($items) ? 4 : (! empty($items) ? 2 : 1) }},
         dragOver: false,
