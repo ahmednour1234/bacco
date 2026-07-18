@@ -1084,4 +1084,5 @@ return [
     'spec_auto_dropped'             => ':count item(s) were removed — their specifications could not be determined accurately enough to price.',
     'spec_non_supply_removed'       => ':count item(s) were removed because they are services or installation, not supply products.',
     'validation_specify_option'     => 'Specify the specifications',
+    'spec_descriptions_enriched'    => ':count item description(s) were completed with technical specifications before pricing.',
 ];

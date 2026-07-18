@@ -26,7 +26,7 @@ use App\Models\Unit;
 use App\Models\UploadedDocument;
 use App\Services\Catalog\SaveQuotationProductsToCatalog;
 use App\Services\NotificationService;
-use App\Services\SpecValidationService;
+use App\Services\Pricing\ProductSpecEngine;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -763,9 +763,17 @@ class CreateBoq extends Component
     }
 
     /**
-     * Validate the just-created quotation items for unit/spec issues and persist
-     * the verdict on both the QuotationItem and its BoqItem. When any item needs
-     * more information, populate $questionItems and switch to the questions step.
+     * Qualify every quotation item through the Product Specification & Pricing
+     * Engine before any price is fetched.
+     *
+     * The engine classifies each line, normalises its unit, and — crucially —
+     * returns a complete product description built from the confirmed specs plus
+     * safe industry defaults. That description replaces the raw BOQ text, so the
+     * final quotation reads "Business Laptop, Intel Core i7, 16 GB RAM, 512 GB
+     * NVMe SSD, 14-inch FHD, Windows 11 Pro, 3-Year Warranty" rather than the
+     * bare "Laptop for work" the client typed.
+     *
+     * Services and installation lines are dropped from the supply quotation.
      *
      * @return bool  true if the flow paused for questions (caller must return).
      */
@@ -775,8 +783,11 @@ class CreateBoq extends Component
             ->with('unit')
             ->get();
 
-        $payload = $qItems->map(fn($qi) => [
-            'id'          => $qi->id,
+        if ($qItems->isEmpty()) {
+            return false;
+        }
+
+        $payload = $qItems->map(fn ($qi) => [
             'description' => (string) $qi->description,
             'unit'        => $qi->unit?->name ?? '',
             'quantity'    => (float) $qi->quantity,
@@ -785,191 +796,87 @@ class CreateBoq extends Component
         ])->values()->toArray();
 
         try {
-            $validated = app(SpecValidationService::class)->validate($payload);
+            $qualified = app(ProductSpecEngine::class)->qualify($payload, [
+                'name' => $this->projectName,
+                'type' => $this->boqType,
+            ]);
         } catch (\Throwable $e) {
-            Log::error('CreateBoq: spec validation failed, continuing to pricing.', ['message' => $e->getMessage()]);
-            return false; // never block the flow on a validation outage
+            // Never block the flow on an engine outage — price what we have.
+            Log::error('CreateBoq: spec engine failed, continuing to pricing.', ['message' => $e->getMessage()]);
+            return false;
         }
 
         $this->questionItems = [];
-        $autoFixed   = 0;
-        $dropped     = 0;
-        $dropIds     = [];
-        $dropDescriptions = [];
+        $described = 0;
+        $dropIds   = [];
 
-        foreach ($validated as $row) {
-            $id     = $row['id'] ?? null;
-            $status = $row['validation_status'] ?? 'valid';
-            $specs  = is_array($row['missing_specs'] ?? null) ? $row['missing_specs'] : [];
-            if ($id === null) {
+        foreach ($qualified as $pos => $q) {
+            $qi = $qItems[$pos] ?? null;
+            if ($qi === null) {
                 continue;
             }
 
-            $item = QuotationItem::find($id);
-            if (! $item) {
+            // Services / installation never belong in a supply quotation.
+            if (! ($q['supplyable'] ?? true)) {
+                $dropIds[] = $qi->id;
                 continue;
             }
 
-            $originalDescription = (string) ($row['description'] ?? '');
+            $originalDescription = (string) $qi->description;
+            $finalDescription    = trim((string) ($q['recommended_final_description'] ?? ''));
 
-            // ── Auto-resolve with the AI's own suggestions ───────────────────
-            // The reviewer already inferred the correct unit and the most likely
-            // value for each missing spec, so apply them here.
-            $resolved = $this->autoResolveItem($item, $status, $row['suggested_unit'] ?? null, $specs);
+            $attrs = [
+                'validation_status'      => 'valid',
+                'validated_at'           => now(),
+                'classification'         => $q['classification']    ?? null,
+                'pricing_status'         => $q['pricing_status']    ?? null,
+                'assumptions'            => $q['assumptions']       ?? [],
+                'confidence_score'       => $q['confidence_score']  ?? 0,
+                'quantity_warnings'      => $q['quantity_warnings'] ?? [],
+                'unit_warnings'          => $q['unit_warnings']     ?? [],
+                'compatibility_warnings' => $q['compatibility_warnings'] ?? [],
+            ];
 
-            if ($resolved['fixed']) {
-                $autoFixed++;
-                $status = 'valid';
-                $specs  = [];
-            } elseif ($status !== 'valid') {
-                // ── Could not be resolved → drop it, never surface it ────────
-                // Policy: a line is either priceable after the AI pass or it
-                // leaves the quotation. We refuse to price against specs we
-                // invented, and we refuse to hand the user a red row to fix.
-                $dropIds[]          = $id;
-                $dropDescriptions[] = $originalDescription;
-                $dropped++;
-                continue;
+            // The engine's description is what the client will actually read on
+            // the quotation, so only overwrite when it genuinely added detail.
+            if ($finalDescription !== '' && $finalDescription !== $originalDescription) {
+                $attrs['description'] = $finalDescription;
+                $described++;
             }
 
-            QuotationItem::where('id', $id)->update([
-                'validation_status' => 'valid',
-                'suggested_unit'    => null,
-                'missing_specs'     => [],
-                'validation_note'   => $resolved['note'] ?? ($row['validation_note'] ?? null),
-                'validated_at'      => now(),
-            ]);
+            // Adopt the normalised unit so the quotation shows PCS/M2/M3, not "No."
+            if (! empty($q['normalized_unit'])) {
+                $attrs['unit_id'] = Unit::firstOrCreate(
+                    ['name' => $q['normalized_unit']],
+                    ['symbol' => mb_strtolower((string) $q['normalized_unit'])]
+                )->id;
+            }
 
-            // Mirror the verdict onto the source BoqItem (matched by description).
+            $qi->update($attrs);
+
+            // Mirror onto the source BoqItem so the BOQ view stays in step.
             if ($this->boqId !== null) {
                 BoqItem::where('boq_id', $this->boqId)
                     ->where('description', $originalDescription)
-                    ->update([
-                        'validation_status' => 'valid',
-                        'suggested_unit'    => null,
-                        'missing_specs'     => [],
-                        'validation_note'   => $resolved['note'] ?? ($row['validation_note'] ?? null),
-                        'validated_at'      => now(),
-                    ]);
+                    ->update(array_intersect_key($attrs, array_flip([
+                        'description', 'validation_status', 'validated_at',
+                        'classification', 'pricing_status', 'assumptions',
+                        'confidence_score', 'quantity_warnings', 'unit_warnings',
+                        'compatibility_warnings',
+                    ])));
             }
         }
 
-        // Remove the unresolvable lines in one pass.
-        if (! empty($dropIds)) {
+        if ($dropIds !== []) {
             QuotationItem::whereIn('id', $dropIds)->delete();
-
-            if ($this->boqId !== null) {
-                BoqItem::where('boq_id', $this->boqId)
-                    ->whereIn('description', $dropDescriptions)
-                    ->delete();
-            }
-
-            // Keep the in-memory table in sync so step 2 does not show ghosts.
-            $this->items = array_values(array_filter(
-                $this->items,
-                fn ($i) => ! in_array((string) ($i['description'] ?? ''), $dropDescriptions, true)
-            ));
+            $this->dispatch('toast', message: __('app.spec_non_supply_removed', ['count' => count($dropIds)]), type: 'warning');
         }
 
-        if ($autoFixed > 0) {
-            $this->dispatch('toast', message: __('app.spec_auto_resolved', ['count' => $autoFixed]), type: 'info');
+        if ($described > 0) {
+            $this->dispatch('toast', message: __('app.spec_descriptions_enriched', ['count' => $described]), type: 'info');
         }
 
-        if ($dropped > 0) {
-            $this->dispatch('toast', message: __('app.spec_auto_dropped', ['count' => $dropped]), type: 'warning');
-        }
-
-        // Nothing is ever queued for the user now — pricing always proceeds.
-        return false;
-    }
-
-    /**
-     * Apply the AI reviewer's own corrections to a single item.
-     *
-     * - unit_error       → adopt the suggested unit (original kept on the BoqItem).
-     * - needs_information → fold each suggested spec value into the description,
-     *                       so the pricing engine sees a complete line.
-     *
-     * A line only counts as fixed when EVERY missing spec had a usable suggestion;
-     * a partially-answered line still needs the user, otherwise we would price
-     * against specs we invented.
-     *
-     * @param  array<int, array<string, mixed>>  $specs
-     * @return array{fixed: bool, note: string|null}
-     */
-    private function autoResolveItem(QuotationItem $item, string $status, ?string $suggestedUnit, array $specs): array
-    {
-        if ($status === 'unit_error') {
-            $unit = trim((string) $suggestedUnit);
-
-            // A wrong unit is always recoverable: take the AI's correction, or
-            // fall back to a countable default. Discrete goods (a panel, a UPS,
-            // a desk) are quoted per piece, so this is safe — unlike inventing
-            // a technical spec, it cannot distort the price.
-            if ($unit === '' || $this->isVagueValue($unit)) {
-                $unit = app()->getLocale() === 'ar' ? 'قطعة' : 'pcs';
-            }
-
-            $unitId = Unit::firstOrCreate(
-                ['name' => $unit],
-                ['symbol' => mb_strtolower(mb_substr($unit, 0, 20))]
-            )->id;
-
-            $item->update(['unit_id' => $unitId]);
-
-            return ['fixed' => true, 'note' => __('app.spec_note_unit_fixed', ['unit' => $unit])];
-        }
-
-        if ($status === 'needs_information' && ! empty($specs)) {
-            // Take every suggestion the AI could stand behind; skip the rest.
-            $answers = [];
-            foreach ($specs as $spec) {
-                $key   = trim((string) ($spec['key'] ?? ''));
-                $value = trim((string) ($spec['suggested'] ?? ''));
-
-                if ($key === '' || $value === '' || $this->isVagueValue($value)) {
-                    continue;
-                }
-
-                $answers[$key] = $value;
-            }
-
-            // Nothing usable came back → the line stays unpriceable and the
-            // caller drops it. We never fabricate specs to force it through.
-            if (empty($answers)) {
-                return ['fixed' => false, 'note' => null];
-            }
-
-            $suffix = $this->buildSpecSuffix($specs, $answers);
-            if ($suffix === '') {
-                return ['fixed' => false, 'note' => null];
-            }
-
-            $item->update([
-                'description'  => trim($item->description) . ' — ' . $suffix,
-                'spec_answers' => $answers,
-            ]);
-
-            return ['fixed' => true, 'note' => __('app.spec_note_auto_filled')];
-        }
-
-        return ['fixed' => false, 'note' => null];
-    }
-
-    /**
-     * A placeholder value the AI returns when it genuinely does not know — must
-     * never be written into an item as if it were a real spec.
-     */
-    private function isVagueValue(string $value): bool
-    {
-        $v = mb_strtolower(trim($value));
-
-        foreach (['غير محدد', 'غير معروف', 'غير واضح', 'حسب المواصفات', 'not specified', 'unspecified', 'unknown', 'unclear', 'n/a', 'tbd', '-'] as $needle) {
-            if ($v === mb_strtolower($needle)) {
-                return true;
-            }
-        }
-
+        // The engine resolves everything it can; pricing always proceeds.
         return false;
     }
 
