@@ -344,8 +344,6 @@ return [
     'previously_uploaded'      => 'تم الرفع مسبقاً. اختر ملفاً جديداً لإعادة الاستخراج.',
     'extract_items_ai'         => 'استخراج العناصر بكيمتا',
     'extracting'               => 'جارٍ الاستخراج…',
-    'extracting_items'         => 'جارٍ استخراج البنود من ملفك',
-    'large_file_may_take_minutes' => 'الملفات الكبيرة قد تستغرق عدة دقائق. يمكنك ترك هذه الصفحة مفتوحة.',
     'subsection_add_manually'  => 'القسم الفرعي ب: إضافة عنصر يدوياً',
     'remove_all_rows'          => 'حذف جميع الصفوف',
     'add_new_row'              => 'إضافة صف جديد',

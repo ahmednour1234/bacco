@@ -396,8 +396,6 @@ return [
     'previously_uploaded'      => 'Previously uploaded. Select a new file to re-extract.',
     'extract_items_ai'         => 'Extract Items via QIMTA',
     'extracting'               => 'Extracting…',
-    'extracting_items'         => 'Extracting items from your file',
-    'large_file_may_take_minutes' => 'Large files may take several minutes. You can leave this page open.',
     'subsection_add_manually'  => 'Sub-Section B: Add Item Manually',
     'remove_all_rows'          => 'Remove All Rows',
     'add_new_row'              => 'Add New Row',
