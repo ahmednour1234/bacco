@@ -9,7 +9,6 @@ use App\Models\QuotationRequest;
 use App\Services\BoqCleaningService;
 use App\Services\NotificationService;
 use App\Services\PriceVerificationService;
-use App\Services\Pricing\ProductSpecEngine;
 use App\Services\PricingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -88,44 +87,6 @@ class FetchQuotationPricesJob implements ShouldQueue
             }
         }
 
-        // ── Spec qualification ───────────────────────────────────────────────
-        // Turn each raw BOQ line into a full procurement-grade specification
-        // before anything is priced, so the AI prices a described product rather
-        // than the client's shorthand. Advisory: an engine outage must not stop
-        // the quotation, so on failure we price the lines exactly as they are.
-        try {
-            $qualified = app(ProductSpecEngine::class)->qualify(
-                array_map(fn ($i) => [
-                    'description' => $i['description'],
-                    'unit'        => $i['unit']     ?? '',
-                    'quantity'    => $i['quantity'] ?? 0,
-                    'category'    => $i['category'] ?? '',
-                    'brand'       => $i['brand']    ?? '',
-                ], $guardedItems),
-                ['name' => (string) ($quotation->project_name ?? '')],
-            );
-
-            foreach ($qualified as $pos => $q) {
-                if (! isset($guardedItems[$pos])) {
-                    continue;
-                }
-
-                $spec = trim((string) ($q['recommended_final_description'] ?? ''));
-                if ($spec !== '') {
-                    $guardedItems[$pos]['description'] = $spec;
-                }
-
-                if (! empty($q['normalized_unit'])) {
-                    $guardedItems[$pos]['unit'] = $q['normalized_unit'];
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::error('FetchQuotationPricesJob: spec qualification failed, pricing raw lines.', [
-                'quotation_id' => $this->quotationId,
-                'message'      => $e->getMessage(),
-            ]);
-        }
-
         try {
             $priced = $pricingService->fetchPrices($guardedItems);
 
@@ -154,7 +115,7 @@ class FetchQuotationPricesJob implements ShouldQueue
                 $finalPrice  = in_array($verdict, ['confirmed', 'corrected'], true) ? $verified : $original;
                 $priceStatus = ($verdict === 'flagged') ? 'needs_review' : 'pending';
 
-                $attrs = [
+                QuotationItem::where('id', $row['id'])->update([
                     'unit_price'              => $finalPrice,
                     'price_source'            => $row['price_source'] ?? null,
                     'verified_price'          => $verified,
@@ -162,19 +123,7 @@ class FetchQuotationPricesJob implements ShouldQueue
                     'price_verification_note' => $row['price_verification_note'] ?? null,
                     'price_verified_at'       => $verdict !== null ? now() : null,
                     'price_status'            => $priceStatus,
-                ];
-
-                // The pricing pass names the real product it quoted against and
-                // folds it into the description. Persist both, otherwise the
-                // quotation shows a price with no traceable product behind it.
-                if (! empty($row['priced_product'])) {
-                    $attrs['priced_product'] = $row['priced_product'];
-                }
-                if (! empty($row['description'])) {
-                    $attrs['description'] = $row['description'];
-                }
-
-                QuotationItem::where('id', $row['id'])->update($attrs);
+                ]);
                 $gotPrices++;
             }
 
