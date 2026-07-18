@@ -141,10 +141,34 @@
             forced: false,
             ar: ['جاري المعالجة...', 'جاري التحديث...', 'لحظة بس ⚡', 'جاري الاستخراج...', 'تقريباً خلصنا...'],
             en: ['Processing...', 'Updating data...', 'Just a moment ⚡', 'Extracting...', 'Almost done...'],
+            {{-- Stage messages for a queued extraction. Unlike the generic list
+                 above these describe what the job is actually doing, and the
+                 last one stays put rather than looping back to the start —
+                 a large BOQ runs for minutes and "almost done" on repeat reads
+                 as a stuck page. --}}
+            arJob: ['جارٍ قراءة الملف...', 'جارٍ تحليل البنود...', 'جارٍ استخراج الكميات...', 'جارٍ تنظيم النتائج...', 'الملفات الكبيرة تستغرق عدة دقائق، من فضلك انتظر...'],
+            enJob: ['Reading your file...', 'Analysing line items...', 'Extracting quantities...', 'Organising results...', 'Large files take a few minutes, please wait...'],
             idx: 0,
             isAr: document.documentElement.dir === 'rtl',
+            {{-- The job reports real progress ("part 3 of 28") — prefer it over
+                 any canned message once it arrives. --}}
+            get label() {
+                if (this.busy && $wire.extractionProgress) { return $wire.extractionProgress; }
+                const list = this.busy
+                    ? (this.isAr ? this.arJob : this.enJob)
+                    : (this.isAr ? this.ar : this.en);
+                return list[Math.min(this.idx, list.length - 1)];
+            },
             init() {
-                setInterval(() => { this.idx = (this.idx + 1) % this.ar.length; }, 1800);
+                setInterval(() => {
+                    // During a queued job, walk the stages and hold on the last
+                    // one. Otherwise keep the original looping behaviour.
+                    if (this.busy) {
+                        if (this.idx < this.arJob.length - 1) { this.idx++; }
+                    } else {
+                        this.idx = (this.idx + 1) % this.ar.length;
+                    }
+                }, 1800);
                 new MutationObserver(() => {
                     // Livewire clears display when a request ends. While a queued
                     // job is still running, put it back — otherwise the popup
@@ -171,12 +195,14 @@
              polling clears the flag. --}}
         x-effect="
             if ($wire.processing || $wire.pricingLoading) {
+                if (!forced) { idx = 0; }   // start the stage messages from the top
                 if (!dismissed) { $el.style.display = 'block'; forced = true; }
             } else if (forced) {
                 // Only undo our own override — never hide a popup that
                 // wire:loading is legitimately showing for another request.
                 forced = false;
                 dismissed = false;
+                idx = 0;
                 $el.style.display = 'none';
             }
         "
@@ -203,7 +229,7 @@
                     <div style="width:18px;height:18px;border-radius:50%;background:#10b981;animation:gpulse 1.4s ease-in-out infinite;box-shadow:0 0 0 0 #10b98140;"></div>
                 </div>
             </div>
-            <p x-text="isAr ? ar[idx] : en[idx]" style="font-size:1.3rem;font-weight:700;color:#0f172a;margin-bottom:10px;min-height:2.2rem;"></p>
+            <p x-text="label" style="font-size:1.3rem;font-weight:700;color:#0f172a;margin-bottom:10px;min-height:2.2rem;"></p>
             <p x-text="isAr ? 'يتم تنفيذ العملية، الرجاء الانتظار' : 'Operation in progress, please wait…'" style="font-size:0.83rem;color:#94a3b8;font-weight:500;"></p>
             <p @click="dismissed=true" style="font-size:0.75rem;color:#cbd5e1;margin-top:12px;cursor:pointer;text-decoration:underline;" x-text="isAr ? 'إخفاء ومتابعة التصفح ←' : 'Hide & keep browsing →'"></p>
         </div>
