@@ -967,6 +967,55 @@ class QuotationAiService
      * @param  string  $label   How the payload is introduced to the model.
      * @return array{success:bool,items:array,rejected:array,error:?string}
      */
+    /**
+     * Split a spreadsheet into the slices the AI will be asked to read.
+     *
+     * Exposed so the work can be spread over several queue jobs instead of one
+     * job walking every slice in sequence. Returns an empty array when the file
+     * is small enough to go in a single call, or cannot be read.
+     *
+     * @return array<int, string>
+     */
+    public function chunkSpreadsheet(string $absPath): array
+    {
+        $text = $this->spreadsheetToCompactCsvText($absPath);
+
+        if ($text === null || trim($text) === '') {
+            return [];
+        }
+
+        $text       = $this->sanitizeUtf8($text);
+        $sheetCount = substr_count($text, "\nSheet: ") + (str_starts_with($text, 'Sheet: ') ? 1 : 0);
+
+        if (mb_strlen($text) <= self::TEXT_CHUNK_CHARS && $sheetCount <= self::MAX_SHEETS_PER_CALL) {
+            return [];
+        }
+
+        return $this->splitOnLineBoundaries($text, self::TEXT_CHUNK_CHARS);
+    }
+
+    /**
+     * Parse one slice produced by chunkSpreadsheet().
+     *
+     * @return array{success:bool,items:array,rejected:array,error:?string}
+     */
+    public function parseChunk(string $chunk, int $part, int $total, array $context = []): array
+    {
+        $apiKey = (string) config('services.deepseek.key', '');
+        if ($apiKey === '') {
+            return $this->failure('AI service is not configured.');
+        }
+
+        // Same framing parseTextInChunks() uses, so a slice is never mistaken
+        // for a complete BOQ and totals are not inferred from a fragment.
+        $userContent = "BOQ spreadsheet converted to CSV (part {$part} of {$total}):\n\n"
+            . $chunk . "\n\n"
+            . "NOTE: This is part {$part} of {$total} of a larger document. Extract only the rows present in this part. Do not infer totals for the whole document.\n\n"
+            . $this->buildDeepSeekPrompt($context, 'text/plain');
+
+        return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
+    }
+
     private function parseTextInChunks(
         string $text,
         string $label,

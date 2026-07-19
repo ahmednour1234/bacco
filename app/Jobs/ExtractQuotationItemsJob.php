@@ -10,6 +10,7 @@ use App\Services\BoqValidationService;
 use App\Services\Pricing\ProductSpecEngine;
 use App\Services\QuotationAiService;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -105,6 +106,11 @@ class ExtractQuotationItemsJob implements ShouldQueue
                     'items'        => count($items),
                     'bytes'        => $size,
                 ]);
+            } elseif (($chunks = $this->chunkable($ai, $absPath)) !== []) {
+                // Large file: hand each part to its own job so they can run in
+                // parallel across workers instead of one job walking all of them.
+                $this->dispatchChunks($chunks);
+                return;
             } else {
                 // A very large BOQ is parsed in slices. Report each one so the
                 // polling UI shows progress rather than a frozen spinner.
@@ -243,6 +249,93 @@ class ExtractQuotationItemsJob implements ShouldQueue
         }
 
         Cache::put($this->key('boq_ai_questions'), $questions, now()->addHours(2));
+    }
+
+    /**
+     * Split the file into parts, or return [] when it fits in a single call.
+     *
+     * Only spreadsheets take this route: PDFs and images are handled inside the
+     * AI service, which has its own per-format extraction.
+     *
+     * @return array<int, string>
+     */
+    private function chunkable(QuotationAiService $ai, string $absPath): array
+    {
+        $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
+
+        if (! in_array($ext, ['xlsx', 'xlsm', 'xlsb', 'xls', 'csv'], true)) {
+            return [];
+        }
+
+        $ai->onStage(function (string $message): void {
+            $this->status('running', $message);
+        });
+
+        try {
+            return $ai->chunkSpreadsheet($absPath);
+        } catch (\Throwable $e) {
+            // Fall back to the single-job path rather than failing the upload.
+            Log::warning('ExtractQuotationItemsJob: could not split file, parsing in one job.', [
+                'quotation_id' => $this->quotationId,
+                'message'      => $e->getMessage(),
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Fan the parts out as a batch, with a finaliser that runs after them all.
+     *
+     * Rows are cleared once here — never inside the part jobs, which run
+     * concurrently and would otherwise delete each other's work.
+     *
+     * @param  array<int, string>  $chunks
+     */
+    private function dispatchChunks(array $chunks): void
+    {
+        $total = count($chunks);
+
+        QuotationItem::where('quotation_request_id', $this->quotationId)->delete();
+
+        Cache::put($this->key('boq_ai_chunk_total'), $total, now()->addHours(2));
+        Cache::put($this->key('boq_ai_chunk_current'), 0, now()->addHours(2));
+        Cache::put($this->key('boq_ai_chunks_done'), 0, now()->addHours(2));
+        Cache::put($this->key('boq_ai_chunks_failed'), 0, now()->addHours(2));
+        Cache::put($this->key('boq_ai_partial_count'), 0, now()->addHours(2));
+
+        $this->status('running', "Large file — split into {$total} parts. Starting…");
+
+        $jobs = [];
+        foreach ($chunks as $index => $chunk) {
+            $jobs[] = new ExtractQuotationChunkJob(
+                $this->quotationId,
+                $chunk,
+                $index + 1,
+                $total,
+                $this->ownerKey,
+                $this->projectName,
+                $this->projectStatus,
+            );
+        }
+
+        Bus::batch($jobs)
+            ->name("boq-extract-{$this->quotationId}")
+            // One bad slice must not cancel the rest: partial rows plus an
+            // honest "some parts could not be read" beats losing everything.
+            ->allowFailures()
+            ->finally(function () use ($total): void {
+                FinishQuotationExtractionJob::dispatch(
+                    $this->quotationId,
+                    $this->ownerKey,
+                    $total,
+                );
+            })
+            ->dispatch();
+
+        Log::info('ExtractQuotationItemsJob: fanned out chunk jobs.', [
+            'quotation_id' => $this->quotationId,
+            'chunks'       => $total,
+        ]);
     }
 
     /** Called by the queue when the job blows its timeout or dies hard. */
