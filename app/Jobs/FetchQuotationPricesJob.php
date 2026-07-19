@@ -123,9 +123,10 @@ class FetchQuotationPricesJob implements ShouldQueue
         // leaked past extraction (a discipline heading, total, placeholder, or a
         // row with no real unit/qty) is never priced. Nothing is silently dropped:
         // every block is logged with its reasons for the audit trail.
-        $engine       = app(ProductSpecEngine::class);
-        $guardedItems = [];
-        $recovered    = 0;
+        $engine          = app(ProductSpecEngine::class);
+        $guardedItems    = [];
+        $keptUnpricedIds = [];
+        $recovered       = 0;
 
         foreach ($items as $item) {
             // A blank unit is a gap in the sheet, not evidence that the row is
@@ -155,6 +156,12 @@ class FetchQuotationPricesJob implements ShouldQueue
             // it just cannot be measured yet. Keep it and let it come back
             // unpriced, rather than deleting work the user uploaded.
             if ($blockers === ['missing unit']) {
+                // Recorded, not just skipped. Rows absent from $guardedItems are
+                // deleted further down, so `continue` alone saved these from the
+                // gate and then threw them away anyway — the opposite of the
+                // intent.
+                $keptUnpricedIds[] = $item['id'];
+
                 Log::info('FetchQuotationPricesJob: kept a row with no unit.', [
                     'quotation_id' => $this->quotationId,
                     'description'  => $item['description'],
@@ -231,9 +238,19 @@ class FetchQuotationPricesJob implements ShouldQueue
                 ]);
             }
 
-            // Also delete any guarded-out items (filtered before pricing)
+            // Delete only the rows the gate rejected as non-products.
+            //
+            // Rows kept deliberately for a missing unit are excluded: they never
+            // enter $guardedItems, so without this they were caught by the same
+            // diff and deleted — exactly the deletion the missing-unit branch
+            // exists to prevent.
             $guardedIds = array_column($guardedItems, 'id');
-            $skippedIds = array_diff(array_column($items, 'id'), $guardedIds);
+            $skippedIds = array_diff(
+                array_column($items, 'id'),
+                $guardedIds,
+                $keptUnpricedIds,
+            );
+
             if (! empty($skippedIds)) {
                 QuotationItem::whereIn('id', $skippedIds)->delete();
             }
