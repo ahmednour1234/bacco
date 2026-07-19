@@ -85,6 +85,30 @@ class QuotationAiService
         return $this;
     }
 
+    /**
+     * Report a non-chunk stage (local parse, handing off to AI) to the caller.
+     *
+     * A spreadsheet is read locally first and only sent to the AI when that
+     * fails, so a large file can spend minutes before any chunk exists. Without
+     * these the UI shows a generic spinner for that whole period.
+     */
+    private function reportStage(string $message): void
+    {
+        if ($this->onStage !== null) {
+            ($this->onStage)($message);
+        }
+    }
+
+    /** @var (callable(string): void)|null */
+    private $onStage = null;
+
+    /** @param  callable(string): void  $callback */
+    public function onStage(callable $callback): self
+    {
+        $this->onStage = $callback;
+        return $this;
+    }
+
     public function __construct(BoqCleaningService $boqCleaner)
     {
         $this->boqCleaner = $boqCleaner;
@@ -142,11 +166,20 @@ class QuotationAiService
             // Read Excel locally first. Fall back to AI if local parse failed,
             // found 0 items, OR could not read one of the sheets (so multi-sheet
             // files never silently drop a sheet the local parser didn't understand).
+            $this->reportStage('Reading the spreadsheet…');
+
             $result = $this->parseSpreadsheetDirect($absPath);
 
             $hasSkippedSheets = ! empty($result['skipped_sheets']);
 
             if (! $result['success'] || empty($result['items']) || $hasSkippedSheets) {
+                // The local pass could not handle this file on its own. Say so:
+                // otherwise the UI sits on a generic spinner through the local
+                // parse AND the whole AI parse with nothing to show for either.
+                $this->reportStage($hasSkippedSheets
+                    ? 'Some sheets need AI to read. Sending to AI…'
+                    : 'Spreadsheet needs AI to read. Sending to AI…');
+
                 $deepSeekResult = $this->parseBoqWithDeepSeek($file, $context);
                 // AI sees every sheet at once, so prefer its result whenever it
                 // actually returned items (covers the skipped-sheet case too).

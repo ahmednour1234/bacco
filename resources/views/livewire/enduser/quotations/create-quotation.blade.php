@@ -185,13 +185,40 @@
                 style="font-size:1.3rem;font-weight:700;color:#0f172a;margin-bottom:10px;min-height:2.2rem;"
             ></p>
 
-            {{-- Progress bar across the parts, so a long split run reads as
-                 movement rather than a number that changes every few minutes. --}}
+            {{-- The split itself: one cell per part, so it is visible that the
+                 file was divided and which parts are already done. Cells rather
+                 than a bar because the whole question is "how many pieces?". --}}
             <template x-if="$wire.chunkTotal > 1">
-                <div style="height:6px;width:100%;border-radius:99px;background:#e2e8f0;overflow:hidden;margin-bottom:12px;">
-                    <div
-                        :style="'height:100%;border-radius:99px;background:#10b981;transition:width .4s;width:' + Math.round(($wire.chunkCurrent / $wire.chunkTotal) * 100) + '%'"
-                    ></div>
+                <div style="margin-bottom:14px;">
+                    <div style="height:6px;width:100%;border-radius:99px;background:#e2e8f0;overflow:hidden;margin-bottom:10px;">
+                        <div :style="'height:100%;border-radius:99px;background:#10b981;transition:width .4s;width:' + Math.round(($wire.chunkCurrent / $wire.chunkTotal) * 100) + '%'"></div>
+                    </div>
+
+                    {{-- Capped at 40 cells: a 200-part file would otherwise make
+                         the popup taller than the screen. --}}
+                    <div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center;">
+                        <template x-for="n in Math.min($wire.chunkTotal, 40)" :key="n">
+                            <div
+                                :style="'width:14px;height:14px;border-radius:4px;transition:background .3s;background:' +
+                                    (n <= $wire.chunkCurrent ? '#10b981' : (n === $wire.chunkCurrent + 1 ? '#6ee7b7' : '#e2e8f0'))"
+                            ></div>
+                        </template>
+                    </div>
+
+                    <p
+                        style="font-size:0.72rem;color:#94a3b8;margin-top:8px;"
+                        x-text="isAr
+                            ? ('تم تقسيم الملف إلى ' + $wire.chunkTotal + ' جزء — اكتمل ' + $wire.chunkCurrent)
+                            : ('File split into ' + $wire.chunkTotal + ' parts — ' + $wire.chunkCurrent + ' done')"
+                    ></p>
+
+                    <p
+                        x-show="$wire.extractedSoFar > 0"
+                        style="font-size:0.78rem;color:#10b981;font-weight:700;margin-top:4px;"
+                        x-text="isAr
+                            ? ($wire.extractedSoFar + ' بند حتى الآن')
+                            : ($wire.extractedSoFar + ' items so far')"
+                    ></p>
                 </div>
             </template>
             {{-- Real progress from the job (which slice, how many rows so far)

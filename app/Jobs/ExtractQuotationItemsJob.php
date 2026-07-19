@@ -111,6 +111,13 @@ class ExtractQuotationItemsJob implements ShouldQueue
                 // part 0 is the announcement fired once the split is known, before
                 // the first slice is sent. Record the split so the UI can show it
                 // even while the first (slowest-feeling) call is still in flight.
+                // Stages that happen before any split exists (local parse, hand
+                // off to AI) — otherwise a large file shows a bare spinner for
+                // minutes before the first part is even known.
+                $ai->onStage(function (string $message): void {
+                    $this->status('running', $message);
+                });
+
                 $ai->onChunkProgress(function (int $part, int $total) use (&$chunkTotal): void {
                     $chunkTotal = $total;
                     Cache::put($this->key('boq_ai_chunk_total'), $total, now()->addHours(2));
