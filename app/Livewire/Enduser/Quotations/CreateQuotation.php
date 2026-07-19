@@ -245,6 +245,7 @@ class CreateQuotation extends Component
             Cache::put($this->cacheKeyFor('boq_ai_status'), 'pending', now()->addHours(2));
             Cache::put($this->cacheKeyFor('boq_ai_message'), '', now()->addHours(2));
             Cache::put($this->cacheKeyFor('boq_ai_started_at'), now()->timestamp, now()->addHours(2));
+            Cache::forget($this->cacheKeyFor('boq_ai_partial_count'));
 
             ExtractQuotationItemsJob::dispatch(
                 $quotation->id,
@@ -310,6 +311,18 @@ class CreateQuotation extends Component
         // slice it is on, so show that instead of an unchanging spinner.
         if ($status === 'pending' || $status === 'running') {
             $this->extractionProgress = $message;
+
+            // The job writes each slice's rows as it parses them, so pull in
+            // whatever has landed. The table then fills in progressively rather
+            // than staying empty until the whole file is done.
+            $streamed = (int) Cache::get($this->cacheKeyFor('boq_ai_partial_count'), 0);
+            if ($streamed > count($this->items)) {
+                $quotation = QuotationRequest::with(['items.unit'])->find($this->quotationId);
+                if ($quotation) {
+                    $this->loadItemsFrom($quotation);
+                }
+            }
+
             return;
         }
 

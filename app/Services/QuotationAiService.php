@@ -51,6 +51,25 @@ class QuotationAiService
         return $this;
     }
 
+    /**
+     * Optional per-chunk item sink, called as ($items, $part, $total).
+     *
+     * Lets the caller persist each slice's rows the moment they arrive instead
+     * of waiting for the whole document. On a large BOQ this is the difference
+     * between a table that fills in progressively and one that stays empty for
+     * many minutes.
+     *
+     * @var (callable(array, int, int): void)|null
+     */
+    private $onChunkItems = null;
+
+    /** @param  callable(array, int, int): void  $callback */
+    public function onChunkItems(callable $callback): self
+    {
+        $this->onChunkItems = $callback;
+        return $this;
+    }
+
     public function __construct(BoqCleaningService $boqCleaner)
     {
         $this->boqCleaner = $boqCleaner;
@@ -896,6 +915,12 @@ class QuotationAiService
             }
             foreach ($result['rejected'] ?? [] as $row) {
                 $rejected[] = $row;
+            }
+
+            // Hand this slice's rows straight to the caller so they can be shown
+            // while the remaining slices are still being parsed.
+            if ($this->onChunkItems !== null && $result['items'] !== []) {
+                ($this->onChunkItems)($result['items'], $part, $total);
             }
         }
 

@@ -92,9 +92,10 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
             $items = $cacheKey ? Cache::get($cacheKey) : null;
 
-            // Default for the cache-hit path: only complete parses are ever
-            // cached, so a hit is by definition not partial.
-            $result = [];
+            // Defaults for the cache-hit path: only complete parses are ever
+            // cached, so a hit is by definition not partial and streams nothing.
+            $result   = [];
+            $streamed = 0;
 
             if (is_array($items) && $items !== []) {
                 Log::info('ExtractQuotationItemsJob: reusing cached extraction.', [
@@ -107,6 +108,22 @@ class ExtractQuotationItemsJob implements ShouldQueue
                 // polling UI shows progress rather than a frozen spinner.
                 $ai->onChunkProgress(function (int $part, int $total): void {
                     $this->status('running', "Extracting items… part {$part} of {$total}.");
+                });
+
+                // Write each slice's rows as they arrive so the table fills in
+                // progressively instead of staying empty until the last chunk.
+                // The first slice to yield rows clears any previous run's — keyed
+                // on $streamed rather than on part 1, because if part 1 fails the
+                // clear would never happen and stale rows would mix with new ones.
+                $ai->onChunkItems(function (array $chunkItems, int $part, int $total) use (&$streamed): void {
+                    if ($streamed === 0) {
+                        QuotationItem::where('quotation_request_id', $this->quotationId)->delete();
+                    }
+
+                    $streamed += $this->writeItems($chunkItems);
+
+                    $this->status('running', "Extracted {$streamed} items so far… part {$part} of {$total}.");
+                    Cache::put($this->key('boq_ai_partial_count'), $streamed, now()->addHours(2));
                 });
 
                 $result = $ai->parseBoq($absPath, [
@@ -140,7 +157,11 @@ class ExtractQuotationItemsJob implements ShouldQueue
                 }
             }
 
-            $count = $this->persistItems($items);
+            // Rows streamed chunk-by-chunk are already in the table — rewriting
+            // them would delete what the user can currently see and duplicate the
+            // work. Only persist here when nothing was streamed (a cache hit, or
+            // a small file parsed in a single call).
+            $count = $streamed > 0 ? $streamed : $this->persistItems($items);
 
             $quotation->update(['source_type' => QuotationSourceTypeEnum::Api]);
 
@@ -217,6 +238,20 @@ class ExtractQuotationItemsJob implements ShouldQueue
     {
         QuotationItem::where('quotation_request_id', $this->quotationId)->delete();
 
+        return $this->writeItems($aiItems);
+    }
+
+    /**
+     * Append rows to the quotation without clearing what is already there.
+     *
+     * Used both by persistItems() and by the per-chunk streaming callback, so a
+     * slice's rows land in the table the moment that slice is parsed.
+     *
+     * @param  array<int, array<string, mixed>>  $aiItems
+     * @return int  number of rows written
+     */
+    private function writeItems(array $aiItems): int
+    {
         $written = 0;
 
         // Chunked so a several-thousand-row BOQ never builds one giant statement.
