@@ -22,7 +22,7 @@ class PricingService
      * pool on a large BOQ opens thousands of connections at once and gets
      * rate-limited. Batching keeps the parallelism useful without that.
      */
-    private const MAX_PARALLEL_CHUNKS = 8;
+    private const MAX_PARALLEL_CHUNKS = 4;
 
     /**
      * Optional progress reporter, called as ($chunksDone, $chunksTotal).
@@ -355,7 +355,14 @@ class PricingService
 
                     $text  = $response->json('choices.0.message.content') ?? '';
                     $items = $this->applyDeepSeekText($text, $items, $model);
+
+                    // Released as soon as it is parsed. max_tokens is 8192, and
+                    // Guzzle buffers each response in full — holding a whole
+                    // pool's worth is what exhausted the memory limit.
+                    unset($responses[$key], $response, $text);
                 }
+
+                unset($responses);
             } catch (\Throwable $e) {
                 Log::error('PricingService: Http::pool exception, falling back to serial.', [
                     'model'   => $model,

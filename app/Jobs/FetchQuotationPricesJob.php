@@ -46,6 +46,30 @@ class FetchQuotationPricesJob implements ShouldQueue
      */
     public int $tries = 1;
 
+    /**
+     * Treat a timeout as a final failure, not a retry.
+     *
+     * A job killed mid-run — by the timeout, or by the memory limit — is
+     * re-reserved by the worker, which then reports MaxAttemptsExceeded. That
+     * message hid the real cause here for several runs: the log said "attempted
+     * too many times" while the actual error was memory exhaustion inside
+     * Guzzle's response buffer.
+     */
+    public bool $failOnTimeout = true;
+
+    /**
+     * Rows priced per pass.
+     *
+     * The job used to load every row, gate them, then hand the whole set to the
+     * pricing service — which itself holds up to 8 concurrent AI responses. On a
+     * large quotation that combination exhausted the 128 MB limit inside
+     * Guzzle's response buffer, and the retries that followed reported only
+     * "attempted too many times", hiding the real cause.
+     *
+     * Pricing in slices keeps peak memory flat regardless of quotation size.
+     */
+    private const PRICING_BATCH = 300;
+
     public function __construct(
         private readonly int    $quotationId,
         private readonly ?int   $userId,
@@ -150,43 +174,43 @@ class FetchQuotationPricesJob implements ShouldQueue
                 );
             });
 
-            $priced = $pricingService->fetchPrices($guardedItems);
+            // Priced in slices. Handing the whole set over at once meant every
+            // row, every AI response, and Guzzle's buffers were live together —
+            // which is what exhausted 128 MB and left only "attempted too many
+            // times" in the log. Each slice is released before the next begins.
+            $gotPrices    = 0;
+            $sliceCount   = (int) ceil(count($guardedItems) / self::PRICING_BATCH);
+            $sliceIndex   = 0;
 
-            // Second pass — independently re-check each price against Saudi market /
-            // supplier rates via the AI before anything is shown to the client.
-            // The verdict + verified price are persisted so the audit trail is intact.
-            $priced = $priceVerifier->verify($priced);
+            foreach (array_chunk($guardedItems, self::PRICING_BATCH) as $slice) {
+                $sliceIndex++;
 
-            $gotPrices = 0;
+                Cache::put(
+                    'boq_pricing_message_' . $ownerKey,
+                    "Pricing items… batch {$sliceIndex} of {$sliceCount}.",
+                    now()->addHours(2),
+                );
 
-            foreach ($priced as $row) {
-                if (empty($row['id']) || ! isset($row['unit_price']) || $row['unit_price'] <= 0) {
-                    continue;
-                }
+                $priced = $pricingService->fetchPrices($slice);
 
-                $original = (float) $row['unit_price'];
-                $verdict  = $row['price_verdict'] ?? null;
-                $verified = isset($row['verified_price']) && is_numeric($row['verified_price']) && $row['verified_price'] > 0
-                    ? (float) $row['verified_price']
-                    : $original;
+                // Second pass — independently re-check each price against Saudi
+                // market / supplier rates via the AI before anything is shown to
+                // the client. The verdict + verified price are persisted so the
+                // audit trail is intact.
+                $priced = $priceVerifier->verify($priced);
 
-                // The price the client sees is the AI-verified one:
-                //  - confirmed → same as the original estimate
-                //  - corrected → the corrected market price replaces it
-                //  - flagged / unverified → keep the original, but mark it for review
-                $finalPrice  = in_array($verdict, ['confirmed', 'corrected'], true) ? $verified : $original;
-                $priceStatus = ($verdict === 'flagged') ? 'needs_review' : 'pending';
+                $gotPrices += $this->persistPrices($priced);
 
-                QuotationItem::where('id', $row['id'])->update([
-                    'unit_price'              => $finalPrice,
-                    'price_source'            => $row['price_source'] ?? null,
-                    'verified_price'          => $verified,
-                    'price_verdict'           => $verdict,
-                    'price_verification_note' => $row['price_verification_note'] ?? null,
-                    'price_verified_at'       => $verdict !== null ? now() : null,
-                    'price_status'            => $priceStatus,
+                // Released before the next slice: holding these is the whole
+                // reason the job ran out of memory.
+                unset($priced, $slice);
+                gc_collect_cycles();
+
+                Log::info('FetchQuotationPricesJob: slice priced.', [
+                    'quotation_id' => $this->quotationId,
+                    'slice'        => $sliceIndex . '/' . $sliceCount,
+                    'peak_mb'      => round(memory_get_peak_usage(true) / 1048576),
                 ]);
-                $gotPrices++;
             }
 
             // Also delete any guarded-out items (filtered before pricing)
@@ -276,6 +300,50 @@ class FetchQuotationPricesJob implements ShouldQueue
             ->update(['prices_fetched_at' => now()]);
 
         Cache::forget('boq_pricing_message_' . (string) ($this->userId ?? $this->quotationUuid));
+    }
+
+    /**
+     * Write one slice's prices back to the rows.
+     *
+     * @param  array<int, array<string, mixed>>  $priced
+     * @return int  how many rows received a price
+     */
+    private function persistPrices(array $priced): int
+    {
+        $written = 0;
+
+        foreach ($priced as $row) {
+            if (empty($row['id']) || ! isset($row['unit_price']) || $row['unit_price'] <= 0) {
+                continue;
+            }
+
+            $original = (float) $row['unit_price'];
+            $verdict  = $row['price_verdict'] ?? null;
+            $verified = isset($row['verified_price']) && is_numeric($row['verified_price']) && $row['verified_price'] > 0
+                ? (float) $row['verified_price']
+                : $original;
+
+            // The price the client sees is the AI-verified one:
+            //  - confirmed → same as the original estimate
+            //  - corrected → the corrected market price replaces it
+            //  - flagged / unverified → keep the original, but mark it for review
+            $finalPrice  = in_array($verdict, ['confirmed', 'corrected'], true) ? $verified : $original;
+            $priceStatus = ($verdict === 'flagged') ? 'needs_review' : 'pending';
+
+            QuotationItem::where('id', $row['id'])->update([
+                'unit_price'              => $finalPrice,
+                'price_source'            => $row['price_source'] ?? null,
+                'verified_price'          => $verified,
+                'price_verdict'           => $verdict,
+                'price_verification_note' => $row['price_verification_note'] ?? null,
+                'price_verified_at'       => $verdict !== null ? now() : null,
+                'price_status'            => $priceStatus,
+            ]);
+
+            $written++;
+        }
+
+        return $written;
     }
 
     /**
