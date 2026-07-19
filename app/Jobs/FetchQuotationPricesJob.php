@@ -59,6 +59,23 @@ class FetchQuotationPricesJob implements ShouldQueue
     public bool $failOnTimeout = true;
 
     /**
+     * Window in which this job may be attempted at all.
+     *
+     * With tries = 1 and no retryUntil, a job whose worker was killed mid-run
+     * comes back with attempts already at 1 and is failed by
+     * markJobAsFailedIfAlreadyExceedsMaxAttempts before handle() is ever
+     * called — a MaxAttemptsExceeded whose trace contains no application code
+     * at all, which is exactly what the log showed.
+     *
+     * A time-based window lets a genuinely fresh dispatch run, while still
+     * refusing to re-run a job that has been sitting around.
+     */
+    public function retryUntil(): \DateTimeInterface
+    {
+        return now()->addSeconds($this->timeout + 300);
+    }
+
+    /**
      * Rows priced per pass.
      *
      * The job used to load every row, gate them, then hand the whole set to the

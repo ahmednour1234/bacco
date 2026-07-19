@@ -79,6 +79,15 @@ class ShowQuotation extends Component
     /** True while a background pricing job has been dispatched for this session. */
     public bool $pricingQueued = false;
 
+    /**
+     * How long to wait for a pricing run before calling it lost.
+     *
+     * Comfortably past FetchQuotationPricesJob's own 1800s timeout, so a slow
+     * but healthy run is never cut off — this only trips when nothing is coming
+     * back at all.
+     */
+    private const PRICING_TIMEOUT = 2100;
+
     /** ISO-8601 timestamp of when the pricing job was dispatched (used by polling). */
     public ?string $pricingJobStartedAt = null;
 
@@ -187,6 +196,24 @@ class ShowQuotation extends Component
                 : "تم تسعير جميع {$gotPrices} عنصر بنجاح.";
 
             $this->dispatch('toast', message: $message, type: 'success');
+
+            return;
+        }
+
+        // Give up on a run that never reported back.
+        //
+        // Only the success path above cleared pricingQueued, so a job that
+        // failed — or a worker that died mid-run — left the flag set and the
+        // page polling forever, re-showing the banner on every visit.
+        if ($startedAt->diffInSeconds(now()) > self::PRICING_TIMEOUT) {
+            $this->pricingQueued       = false;
+            $this->pricingJobStartedAt = null;
+
+            $this->dispatch(
+                'toast',
+                message: __('app.pricing_failed_retry'),
+                type: 'error',
+            );
         }
     }
 

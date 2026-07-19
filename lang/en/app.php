@@ -1077,6 +1077,7 @@ return [
     'boq_extraction_queued'         => 'Extracting items from your file… you can follow the progress here. Large files may take a few minutes.',
     'boq_extraction_timeout'        => 'Processing took longer than expected and was stopped. The file may be very large, or the background worker may not be running. Please try again.',
     'boq_pricing_queued'            => 'Pricing your items… you can follow the progress here. Large quotations may take a few minutes.',
+    'pricing_failed_retry'          => 'Pricing did not finish. Your items are safe — please run pricing again.',
     'showing_rows'                  => 'Showing :shown of :total items',
     'show_more_rows'                => 'Show more items',
     'showing_rows_range'            => 'Showing :from–:to of :total items',
