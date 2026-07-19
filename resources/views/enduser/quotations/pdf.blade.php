@@ -151,14 +151,24 @@
         </table>
     </div>
 
-    {{-- ── Items section ── --}}
+    {{-- ── Items section ──
+         Counts and totals are aggregated in SQL rather than by loading every
+         row: a real BOQ runs to thousands of lines, and hydrating them all here
+         just to sum them is what exhausted memory on a 5,000-row quotation.
+         The rows themselves are written to the PDF in batches by the
+         controller, so they are never all in memory at once. --}}
     @php
-        $allItems    = $quotation->items()->with('unit')->get();
-        $itemCount   = $allItems->count();
-        $subtotal    = $allItems->filter(fn($i) => $i->is_selected && is_numeric($i->unit_price) && $i->unit_price > 0)
-                                ->sum(fn($i) => (float) $i->unit_price * (float) $i->quantity);
-        $tax         = $subtotal * 0.15;
-        $grand       = $subtotal + $tax;
+        $itemCount = $quotation->items()->count();
+
+        $subtotal = (float) $quotation->items()
+            ->where('is_selected', true)
+            ->whereNotNull('unit_price')
+            ->where('unit_price', '>', 0)
+            ->selectRaw('COALESCE(SUM(unit_price * quantity), 0) AS total')
+            ->value('total');
+
+        $tax   = $subtotal * 0.15;
+        $grand = $subtotal + $tax;
     @endphp
 
     <div class="section-header">
@@ -166,55 +176,12 @@
         <span class="section-badge">{{ $itemCount }} {{ $itemCount === 1 ? 'ITEM' : 'ITEMS' }}</span>
     </div>
 
+    {{-- The controller replaces this marker with one complete table per batch
+         of rows. Each batch is self-contained markup — mPDF buffers a table
+         until its closing tag, so a table split across WriteHTML() calls would
+         not render. --}}
     @if($itemCount > 0)
-    <table>
-        <thead>
-            <tr>
-                <th style="width:28px;">#</th>
-                <th>Item Description</th>
-                <th style="width:60px;">Qty</th>
-                <th style="width:50px;">Unit</th>
-                <th style="width:70px;">Category</th>
-                <th style="width:90px;" class="right">Unit Price (SAR)</th>
-                <th style="width:100px;" class="right">Total (SAR)</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($allItems as $i => $item)
-            @php
-                $statusVal = $item->status->value ?? 'pending';
-                $hasPrice  = is_numeric($item->unit_price) && (float)$item->unit_price > 0;
-                $lineTotal = $hasPrice ? (float)$item->unit_price * (float)$item->quantity : null;
-            @endphp
-            <tr>
-                <td class="item-no">{{ $i + 1 }}</td>
-                <td>
-                    <div class="item-desc" dir="rtl">{{ $item->description ?: '—' }}</div>
-                    @if($item->brand)
-                        <div class="item-sub">{{ $item->brand }}</div>
-                    @endif
-                </td>
-                <td class="item-qty">{{ number_format((float)$item->quantity, 0) }}</td>
-                <td style="color:#64748b;">{{ $item->unit?->name ?: '—' }}</td>
-                <td style="color:#64748b; font-size:10px;">{{ $item->category ?: '—' }}</td>
-                <td class="right">
-                    @if($hasPrice)
-                        <span class="price">{{ number_format((float)$item->unit_price, 2) }}</span>
-                    @else
-                        <span class="not-priced">—</span>
-                    @endif
-                </td>
-                <td class="right">
-                    @if($lineTotal !== null)
-                        <span class="price">{{ number_format($lineTotal, 2) }}</span>
-                    @else
-                        <span class="not-priced">—</span>
-                    @endif
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+    <!--QIMTA_ROWS-->
     @endif
 
     {{-- ── Totals ── --}}
