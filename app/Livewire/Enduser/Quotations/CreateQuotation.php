@@ -149,6 +149,19 @@ class CreateQuotation extends Component
         if ($quotationId === null) {
             $this->isEditMode = false;
             $this->projectStatus = QuotationProjectStatusEnum::Tender->value;
+
+            // A fresh quotation must start clean. The keys are suffixed with
+            // 'new' until the draft exists, so a previous upload can leave
+            // progress behind that this page would otherwise read as its own.
+            foreach ([
+                'boq_ai_status', 'boq_ai_message', 'boq_ai_started_at',
+                'boq_ai_partial_count', 'boq_ai_chunk_total', 'boq_ai_chunk_current',
+                'boq_ai_chunks_done', 'boq_ai_chunks_failed', 'boq_ai_questions',
+                'boq_ai_batch_id', 'boq_ai_stopped_by_user',
+            ] as $key) {
+                Cache::forget($this->cacheKeyFor($key));
+            }
+
             return;
         }
 
@@ -303,7 +316,9 @@ class CreateQuotation extends Component
                 $storedPath,
                 $this->projectName,
                 $this->projectStatus,
-                (string) Auth::id(),
+                // Must match cacheKeyFor()'s suffix exactly, or the job writes
+                // progress the component never reads.
+                Auth::id() . '_' . $quotation->id,
             );
 
             // Record this page as the job's origin, so if the user navigates away
@@ -337,7 +352,10 @@ class CreateQuotation extends Component
     /** Build a per-user cache key, shared with ExtractQuotationItemsJob. */
     private function cacheKeyFor(string $type): string
     {
-        return $type . '_' . Auth::id();
+        // Scoped to the quotation, not just the user. Keyed on the user alone,
+        // a second quotation read the first one's counters and showed its
+        // progress — "part 32 of 49" on a brand new upload.
+        return $type . '_' . Auth::id() . '_' . ($this->quotationId ?? 'new');
     }
 
     /**
