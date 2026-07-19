@@ -577,20 +577,6 @@
                                     {{ __('app.remove_all_rows') }}
                                 </button>
 
-                                {{-- Remove all rows flagged "مواصفات إلزامية ناقصة" (needs_review) in one click. --}}
-                                @if($this->needsReviewCount > 0)
-                                <button
-                                    type="button"
-                                    wire:click="removeNeedsReviewRows"
-                                    wire:confirm="{{ __('app.review_rows_removed', ['count' => $this->needsReviewCount]) }}"
-                                    class="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
-                                >
-                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>
-                                    </svg>
-                                    {{ __('app.review_remove_incomplete', ['count' => $this->needsReviewCount]) }}
-                                </button>
-                                @endif
                             @endif
 
                             <button
@@ -629,9 +615,7 @@
                                     {{-- Windowed: array_slice preserves the original
                                          keys, so $index still addresses the real row. --}}
                                     @foreach($this->visibleItems as $index => $item)
-                                        @php $needsReview = ($item['price_status'] ?? '') === 'needs_review'; @endphp
-                                        <tr class="group transition-colors
-                                            @if($needsReview) bg-red-50 hover:bg-red-100/70 ring-1 ring-inset ring-red-200 @else hover:bg-slate-50/60 @endif
+                                        <tr class="group transition-colors hover:bg-slate-50/60
                                             @if(($item['status'] ?? '') === 'rejected') opacity-60 @endif">
 
                                             <td class="px-3 py-2.5 text-center">
@@ -651,18 +635,9 @@
                                                     value="{{ $item['description'] }}"
                                                     wire:change="updateItem({{ $index }}, 'description', $event.target.value)"
                                                     placeholder="{{ __('app.item_description_placeholder') }}"
-                                                    class="w-full rounded-lg border bg-transparent px-2 py-1 text-sm text-slate-700 outline-none transition focus:bg-white focus:ring-1 group-hover:border-slate-200
-                                                        @if($needsReview) border-red-300 focus:border-red-400 focus:ring-red-200 @else border-transparent focus:border-emerald-300 focus:ring-emerald-200 @endif"
+                                                    class="w-full rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-1 focus:ring-emerald-200 group-hover:border-slate-200"
                                                     @if(($item['status'] ?? '') === 'rejected') disabled @endif
                                                 >
-                                                @if($needsReview && !empty($item['needs_review_reason']))
-                                                    <span class="mt-1 flex items-center gap-1 text-xs font-medium text-red-600">
-                                                        <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                                                        </svg>
-                                                        {{ $item['needs_review_reason'] }}
-                                                    </span>
-                                                @endif
                                             </td>
 
                                             {{-- Quantity --}}
@@ -719,18 +694,9 @@
                                                         default    => 'Pending',
                                                     };
                                                 @endphp
-                                                @if($needsReview)
-                                                    <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-700">
-                                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                                                        </svg>
-                                                        {{ __('app.needs_review_badge') }}
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $badgeClass }}">
-                                                        {{ $badgeLabel }}
-                                                    </span>
-                                                @endif
+                                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $badgeClass }}">
+                                                    {{ $badgeLabel }}
+                                                </span>
                                             </td>
 
                                             {{-- Engineering checkbox --}}
@@ -943,16 +909,6 @@
                         </div>
                     @endif
                 </div>
-
-                {{-- Blocking banner: some items still need review --}}
-                @if($this->quotationBlocked)
-                    <div class="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3.5 text-sm text-amber-800">
-                        <svg class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                        </svg>
-                        <span class="font-medium">{{ __('app.validation_needs_review_blocked', ['count' => $this->needsReviewCount]) }}</span>
-                    </div>
-                @endif
 
                 {{-- Pricing table --}}
                 <div class="overflow-x-auto rounded-xl border border-slate-200">

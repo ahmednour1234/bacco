@@ -227,7 +227,14 @@ class CreateQuotation extends Component
                 'ai_extracted'         => (bool) $item->ai_extracted,
                 'unit_price'           => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
                 'price_source'         => $item->price_source,
-                'price_status'         => $item->price_status ?? 'pending',
+                // 'needs_review' is deliberately not carried into this page.
+                // Flagging rows red and blocking pricing on them was removed:
+                // the engine's recommendations are applied automatically
+                // instead, so a row that arrives flagged from an earlier
+                // pricing run is treated as pending like any other.
+                'price_status'         => ($item->price_status ?? 'pending') === self::NEEDS_REVIEW
+                    ? 'pending'
+                    : ($item->price_status ?? 'pending'),
                 'is_selected'          => (bool) $item->is_selected,
             ])
             ->toArray();
@@ -302,9 +309,9 @@ class CreateQuotation extends Component
             // the Livewire request; the browser then retries as a plain POST and
             // the GET-only route answers 405. Dispatch instead, and let
             // checkAiStatus() poll for the result.
-            Cache::put($this->cacheKeyFor('boq_ai_status'), 'pending', now()->addHours(2));
-            Cache::put($this->cacheKeyFor('boq_ai_message'), '', now()->addHours(2));
-            Cache::put($this->cacheKeyFor('boq_ai_started_at'), now()->timestamp, now()->addHours(2));
+            Cache::put($this->cacheKeyFor('boq_ai_status'), 'pending', now()->addHours(12));
+            Cache::put($this->cacheKeyFor('boq_ai_message'), '', now()->addHours(12));
+            Cache::put($this->cacheKeyFor('boq_ai_started_at'), now()->timestamp, now()->addHours(12));
             Cache::forget($this->cacheKeyFor('boq_ai_partial_count'));
             Cache::forget($this->cacheKeyFor('boq_ai_chunk_total'));
             Cache::forget($this->cacheKeyFor('boq_ai_chunk_current'));
@@ -374,7 +381,7 @@ class CreateQuotation extends Component
 
         // Set before cancelling: the batch's finally() fires on cancellation and
         // would otherwise overwrite this status with a partial/failed verdict.
-        Cache::put($this->cacheKeyFor('boq_ai_stopped_by_user'), true, now()->addHours(2));
+        Cache::put($this->cacheKeyFor('boq_ai_stopped_by_user'), true, now()->addHours(12));
 
         $batchId = Cache::get($this->cacheKeyFor('boq_ai_batch_id'));
 
@@ -399,16 +406,31 @@ class CreateQuotation extends Component
         // so it cannot clobber the "stopped" message set below.
         AuditQuotationItemsJob::dispatch($this->quotationId, (string) Auth::id());
 
-        Cache::put($this->cacheKeyFor('boq_ai_status'), 'done', now()->addHours(2));
+        Cache::put($this->cacheKeyFor('boq_ai_status'), 'done', now()->addHours(12));
         Cache::put(
             $this->cacheKeyFor('boq_ai_message'),
             __('app.extraction_stopped', ['count' => $count]),
-            now()->addHours(2),
+            now()->addHours(12),
         );
 
         // Pick the result up through the normal path, so the items load and the
         // validation gate runs over what was kept.
         $this->checkAiStatus();
+    }
+
+    /**
+     * Write a terminal status and clear the keys that keep a run "in flight".
+     *
+     * Clearing started_at matters as much as the status: while it exists the
+     * timeout guard keeps re-firing, and any code that treats a live timestamp
+     * as "still running" sees a run that never ends.
+     */
+    private function stopPolling(string $status, string $message): void
+    {
+        Cache::put($this->cacheKeyFor('boq_ai_status'), $status, now()->addHours(12));
+        Cache::put($this->cacheKeyFor('boq_ai_message'), $message, now()->addHours(12));
+        Cache::forget($this->cacheKeyFor('boq_ai_started_at'));
+        Cache::forget($this->cacheKeyFor('boq_ai_batch_id'));
     }
 
     public function checkAiStatus(): void
@@ -417,17 +439,62 @@ class CreateQuotation extends Component
             return;
         }
 
-        // Auto-fail a job that has outlived the extraction window. Large BOQs
-        // legitimately run for minutes, so this only trips when the job is truly
-        // stuck — or when no worker is consuming the queue at all.
-        $startedAt = Cache::get($this->cacheKeyFor('boq_ai_started_at'));
-        if ($startedAt && (now()->timestamp - $startedAt) > self::EXTRACTION_TIMEOUT) {
-            Cache::put($this->cacheKeyFor('boq_ai_status'), 'failed', now()->addMinutes(30));
-            Cache::put($this->cacheKeyFor('boq_ai_message'), __('app.boq_extraction_timeout'), now()->addMinutes(30));
-        }
-
         $status  = Cache::get($this->cacheKeyFor('boq_ai_status'));
         $message = (string) Cache::get($this->cacheKeyFor('boq_ai_message'), '');
+
+        // ── Termination guards ───────────────────────────────────────────────
+        // Nothing below is cosmetic: without a terminal status the view polls
+        // every 4s forever. Three separate ways a run can stop reporting:
+
+        // 1. The status key is gone (expired, or flushed) while we still think
+        //    the job is running. Nothing will ever set it again.
+        if ($status === null) {
+            $this->stopPolling('failed', __('app.boq_extraction_timeout'));
+            return;
+        }
+
+        // 2. The batch finished, was cancelled, or no longer exists, but the
+        //    finaliser never wrote a terminal status — a killed worker, or a
+        //    finaliser that itself died. The rows that made it are still real.
+        if (in_array($status, ['pending', 'running'], true)) {
+            $batchId = Cache::get($this->cacheKeyFor('boq_ai_batch_id'));
+
+            if ($batchId) {
+                $batch = null;
+
+                try {
+                    $batch = Bus::findBatch($batchId);
+                } catch (\Throwable $e) {
+                    Log::warning('CreateQuotation: could not read extraction batch.', [
+                        'batch_id' => $batchId,
+                        'message'  => $e->getMessage(),
+                    ]);
+                }
+
+                if ($batch === null || $batch->finished() || $batch->cancelled()) {
+                    $count = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
+
+                    $this->stopPolling(
+                        $count > 0 ? 'done' : 'failed',
+                        $count > 0
+                            ? __('app.extraction_stopped', ['count' => $count])
+                            : __('app.boq_extraction_timeout'),
+                    );
+
+                    $status  = Cache::get($this->cacheKeyFor('boq_ai_status'));
+                    $message = (string) Cache::get($this->cacheKeyFor('boq_ai_message'), '');
+                }
+            }
+        }
+
+        // 3. The run has outlived its window. Only trips when the job is truly
+        //    stuck, or nothing is consuming the queue at all.
+        $startedAt = Cache::get($this->cacheKeyFor('boq_ai_started_at'));
+        if ($startedAt && (now()->timestamp - $startedAt) > self::EXTRACTION_TIMEOUT) {
+            $this->stopPolling('failed', __('app.boq_extraction_timeout'));
+            $status  = 'failed';
+            $message = __('app.boq_extraction_timeout');
+        }
 
         // Still working — keep polling. On a chunked parse the job reports which
         // slice it is on, so show that instead of an unchanging spinner.
@@ -563,12 +630,6 @@ class CreateQuotation extends Component
         // also guards direct/programmatic calls.
         if (! empty($this->validationQuestions)) {
             $this->dispatch('toast', message: __('app.validation_answer_first'), type: 'warning');
-            return;
-        }
-
-        // Hard block: any NEEDS_REVIEW item must be fixed or removed before pricing.
-        if ($this->quotationBlocked) {
-            $this->dispatch('toast', message: __('app.validation_needs_review_blocked', ['count' => $this->needsReviewCount]), type: 'error');
             return;
         }
 
@@ -907,11 +968,7 @@ class CreateQuotation extends Component
             }
         }
 
-        if ($this->quotationBlocked) {
-            $this->dispatch('toast', message: __('app.validation_needs_review_blocked', ['count' => $this->needsReviewCount]), type: 'warning');
-        } else {
-            $this->dispatch('toast', message: __('app.validation_done'), type: 'success');
-        }
+        $this->dispatch('toast', message: __('app.validation_done'), type: 'success');
     }
 
     /**
@@ -1561,12 +1618,6 @@ class CreateQuotation extends Component
             return;
         }
 
-        // Hard block: cannot submit while any item still needs review.
-        if ($this->quotationBlocked) {
-            $this->dispatch('toast', message: __('app.validation_needs_review_blocked', ['count' => $this->needsReviewCount]), type: 'error');
-
-            return;
-        }
 
         $selectedItems = collect($this->items)
             ->filter(fn($i) => ($i['status'] ?? '') !== QuotationItemStatusEnum::Rejected->value && ! empty($i['is_selected']));
