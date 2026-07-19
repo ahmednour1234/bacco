@@ -14,6 +14,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Parses one slice of a large BOQ.
@@ -39,9 +40,14 @@ class ExtractQuotationChunkJob implements ShouldQueue
     /** No retries — a second pass would double-charge and duplicate rows. */
     public int $tries = 1;
 
+    /**
+     * @param  string  $chunkPath  Slice text on the local disk, not the text
+     *                             itself: 55 jobs each carrying ~60 KB were
+     *                             serialized together and exhausted 2 GB.
+     */
     public function __construct(
         private int $quotationId,
-        private string $chunk,
+        private string $chunkPath,
         private int $part,
         private int $total,
         private string $ownerKey,
@@ -55,15 +61,29 @@ class ExtractQuotationChunkJob implements ShouldQueue
         // cancelled batch stops costing money immediately instead of paying for
         // every part already queued.
         if ($this->batch()?->cancelled()) {
+            // Still clean up: a cancelled run leaves as many slice files behind
+            // as it had parts left.
+            Storage::disk('local')->delete($this->chunkPath);
             return;
         }
 
         try {
-            $result = $ai->parseChunk($this->chunk, $this->part, $this->total, [
+            if (! Storage::disk('local')->exists($this->chunkPath)) {
+                $this->recordFailure("Slice file is missing: {$this->chunkPath}");
+                return;
+            }
+
+            $chunk = (string) Storage::disk('local')->get($this->chunkPath);
+
+            $result = $ai->parseChunk($chunk, $this->part, $this->total, [
                 'quotation_id'   => $this->quotationId,
                 'project_name'   => $this->projectName,
                 'project_status' => $this->projectStatus,
             ]);
+
+            // Released before the rows are written: the slice is no longer
+            // needed and holding it doubles this job's footprint.
+            unset($chunk);
 
             if (! ($result['success'] ?? false)) {
                 $this->recordFailure($result['error'] ?? 'Chunk parsing failed.');
@@ -82,6 +102,9 @@ class ExtractQuotationChunkJob implements ShouldQueue
 
             $this->recordFailure($e->getMessage());
         } finally {
+            // This slice will not be read again, whatever happened to it.
+            Storage::disk('local')->delete($this->chunkPath);
+
             // Always advance, even on failure: the coordinator waits on this
             // counter, and a part that never reports would hang the whole run.
             $this->markCounted();

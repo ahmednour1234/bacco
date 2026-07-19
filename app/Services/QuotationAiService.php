@@ -999,7 +999,63 @@ class QuotationAiService
             return [];
         }
 
-        return $this->splitOnLineBoundaries($text, self::TEXT_CHUNK_CHARS);
+        $chunks = $this->splitOnLineBoundaries($text, self::TEXT_CHUNK_CHARS);
+
+        // Free the source text: the slices are a second full copy of it, and on
+        // a large workbook that doubling — on top of PhpSpreadsheet's grids —
+        // is what exhausted memory here.
+        unset($text);
+
+        Log::info('QuotationAiService: chunked spreadsheet.', [
+            'chunks'  => count($chunks),
+            'peak_mb' => round(memory_get_peak_usage(true) / 1048576),
+        ]);
+
+        return $chunks;
+    }
+
+    /**
+     * Split a spreadsheet straight to disk, one file per slice.
+     *
+     * chunkSpreadsheet() returns every slice as an array, which is a second
+     * full copy of the document in memory on top of PhpSpreadsheet's grids.
+     * This hands each slice to $write and drops it immediately, so peak memory
+     * is one slice rather than the whole file twice.
+     *
+     * @param  callable(int, string): void  $write  ($part, $chunk)
+     * @return int  number of slices written; 0 when the file needs no split
+     */
+    public function chunkSpreadsheetToDisk(string $absPath, callable $write): int
+    {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(1800);
+
+        $text = $this->spreadsheetToCompactCsvText($absPath);
+
+        if ($text === null || trim($text) === '') {
+            return 0;
+        }
+
+        $text       = $this->sanitizeUtf8($text);
+        $sheetCount = substr_count($text, "\nSheet: ") + (str_starts_with($text, 'Sheet: ') ? 1 : 0);
+
+        if (mb_strlen($text) <= self::TEXT_CHUNK_CHARS && $sheetCount <= self::MAX_SHEETS_PER_CALL) {
+            return 0;
+        }
+
+        $part = 0;
+        foreach ($this->splitOnLineBoundaries($text, self::TEXT_CHUNK_CHARS) as $chunk) {
+            $write(++$part, $chunk);
+        }
+
+        unset($text);
+
+        Log::info('QuotationAiService: chunked spreadsheet to disk.', [
+            'chunks'  => $part,
+            'peak_mb' => round(memory_get_peak_usage(true) / 1048576),
+        ]);
+
+        return $part;
     }
 
     /**

@@ -106,10 +106,10 @@ class ExtractQuotationItemsJob implements ShouldQueue
                     'items'        => count($items),
                     'bytes'        => $size,
                 ]);
-            } elseif (($chunks = $this->chunkable($ai, $absPath)) !== []) {
+            } elseif (($chunkCount = $this->splitToDisk($ai, $absPath)) > 0) {
                 // Large file: hand each part to its own job so they can run in
                 // parallel across workers instead of one job walking all of them.
-                $this->dispatchChunks($chunks);
+                $this->dispatchChunks($chunkCount);
                 return;
             } else {
                 // A very large BOQ is parsed in slices. Report each one so the
@@ -259,44 +259,66 @@ class ExtractQuotationItemsJob implements ShouldQueue
      *
      * @return array<int, string>
      */
-    private function chunkable(QuotationAiService $ai, string $absPath): array
+    /**
+     * Split the workbook, writing each slice straight to disk.
+     *
+     * Returns the number of slices, or 0 when the file needs no split. Nothing
+     * is returned in memory: holding every slice as an array is a second full
+     * copy of the document on top of PhpSpreadsheet's grids, which is what
+     * exhausted 2 GB on a 55-part file.
+     */
+    private function splitToDisk(QuotationAiService $ai, string $absPath): int
     {
         $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
 
         if (! in_array($ext, ['xlsx', 'xlsm', 'xlsb', 'xls', 'csv'], true)) {
-            return [];
+            return 0;
         }
 
         $ai->onStage(function (string $message): void {
             $this->status('running', $message);
         });
 
-        // Reading a big workbook costs real memory, so give this room: the
-        // default limit is what a 11 200-row file was dying on.
-        @ini_set('memory_limit', '1024M');
+        @ini_set('memory_limit', '2048M');
+
+        $dir  = $this->chunkDir();
+        $disk = Storage::disk('local');
+        $disk->deleteDirectory($dir);
 
         try {
-            $chunks = $ai->chunkSpreadsheet($absPath);
+            $count = $ai->chunkSpreadsheetToDisk(
+                $absPath,
+                function (int $part, string $chunk) use ($disk, $dir): void {
+                    $disk->put($dir . '/' . $part . '.txt', $chunk);
+                },
+            );
 
             Log::info('ExtractQuotationItemsJob: split decision.', [
                 'quotation_id' => $this->quotationId,
-                'chunks'       => count($chunks),
+                'chunks'       => $count,
                 'peak_mb'      => round(memory_get_peak_usage(true) / 1048576),
             ]);
 
-            return $chunks;
+            return $count;
         } catch (\Throwable $e) {
             // Fall back to the single-job path rather than failing the upload.
-            // This is a real fallback, not a silent one — the single-job path
-            // re-reads the file and can exhaust memory on exactly the files that
-            // land here, so the reason is logged loudly.
+            // Logged loudly, not silently: that path re-reads the file and can
+            // exhaust memory on exactly the files that land here.
             Log::error('ExtractQuotationItemsJob: could not split file, falling back to one job.', [
                 'quotation_id' => $this->quotationId,
                 'message'      => $e->getMessage(),
                 'peak_mb'      => round(memory_get_peak_usage(true) / 1048576),
             ]);
-            return [];
+
+            $disk->deleteDirectory($dir);
+
+            return 0;
         }
+    }
+
+    private function chunkDir(): string
+    {
+        return 'boq-chunks/' . $this->quotationId;
     }
 
     /**
@@ -307,10 +329,8 @@ class ExtractQuotationItemsJob implements ShouldQueue
      *
      * @param  array<int, string>  $chunks
      */
-    private function dispatchChunks(array $chunks): void
+    private function dispatchChunks(int $total): void
     {
-        $total = count($chunks);
-
         QuotationItem::where('quotation_request_id', $this->quotationId)->delete();
 
         Cache::put($this->key('boq_ai_chunk_total'), $total, now()->addHours(12));
@@ -321,12 +341,15 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
         $this->status('running', "Large file — split into {$total} parts. Starting…");
 
+        // The slices are already on disk; each job carries only its path.
+        $dir  = $this->chunkDir();
         $jobs = [];
-        foreach ($chunks as $index => $chunk) {
+
+        for ($part = 1; $part <= $total; $part++) {
             $jobs[] = new ExtractQuotationChunkJob(
                 $this->quotationId,
-                $chunk,
-                $index + 1,
+                $dir . '/' . $part . '.txt',
+                $part,
                 $total,
                 $this->ownerKey,
                 $this->projectName,
@@ -334,19 +357,22 @@ class ExtractQuotationItemsJob implements ShouldQueue
             );
         }
 
+        // Locals, not $this: a closure capturing $this drags the whole job —
+        // and everything it holds — into the serialized batch.
+        $quotationId = $this->quotationId;
+        $ownerKey    = $this->ownerKey;
+
         $batch = Bus::batch($jobs)
-            ->name("boq-extract-{$this->quotationId}")
+            ->name("boq-extract-{$quotationId}")
             // One bad slice must not cancel the rest: partial rows plus an
             // honest "some parts could not be read" beats losing everything.
             ->allowFailures()
-            ->finally(function () use ($total): void {
-                FinishQuotationExtractionJob::dispatch(
-                    $this->quotationId,
-                    $this->ownerKey,
-                    $total,
-                );
+            ->finally(function () use ($quotationId, $ownerKey, $total): void {
+                FinishQuotationExtractionJob::dispatch($quotationId, $ownerKey, $total);
             })
             ->dispatch();
+
+        unset($jobs);
 
         // Recorded so the user can stop the run and keep whatever has been
         // extracted so far — cancelling the batch is the only way to stop the
@@ -357,6 +383,10 @@ class ExtractQuotationItemsJob implements ShouldQueue
             'quotation_id' => $this->quotationId,
             'chunks'       => $total,
             'batch_id'     => $batch->id,
+            // Logged because the earlier 2 GB exhaustion happened around here
+            // and the cause was never confirmed. If it recurs this is the number
+            // that says where.
+            'peak_mb'      => round(memory_get_peak_usage(true) / 1048576),
         ]);
     }
 

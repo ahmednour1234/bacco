@@ -13,6 +13,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Closes out an extraction once every part has been parsed.
@@ -42,6 +43,10 @@ class FinishQuotationExtractionJob implements ShouldQueue
 
     public function handle(): void
     {
+        // Remove the slice directory whatever the outcome — each part deletes
+        // its own file, but a part that never ran leaves one behind.
+        Storage::disk('local')->deleteDirectory('boq-chunks/' . $this->quotationId);
+
         // The batch's finally() also fires when the user stops the run, so this
         // would otherwise overwrite their "stopped at N items" with a partial or
         // failed verdict. The rows are still theirs; leave the status alone.
