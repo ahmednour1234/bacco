@@ -26,10 +26,15 @@ class QuotationController extends Controller
         $quotationId = null;
 
         if ($request->boolean('resume')) {
-            $quotationId = QuotationRequest::where('client_id', Auth::id())
-                ->where('status', QuotationRequestStatusEnum::Draft->value)
-                ->latest('id')
-                ->value('id');
+            // Prefer the newest draft that actually has rows. Every upload
+            // creates a fresh draft, so "newest draft" alone can easily be an
+            // empty one from a later attempt — which lands the user back on the
+            // upload step with the extracted rows still hidden.
+            $base = fn() => QuotationRequest::where('client_id', Auth::id())
+                ->where('status', QuotationRequestStatusEnum::Draft->value);
+
+            $quotationId = $base()->has('items')->latest('id')->value('id')
+                ?? $base()->latest('id')->value('id');
         }
 
         return view('enduser.quotations.create', ['quotationId' => $quotationId]);
