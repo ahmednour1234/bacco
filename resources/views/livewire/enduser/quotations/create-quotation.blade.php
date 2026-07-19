@@ -177,7 +177,12 @@
                 </div>
             </div>
             <p x-text="isAr ? ar[idx] : en[idx]" style="font-size:1.3rem;font-weight:700;color:#0f172a;margin-bottom:10px;min-height:2.2rem;"></p>
-            <p x-text="isAr ? 'يتم تنفيذ العملية، الرجاء الانتظار' : 'Operation in progress, please wait…'" style="font-size:0.83rem;color:#94a3b8;font-weight:500;"></p>
+            {{-- Real progress from the job (which slice, how many rows so far)
+                 when there is any, so a long run does not look stuck. --}}
+            <p
+                x-text="$wire.extractionProgress || (isAr ? 'يتم تنفيذ العملية، الرجاء الانتظار' : 'Operation in progress, please wait…')"
+                style="font-size:0.83rem;color:#94a3b8;font-weight:500;"
+            ></p>
             <p @click="dismissed=true" style="font-size:0.75rem;color:#cbd5e1;margin-top:12px;cursor:pointer;text-decoration:underline;" x-text="isAr ? 'إخفاء ومتابعة التصفح ←' : 'Hide & keep browsing →'"></p>
         </div>
         <template x-if="dismissed"><span x-init="$store.bgJob.active = true"></span></template>
@@ -554,7 +559,9 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
-                                    @foreach($items as $index => $item)
+                                    {{-- Windowed: array_slice preserves the original
+                                         keys, so $index still addresses the real row. --}}
+                                    @foreach($this->visibleItems as $index => $item)
                                         @php $needsReview = ($item['price_status'] ?? '') === 'needs_review'; @endphp
                                         <tr class="group transition-colors
                                             @if($needsReview) bg-red-50 hover:bg-red-100/70 ring-1 ring-inset ring-red-200 @else hover:bg-slate-50/60 @endif
@@ -742,6 +749,23 @@
                                     @endforeach
                                 </tbody>
                             </table>
+
+                            {{-- The table renders a window, not the whole BOQ:
+                                 tens of thousands of rows would lock the browser. --}}
+                            @if(count($items) > $visibleRows)
+                                <div class="flex flex-col items-center gap-2 border-t border-slate-100 py-4">
+                                    <p class="text-xs text-slate-500">
+                                        {{ __('app.showing_rows', ['shown' => $visibleRows, 'total' => count($items)]) }}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        wire:click="showMoreRows"
+                                        class="rounded-xl bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
+                                    >
+                                        {{ __('app.show_more_rows') }}
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -883,7 +907,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @foreach($items as $index => $item)
+                            @foreach($this->visibleItems as $index => $item)
                                 @php
                                     $priceStatus  = $item['price_status'] ?? 'pending';
                                     $unitPrice    = is_numeric($item['unit_price'] ?? null) ? (float) $item['unit_price'] : null;

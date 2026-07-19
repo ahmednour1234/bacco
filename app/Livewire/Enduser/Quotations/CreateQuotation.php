@@ -62,6 +62,32 @@ class CreateQuotation extends Component
     /** Live progress text while a large BOQ is parsed slice by slice. */
     public string $extractionProgress = '';
 
+    /** Rows written by the job so far — a counter only, never the rows. */
+    public int $extractedSoFar = 0;
+
+    /**
+     * How many rows the table renders at once.
+     *
+     * A real BOQ can run to tens of thousands of lines. Rendering them all
+     * produces a DOM (and a Livewire payload) large enough to lock the browser,
+     * so the table shows a window and the user extends it on demand.
+     */
+    public int $visibleRows = self::ROWS_PER_PAGE;
+
+    private const ROWS_PER_PAGE = 200;
+
+    /** Reveal the next slice of rows. */
+    public function showMoreRows(): void
+    {
+        $this->visibleRows += self::ROWS_PER_PAGE;
+    }
+
+    /** The rows the table should actually render this pass. */
+    public function getVisibleItemsProperty(): array
+    {
+        return array_slice($this->items, 0, $this->visibleRows, true);
+    }
+
     public string $boqFileName = '';
 
     public bool $showPricing = false;
@@ -312,16 +338,14 @@ class CreateQuotation extends Component
         if ($status === 'pending' || $status === 'running') {
             $this->extractionProgress = $message;
 
-            // The job writes each slice's rows as it parses them, so pull in
-            // whatever has landed. The table then fills in progressively rather
-            // than staying empty until the whole file is done.
-            $streamed = (int) Cache::get($this->cacheKeyFor('boq_ai_partial_count'), 0);
-            if ($streamed > count($this->items)) {
-                $quotation = QuotationRequest::with(['items.unit'])->find($this->quotationId);
-                if ($quotation) {
-                    $this->loadItemsFrom($quotation);
-                }
-            }
+            // Report how many rows have landed, but do NOT load them yet.
+            //
+            // $items is part of the component's serialised state: every poll
+            // would ship the whole array to the browser and re-render the table.
+            // On a large BOQ that is megabytes every 4 seconds, which is what
+            // made the page stall. The count is enough to show progress; the
+            // rows themselves load once, when the job finishes.
+            $this->extractedSoFar = (int) Cache::get($this->cacheKeyFor('boq_ai_partial_count'), 0);
 
             return;
         }
