@@ -226,7 +226,7 @@ final class ProductSpecCatalog
     {
         return [
             'ip_camera' => [
-                'keywords'    => ['ip camera', 'cctv camera', 'كاميرا مراقبة', 'كاميرا'],
+                'keywords'    => ['ip camera', 'cctv camera', 'surveillance camera', 'security camera', 'كاميرا مراقبة', 'كاميرا'],
                 'unit'        => 'PCS',
                 'blocking'    => ['camera form (dome/bullet/box/PTZ/fisheye)', 'resolution', 'lens (fixed or motorised) and focal length', 'indoor or outdoor', 'IP rating', 'PoE requirement'],
                 'conditional' => ['IR distance', 'IK rating', 'WDR', 'analytics', 'ONVIF compatibility', 'warranty'],

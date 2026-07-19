@@ -87,6 +87,32 @@ class ProductSpecEngine
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
+     * Normalise a single row's unit against its matched product family.
+     *
+     * Deterministic and free — no AI call — so it is safe to run over every row
+     * at extraction time. Returns the corrected unit, or null to leave as-is.
+     *
+     * Without this, a printer arrives measured in "liter/day" and a UPS in
+     * "carton meter", because the extractor copies whatever the sheet said.
+     */
+    public function normalizeUnitFor(string $description, string $rawUnit): ?string
+    {
+        $catalog = ProductSpecCatalog::match($description);
+        if ($catalog === null) {
+            return null;
+        }
+
+        $unit = UnitNormalizer::normalize($rawUnit, $catalog);
+
+        $normalized = (string) ($unit['normalized'] ?? '');
+        if ($normalized === '' || strcasecmp($normalized, $rawUnit) === 0) {
+            return null;
+        }
+
+        return $normalized;
+    }
+
+    /**
      * Build the base record: catalog match, normalised unit, quantity sanity.
      * Everything here is decidable without the AI.
      */

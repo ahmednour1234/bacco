@@ -7,6 +7,7 @@ use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
 use App\Services\BoqValidationService;
+use App\Services\Pricing\ProductSpecEngine;
 use App\Services\QuotationAiService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -254,14 +255,28 @@ class ExtractQuotationItemsJob implements ShouldQueue
     {
         $written = 0;
 
+        $engine = app(ProductSpecEngine::class);
+
         // Chunked so a several-thousand-row BOQ never builds one giant statement.
         foreach (array_chunk($aiItems, 500) as $chunk) {
             foreach ($chunk as $aiItem) {
+                $description = (string) ($aiItem['description'] ?? '');
+                $rawUnit     = (string) ($aiItem['unit'] ?? '');
+
+                // The extractor copies whatever the sheet said, which is how a
+                // printer ends up measured in "liter/day". Correct it against the
+                // product family — deterministic, no AI call. Rows with no known
+                // family are left exactly as extracted rather than guessed at.
+                $fixedUnit = $engine->normalizeUnitFor($description, $rawUnit);
+
                 QuotationItem::create([
                     'quotation_request_id' => $this->quotationId,
-                    'description'          => (string) ($aiItem['description'] ?? ''),
+                    'description'          => $description,
                     'quantity'             => is_numeric($aiItem['quantity'] ?? null) ? (float) $aiItem['quantity'] : 1,
-                    'unit_id'              => $this->resolveUnitId($aiItem['unit_id'] ?? null, $aiItem['unit'] ?? null),
+                    'unit_id'              => $this->resolveUnitId(
+                        $fixedUnit !== null ? null : ($aiItem['unit_id'] ?? null),
+                        $fixedUnit ?? $rawUnit,
+                    ),
                     'category'             => (string) ($aiItem['category'] ?? ''),
                     'brand'                => (string) ($aiItem['brand'] ?? ''),
                     'status'               => $aiItem['status'] ?? 'pending',
@@ -271,7 +286,10 @@ class ExtractQuotationItemsJob implements ShouldQueue
                     'raw_data'             => $aiItem['raw_data'] ?? null,
                     'ai_extracted'         => true,
                     'price_status'         => 'pending',
-                    'is_selected'          => false,
+                    // Selected by default: the totals only sum selected rows, so
+                    // leaving these false made a freshly extracted quotation add
+                    // up to zero. Manually added rows already default to true.
+                    'is_selected'          => true,
                 ]);
                 $written++;
             }
