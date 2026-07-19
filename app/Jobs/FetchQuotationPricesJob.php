@@ -18,6 +18,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -81,6 +82,23 @@ class FetchQuotationPricesJob implements ShouldQueue
         $quotation = QuotationRequest::with('client')->find($this->quotationId);
 
         if (! $quotation) {
+            return;
+        }
+
+        // Refuse to run alongside another pricing job for the same quotation.
+        //
+        // Pricing is dispatched from five separate places, none of which check
+        // whether a run is already underway. Two concurrent runs repeat every
+        // paid AI call over the same rows and race to overwrite each other's
+        // prices. The lock is held for the job's own timeout, so a worker killed
+        // mid-run cannot leave the quotation permanently unpriceable.
+        $lock = Cache::lock('pricing_run_' . $this->quotationId, $this->timeout);
+
+        if (! $lock->get()) {
+            Log::info('FetchQuotationPricesJob: another run is already pricing this quotation; skipping.', [
+                'quotation_id' => $this->quotationId,
+            ]);
+
             return;
         }
 
@@ -278,6 +296,12 @@ class FetchQuotationPricesJob implements ShouldQueue
             // whether pricing succeeded fully, partially, or failed entirely.
             $quotation->update(['prices_fetched_at' => now()]);
             Cache::forget('boq_pricing_message_' . (string) ($this->userId ?? $this->quotationUuid));
+
+            // Drop redundant runs before releasing the lock, so a sibling cannot
+            // acquire it in the gap and start pricing rows that were just done.
+            $this->dropQueuedSiblings();
+
+            $lock->release();
         }
     }
 
@@ -290,6 +314,10 @@ class FetchQuotationPricesJob implements ShouldQueue
      */
     public function failed(\Throwable $e): void
     {
+        // A killed job never reaches its finally block, so the lock would sit
+        // there for its full timeout and silently block every retry.
+        Cache::lock('pricing_run_' . $this->quotationId)->forceRelease();
+
         // Class, file and line as well as the message. MaxAttemptsExceeded's
         // message is just "attempted too many times", which says nothing about
         // what actually went wrong — logging only that hid a memory exhaustion
@@ -311,6 +339,53 @@ class FetchQuotationPricesJob implements ShouldQueue
             ->update(['prices_fetched_at' => now()]);
 
         Cache::forget('boq_pricing_message_' . (string) ($this->userId ?? $this->quotationUuid));
+    }
+
+    /**
+     * Drop any other pricing job still queued for this same quotation.
+     *
+     * Pricing is dispatched from five places (the quotation page, the BOQ page,
+     * admin, a re-price action), none of which knew whether a run was already
+     * queued. Pressing "price" twice queued two full runs over the same rows —
+     * the second one repeating every paid AI call to produce the same answer,
+     * and overwriting prices the first had just written.
+     *
+     * Runs after this job finishes, so whatever is still waiting is redundant by
+     * definition: the rows have just been priced.
+     *
+     * Only unreserved rows are touched. A job already picked up by a worker is
+     * mid-flight and deleting its row would not stop it.
+     */
+    private function dropQueuedSiblings(): void
+    {
+        if (config('queue.default') !== 'database') {
+            return;
+        }
+
+        try {
+            // Matched on the serialized quotation id as it appears inside the
+            // JSON payload. Laravel stores the command serialized, and a private
+            // property's quotes arrive escaped, so the pattern has to allow for
+            // whatever sits between the property name and the value.
+            $deleted = DB::table(config('queue.connections.database.table', 'jobs'))
+                ->whereNull('reserved_at')
+                ->where('payload', 'like', '%FetchQuotationPricesJob%')
+                ->where('payload', 'like', '%quotationId%:' . $this->quotationId . ';%')
+                ->delete();
+
+            if ($deleted > 0) {
+                Log::info('FetchQuotationPricesJob: dropped redundant queued runs.', [
+                    'quotation_id' => $this->quotationId,
+                    'deleted'      => $deleted,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Bookkeeping only — never fail a completed pricing run over it.
+            Log::warning('FetchQuotationPricesJob: could not drop queued siblings.', [
+                'quotation_id' => $this->quotationId,
+                'message'      => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
