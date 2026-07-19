@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class ProcessCatalogImportJob implements ShouldQueue
 {
@@ -28,6 +29,38 @@ class ProcessCatalogImportJob implements ShouldQueue
     public int $tries = 1;
 
     public function __construct(private int $catalogImportId) {}
+
+    /**
+     * Called by the queue when the job times out or dies hard.
+     *
+     * A timeout kills the worker outright, so the catch in handle() never runs
+     * and the import is left marked 'processing'. That status is also the guard
+     * against re-processing, so the record would be stuck permanently — unable
+     * to finish and unable to be retried by the user.
+     */
+    public function failed(\Throwable $e): void
+    {
+        Log::error('ProcessCatalogImportJob died.', [
+            'catalog_import_id' => $this->catalogImportId,
+            'message'           => $e->getMessage(),
+        ]);
+
+        // Never throw from here: an exception inside failed() would mask the
+        // original failure. find() is findOrFail(), so a deleted record throws.
+        try {
+            $importRepo = app(CatalogImportRepository::class);
+            $import     = $importRepo->find($this->catalogImportId);
+
+            if ($import->status === 'processing') {
+                $importRepo->markFailed($import, 'Import stopped unexpectedly. Please try again.');
+            }
+        } catch (\Throwable $inner) {
+            Log::error('ProcessCatalogImportJob: could not mark the import failed.', [
+                'catalog_import_id' => $this->catalogImportId,
+                'message'           => $inner->getMessage(),
+            ]);
+        }
+    }
 
     public function handle(
         CatalogImportRepository   $importRepo,

@@ -34,6 +34,16 @@ class FetchQuotationPricesJob implements ShouldQueue
      */
     public int $timeout = 1800;
 
+    /**
+     * Never retry.
+     *
+     * Without this the job inherits the queue's unlimited retries, so a failed
+     * pricing run is re-attempted forever — and every attempt is a full round of
+     * paid AI calls over the whole quotation. A failure here is reported to the
+     * user, who can re-run pricing deliberately.
+     */
+    public int $tries = 1;
+
     public function __construct(
         private readonly int    $quotationId,
         private readonly ?int   $userId,
@@ -205,5 +215,26 @@ class FetchQuotationPricesJob implements ShouldQueue
             $quotation->update(['prices_fetched_at' => now()]);
             Cache::forget('boq_pricing_message_' . (string) ($this->userId ?? $this->quotationUuid));
         }
+    }
+
+    /**
+     * Called by the queue when the job times out or dies hard.
+     *
+     * A timeout kills the worker process outright, so neither the catch nor the
+     * finally block above runs. Without this the quotation keeps a null
+     * prices_fetched_at and the page polls a spinner forever.
+     */
+    public function failed(\Throwable $e): void
+    {
+        Log::error('FetchQuotationPricesJob died.', [
+            'quotation_id' => $this->quotationId,
+            'message'      => $e->getMessage(),
+        ]);
+
+        QuotationRequest::where('id', $this->quotationId)
+            ->whereNull('prices_fetched_at')
+            ->update(['prices_fetched_at' => now()]);
+
+        Cache::forget('boq_pricing_message_' . (string) ($this->userId ?? $this->quotationUuid));
     }
 }

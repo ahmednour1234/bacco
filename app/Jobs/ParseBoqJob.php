@@ -34,6 +34,28 @@ class ParseBoqJob implements ShouldQueue
         private readonly array  $context = [],
     ) {}
 
+    /**
+     * Called by the queue when the job times out or dies hard.
+     *
+     * A timeout kills the worker outright, so the try/catch in handle() never
+     * runs and the cached status stays 'running' — the page would poll a
+     * spinner forever. tries = 1, so this fires on the first failure.
+     */
+    public function failed(\Throwable $e): void
+    {
+        Log::error('ParseBoqJob died.', [
+            'boq_id'  => $this->boqId,
+            'message' => $e->getMessage(),
+        ]);
+
+        Cache::put('boq_ai_status_' . $this->userId, 'failed', now()->addMinutes(30));
+        Cache::put(
+            'boq_ai_message_' . $this->userId,
+            'Extraction stopped unexpectedly. Please try uploading the file again.',
+            now()->addMinutes(30),
+        );
+    }
+
     public function handle(QuotationAiService $ai): void
     {
         $cacheKey    = 'boq_ai_status_' . $this->userId;
