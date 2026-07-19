@@ -476,12 +476,56 @@ class CreateQuotation extends Component
             $this->dispatch('boq-upload-done', outcome: 'no_items');
             $this->dispatch('toast', message: $message ?: 'No items found in the file. Please add items manually.', type: 'warning');
         } elseif ($status === 'failed') {
-            $this->dispatch('boq-upload-done', outcome: 'failed');
-            $this->dispatch('toast', message: $message ?: 'Extraction failed. Please try uploading the file again.', type: 'error');
+            // Even a failed run can have written rows — the parts are
+            // independent, so one dying does not undo the others. Keep them and
+            // report it as partial rather than discarding real work.
+            $extracted = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
+
+            if ($extracted > 0) {
+                $quotation = QuotationRequest::with(['items.unit'])->find($this->quotationId);
+                if ($quotation) {
+                    $this->loadItemsFrom($quotation);
+                }
+
+                $this->dispatch('boq-upload-done', outcome: 'partial');
+                $this->dispatch(
+                    'toast',
+                    message: __('app.extraction_stopped', ['count' => $extracted]),
+                    type: 'warning',
+                );
+
+                $this->validationRan       = true;
+                $this->validationAnswers   = [];
+                $this->currentQuestion     = 0;
+                $this->validationQuestions = (array) Cache::get($this->cacheKeyFor('boq_ai_questions'), []);
+            } else {
+                $this->dispatch('boq-upload-done', outcome: 'failed');
+                $this->dispatch('toast', message: $message ?: 'Extraction failed. Please try uploading the file again.', type: 'error');
+            }
         } else {
-            // Cache expired or was cleared while processing — treat as failure.
-            $this->dispatch('boq-upload-done', outcome: 'failed');
-            $this->dispatch('toast', message: 'AI extraction status expired. Please try extracting again.', type: 'error');
+            // No status in the cache. That is NOT proof of failure: the key has
+            // a TTL, and a long run on a single worker can outlive it. The rows
+            // are the truth — if the job wrote any, the extraction worked and
+            // saying otherwise throws away real work.
+            $extracted = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
+
+            if ($extracted > 0) {
+                $quotation = QuotationRequest::with(['items.unit'])->find($this->quotationId);
+                if ($quotation) {
+                    $this->loadItemsFrom($quotation);
+                }
+
+                $this->dispatch('boq-upload-done', outcome: 'success');
+                $this->dispatch('toast', message: $extracted . ' items extracted from the BOQ file.', type: 'success');
+
+                $this->validationRan       = true;
+                $this->validationAnswers   = [];
+                $this->currentQuestion     = 0;
+                $this->validationQuestions = (array) Cache::get($this->cacheKeyFor('boq_ai_questions'), []);
+            } else {
+                $this->dispatch('boq-upload-done', outcome: 'failed');
+                $this->dispatch('toast', message: 'AI extraction status expired. Please try extracting again.', type: 'error');
+            }
         }
     }
 

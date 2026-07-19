@@ -68,7 +68,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
     public function handle(QuotationAiService $ai): void
     {
         $this->status('running', '');
-        Cache::put($this->key('boq_ai_started_at'), now()->timestamp, now()->addHours(2));
+        Cache::put($this->key('boq_ai_started_at'), now()->timestamp, now()->addHours(12));
 
         try {
             $quotation = QuotationRequest::find($this->quotationId);
@@ -126,8 +126,8 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
                 $ai->onChunkProgress(function (int $part, int $total) use (&$chunkTotal): void {
                     $chunkTotal = $total;
-                    Cache::put($this->key('boq_ai_chunk_total'), $total, now()->addHours(2));
-                    Cache::put($this->key('boq_ai_chunk_current'), $part, now()->addHours(2));
+                    Cache::put($this->key('boq_ai_chunk_total'), $total, now()->addHours(12));
+                    Cache::put($this->key('boq_ai_chunk_current'), $part, now()->addHours(12));
 
                     $this->status('running', $part === 0
                         ? "Large file — split into {$total} parts. Starting…"
@@ -146,8 +146,8 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
                     $streamed += $this->writeItems($chunkItems);
 
-                    Cache::put($this->key('boq_ai_chunk_current'), $part, now()->addHours(2));
-                    Cache::put($this->key('boq_ai_partial_count'), $streamed, now()->addHours(2));
+                    Cache::put($this->key('boq_ai_chunk_current'), $part, now()->addHours(12));
+                    Cache::put($this->key('boq_ai_partial_count'), $streamed, now()->addHours(12));
                     $this->status('running', "Part {$part} of {$total} done — {$streamed} items so far.");
                 });
 
@@ -248,7 +248,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
             ]);
         }
 
-        Cache::put($this->key('boq_ai_questions'), $questions, now()->addHours(2));
+        Cache::put($this->key('boq_ai_questions'), $questions, now()->addHours(12));
     }
 
     /**
@@ -313,11 +313,11 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
         QuotationItem::where('quotation_request_id', $this->quotationId)->delete();
 
-        Cache::put($this->key('boq_ai_chunk_total'), $total, now()->addHours(2));
-        Cache::put($this->key('boq_ai_chunk_current'), 0, now()->addHours(2));
-        Cache::put($this->key('boq_ai_chunks_done'), 0, now()->addHours(2));
-        Cache::put($this->key('boq_ai_chunks_failed'), 0, now()->addHours(2));
-        Cache::put($this->key('boq_ai_partial_count'), 0, now()->addHours(2));
+        Cache::put($this->key('boq_ai_chunk_total'), $total, now()->addHours(12));
+        Cache::put($this->key('boq_ai_chunk_current'), 0, now()->addHours(12));
+        Cache::put($this->key('boq_ai_chunks_done'), 0, now()->addHours(12));
+        Cache::put($this->key('boq_ai_chunks_failed'), 0, now()->addHours(12));
+        Cache::put($this->key('boq_ai_partial_count'), 0, now()->addHours(12));
 
         $this->status('running', "Large file — split into {$total} parts. Starting…");
 
@@ -351,7 +351,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
         // Recorded so the user can stop the run and keep whatever has been
         // extracted so far — cancelling the batch is the only way to stop the
         // parts that have not started yet.
-        Cache::put($this->key('boq_ai_batch_id'), $batch->id, now()->addHours(2));
+        Cache::put($this->key('boq_ai_batch_id'), $batch->id, now()->addHours(12));
 
         Log::info('ExtractQuotationItemsJob: fanned out chunk jobs.', [
             'quotation_id' => $this->quotationId,
@@ -409,7 +409,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
                 QuotationItem::create([
                     'quotation_request_id' => $this->quotationId,
                     'description'          => $description,
-                    'quantity'             => is_numeric($aiItem['quantity'] ?? null) ? (float) $aiItem['quantity'] : 1,
+                    'quantity'             => $this->resolveQuantity($aiItem['quantity'] ?? null),
                     'unit_id'              => $this->resolveUnitId(
                         $fixedUnit !== null ? null : ($aiItem['unit_id'] ?? null),
                         $fixedUnit ?? $rawUnit,
@@ -435,6 +435,19 @@ class ExtractQuotationItemsJob implements ShouldQueue
         return $written;
     }
 
+    /**
+     * A BOQ line always means at least one of something.
+     *
+     * is_numeric(0) is true, so a literal 0 from the AI passed straight through
+     * the old `is_numeric(...) ? ... : 1` guard — the fallback only caught null.
+     */
+    private function resolveQuantity(mixed $value): float
+    {
+        $quantity = is_numeric($value) ? (float) $value : 0.0;
+
+        return $quantity > 0 ? $quantity : 1.0;
+    }
+
     private function resolveUnitId(?int $unitId, mixed $unitText): ?int
     {
         if ($unitId !== null) {
@@ -454,8 +467,8 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
     private function status(string $status, string $message): void
     {
-        Cache::put($this->key('boq_ai_status'), $status, now()->addHours(2));
-        Cache::put($this->key('boq_ai_message'), $message, now()->addHours(2));
+        Cache::put($this->key('boq_ai_status'), $status, now()->addHours(12));
+        Cache::put($this->key('boq_ai_message'), $message, now()->addHours(12));
     }
 
     private function key(string $prefix): string

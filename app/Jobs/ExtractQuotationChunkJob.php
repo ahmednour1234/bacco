@@ -89,7 +89,7 @@ class ExtractQuotationChunkJob implements ShouldQueue
             // Clamped: the counter is shared across concurrent jobs, and showing
             // a number larger than the total reads as a broken page.
             $done = min($this->doneCount(), $this->total);
-            Cache::put($this->key('boq_ai_chunk_current'), $done, now()->addHours(2));
+            Cache::put($this->key('boq_ai_chunk_current'), $done, now()->addHours(12));
 
             // Failures are surfaced live: 63 parts yielding 122 items looks the
             // same as 63 parts working fine unless the failure count is visible.
@@ -138,7 +138,7 @@ class ExtractQuotationChunkJob implements ShouldQueue
             return;
         }
 
-        Cache::put($marker, true, now()->addHours(2));
+        Cache::put($marker, true, now()->addHours(12));
         Cache::increment($this->key('boq_ai_chunks_done'));
     }
 
@@ -185,7 +185,7 @@ class ExtractQuotationChunkJob implements ShouldQueue
             QuotationItem::create([
                 'quotation_request_id' => $this->quotationId,
                 'description'          => $description,
-                'quantity'             => is_numeric($aiItem['quantity'] ?? null) ? (float) $aiItem['quantity'] : 1,
+                'quantity'             => $this->resolveQuantity($aiItem['quantity'] ?? null),
                 'unit_id'              => $this->resolveUnitId(
                     $fixedUnit !== null ? null : ($aiItem['unit_id'] ?? null),
                     $fixedUnit ?? $rawUnit,
@@ -207,6 +207,21 @@ class ExtractQuotationChunkJob implements ShouldQueue
         return $written;
     }
 
+    /**
+     * A BOQ line always means at least one of something.
+     *
+     * is_numeric(0) is true, so a literal 0 from the AI passed straight through
+     * the old `is_numeric(...) ? ... : 1` guard — the fallback only caught null.
+     * A zero-quantity row prices to nothing and reads as broken, so treat any
+     * non-positive value as the unknown it is and fall back to 1.
+     */
+    private function resolveQuantity(mixed $value): float
+    {
+        $quantity = is_numeric($value) ? (float) $value : 0.0;
+
+        return $quantity > 0 ? $quantity : 1.0;
+    }
+
     private function resolveUnitId(?int $unitId, mixed $unitText): ?int
     {
         if ($unitId !== null) {
@@ -226,8 +241,8 @@ class ExtractQuotationChunkJob implements ShouldQueue
 
     private function status(string $status, string $message): void
     {
-        Cache::put($this->key('boq_ai_status'), $status, now()->addHours(2));
-        Cache::put($this->key('boq_ai_message'), $message, now()->addHours(2));
+        Cache::put($this->key('boq_ai_status'), $status, now()->addHours(12));
+        Cache::put($this->key('boq_ai_message'), $message, now()->addHours(12));
     }
 
     private function key(string $prefix): string

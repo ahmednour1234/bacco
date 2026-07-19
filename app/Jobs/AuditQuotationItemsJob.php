@@ -67,6 +67,6 @@ class AuditQuotationItemsJob implements ShouldQueue
             ]);
         }
 
-        Cache::put('boq_ai_questions_' . $this->ownerKey, $questions, now()->addHours(2));
+        Cache::put('boq_ai_questions_' . $this->ownerKey, $questions, now()->addHours(12));
     }
 }

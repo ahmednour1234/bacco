@@ -128,13 +128,13 @@ class FinishQuotationExtractionJob implements ShouldQueue
             ]);
         }
 
-        Cache::put($this->key('boq_ai_questions'), $questions, now()->addHours(2));
+        Cache::put($this->key('boq_ai_questions'), $questions, now()->addHours(12));
     }
 
     private function status(string $status, string $message): void
     {
-        Cache::put($this->key('boq_ai_status'), $status, now()->addHours(2));
-        Cache::put($this->key('boq_ai_message'), $message, now()->addHours(2));
+        Cache::put($this->key('boq_ai_status'), $status, now()->addHours(12));
+        Cache::put($this->key('boq_ai_message'), $message, now()->addHours(12));
     }
 
     private function key(string $prefix): string
