@@ -257,8 +257,13 @@ class QuotationAiService
 
     private function parseSpreadsheetDirect(string $absPath): array
     {
-        ini_set('memory_limit', '1024M');
-        set_time_limit(180);
+        ini_set('memory_limit', '2048M');
+
+        // 180s was not enough for a real BOQ: an 11 200-row workbook was killed
+        // mid-parse, and because set_time_limit() kills the process outright the
+        // job reported a bare failure with nothing in the log to explain it.
+        // This runs on the queue, where wall time is cheap.
+        set_time_limit(1800);
 
         try {
             $sheets = $this->spreadsheetToGrids($absPath);
@@ -978,6 +983,9 @@ class QuotationAiService
      */
     public function chunkSpreadsheet(string $absPath): array
     {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(1800);
+
         $text = $this->spreadsheetToCompactCsvText($absPath);
 
         if ($text === null || trim($text) === '') {

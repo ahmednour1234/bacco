@@ -271,13 +271,29 @@ class ExtractQuotationItemsJob implements ShouldQueue
             $this->status('running', $message);
         });
 
+        // Reading a big workbook costs real memory, so give this room: the
+        // default limit is what a 11 200-row file was dying on.
+        @ini_set('memory_limit', '1024M');
+
         try {
-            return $ai->chunkSpreadsheet($absPath);
+            $chunks = $ai->chunkSpreadsheet($absPath);
+
+            Log::info('ExtractQuotationItemsJob: split decision.', [
+                'quotation_id' => $this->quotationId,
+                'chunks'       => count($chunks),
+                'peak_mb'      => round(memory_get_peak_usage(true) / 1048576),
+            ]);
+
+            return $chunks;
         } catch (\Throwable $e) {
             // Fall back to the single-job path rather than failing the upload.
-            Log::warning('ExtractQuotationItemsJob: could not split file, parsing in one job.', [
+            // This is a real fallback, not a silent one — the single-job path
+            // re-reads the file and can exhaust memory on exactly the files that
+            // land here, so the reason is logged loudly.
+            Log::error('ExtractQuotationItemsJob: could not split file, falling back to one job.', [
                 'quotation_id' => $this->quotationId,
                 'message'      => $e->getMessage(),
+                'peak_mb'      => round(memory_get_peak_usage(true) / 1048576),
             ]);
             return [];
         }
