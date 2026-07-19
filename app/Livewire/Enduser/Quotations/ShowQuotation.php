@@ -27,6 +27,30 @@ class ShowQuotation extends Component
     /** @var array<int, array<string, mixed>> */
     public array $items = [];
 
+    /**
+     * How many rows the tables render at once.
+     *
+     * A real BOQ runs to thousands of lines — this page has already served one
+     * with 5,211. Rendering them all builds a DOM large enough to lock the
+     * browser, so the tables show a window the user extends on demand. Totals
+     * are always computed over the full set, never the window.
+     */
+    public int $visibleRows = self::ROWS_PER_PAGE;
+
+    private const ROWS_PER_PAGE = 100;
+
+    /** Reveal the next slice of rows. */
+    public function showMoreRows(): void
+    {
+        $this->visibleRows += self::ROWS_PER_PAGE;
+    }
+
+    /** The rows the tables should actually render this pass. */
+    public function getVisibleItemsProperty(): array
+    {
+        return array_slice($this->items, 0, $this->visibleRows, true);
+    }
+
     public bool $fetchingPrices = false;
 
     public int $initialStep = 3;
