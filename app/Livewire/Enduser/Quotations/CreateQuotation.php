@@ -417,8 +417,15 @@ class CreateQuotation extends Component
             $this->extractionProgress = $message;
 
             $this->extractedSoFar = (int) Cache::get($this->cacheKeyFor('boq_ai_partial_count'), 0);
-            $this->chunkTotal     = (int) Cache::get($this->cacheKeyFor('boq_ai_chunk_total'), 0);
-            $this->chunkCurrent   = (int) Cache::get($this->cacheKeyFor('boq_ai_chunk_current'), 0);
+            $this->chunkTotal = (int) Cache::get($this->cacheKeyFor('boq_ai_chunk_total'), 0);
+
+            // Clamped here as well as at the writer: these counters are shared
+            // between concurrent jobs, and "part 65 of 63" reads as a bug even
+            // when the extraction itself is fine.
+            $this->chunkCurrent = min(
+                (int) Cache::get($this->cacheKeyFor('boq_ai_chunk_current'), 0),
+                max($this->chunkTotal, 1),
+            );
 
             // Show rows as the job writes them, but never load more than the
             // table actually renders.

@@ -84,14 +84,23 @@ class ExtractQuotationChunkJob implements ShouldQueue
         } finally {
             // Always advance, even on failure: the coordinator waits on this
             // counter, and a part that never reports would hang the whole run.
-            Cache::increment($this->key('boq_ai_chunks_done'));
-            Cache::put($this->key('boq_ai_chunk_current'), $this->doneCount(), now()->addHours(2));
+            $this->markCounted();
+
+            // Clamped: the counter is shared across concurrent jobs, and showing
+            // a number larger than the total reads as a broken page.
+            $done = min($this->doneCount(), $this->total);
+            Cache::put($this->key('boq_ai_chunk_current'), $done, now()->addHours(2));
+
+            // Failures are surfaced live: 63 parts yielding 122 items looks the
+            // same as 63 parts working fine unless the failure count is visible.
+            $failed = (int) Cache::get($this->key('boq_ai_chunks_failed'), 0);
 
             $this->status('running', sprintf(
-                'Part %d of %d done — %d items so far.',
-                $this->doneCount(),
+                'Part %d of %d done — %d items so far.%s',
+                $done,
                 $this->total,
                 (int) Cache::get($this->key('boq_ai_partial_count'), 0),
+                $failed > 0 ? " ({$failed} parts could not be read)" : '',
             ));
         }
     }
@@ -99,14 +108,37 @@ class ExtractQuotationChunkJob implements ShouldQueue
     /**
      * Called by the queue when this slice times out or dies hard.
      *
-     * handle() catches its own throwables and always advances the counters in
-     * its finally block, so this only ever runs when handle() did NOT complete —
-     * a timeout kill or a fatal. Incrementing unconditionally here would
-     * otherwise double-count a caught error and push done past total.
+     * Counts only if handle() never reached its finally block. An earlier
+     * version assumed failed() and finally were mutually exclusive — they are
+     * not: a `return` inside try still runs finally, so a chunk that failed its
+     * AI call counted once there and once here, and the progress counter ran
+     * past the total ("part 65 of 63").
      */
     public function failed(\Throwable $e): void
     {
+        if (Cache::get($this->key('boq_ai_chunk_counted_' . $this->part))) {
+            return;
+        }
+
         $this->recordFailure('Part stopped unexpectedly.');
+        $this->markCounted();
+    }
+
+    /**
+     * Advance the done counter for this part, at most once.
+     *
+     * The per-part marker is what makes it idempotent: whichever of finally or
+     * failed() gets there first wins, and the other becomes a no-op.
+     */
+    private function markCounted(): void
+    {
+        $marker = $this->key('boq_ai_chunk_counted_' . $this->part);
+
+        if (Cache::get($marker)) {
+            return;
+        }
+
+        Cache::put($marker, true, now()->addHours(2));
         Cache::increment($this->key('boq_ai_chunks_done'));
     }
 
