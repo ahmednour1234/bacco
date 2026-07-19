@@ -6,6 +6,7 @@ use App\Enums\QuotationSourceTypeEnum;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
+use App\Jobs\Concerns\MergesDuplicateQuotationRows;
 use App\Services\BoqValidationService;
 use App\Services\Pricing\ProductSpecEngine;
 use App\Services\QuotationAiService;
@@ -35,7 +36,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class ExtractQuotationItemsJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, MergesDuplicateQuotationRows, Queueable, SerializesModels;
 
     /**
      * A very large BOQ is parsed in sequential slices — a 20 000-row file splits
@@ -187,6 +188,16 @@ class ExtractQuotationItemsJob implements ShouldQueue
             // work. Only persist here when nothing was streamed (a cache hit, or
             // a small file parsed in a single call).
             $count = $streamed > 0 ? $streamed : $this->persistItems($items);
+
+            // This path streams slice by slice too, so it can write the same
+            // line twice for exactly the reason the batched path can. Merge
+            // before the count is reported, so the number the user sees matches
+            // the rows actually in the table.
+            $merged = $this->mergeDuplicateQuotationRows($this->quotationId);
+
+            if ($merged > 0) {
+                $count = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
+            }
 
             $quotation->update(['source_type' => QuotationSourceTypeEnum::Api]);
 

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\QuotationSourceTypeEnum;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
+use App\Jobs\Concerns\MergesDuplicateQuotationRows;
 use App\Services\BoqValidationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,7 +26,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class FinishQuotationExtractionJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, MergesDuplicateQuotationRows, Queueable, SerializesModels;
 
     /** The validation gate is itself a chunked AI pass over every row. */
     public int $timeout = 3600;
@@ -47,11 +48,24 @@ class FinishQuotationExtractionJob implements ShouldQueue
         // its own file, but a part that never ran leaves one behind.
         Storage::disk('local')->deleteDirectory('boq-chunks/' . $this->quotationId);
 
-        // The batch's finally() also fires when the user stops the run, so this
-        // would otherwise overwrite their "stopped at N items" with a partial or
-        // failed verdict. The rows are still theirs; leave the status alone.
+        // The batch's finally() also fires when the user stops the run, so the
+        // status must be left alone — overwriting their "stopped at N items"
+        // with a partial/failed verdict would be wrong. The rows still need
+        // deduplicating though: a stopped run is exactly the case where two
+        // parts raced and wrote the same line, and returning early here is why
+        // duplicates survived on stopped and cancelled runs.
         if (Cache::get($this->key('boq_ai_stopped_by_user'))) {
             Cache::forget($this->key('boq_ai_stopped_by_user'));
+
+            try {
+                $this->mergeDuplicateQuotationRows($this->quotationId);
+            } catch (\Throwable $e) {
+                Log::error('FinishQuotationExtractionJob: dedupe after stop failed.', [
+                    'quotation_id' => $this->quotationId,
+                    'message'      => $e->getMessage(),
+                ]);
+            }
+
             return;
         }
 
@@ -65,7 +79,7 @@ class FinishQuotationExtractionJob implements ShouldQueue
             // Merge rows that are genuinely the same line before anything else
             // reads the table. Runs here rather than per part: two parts can
             // each emit the same row without either being able to see it.
-            $merged = $this->mergeDuplicateRows();
+            $merged = $this->mergeDuplicateQuotationRows($this->quotationId);
 
             $count  = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
             $failed = (int) Cache::get($this->key('boq_ai_chunks_failed'), 0);
@@ -112,78 +126,6 @@ class FinishQuotationExtractionJob implements ShouldQueue
         $this->status('failed', 'Extraction stopped unexpectedly. Please try again.');
     }
 
-    /**
-     * Merge rows that describe the same line, summing their quantities.
-     *
-     * Two parts of a split file can emit the same row without either being able
-     * to see the other, and a re-run that overlaps an earlier one leaves the
-     * same line twice. Neither is visible until the user scrolls the table.
-     *
-     * A row is "the same" only when its description AND unit AND unit price all
-     * match. That is deliberately strict:
-     *
-     *   - description alone would merge the same beam on two floors, which are
-     *     separate lines a contractor prices and schedules separately;
-     *   - ignoring price would merge rows the supplier quoted differently.
-     *
-     * Quantities are summed rather than discarded — dropping one would silently
-     * halve the order. Returns how many rows were absorbed.
-     */
-    private function mergeDuplicateRows(): int
-    {
-        $seen   = [];
-        $absorb = [];
-
-        QuotationItem::where('quotation_request_id', $this->quotationId)
-            ->orderBy('id')
-            ->chunkById(500, function ($rows) use (&$seen, &$absorb): void {
-                foreach ($rows as $row) {
-                    // Normalised so trivial whitespace/case differences do not
-                    // read as separate products.
-                    $key = implode('|', [
-                        mb_strtolower(trim(preg_replace('/\s+/u', ' ', (string) $row->description) ?? '')),
-                        (string) ($row->unit_id ?? ''),
-                        (string) ($row->unit_price ?? ''),
-                    ]);
-
-                    // A row with no description cannot be compared meaningfully;
-                    // leave it alone rather than merging unrelated blanks.
-                    if (trim((string) $row->description) === '') {
-                        continue;
-                    }
-
-                    if (! isset($seen[$key])) {
-                        $seen[$key] = $row->id;
-                        continue;
-                    }
-
-                    $absorb[$seen[$key]] = ($absorb[$seen[$key]] ?? 0) + (float) $row->quantity;
-                    $absorb['__delete'][] = $row->id;
-                }
-            });
-
-        $toDelete = $absorb['__delete'] ?? [];
-        unset($absorb['__delete']);
-
-        if ($toDelete === []) {
-            return 0;
-        }
-
-        foreach ($absorb as $keepId => $addedQuantity) {
-            QuotationItem::where('id', $keepId)->increment('quantity', $addedQuantity);
-        }
-
-        foreach (array_chunk($toDelete, 500) as $batch) {
-            QuotationItem::whereIn('id', $batch)->delete();
-        }
-
-        Log::info('FinishQuotationExtractionJob: merged duplicate rows.', [
-            'quotation_id' => $this->quotationId,
-            'merged'       => count($toDelete),
-        ]);
-
-        return count($toDelete);
-    }
 
     /**
      * Audit the extracted rows and cache any questions for the user.
