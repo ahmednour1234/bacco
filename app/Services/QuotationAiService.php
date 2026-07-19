@@ -1352,9 +1352,10 @@ class QuotationAiService
             return null;
         }
 
-        $output  = '';
-        $kept    = 0;
-        $dropped = 0;
+        $output    = '';
+        $kept      = 0;
+        $dropped   = 0;
+        $nonSupply = 0;
 
         foreach ($sheets as $sheet) {
             // Don't feed summary / cost-abstract sheets to the AI either.
@@ -1367,6 +1368,17 @@ class QuotationAiService
 
                 if ($this->isNoiseRow($row)) {
                     $dropped++;
+                    continue;
+                }
+
+                // Drop rows that are definitely not procurable before they cost
+                // a single token: section totals, discipline headings,
+                // preliminaries, labour-only lines. The same classifier already
+                // runs on the AI's output, but by then the tokens are spent — on
+                // an 11 200-row BOQ that is most of the bill.
+                if ($this->isNonSupplyRow($row)) {
+                    $dropped++;
+                    $nonSupply++;
                     continue;
                 }
 
@@ -1383,13 +1395,18 @@ class QuotationAiService
             $output .= 'Sheet: ' . $sheet['name'] . "\n" . $sheetRows . "\n";
         }
 
-        Log::info('QuotationAiService: stripped blank rows before sending to AI.', [
-            'kept'    => $kept,
-            'dropped' => $dropped,
+        $blank = $dropped - $nonSupply;
+
+        Log::info('QuotationAiService: filtered rows before sending to AI.', [
+            'kept'       => $kept,
+            'blank'      => $blank,
+            'non_supply' => $nonSupply,
         ]);
 
         if ($dropped > 0) {
-            $this->reportStage("Removed {$dropped} blank rows. Sending {$kept} rows…");
+            $this->reportStage($nonSupply > 0
+                ? "Skipped {$blank} blank and {$nonSupply} non-supply rows. Sending {$kept}…"
+                : "Removed {$blank} blank rows. Sending {$kept} rows…");
         }
 
         return $output;
@@ -1410,6 +1427,51 @@ class QuotationAiService
      *
      * @param  array<int, mixed>  $row
      */
+    /**
+     * True when a row is definitely not a procurable supply item.
+     *
+     * Runs BoqCleaningService over the row's longest text cell — the one most
+     * likely to be the description — so headings, totals, preliminaries and
+     * labour-only lines never reach the AI. The same classifier already vets the
+     * AI's *output*; doing it here as well means we stop paying to have those
+     * rows read in the first place.
+     *
+     * Conservative by construction: only rows the classifier positively rejects
+     * are dropped. Anything it is unsure about goes to the AI, which is the
+     * better judge — a wrongly dropped row is invisible, a wrongly kept one only
+     * costs tokens.
+     *
+     * @param  array<int, mixed>  $row
+     */
+    private function isNonSupplyRow(array $row): bool
+    {
+        $description = '';
+        foreach ($row as $cell) {
+            $text = trim((string) $cell);
+            // Longest cell containing letters — numbers are qty/rate columns.
+            if (preg_match('/\p{L}/u', $text) && mb_strlen($text) > mb_strlen($description)) {
+                $description = $text;
+            }
+        }
+
+        // No text at all: leave it to isNoiseRow()/the AI rather than guessing.
+        if ($description === '' || mb_strlen($description) < 3) {
+            return false;
+        }
+
+        try {
+            $verdict = $this->boqCleaner->filterItem($description);
+        } catch (\Throwable $e) {
+            // A classifier failure must never silently drop a real product.
+            Log::warning('QuotationAiService: pre-filter classifier failed, keeping row.', [
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+
+        return ! ($verdict['keep'] ?? true);
+    }
+
     private function isNoiseRow(array $row): bool
     {
         if (empty($row)) {
