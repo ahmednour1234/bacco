@@ -290,9 +290,20 @@ class FetchQuotationPricesJob implements ShouldQueue
      */
     public function failed(\Throwable $e): void
     {
+        // Class, file and line as well as the message. MaxAttemptsExceeded's
+        // message is just "attempted too many times", which says nothing about
+        // what actually went wrong — logging only that hid a memory exhaustion
+        // for several runs, and then hid whatever is failing now behind it.
         Log::error('FetchQuotationPricesJob died.', [
             'quotation_id' => $this->quotationId,
+            'exception'    => $e::class,
             'message'      => $e->getMessage(),
+            'file'         => $e->getFile() . ':' . $e->getLine(),
+            'previous'     => $e->getPrevious()?->getMessage(),
+            'trace'        => collect($e->getTrace())
+                ->take(8)
+                ->map(fn($f) => ($f['file'] ?? '?') . ':' . ($f['line'] ?? '?') . ' ' . ($f['function'] ?? ''))
+                ->all(),
         ]);
 
         QuotationRequest::where('id', $this->quotationId)
