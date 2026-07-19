@@ -40,10 +40,11 @@ trait MergesDuplicateQuotationRows
         $seen     = [];
         $absorb   = [];
         $toDelete = [];
+        $sources  = [];
 
         QuotationItem::where('quotation_request_id', $quotationId)
             ->orderBy('id')
-            ->chunkById(500, function ($rows) use (&$seen, &$absorb, &$toDelete): void {
+            ->chunkById(500, function ($rows) use (&$seen, &$absorb, &$toDelete, &$sources): void {
                 foreach ($rows as $row) {
                     // A row with no description cannot be compared meaningfully;
                     // leave it alone rather than merging unrelated blanks.
@@ -67,6 +68,18 @@ trait MergesDuplicateQuotationRows
                     $keepId          = $seen[$key];
                     $absorb[$keepId] = ($absorb[$keepId] ?? 0) + (float) $row->quantity;
                     $toDelete[]      = $row->id;
+
+                    // Keep what was folded in. The descriptions are identical by
+                    // the time they reach here, but they often were not in the
+                    // sheet — "40 MPa for footings" and "40 MPa for columns" both
+                    // clean down to "40 MPa". Recording the originals means a
+                    // merged quantity can be traced back rather than taken on
+                    // trust.
+                    $sources[$keepId][] = [
+                        'id'       => $row->id,
+                        'quantity' => (float) $row->quantity,
+                        'original' => $row->raw_data['original_description'] ?? null,
+                    ];
                 }
             });
 
@@ -75,7 +88,22 @@ trait MergesDuplicateQuotationRows
         }
 
         foreach ($absorb as $keepId => $addedQuantity) {
-            QuotationItem::where('id', $keepId)->increment('quantity', $addedQuantity);
+            $keeper = QuotationItem::find($keepId);
+
+            if (! $keeper) {
+                continue;
+            }
+
+            $rawData = is_array($keeper->raw_data) ? $keeper->raw_data : [];
+
+            // Written onto the surviving row so the merge is inspectable: how
+            // many lines were folded in, and what each contributed.
+            $rawData['merged_from']  = $sources[$keepId] ?? [];
+            $rawData['merged_count'] = count($sources[$keepId] ?? []);
+
+            $keeper->quantity = (float) $keeper->quantity + $addedQuantity;
+            $keeper->raw_data = $rawData;
+            $keeper->save();
         }
 
         foreach (array_chunk($toDelete, 500) as $batch) {
