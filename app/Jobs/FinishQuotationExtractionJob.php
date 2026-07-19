@@ -13,6 +13,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,6 +48,11 @@ class FinishQuotationExtractionJob implements ShouldQueue
         // Remove the slice directory whatever the outcome — each part deletes
         // its own file, but a part that never ran leaves one behind.
         Storage::disk('local')->deleteDirectory('boq-chunks/' . $this->quotationId);
+
+        // Drop this run's failed parts. Their failure is already reflected in
+        // the status message and the row count; leaving them in failed_jobs only
+        // invites a retry that would write rows into a finished extraction.
+        $this->clearFailedParts();
 
         // The batch's finally() also fires when the user stops the run, so the
         // status must be left alone — overwriting their "stopped at N items"
@@ -126,6 +132,40 @@ class FinishQuotationExtractionJob implements ShouldQueue
         $this->status('failed', 'Extraction stopped unexpectedly. Please try again.');
     }
 
+
+    /**
+     * Remove this quotation's failed parts from failed_jobs.
+     *
+     * A failed part is already accounted for: its failure is in the status
+     * message and its rows are simply absent. Keeping the record only invites a
+     * `queue:retry` that would write rows into an extraction the user has
+     * already reviewed — and every stopped or partial run would otherwise leave
+     * a pile of entries nobody acts on.
+     *
+     * Matched on the slice path, which is unique to this quotation's parts and
+     * survives the payload's JSON encoding.
+     */
+    private function clearFailedParts(): void
+    {
+        try {
+            $deleted = DB::table(config('queue.failed.table', 'failed_jobs'))
+                ->where('payload', 'like', '%boq-chunks%' . $this->quotationId . '%')
+                ->delete();
+
+            if ($deleted > 0) {
+                Log::info('FinishQuotationExtractionJob: cleared failed parts.', [
+                    'quotation_id' => $this->quotationId,
+                    'deleted'      => $deleted,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Never fail the run over bookkeeping.
+            Log::warning('FinishQuotationExtractionJob: could not clear failed parts.', [
+                'quotation_id' => $this->quotationId,
+                'message'      => $e->getMessage(),
+            ]);
+        }
+    }
 
     /**
      * Audit the extracted rows and cache any questions for the user.

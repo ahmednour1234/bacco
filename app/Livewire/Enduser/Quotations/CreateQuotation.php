@@ -430,10 +430,20 @@ class CreateQuotation extends Component
                         ->delete();
                 }
 
+                // Clear this quotation's failed parts too. They are dead weight:
+                // retrying one would write rows into a run the user has already
+                // closed, and they otherwise accumulate in failed_jobs for every
+                // stopped extraction with no one to act on them.
+                $failedTable   = config('queue.failed.table', 'failed_jobs');
+                $deletedFailed = DB::table($failedTable)
+                    ->where('payload', 'like', '%boq-chunks%' . $this->quotationId . '%')
+                    ->delete();
+
                 Log::info('CreateQuotation: dropped queued extraction parts.', [
-                    'quotation_id' => $this->quotationId,
-                    'batch_id'     => $batchId,
-                    'deleted'      => $deleted,
+                    'quotation_id'  => $this->quotationId,
+                    'batch_id'      => $batchId,
+                    'deleted'       => $deleted,
+                    'deleted_failed' => $deletedFailed,
                 ]);
             }
         } catch (\Throwable $e) {
