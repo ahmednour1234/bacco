@@ -397,7 +397,7 @@ class CreateQuotation extends Component
                 $this->loadItemsFrom($quotation);
             }
 
-            $this->dispatch('boq-upload-done');
+            $this->dispatch('boq-upload-done', outcome: $status === 'partial' ? 'partial' : 'success');
             $this->dispatch(
                 'toast',
                 message: $message ?: (count($this->items) . ' items extracted successfully from the BOQ file.'),
@@ -411,14 +411,14 @@ class CreateQuotation extends Component
             $this->currentQuestion     = 0;
             $this->validationQuestions = (array) Cache::get($this->cacheKeyFor('boq_ai_questions'), []);
         } elseif ($status === 'no_items') {
-            $this->dispatch('boq-upload-done');
+            $this->dispatch('boq-upload-done', outcome: 'no_items');
             $this->dispatch('toast', message: $message ?: 'No items found in the file. Please add items manually.', type: 'warning');
         } elseif ($status === 'failed') {
-            $this->dispatch('boq-upload-done');
+            $this->dispatch('boq-upload-done', outcome: 'failed');
             $this->dispatch('toast', message: $message ?: 'Extraction failed. Please try uploading the file again.', type: 'error');
         } else {
             // Cache expired or was cleared while processing — treat as failure.
-            $this->dispatch('boq-upload-done');
+            $this->dispatch('boq-upload-done', outcome: 'failed');
             $this->dispatch('toast', message: 'AI extraction status expired. Please try extracting again.', type: 'error');
         }
     }

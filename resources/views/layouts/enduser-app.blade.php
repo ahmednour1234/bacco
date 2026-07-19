@@ -545,7 +545,17 @@
         x-data="{ isAr: document.documentElement.dir === 'rtl' }"
         x-show="$store.bgJob.done !== null"
         x-cloak
-        x-on:boq-upload-done.window="if (!window.location.pathname.includes('/boqs/create') && !window.location.pathname.includes('/boqs/create/')) $store.bgJob.done = 'success'; $store.bgJob.active = false;"
+        {{-- Report the real outcome. This used to hardcode 'success', so a run
+             that extracted nothing — or failed outright — still showed the green
+             "processing complete" popup over an empty table. Components that do
+             not send an outcome keep the old behaviour. --}}
+        x-on:boq-upload-done.window="
+            if (!window.location.pathname.includes('/boqs/create') && !window.location.pathname.includes('/boqs/create/')) {
+                const outcome = $event.detail?.outcome ?? 'success';
+                $store.bgJob.done = (outcome === 'failed' || outcome === 'no_items') ? outcome : 'success';
+            }
+            $store.bgJob.active = false;
+        "
         x-on:boq-job-started.window="$store.bgJob.setOrigin(window.location.pathname + window.location.search)"
         x-on:boq-resume-done.window="$store.bgJob.active = false; $store.bgJob.done = null"
         x-transition:enter="transition ease-out duration-300"
