@@ -385,42 +385,64 @@ class CreateQuotation extends Component
 
         $batchId = Cache::get($this->cacheKeyFor('boq_ai_batch_id'));
 
-        if ($batchId) {
-            try {
+        try {
+            if ($batchId) {
                 Bus::findBatch($batchId)?->cancel();
+            }
 
-                // Cancelling only flags the batch — the queued jobs still get
-                // dequeued one by one, and each wakes a worker and hits the
-                // database just to discover it should stop. On a 49-part file
-                // that is 49 pointless round trips. Drop the pending payloads
-                // so stopping actually stops.
-                //
-                // Only rows still waiting are touched: a job already reserved by
-                // a worker is mid-flight, and its own cancelled() check handles
-                // that case. Failed jobs are left for the usual retry tooling.
-                //
-                // Guarded by the driver: this reaches into Laravel's own jobs
-                // table, which only exists on the database queue. On redis/sqs
-                // the batch flag alone does the work, more slowly.
-                if (config('queue.default') === 'database') {
-                    $deleted = DB::table(config('queue.connections.database.table', 'jobs'))
+            // Cancelling only flags the batch — the queued jobs still get
+            // dequeued one by one, and each wakes a worker and hits the database
+            // just to discover it should stop. On a 49-part file that is 49
+            // pointless round trips. Drop the pending payloads so stopping
+            // actually stops.
+            //
+            // Matched on this quotation's slice path, not the batch id. The batch
+            // id lives in a cache key that can expire or be missing, and when it
+            // was the only filter a stop silently deleted nothing — which is how
+            // an unreserved part survived a stop.
+            //
+            // The path is matched rather than the serialized property name: the
+            // payload is JSON, so a private property's quotes arrive escaped
+            // ("quotationId\";i:123;") and the obvious pattern never matches.
+            // "boq-chunks/<id>/" appears in the payload verbatim and is unique to
+            // this quotation's parts.
+            //
+            // Only rows still waiting are touched: a job already reserved by a
+            // worker is mid-flight, and its own cancelled() check handles that.
+            //
+            // Guarded by the driver: this reaches into Laravel's own jobs table,
+            // which only exists on the database queue.
+            if (config('queue.default') === 'database') {
+                $table = config('queue.connections.database.table', 'jobs');
+
+                $deleted = DB::table($table)
+                    ->whereNull('reserved_at')
+                    ->where('payload', 'like', '%boq-chunks%' . $this->quotationId . '%')
+                    ->delete();
+
+                // Belt and braces: if the payload is shaped differently than the
+                // pattern above expects, fall back to the batch id so a stop is
+                // never a complete no-op.
+                if ($deleted === 0 && $batchId) {
+                    $deleted = DB::table($table)
                         ->whereNull('reserved_at')
                         ->where('payload', 'like', '%' . $batchId . '%')
                         ->delete();
-
-                    Log::info('CreateQuotation: dropped queued extraction parts.', [
-                        'batch_id' => $batchId,
-                        'deleted'  => $deleted,
-                    ]);
                 }
-            } catch (\Throwable $e) {
-                // Best-effort: the rows already written are the point, and the
-                // chunk jobs check cancelled() themselves regardless.
-                Log::warning('CreateQuotation: could not cancel extraction batch.', [
-                    'batch_id' => $batchId,
-                    'message'  => $e->getMessage(),
+
+                Log::info('CreateQuotation: dropped queued extraction parts.', [
+                    'quotation_id' => $this->quotationId,
+                    'batch_id'     => $batchId,
+                    'deleted'      => $deleted,
                 ]);
             }
+        } catch (\Throwable $e) {
+            // Best-effort: the rows already written are the point, and the chunk
+            // jobs check cancelled() themselves regardless.
+            Log::warning('CreateQuotation: could not cancel extraction batch.', [
+                'batch_id' => $batchId,
+                'message'  => $e->getMessage(),
+            ]);
         }
 
         // Every part that will never run leaves its slice on disk. The finaliser
