@@ -176,8 +176,21 @@ class CreateQuotation extends Component
      */
     private function loadItemsFrom(QuotationRequest $quotation): void
     {
-        $this->items = $quotation->items()
-            ->get()
+        $this->items = $this->mapItems($quotation->items()->get());
+    }
+
+    /**
+     * Shape persisted rows into the array the component and view work with.
+     *
+     * Separate from loadItemsFrom() so the progressive preview can map a limited
+     * query result without loading the whole table.
+     *
+     * @param  \Illuminate\Support\Collection<int, QuotationItem>  $rows
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapItems($rows): array
+    {
+        return $rows
             ->map(fn(QuotationItem $item) => [
                 'id'                   => $item->id,
                 'description'          => $item->description,
@@ -338,14 +351,24 @@ class CreateQuotation extends Component
         if ($status === 'pending' || $status === 'running') {
             $this->extractionProgress = $message;
 
-            // Report how many rows have landed, but do NOT load them yet.
-            //
-            // $items is part of the component's serialised state: every poll
-            // would ship the whole array to the browser and re-render the table.
-            // On a large BOQ that is megabytes every 4 seconds, which is what
-            // made the page stall. The count is enough to show progress; the
-            // rows themselves load once, when the job finishes.
             $this->extractedSoFar = (int) Cache::get($this->cacheKeyFor('boq_ai_partial_count'), 0);
+
+            // Show rows as the job writes them, but never load more than the
+            // table actually renders.
+            //
+            // Loading every row on each poll is what stalled the page before:
+            // $items is serialised into the component state, so a 20k-row BOQ
+            // shipped megabytes to the browser every 4 seconds. Capping the
+            // preview at $visibleRows keeps the payload flat no matter how large
+            // the file is — the rest arrive in one go when the job finishes.
+            if ($this->extractedSoFar > count($this->items) && count($this->items) < $this->visibleRows) {
+                $quotation = QuotationRequest::find($this->quotationId);
+                if ($quotation) {
+                    $this->items = $this->mapItems(
+                        $quotation->items()->with('unit')->limit($this->visibleRows)->get()
+                    );
+                }
+            }
 
             return;
         }

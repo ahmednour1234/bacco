@@ -183,7 +183,15 @@
                 x-text="$wire.extractionProgress || (isAr ? 'يتم تنفيذ العملية، الرجاء الانتظار' : 'Operation in progress, please wait…')"
                 style="font-size:0.83rem;color:#94a3b8;font-weight:500;"
             ></p>
-            <p @click="dismissed=true" style="font-size:0.75rem;color:#cbd5e1;margin-top:12px;cursor:pointer;text-decoration:underline;" x-text="isAr ? 'إخفاء ومتابعة التصفح ←' : 'Hide & keep browsing →'"></p>
+            {{-- Once rows start landing, point at them: the table behind this
+                 overlay is already filling in, so "hide" is the useful action. --}}
+            <p
+                @click="dismissed=true"
+                style="font-size:0.75rem;color:#cbd5e1;margin-top:12px;cursor:pointer;text-decoration:underline;"
+                x-text="$wire.extractedSoFar > 0
+                    ? (isAr ? 'إخفاء وعرض البنود ←' : 'Hide & view items →')
+                    : (isAr ? 'إخفاء ومتابعة التصفح ←' : 'Hide & keep browsing →')"
+            ></p>
         </div>
         <template x-if="dismissed"><span x-init="$store.bgJob.active = true"></span></template>
         <style>
