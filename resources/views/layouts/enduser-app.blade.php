@@ -556,7 +556,13 @@
             }
             $store.bgJob.active = false;
         "
-        x-on:boq-job-started.window="$store.bgJob.setOrigin(window.location.pathname + window.location.search)"
+        {{-- Record where to come back to, with resume=1 so the page reopens the
+             draft the job wrote to rather than starting a blank one. --}}
+        x-on:boq-job-started.window="
+            const u = new URL(window.location.href);
+            u.searchParams.set('resume', '1');
+            $store.bgJob.setOrigin(u.pathname + u.search);
+        "
         x-on:boq-resume-done.window="$store.bgJob.active = false; $store.bgJob.done = null"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0"

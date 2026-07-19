@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Enduser;
 
+use App\Enums\QuotationRequestStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Models\QuotationRequest;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -16,9 +18,21 @@ class QuotationController extends Controller
         return view('enduser.quotations.index');
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('enduser.quotations.create');
+        // ?resume=1 comes from the background-job popup ("view data"). The
+        // extraction wrote its rows against a draft quotation, so returning to a
+        // blank page would hide work that is already done — reopen that draft.
+        $quotationId = null;
+
+        if ($request->boolean('resume')) {
+            $quotationId = QuotationRequest::where('client_id', Auth::id())
+                ->where('status', QuotationRequestStatusEnum::Draft->value)
+                ->latest('id')
+                ->value('id');
+        }
+
+        return view('enduser.quotations.create', ['quotationId' => $quotationId]);
     }
 
     public function show(string $uuid): View

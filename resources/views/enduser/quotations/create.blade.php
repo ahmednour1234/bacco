@@ -22,6 +22,8 @@
     <p class="mt-1 text-sm text-slate-500">{{ __('app.fill_quotation_details') }}</p>
 </div>
 
-<livewire:enduser.quotations.create-quotation :quotationId="null" />
+{{-- $quotationId is set when arriving with ?resume=1, so the background-job
+     popup reopens the draft the extraction wrote to instead of a blank form. --}}
+<livewire:enduser.quotations.create-quotation :quotationId="$quotationId ?? null" />
 
 @endsection
