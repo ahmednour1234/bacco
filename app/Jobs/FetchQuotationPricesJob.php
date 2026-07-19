@@ -6,6 +6,8 @@ use App\Enums\NotificationTypeEnum;
 use App\Mail\QuotationPricedMail;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
+use App\Models\Unit;
+use App\Services\Pricing\ProductSpecEngine;
 use App\Services\BoqCleaningService;
 use App\Services\NotificationService;
 use App\Services\PriceVerificationService;
@@ -79,13 +81,44 @@ class FetchQuotationPricesJob implements ShouldQueue
         // leaked past extraction (a discipline heading, total, placeholder, or a
         // row with no real unit/qty) is never priced. Nothing is silently dropped:
         // every block is logged with its reasons for the audit trail.
+        $engine       = app(ProductSpecEngine::class);
         $guardedItems = [];
+        $recovered    = 0;
+
         foreach ($items as $item) {
+            // A blank unit is a gap in the sheet, not evidence that the row is
+            // not a product. "Parapet cap straight (W=750mm)" and "Single RJ45
+            // outlet for BMS" were both being blocked — and then deleted — purely
+            // because their unit cell was empty. Ask the product family first.
+            if (trim((string) ($item['unit'] ?? '')) === '') {
+                $inferred = $engine->normalizeUnitFor((string) $item['description'], '');
+
+                if ($inferred !== null && $inferred !== '') {
+                    $item['unit'] = $inferred;
+                    $recovered++;
+
+                    QuotationItem::where('id', $item['id'])->update([
+                        'unit_id' => $this->resolveUnitId($inferred),
+                    ]);
+                }
+            }
+
             $blockers = $boqCleaner->pricingGate([
                 'description' => (string) $item['description'],
                 'unit'        => (string) ($item['unit'] ?? ''),
                 'quantity'    => $item['quantity'] ?? null,
             ]);
+
+            // A row blocked *only* for a missing unit is still a real product —
+            // it just cannot be measured yet. Keep it and let it come back
+            // unpriced, rather than deleting work the user uploaded.
+            if ($blockers === ['missing unit']) {
+                Log::info('FetchQuotationPricesJob: kept a row with no unit.', [
+                    'quotation_id' => $this->quotationId,
+                    'description'  => $item['description'],
+                ]);
+                continue;
+            }
 
             if ($blockers === []) {
                 $guardedItems[] = $item;
@@ -96,6 +129,13 @@ class FetchQuotationPricesJob implements ShouldQueue
                     'reasons'      => $blockers,
                 ]);
             }
+        }
+
+        if ($recovered > 0) {
+            Log::info('FetchQuotationPricesJob: recovered units from the product catalog.', [
+                'quotation_id' => $this->quotationId,
+                'recovered'    => $recovered,
+            ]);
         }
 
         try {
@@ -236,5 +276,26 @@ class FetchQuotationPricesJob implements ShouldQueue
             ->update(['prices_fetched_at' => now()]);
 
         Cache::forget('boq_pricing_message_' . (string) ($this->userId ?? $this->quotationUuid));
+    }
+
+    /**
+     * Resolve a unit label to its id, creating the unit if it is new.
+     *
+     * Used when a unit is recovered from the product catalog for a row whose
+     * sheet cell was blank, so the correction is persisted rather than living
+     * only for the duration of this run.
+     */
+    private function resolveUnitId(string $label): ?int
+    {
+        $label = trim($label);
+
+        if ($label === '') {
+            return null;
+        }
+
+        return Unit::firstOrCreate(
+            ['name' => $label],
+            ['symbol' => mb_strtolower(mb_substr($label, 0, 20))]
+        )->id;
     }
 }
