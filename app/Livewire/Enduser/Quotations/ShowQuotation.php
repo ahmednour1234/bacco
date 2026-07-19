@@ -557,8 +557,45 @@ class ShowQuotation extends Component
     // Private helpers
     // -------------------------------------------------------------------------
 
+    /**
+     * Select every priced row when the quotation has nothing selected at all.
+     *
+     * The totals only sum selected rows, so a quotation whose rows were written
+     * unselected adds up to zero even though every line has a price — which is
+     * never what the user wants to see. Extraction now selects rows as it writes
+     * them, but quotations created before that fix are still stored unselected,
+     * and this repairs them on first view.
+     *
+     * Deliberately narrow: it only fires when the count of selected rows is
+     * zero, so a user who has deselected rows on purpose is never overridden.
+     * Rows that are rejected or unpriced stay unselected.
+     */
+    private function autoSelectIfNothingSelected(): void
+    {
+        $anySelected = $this->quotation->items()->where('is_selected', true)->exists();
+
+        if ($anySelected) {
+            return;
+        }
+
+        $repaired = $this->quotation->items()
+            ->where('status', '!=', 'rejected')
+            ->whereNotNull('unit_price')
+            ->where('unit_price', '>', 0)
+            ->update(['is_selected' => true]);
+
+        if ($repaired > 0) {
+            Log::info('ShowQuotation: auto-selected priced rows on a quotation that had none.', [
+                'quotation_id' => $this->quotation->id,
+                'rows'         => $repaired,
+            ]);
+        }
+    }
+
     private function loadItems(): void
     {
+        $this->autoSelectIfNothingSelected();
+
         $this->items = $this->quotation
             ->items()
             ->with('product')
