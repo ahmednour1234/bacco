@@ -466,7 +466,13 @@ class CreateQuotation extends Component
         // Queued rather than run here: the gate is a chunked AI pass and this is
         // a web request. It writes only the questions cache, never the status,
         // so it cannot clobber the "stopped" message set below.
-        AuditQuotationItemsJob::dispatch($this->quotationId, (string) Auth::id());
+        // Owner key must match cacheKeyFor()'s format exactly — it is
+        // quotation-scoped, so passing the user id alone made the job write
+        // questions to a key this page never reads.
+        AuditQuotationItemsJob::dispatch(
+            $this->quotationId,
+            Auth::id() . '_' . $this->quotationId,
+        );
 
         Cache::put($this->cacheKeyFor('boq_ai_status'), 'done', now()->addHours(12));
         Cache::put(

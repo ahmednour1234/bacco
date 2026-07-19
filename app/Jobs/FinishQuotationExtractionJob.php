@@ -37,6 +37,14 @@ class FinishQuotationExtractionJob implements ShouldQueue
     /** Matches the interactive cap in the component. */
     private const MAX_QUESTIONS = 10;
 
+    /**
+     * Above this many rows the validation gate is skipped.
+     *
+     * Kept in step with AuditQuotationItemsJob, which applies the same ceiling
+     * on the stop-early path.
+     */
+    private const MAX_AUDITABLE_ROWS = 1500;
+
     public function __construct(
         private int $quotationId,
         private string $ownerKey,
@@ -178,6 +186,23 @@ class FinishQuotationExtractionJob implements ShouldQueue
         $questions = [];
 
         try {
+            $rowCount = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
+
+            // Same ceiling the standalone audit job uses. The gate makes an AI
+            // call per batch of rows, so a 5 000-row quotation is hundreds of
+            // sequential calls — minutes of a worker, and real cost, to produce
+            // at most ten optional questions. No questions is a valid outcome.
+            if ($rowCount > self::MAX_AUDITABLE_ROWS) {
+                Log::info('FinishQuotationExtractionJob: skipped the gate, quotation too large.', [
+                    'quotation_id' => $this->quotationId,
+                    'rows'         => $rowCount,
+                    'limit'        => self::MAX_AUDITABLE_ROWS,
+                ]);
+
+                Cache::put($this->key('boq_ai_questions'), [], now()->addHours(12));
+                return;
+            }
+
             $items = QuotationItem::where('quotation_request_id', $this->quotationId)
                 ->with('unit')
                 ->get()
