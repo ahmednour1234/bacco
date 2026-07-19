@@ -1046,6 +1046,8 @@ return [
     'show_more_rows'                => 'عرض المزيد من البنود',
     'showing_rows_range'            => 'عرض :from–:to من أصل :total بند',
     'pagination'                    => 'ترقيم الصفحات',
+    'stop_extraction'               => 'إيقاف والاكتفاء بما تم استخراجه',
+    'extraction_stopped'            => 'تم الإيقاف عند :count بند. باقي الملف لم تتم قراءته.',
     'extracted_so_far'              => 'تم استخراج :count بند حتى الآن…',
 
     // ── Auto-resolved spec validation ────────────────────────────────────────

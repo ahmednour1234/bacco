@@ -51,6 +51,13 @@ class ExtractQuotationChunkJob implements ShouldQueue
 
     public function handle(QuotationAiService $ai): void
     {
+        // The user stopped the run. Checked before the AI call, not after, so a
+        // cancelled batch stops costing money immediately instead of paying for
+        // every part already queued.
+        if ($this->batch()?->cancelled()) {
+            return;
+        }
+
         try {
             $result = $ai->parseChunk($this->chunk, $this->part, $this->total, [
                 'quotation_id'   => $this->quotationId,

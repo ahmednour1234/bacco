@@ -7,6 +7,7 @@ use App\Enums\QuotationProjectStatusEnum;
 use App\Enums\QuotationRequestStatusEnum;
 use App\Enums\QuotationSourceTypeEnum;
 use App\Enums\NotificationTypeEnum;
+use App\Jobs\AuditQuotationItemsJob;
 use App\Jobs\ExtractQuotationItemsJob;
 use App\Jobs\FetchQuotationPricesJob;
 use App\Models\QuotationItem;
@@ -18,6 +19,7 @@ use App\Services\PriceAnalysisService;
 use App\Services\Pricing\ProductSpecEngine;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -336,6 +338,59 @@ class CreateQuotation extends Component
     private function cacheKeyFor(string $type): string
     {
         return $type . '_' . Auth::id();
+    }
+
+    /**
+     * Stop the extraction and keep whatever has already been written.
+     *
+     * A large BOQ can run for many parts; the user may decide the rows already
+     * extracted are enough. Cancelling the batch stops the parts that have not
+     * started yet — the ones already done keep their rows, since each part
+     * writes as it finishes rather than at the end.
+     */
+    public function stopExtraction(): void
+    {
+        if (! $this->processing) {
+            return;
+        }
+
+        // Set before cancelling: the batch's finally() fires on cancellation and
+        // would otherwise overwrite this status with a partial/failed verdict.
+        Cache::put($this->cacheKeyFor('boq_ai_stopped_by_user'), true, now()->addHours(2));
+
+        $batchId = Cache::get($this->cacheKeyFor('boq_ai_batch_id'));
+
+        if ($batchId) {
+            try {
+                Bus::findBatch($batchId)?->cancel();
+            } catch (\Throwable $e) {
+                // Cancelling is best-effort: the rows already written are the
+                // point, and the finaliser still closes the run out.
+                Log::warning('CreateQuotation: could not cancel extraction batch.', [
+                    'batch_id' => $batchId,
+                    'message'  => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $count = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
+
+        // The kept rows still go through pricing, so they still need auditing.
+        // Queued rather than run here: the gate is a chunked AI pass and this is
+        // a web request. It writes only the questions cache, never the status,
+        // so it cannot clobber the "stopped" message set below.
+        AuditQuotationItemsJob::dispatch($this->quotationId, (string) Auth::id());
+
+        Cache::put($this->cacheKeyFor('boq_ai_status'), 'done', now()->addHours(2));
+        Cache::put(
+            $this->cacheKeyFor('boq_ai_message'),
+            __('app.extraction_stopped', ['count' => $count]),
+            now()->addHours(2),
+        );
+
+        // Pick the result up through the normal path, so the items load and the
+        // validation gate runs over what was kept.
+        $this->checkAiStatus();
     }
 
     public function checkAiStatus(): void

@@ -1081,6 +1081,8 @@ return [
     'show_more_rows'                => 'Show more items',
     'showing_rows_range'            => 'Showing :from–:to of :total items',
     'pagination'                    => 'Pagination',
+    'stop_extraction'               => 'Stop & keep what is extracted',
+    'extraction_stopped'            => 'Stopped at :count items. The rest of the file was not read.',
     'extracted_so_far'              => ':count items extracted so far…',
 
     // ── Auto-resolved spec validation ────────────────────────────────────────

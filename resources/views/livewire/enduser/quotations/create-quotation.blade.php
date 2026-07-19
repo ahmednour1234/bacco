@@ -227,6 +227,21 @@
                 x-text="$wire.extractionProgress || (isAr ? 'يتم تنفيذ العملية، الرجاء الانتظار' : 'Operation in progress, please wait…')"
                 style="font-size:0.83rem;color:#94a3b8;font-weight:500;"
             ></p>
+            {{-- Stop and keep what is done. Only offered once rows exist —
+                 stopping at zero would just be a failed upload. --}}
+            <template x-if="$wire.extractedSoFar > 0 && $wire.chunkTotal > 1">
+                <button
+                    type="button"
+                    wire:click="stopExtraction"
+                    wire:loading.attr="disabled"
+                    wire:target="stopExtraction"
+                    style="margin-top:14px;width:100%;background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:10px 16px;font-size:0.82rem;font-weight:700;color:#475569;cursor:pointer;font-family:'Cairo',sans-serif;"
+                    x-text="isAr
+                        ? ('إيقاف والاكتفاء بـ ' + $wire.extractedSoFar + ' بند')
+                        : ('Stop & keep ' + $wire.extractedSoFar + ' items')"
+                ></button>
+            </template>
+
             {{-- Once rows start landing, point at them: the table behind this
                  overlay is already filling in, so "hide" is the useful action. --}}
             <p

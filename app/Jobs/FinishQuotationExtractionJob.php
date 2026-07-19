@@ -42,6 +42,14 @@ class FinishQuotationExtractionJob implements ShouldQueue
 
     public function handle(): void
     {
+        // The batch's finally() also fires when the user stops the run, so this
+        // would otherwise overwrite their "stopped at N items" with a partial or
+        // failed verdict. The rows are still theirs; leave the status alone.
+        if (Cache::get($this->key('boq_ai_stopped_by_user'))) {
+            Cache::forget($this->key('boq_ai_stopped_by_user'));
+            return;
+        }
+
         try {
             $quotation = QuotationRequest::find($this->quotationId);
             if (! $quotation) {

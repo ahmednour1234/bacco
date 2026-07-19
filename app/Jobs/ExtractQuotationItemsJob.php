@@ -334,7 +334,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
             );
         }
 
-        Bus::batch($jobs)
+        $batch = Bus::batch($jobs)
             ->name("boq-extract-{$this->quotationId}")
             // One bad slice must not cancel the rest: partial rows plus an
             // honest "some parts could not be read" beats losing everything.
@@ -348,9 +348,15 @@ class ExtractQuotationItemsJob implements ShouldQueue
             })
             ->dispatch();
 
+        // Recorded so the user can stop the run and keep whatever has been
+        // extracted so far — cancelling the batch is the only way to stop the
+        // parts that have not started yet.
+        Cache::put($this->key('boq_ai_batch_id'), $batch->id, now()->addHours(2));
+
         Log::info('ExtractQuotationItemsJob: fanned out chunk jobs.', [
             'quotation_id' => $this->quotationId,
             'chunks'       => $total,
+            'batch_id'     => $batch->id,
         ]);
     }
 
