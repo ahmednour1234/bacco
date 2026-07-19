@@ -27,12 +27,27 @@ class QuotationAiService
      */
     private const TEXT_CHUNK_CHARS = 60000;
 
+    /**
+     * A workbook with more sheets than this is split regardless of its size.
+     *
+     * Multiple tabs almost always mean multiple disciplines (electrical, HVAC,
+     * civil…). Sending them in one call makes the model summarise across
+     * sections and silently drop rows, so each slice gets a narrower scope.
+     */
+    private const MAX_SHEETS_PER_CALL = 2;
+
+    /** A PDF longer than this is split regardless of its extracted text length. */
+    private const MAX_PDF_PAGES_PER_CALL = 5;
+
     private string $baseUrl;
     private string $parseEndpoint;
     private string $apiKey;
     private int $timeout;
     private bool $testMode;
     private BoqCleaningService $boqCleaner;
+
+    /** Page count of the most recently parsed PDF; 0 when unknown. */
+    private int $lastPdfPageCount = 0;
 
     /**
      * Optional progress reporter for chunked parsing, called as ($part, $total).
@@ -577,7 +592,18 @@ class QuotationAiService
 
                 // A large BOQ exceeds what one request can carry, so send it in
                 // sequential slices and merge. Anything that fits goes as-is.
-                if (mb_strlen($text) > self::TEXT_CHUNK_CHARS) {
+                //
+                // Size alone is not a good enough signal: a workbook with several
+                // sheets is structurally a big BOQ even when the text is compact,
+                // and asking the model to hold every discipline at once is where
+                // rows start getting dropped. So split on either signal.
+                $sheetCount = substr_count($text, "\nSheet: ") + (str_starts_with($text, 'Sheet: ') ? 1 : 0);
+
+                if (mb_strlen($text) > self::TEXT_CHUNK_CHARS || $sheetCount > self::MAX_SHEETS_PER_CALL) {
+                    Log::info('QuotationAiService: spreadsheet routed to chunked parsing.', [
+                        'chars'  => mb_strlen($text),
+                        'sheets' => $sheetCount,
+                    ]);
                     return $this->parseTextInChunks($text, 'BOQ spreadsheet converted to CSV', $apiKey, $context);
                 }
 
@@ -591,7 +617,15 @@ class QuotationAiService
                 if ($extracted !== null && mb_strlen(trim($extracted)) > 50) {
                     $extracted = $this->sanitizeUtf8($extracted);
 
-                    if (mb_strlen($extracted) > self::TEXT_CHUNK_CHARS) {
+                    // Split on either signal — long text, or many pages. A BOQ
+                    // spanning several pages is a multi-section document even if
+                    // each page is sparse.
+                    if (mb_strlen($extracted) > self::TEXT_CHUNK_CHARS
+                        || $this->lastPdfPageCount > self::MAX_PDF_PAGES_PER_CALL) {
+                        Log::info('QuotationAiService: PDF routed to chunked parsing.', [
+                            'chars' => mb_strlen($extracted),
+                            'pages' => $this->lastPdfPageCount,
+                        ]);
                         return $this->parseTextInChunks($extracted, 'BOQ PDF extracted text', $apiKey, $context, 'application/pdf');
                     }
 
@@ -692,6 +726,15 @@ class QuotationAiService
         try {
             $parser = new \Smalot\PdfParser\Parser();
             $pdf    = $parser->parseFile($absPath);
+
+            // Recorded for the chunking decision: a long PDF is structurally a
+            // big BOQ even when its extracted text is short.
+            try {
+                $this->lastPdfPageCount = count($pdf->getPages());
+            } catch (\Throwable) {
+                $this->lastPdfPageCount = 0;
+            }
+
             $text   = $pdf->getText();
             $text   = (string) preg_replace('/[ \t]{2,}/', ' ', $text);
             $text   = (string) preg_replace('/\n{3,}/', "\n\n", $text);
@@ -963,12 +1006,26 @@ class QuotationAiService
         $chunks  = [];
         $current = '';
 
+        // Sheet a chunk starts in the middle of. Repeated at the top of the next
+        // chunk so the model always knows which sheet the rows belong to — the
+        // header would otherwise be stranded in the previous slice, and rows
+        // would arrive with no discipline context.
+        $currentSheet = null;
+
         foreach (explode("\n", $text) as $line) {
+            if (str_starts_with($line, 'Sheet: ')) {
+                $currentSheet = $line;
+            }
+
             $candidate = $current === '' ? $line : $current . "\n" . $line;
 
             if (mb_strlen($candidate) > $limit && $current !== '') {
                 $chunks[] = $current;
-                $current  = $line;
+
+                // Carry the sheet header over, unless this line is itself one.
+                $current = ($currentSheet !== null && ! str_starts_with($line, 'Sheet: '))
+                    ? $currentSheet . " (continued)\n" . $line
+                    : $line;
                 continue;
             }
 
