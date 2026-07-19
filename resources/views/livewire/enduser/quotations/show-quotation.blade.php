@@ -315,20 +315,12 @@
                             </tbody>
                         </table>
 
-                        @if(count($items) > $visibleRows)
-                            <div class="flex flex-col items-center gap-2 border-t border-slate-100 py-4">
-                                <p class="text-xs text-slate-500">
-                                    {{ __('app.showing_rows', ['shown' => $visibleRows, 'total' => count($items)]) }}
-                                </p>
-                                <button
-                                    type="button"
-                                    wire:click="showMoreRows"
-                                    class="rounded-xl bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
-                                >
-                                    {{ __('app.show_more_rows') }}
-                                </button>
-                            </div>
-                        @endif
+                        @include('livewire.enduser.quotations._pagination', [
+                            'page'       => $page,
+                            'totalPages' => $this->totalPages,
+                            'totalRows'  => count($items),
+                            'perPage'    => \App\Livewire\Enduser\Quotations\ShowQuotation::ROWS_PER_PAGE,
+                        ])
                     </div>
                 @endif
             </div>
@@ -521,10 +513,10 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
-                            {{-- Windowed like the table above. $allItems stays
-                                 whole for the totals; only rendering is capped,
+                            {{-- Paginated like the table above. $allItems stays
+                                 whole for the totals; only rendering is paged,
                                  and preserved keys keep the row numbers right. --}}
-                            @foreach($allItems->take($visibleRows) as $idx => $item)
+                            @foreach($this->visibleItems as $idx => $item)
                             @php
                                 $hasPrice  = is_numeric($item['unit_price'] ?? null) && (float)($item['unit_price'] ?? 0) > 0;
                                 $lineTotal = $hasPrice ? (float)$item['unit_price'] * (float)($item['quantity'] ?? 0) : null;
@@ -559,20 +551,12 @@
                         </tbody>
                     </table>
 
-                    @if($allItems->count() > $visibleRows)
-                        <div class="flex flex-col items-center gap-2 border-t border-slate-100 py-4">
-                            <p class="text-xs text-slate-500">
-                                {{ __('app.showing_rows', ['shown' => $visibleRows, 'total' => $allItems->count()]) }}
-                            </p>
-                            <button
-                                type="button"
-                                wire:click="showMoreRows"
-                                class="rounded-xl bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
-                            >
-                                {{ __('app.show_more_rows') }}
-                            </button>
-                        </div>
-                    @endif
+                    @include('livewire.enduser.quotations._pagination', [
+                        'page'       => $page,
+                        'totalPages' => $this->totalPages,
+                        'totalRows'  => $allItems->count(),
+                        'perPage'    => \App\Livewire\Enduser\Quotations\ShowQuotation::ROWS_PER_PAGE,
+                    ])
                 </div>
             </div>
 

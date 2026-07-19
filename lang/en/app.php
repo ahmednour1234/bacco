@@ -1079,6 +1079,8 @@ return [
     'boq_pricing_queued'            => 'Pricing your items… you can follow the progress here. Large quotations may take a few minutes.',
     'showing_rows'                  => 'Showing :shown of :total items',
     'show_more_rows'                => 'Show more items',
+    'showing_rows_range'            => 'Showing :from–:to of :total items',
+    'pagination'                    => 'Pagination',
     'extracted_so_far'              => ':count items extracted so far…',
 
     // ── Auto-resolved spec validation ────────────────────────────────────────

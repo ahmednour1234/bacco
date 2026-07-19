@@ -1044,6 +1044,8 @@ return [
     'boq_pricing_queued'            => 'جارٍ تسعير البنود… يمكنك متابعة التقدّم هنا، وعروض الأسعار الكبيرة قد تستغرق عدة دقائق.',
     'showing_rows'                  => 'عرض :shown من أصل :total بند',
     'show_more_rows'                => 'عرض المزيد من البنود',
+    'showing_rows_range'            => 'عرض :from–:to من أصل :total بند',
+    'pagination'                    => 'ترقيم الصفحات',
     'extracted_so_far'              => 'تم استخراج :count بند حتى الآن…',
 
     // ── Auto-resolved spec validation ────────────────────────────────────────

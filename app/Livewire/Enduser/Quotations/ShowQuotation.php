@@ -28,27 +28,48 @@ class ShowQuotation extends Component
     public array $items = [];
 
     /**
-     * How many rows the tables render at once.
+     * Which page of rows the tables are showing.
      *
      * A real BOQ runs to thousands of lines — this page has already served one
      * with 5,211. Rendering them all builds a DOM large enough to lock the
-     * browser, so the tables show a window the user extends on demand. Totals
-     * are always computed over the full set, never the window.
+     * browser, and a grow-only "show more" would need 52 clicks to reach the
+     * end, so the rows are paginated. Totals are always computed over the full
+     * set, never the current page.
      */
-    public int $visibleRows = self::ROWS_PER_PAGE;
+    public int $page = 1;
 
-    private const ROWS_PER_PAGE = 100;
+    public const ROWS_PER_PAGE = 100;
 
-    /** Reveal the next slice of rows. */
-    public function showMoreRows(): void
+    /** Total number of pages; at least 1 so an empty quotation still renders. */
+    public function getTotalPagesProperty(): int
     {
-        $this->visibleRows += self::ROWS_PER_PAGE;
+        return max(1, (int) ceil(count($this->items) / self::ROWS_PER_PAGE));
     }
 
     /** The rows the tables should actually render this pass. */
     public function getVisibleItemsProperty(): array
     {
-        return array_slice($this->items, 0, $this->visibleRows, true);
+        // Clamped rather than trusted: $page is a public property, so it can
+        // arrive out of range from a stale request or a hand-edited payload.
+        $page   = min(max($this->page, 1), $this->totalPages);
+        $offset = ($page - 1) * self::ROWS_PER_PAGE;
+
+        return array_slice($this->items, $offset, self::ROWS_PER_PAGE, true);
+    }
+
+    public function goToPage(int $page): void
+    {
+        $this->page = min(max($page, 1), $this->totalPages);
+    }
+
+    public function nextPage(): void
+    {
+        $this->goToPage($this->page + 1);
+    }
+
+    public function previousPage(): void
+    {
+        $this->goToPage($this->page - 1);
     }
 
     public bool $fetchingPrices = false;
