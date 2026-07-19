@@ -1352,10 +1352,14 @@ class QuotationAiService
             return null;
         }
 
-        $output    = '';
-        $kept      = 0;
-        $dropped   = 0;
-        $nonSupply = 0;
+        $output     = '';
+        $kept       = 0;
+        $dropped    = 0;
+        $nonSupply  = 0;
+        $duplicates = 0;
+
+        /** @var array<string, true> Fingerprints of rows already emitted. */
+        $seenRows = [];
 
         foreach ($sheets as $sheet) {
             // Don't feed summary / cost-abstract sheets to the AI either.
@@ -1382,7 +1386,20 @@ class QuotationAiService
                     continue;
                 }
 
-                $sheetRows .= implode(',', array_map([$this, 'csvEscape'], $row)) . "\n";
+                // Byte-identical rows tell the AI nothing new. Only exact
+                // duplicates are collapsed — description, quantity, unit and all
+                // — so nothing is lost: two rows differing in quantity are two
+                // different line items and both are sent.
+                $fingerprint = $this->rowFingerprint($row);
+
+                if (isset($seenRows[$fingerprint])) {
+                    $duplicates++;
+                    $dropped++;
+                    continue;
+                }
+                $seenRows[$fingerprint] = true;
+
+                $sheetRows .= implode(',', array_map([$this, 'csvEscape'], $this->stripBoilerplate($row))) . "\n";
                 $kept++;
             }
 
@@ -1395,18 +1412,22 @@ class QuotationAiService
             $output .= 'Sheet: ' . $sheet['name'] . "\n" . $sheetRows . "\n";
         }
 
-        $blank = $dropped - $nonSupply;
+        $blank = $dropped - $nonSupply - $duplicates;
 
         Log::info('QuotationAiService: filtered rows before sending to AI.', [
             'kept'       => $kept,
             'blank'      => $blank,
             'non_supply' => $nonSupply,
+            'duplicates' => $duplicates,
         ]);
 
         if ($dropped > 0) {
-            $this->reportStage($nonSupply > 0
-                ? "Skipped {$blank} blank and {$nonSupply} non-supply rows. Sending {$kept}…"
-                : "Removed {$blank} blank rows. Sending {$kept} rows…");
+            $parts = [];
+            if ($blank > 0)      { $parts[] = "{$blank} blank"; }
+            if ($nonSupply > 0)  { $parts[] = "{$nonSupply} non-supply"; }
+            if ($duplicates > 0) { $parts[] = "{$duplicates} duplicate"; }
+
+            $this->reportStage('Skipped ' . implode(', ', $parts) . " rows. Sending {$kept}…");
         }
 
         return $output;
@@ -1443,6 +1464,85 @@ class QuotationAiService
      *
      * @param  array<int, mixed>  $row
      */
+    /**
+     * Stable identity for a row, used to collapse exact duplicates.
+     *
+     * Whitespace and case are normalised so "DN50 PIPE" and "dn50 pipe " are one
+     * row, but nothing else is: a differing quantity or unit produces a
+     * different fingerprint and both rows are sent.
+     *
+     * @param  array<int, mixed>  $row
+     */
+    private function rowFingerprint(array $row): string
+    {
+        $parts = array_map(
+            fn($cell) => mb_strtolower(preg_replace('/\s+/u', ' ', trim((string) $cell)) ?? ''),
+            $row,
+        );
+
+        // Drop a leading BOQ sequence number. Otherwise "1,Pipe,m,100" and
+        // "2,Pipe,m,100" fingerprint differently and the dedup never fires —
+        // which is exactly the shape every real BOQ has.
+        if (isset($parts[0]) && $parts[0] !== '' && preg_match('/^[\d.]+$/', $parts[0])) {
+            array_shift($parts);
+        }
+
+        return md5(implode('|', $parts));
+    }
+
+    /**
+     * Strip contractual boilerplate from a row's description cell.
+     *
+     * "as per drawings", "complete with all necessary accessories" and friends
+     * repeat on nearly every line of a real BOQ and carry no information the
+     * pricing engine can use — but they are a large share of the tokens.
+     *
+     * Only the longest text cell is touched, and only when the result is still a
+     * usable description: if stripping would leave too little to identify the
+     * product, the original is kept. A shorter-but-wrong description is far
+     * worse than a verbose one.
+     *
+     * @param  array<int, mixed>  $row
+     * @return array<int, mixed>
+     */
+    private function stripBoilerplate(array $row): array
+    {
+        $index  = null;
+        $longest = '';
+
+        foreach ($row as $i => $cell) {
+            $text = trim((string) $cell);
+            if (preg_match('/\p{L}/u', $text) && mb_strlen($text) > mb_strlen($longest)) {
+                $longest = $text;
+                $index   = $i;
+            }
+        }
+
+        // Nothing worth cleaning, or too short to risk it.
+        if ($index === null || mb_strlen($longest) < 40) {
+            return $row;
+        }
+
+        try {
+            $cleaned = $this->boqCleaner->cleanDescription($longest);
+        } catch (\Throwable $e) {
+            Log::warning('QuotationAiService: boilerplate strip failed, keeping row as-is.', [
+                'error' => $e->getMessage(),
+            ]);
+            return $row;
+        }
+
+        // Guard against an over-eager pattern eating the product name: keep the
+        // original unless a recognisable description survives.
+        if (mb_strlen($cleaned) < 12 || mb_strlen($cleaned) < mb_strlen($longest) * 0.3) {
+            return $row;
+        }
+
+        $row[$index] = $cleaned;
+
+        return $row;
+    }
+
     private function isNonSupplyRow(array $row): bool
     {
         $description = '';
