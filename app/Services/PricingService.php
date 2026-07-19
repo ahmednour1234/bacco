@@ -16,6 +16,36 @@ class PricingService
     private const DEEPSEEK_CHUNK_SIZE = 10;
 
     /**
+     * Concurrent AI requests per pool batch.
+     *
+     * Http::pool sends everything it is handed simultaneously, so an unbounded
+     * pool on a large BOQ opens thousands of connections at once and gets
+     * rate-limited. Batching keeps the parallelism useful without that.
+     */
+    private const MAX_PARALLEL_CHUNKS = 8;
+
+    /**
+     * Optional progress reporter, called as ($chunksDone, $chunksTotal).
+     *
+     * @var (callable(int, int): void)|null
+     */
+    private $onProgress = null;
+
+    /** @param  callable(int, int): void  $callback */
+    public function onProgress(callable $callback): self
+    {
+        $this->onProgress = $callback;
+        return $this;
+    }
+
+    private function reportProgress(int $done, int $total): void
+    {
+        if ($this->onProgress !== null) {
+            ($this->onProgress)($done, $total);
+        }
+    }
+
+    /**
      * Fetch unit prices for an array of quotation items.
      *
      * Strategy:
@@ -56,8 +86,20 @@ class PricingService
                 // Single chunk — direct call (no pool overhead)
                 $items = $this->enrichWithDeepSeek($items, $chunks[0]);
             } else {
-                // Multiple chunks — send ALL in parallel to save time
-                $items = $this->enrichChunksParallel($items, $chunks);
+                // Multiple chunks. Http::pool fires every request it is given at
+                // once, so a large BOQ would open thousands of concurrent calls
+                // and be rate-limited into mass failure. Run the pool in batches
+                // instead: still parallel, but bounded.
+                $batches = array_chunk($chunks, self::MAX_PARALLEL_CHUNKS);
+                $total   = count($chunks);
+                $done    = 0;
+
+                foreach ($batches as $batch) {
+                    $items = $this->enrichChunksParallel($items, $batch);
+
+                    $done += count($batch);
+                    $this->reportProgress($done, $total);
+                }
             }
         }
 

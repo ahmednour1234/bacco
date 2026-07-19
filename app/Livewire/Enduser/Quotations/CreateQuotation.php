@@ -456,10 +456,14 @@ class CreateQuotation extends Component
         $quotation = QuotationRequest::with(['items.unit'])->find($this->quotationId);
 
         if (! $quotation || $quotation->prices_fetched_at === null) {
+            // Show which batch the job is on, so a large quotation does not sit
+            // on an unchanging "fetching prices" message for minutes.
+            $this->extractionProgress = (string) Cache::get('boq_pricing_message_' . Auth::id(), '');
             return;
         }
 
-        $this->pricingLoading = false;
+        $this->extractionProgress = '';
+        $this->pricingLoading     = false;
         $this->loadItemsFrom($quotation);
         $this->runPriceAnalysis();
 

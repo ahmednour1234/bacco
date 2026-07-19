@@ -15,6 +15,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -88,6 +89,17 @@ class FetchQuotationPricesJob implements ShouldQueue
         }
 
         try {
+            // Report progress so a large quotation shows movement instead of one
+            // long silent wait. Mirrors the extraction job's cache contract.
+            $ownerKey = (string) ($this->userId ?? $this->quotationUuid);
+            $pricingService->onProgress(function (int $done, int $total) use ($ownerKey): void {
+                Cache::put(
+                    'boq_pricing_message_' . $ownerKey,
+                    "Pricing items… batch {$done} of {$total}.",
+                    now()->addHours(2),
+                );
+            });
+
             $priced = $pricingService->fetchPrices($guardedItems);
 
             // Second pass — independently re-check each price against Saudi market /
@@ -191,6 +203,7 @@ class FetchQuotationPricesJob implements ShouldQueue
             // Always mark the quotation so the UI polling can advance past the loading screen,
             // whether pricing succeeded fully, partially, or failed entirely.
             $quotation->update(['prices_fetched_at' => now()]);
+            Cache::forget('boq_pricing_message_' . (string) ($this->userId ?? $this->quotationUuid));
         }
     }
 }
