@@ -388,15 +388,45 @@ class CreateQuotation extends Component
         if ($batchId) {
             try {
                 Bus::findBatch($batchId)?->cancel();
+
+                // Cancelling only flags the batch — the queued jobs still get
+                // dequeued one by one, and each wakes a worker and hits the
+                // database just to discover it should stop. On a 49-part file
+                // that is 49 pointless round trips. Drop the pending payloads
+                // so stopping actually stops.
+                //
+                // Only rows still waiting are touched: a job already reserved by
+                // a worker is mid-flight, and its own cancelled() check handles
+                // that case. Failed jobs are left for the usual retry tooling.
+                //
+                // Guarded by the driver: this reaches into Laravel's own jobs
+                // table, which only exists on the database queue. On redis/sqs
+                // the batch flag alone does the work, more slowly.
+                if (config('queue.default') === 'database') {
+                    $deleted = DB::table(config('queue.connections.database.table', 'jobs'))
+                        ->whereNull('reserved_at')
+                        ->where('payload', 'like', '%' . $batchId . '%')
+                        ->delete();
+
+                    Log::info('CreateQuotation: dropped queued extraction parts.', [
+                        'batch_id' => $batchId,
+                        'deleted'  => $deleted,
+                    ]);
+                }
             } catch (\Throwable $e) {
-                // Cancelling is best-effort: the rows already written are the
-                // point, and the finaliser still closes the run out.
+                // Best-effort: the rows already written are the point, and the
+                // chunk jobs check cancelled() themselves regardless.
                 Log::warning('CreateQuotation: could not cancel extraction batch.', [
                     'batch_id' => $batchId,
                     'message'  => $e->getMessage(),
                 ]);
             }
         }
+
+        // Every part that will never run leaves its slice on disk. The finaliser
+        // clears this directory too, but it only fires once the batch drains —
+        // and the jobs that would have drained it were just deleted.
+        Storage::disk('local')->deleteDirectory('boq-chunks/' . $this->quotationId);
 
         $count = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
 
