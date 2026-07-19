@@ -99,6 +99,33 @@ class QuotationAiService
         }
     }
 
+    /**
+     * Report a workbook's shape from grids that are already in memory.
+     *
+     * Deliberately takes the parsed grids rather than a path: re-reading a large
+     * spreadsheet just to count its sheets would double the slowest step of the
+     * whole extraction.
+     *
+     * @param  array<int, array{name: string, grid: array}>  $sheets
+     */
+    private function reportWorkbookShape(array $sheets): void
+    {
+        if ($this->onStage === null || empty($sheets)) {
+            return;
+        }
+
+        $rows = 0;
+        foreach ($sheets as $sheet) {
+            $rows += count($sheet['grid']);
+        }
+
+        $count = count($sheets);
+
+        $this->reportStage($count > 1
+            ? "Found {$count} sheets, {$rows} rows in total. Reading…"
+            : "Found {$rows} rows. Reading…");
+    }
+
     /** @var (callable(string): void)|null */
     private $onStage = null;
 
@@ -239,6 +266,8 @@ class QuotationAiService
             if (empty($sheets)) {
                 return $this->failure('Could not read the Excel file.');
             }
+
+            $this->reportWorkbookShape($sheets);
 
             $items = [];
             $rejected = [];

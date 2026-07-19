@@ -124,8 +124,8 @@ class ExtractQuotationItemsJob implements ShouldQueue
                     Cache::put($this->key('boq_ai_chunk_current'), $part, now()->addHours(2));
 
                     $this->status('running', $part === 0
-                        ? "File split into {$total} parts. Starting extraction…"
-                        : "Extracting… part {$part} of {$total}.");
+                        ? "Large file — split into {$total} parts. Starting…"
+                        : "Reading part {$part} of {$total}…");
                 });
 
                 // Write each slice's rows as they arrive so the table fills in
