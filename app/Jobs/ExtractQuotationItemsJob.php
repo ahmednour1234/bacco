@@ -95,8 +95,9 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
             // Defaults for the cache-hit path: only complete parses are ever
             // cached, so a hit is by definition not partial and streams nothing.
-            $result   = [];
-            $streamed = 0;
+            $result     = [];
+            $streamed   = 0;
+            $chunkTotal = 0;
 
             if (is_array($items) && $items !== []) {
                 Log::info('ExtractQuotationItemsJob: reusing cached extraction.', [
@@ -107,8 +108,17 @@ class ExtractQuotationItemsJob implements ShouldQueue
             } else {
                 // A very large BOQ is parsed in slices. Report each one so the
                 // polling UI shows progress rather than a frozen spinner.
-                $ai->onChunkProgress(function (int $part, int $total): void {
-                    $this->status('running', "Extracting items… part {$part} of {$total}.");
+                // part 0 is the announcement fired once the split is known, before
+                // the first slice is sent. Record the split so the UI can show it
+                // even while the first (slowest-feeling) call is still in flight.
+                $ai->onChunkProgress(function (int $part, int $total) use (&$chunkTotal): void {
+                    $chunkTotal = $total;
+                    Cache::put($this->key('boq_ai_chunk_total'), $total, now()->addHours(2));
+                    Cache::put($this->key('boq_ai_chunk_current'), $part, now()->addHours(2));
+
+                    $this->status('running', $part === 0
+                        ? "File split into {$total} parts. Starting extraction…"
+                        : "Extracting… part {$part} of {$total}.");
                 });
 
                 // Write each slice's rows as they arrive so the table fills in
@@ -123,8 +133,9 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
                     $streamed += $this->writeItems($chunkItems);
 
-                    $this->status('running', "Extracted {$streamed} items so far… part {$part} of {$total}.");
+                    Cache::put($this->key('boq_ai_chunk_current'), $part, now()->addHours(2));
                     Cache::put($this->key('boq_ai_partial_count'), $streamed, now()->addHours(2));
+                    $this->status('running', "Part {$part} of {$total} done — {$streamed} items so far.");
                 });
 
                 $result = $ai->parseBoq($absPath, [
@@ -183,7 +194,11 @@ class ExtractQuotationItemsJob implements ShouldQueue
             // the timeout. The questions are cached for the component to pick up.
             $this->runValidationGate($items);
 
-            $this->status('done', $count . ' items extracted successfully from the BOQ file.');
+            // Say whether the file was split, so "one call" is distinguishable
+            // from "never reported" when checking what actually happened.
+            $this->status('done', $chunkTotal > 1
+                ? "{$count} items extracted from the BOQ file, read in {$chunkTotal} parts."
+                : "{$count} items extracted successfully from the BOQ file.");
 
         } catch (\Throwable $e) {
             Log::error('ExtractQuotationItemsJob failed.', [

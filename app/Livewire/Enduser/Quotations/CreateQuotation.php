@@ -65,6 +65,12 @@ class CreateQuotation extends Component
     /** Rows written by the job so far — a counter only, never the rows. */
     public int $extractedSoFar = 0;
 
+    /** How many parts the file was split into (1 = parsed in a single call). */
+    public int $chunkTotal = 0;
+
+    /** Which part the job is on. */
+    public int $chunkCurrent = 0;
+
     /**
      * How many rows the table renders at once.
      *
@@ -285,6 +291,10 @@ class CreateQuotation extends Component
             Cache::put($this->cacheKeyFor('boq_ai_message'), '', now()->addHours(2));
             Cache::put($this->cacheKeyFor('boq_ai_started_at'), now()->timestamp, now()->addHours(2));
             Cache::forget($this->cacheKeyFor('boq_ai_partial_count'));
+            Cache::forget($this->cacheKeyFor('boq_ai_chunk_total'));
+            Cache::forget($this->cacheKeyFor('boq_ai_chunk_current'));
+            $this->chunkTotal   = 0;
+            $this->chunkCurrent = 0;
 
             ExtractQuotationItemsJob::dispatch(
                 $quotation->id,
@@ -352,6 +362,8 @@ class CreateQuotation extends Component
             $this->extractionProgress = $message;
 
             $this->extractedSoFar = (int) Cache::get($this->cacheKeyFor('boq_ai_partial_count'), 0);
+            $this->chunkTotal     = (int) Cache::get($this->cacheKeyFor('boq_ai_chunk_total'), 0);
+            $this->chunkCurrent   = (int) Cache::get($this->cacheKeyFor('boq_ai_chunk_current'), 0);
 
             // Show rows as the job writes them, but never load more than the
             // table actually renders.

@@ -176,7 +176,24 @@
                     <div style="width:18px;height:18px;border-radius:50%;background:#10b981;animation:gpulse 1.4s ease-in-out infinite;box-shadow:0 0 0 0 #10b98140;"></div>
                 </div>
             </div>
-            <p x-text="isAr ? ar[idx] : en[idx]" style="font-size:1.3rem;font-weight:700;color:#0f172a;margin-bottom:10px;min-height:2.2rem;"></p>
+            {{-- Show the real part counter once the job reports one; the canned
+                 rotating text is only a placeholder for before that arrives. --}}
+            <p
+                x-text="$wire.chunkTotal > 1
+                    ? (isAr ? ('جزء ' + $wire.chunkCurrent + ' من ' + $wire.chunkTotal) : ('Part ' + $wire.chunkCurrent + ' of ' + $wire.chunkTotal))
+                    : (isAr ? ar[idx] : en[idx])"
+                style="font-size:1.3rem;font-weight:700;color:#0f172a;margin-bottom:10px;min-height:2.2rem;"
+            ></p>
+
+            {{-- Progress bar across the parts, so a long split run reads as
+                 movement rather than a number that changes every few minutes. --}}
+            <template x-if="$wire.chunkTotal > 1">
+                <div style="height:6px;width:100%;border-radius:99px;background:#e2e8f0;overflow:hidden;margin-bottom:12px;">
+                    <div
+                        :style="'height:100%;border-radius:99px;background:#10b981;transition:width .4s;width:' + Math.round(($wire.chunkCurrent / $wire.chunkTotal) * 100) + '%'"
+                    ></div>
+                </div>
+            </template>
             {{-- Real progress from the job (which slice, how many rows so far)
                  when there is any, so a long run does not look stuck. --}}
             <p

@@ -920,6 +920,13 @@ class QuotationAiService
             'chunks' => $total,
         ]);
 
+        // Announce the split before the first slice is sent, so the UI can show
+        // how many parts there are instead of sitting on a generic message for
+        // however long the first AI call takes.
+        if ($this->onChunkProgress !== null) {
+            ($this->onChunkProgress)(0, $total);
+        }
+
         $items    = [];
         $rejected = [];
         $failed   = 0;
@@ -1013,7 +1020,21 @@ class QuotationAiService
         $currentSheet = null;
 
         foreach (explode("\n", $text) as $line) {
-            if (str_starts_with($line, 'Sheet: ')) {
+            $isSheetHeader = str_starts_with($line, 'Sheet: ');
+
+            // Start a new chunk at every sheet boundary. Sheets are usually
+            // separate disciplines, and the whole point of splitting a multi-tab
+            // workbook is to give the model one discipline at a time — a size-only
+            // split would leave a compact 3-tab file as a single chunk, silently
+            // undoing the sheet gate that routed it here.
+            if ($isSheetHeader && $current !== '') {
+                $chunks[]     = $current;
+                $current      = $line;
+                $currentSheet = $line;
+                continue;
+            }
+
+            if ($isSheetHeader) {
                 $currentSheet = $line;
             }
 
