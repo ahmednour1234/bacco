@@ -153,7 +153,9 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @foreach($items as $item)
+                            {{-- Windowed: a multi-thousand-row BOQ would
+                                 otherwise build a DOM that locks the page. --}}
+                            @foreach($this->visibleItems as $item)
                                 @php
                                     $statusVal = $item['status'] ?? 'pending';
                                     $badgeClass = match($statusVal) {
@@ -238,6 +240,13 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    @include('partials.row-pagination', [
+                        'page'       => $page,
+                        'totalPages' => $this->totalPages,
+                        'totalRows'  => count($items),
+                        'perPage'    => \App\Livewire\Admin\Quotations\ShowQuotation::ROWS_PER_PAGE,
+                    ])
                 </div>
             @endif
         </div>

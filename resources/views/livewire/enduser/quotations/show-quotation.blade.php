@@ -315,7 +315,7 @@
                             </tbody>
                         </table>
 
-                        @include('livewire.enduser.quotations._pagination', [
+                        @include('partials.row-pagination', [
                             'page'       => $page,
                             'totalPages' => $this->totalPages,
                             'totalRows'  => count($items),
@@ -551,7 +551,7 @@
                         </tbody>
                     </table>
 
-                    @include('livewire.enduser.quotations._pagination', [
+                    @include('partials.row-pagination', [
                         'page'       => $page,
                         'totalPages' => $this->totalPages,
                         'totalRows'  => $allItems->count(),

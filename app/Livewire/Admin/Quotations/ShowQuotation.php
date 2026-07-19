@@ -17,6 +17,49 @@ class ShowQuotation extends Component
     /** @var array<int, array<string, mixed>> */
     public array $items = [];
 
+    /**
+     * Which page of rows the table is showing.
+     *
+     * A real BOQ runs to thousands of lines, and rendering them all builds a DOM
+     * large enough to lock the browser. Counts and repricing still run over the
+     * full set — only rendering is paged.
+     */
+    public int $page = 1;
+
+    public const ROWS_PER_PAGE = 100;
+
+    /** Total number of pages; at least 1 so an empty quotation still renders. */
+    public function getTotalPagesProperty(): int
+    {
+        return max(1, (int) ceil(count($this->items) / self::ROWS_PER_PAGE));
+    }
+
+    /** The rows the table should actually render this pass. */
+    public function getVisibleItemsProperty(): array
+    {
+        // Clamped rather than trusted: $page is a public property, so it can
+        // arrive out of range from a stale request.
+        $page   = min(max($this->page, 1), $this->totalPages);
+        $offset = ($page - 1) * self::ROWS_PER_PAGE;
+
+        return array_slice($this->items, $offset, self::ROWS_PER_PAGE, true);
+    }
+
+    public function goToPage(int $page): void
+    {
+        $this->page = min(max($page, 1), $this->totalPages);
+    }
+
+    public function nextPage(): void
+    {
+        $this->goToPage($this->page + 1);
+    }
+
+    public function previousPage(): void
+    {
+        $this->goToPage($this->page - 1);
+    }
+
     public bool $repricing = false;
 
     public function mount(string $uuid): void
