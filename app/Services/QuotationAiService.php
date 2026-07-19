@@ -39,6 +39,23 @@ class QuotationAiService
     /** A PDF longer than this is split regardless of its extracted text length. */
     private const MAX_PDF_PAGES_PER_CALL = 5;
 
+    /**
+     * Largest PDF we will hand to the parser (12 MB).
+     *
+     * smalot/pdfparser decompresses every stream into memory with no ceiling of
+     * its own, and overrunning the limit there is a fatal error that kills the
+     * worker rather than an exception we can recover from.
+     */
+    private const MAX_PDF_BYTES = 12582912;
+
+    /**
+     * Memory the parser is assumed to need, as a multiple of the file size.
+     *
+     * Decompressed content streams plus the object graph run well past the raw
+     * bytes; 8x is conservative enough to catch the cases that were dying.
+     */
+    private const PDF_MEMORY_FACTOR = 8;
+
     private string $baseUrl;
     private string $parseEndpoint;
     private string $apiKey;
@@ -788,8 +805,67 @@ class QuotationAiService
     /**
      * Extract plain text from a PDF using smalot/pdfparser (pure PHP, no binary required).
      */
+    /**
+     * The process memory limit in bytes, or 0 when unlimited.
+     *
+     * memory_limit is a shorthand string ("128M", "1G", "-1"), so it has to be
+     * expanded before it can be compared against anything.
+     */
+    private function memoryLimitBytes(): int
+    {
+        $raw = trim((string) ini_get('memory_limit'));
+
+        if ($raw === '' || $raw === '-1') {
+            return 0;
+        }
+
+        $value = (int) $raw;
+
+        return match (strtolower(substr($raw, -1))) {
+            'g'     => $value * 1024 * 1024 * 1024,
+            'm'     => $value * 1024 * 1024,
+            'k'     => $value * 1024,
+            default => $value,
+        };
+    }
+
     private function extractPdfText(string $absPath): ?string
     {
+        // The parser loads and decompresses the whole document before any of our
+        // chunking gets a look at it, and it does so with no memory ceiling of
+        // its own. A big PDF exhausts the limit inside gzuncompress() — a fatal
+        // error, not an exception, so the catch below cannot help and the worker
+        // dies outright. Refuse the file first instead.
+        $size = @filesize($absPath) ?: 0;
+
+        if ($size > self::MAX_PDF_BYTES) {
+            Log::warning('QuotationAiService: PDF too large to parse in-process.', [
+                'bytes' => $size,
+                'limit' => self::MAX_PDF_BYTES,
+            ]);
+
+            return null;
+        }
+
+        // Headroom check: parsing routinely needs several times the file size
+        // once streams are decompressed. If that would not fit in what is left,
+        // stop here rather than taking the worker down with us.
+        $limit = $this->memoryLimitBytes();
+
+        if ($limit > 0) {
+            $available = $limit - memory_get_usage(true);
+
+            if ($available < $size * self::PDF_MEMORY_FACTOR) {
+                Log::warning('QuotationAiService: not enough memory left to parse this PDF.', [
+                    'bytes'     => $size,
+                    'available' => $available,
+                    'needed'    => $size * self::PDF_MEMORY_FACTOR,
+                ]);
+
+                return null;
+            }
+        }
+
         try {
             $parser = new \Smalot\PdfParser\Parser();
             $pdf    = $parser->parseFile($absPath);
