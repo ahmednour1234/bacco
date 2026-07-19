@@ -1295,24 +1295,98 @@ class QuotationAiService
             return null;
         }
 
-        $output = '';
+        $output  = '';
+        $kept    = 0;
+        $dropped = 0;
+
         foreach ($sheets as $sheet) {
             // Don't feed summary / cost-abstract sheets to the AI either.
             if ($this->isSummarySheet($sheet['name'])) {
                 continue;
             }
-            $output .= 'Sheet: ' . $sheet['name'] . "\n";
+            $sheetRows = '';
             foreach ($sheet['grid'] as $row) {
                 $row = $this->trimTrailingEmptyCells($row);
-                if (empty($row)) {
+
+                if ($this->isNoiseRow($row)) {
+                    $dropped++;
                     continue;
                 }
-                $output .= implode(',', array_map([$this, 'csvEscape'], $row)) . "\n";
+
+                $sheetRows .= implode(',', array_map([$this, 'csvEscape'], $row)) . "\n";
+                $kept++;
             }
-            $output .= "\n";
+
+            // A sheet whose rows were all noise contributes nothing but its own
+            // header, which would just be another thing for the model to explain.
+            if ($sheetRows === '') {
+                continue;
+            }
+
+            $output .= 'Sheet: ' . $sheet['name'] . "\n" . $sheetRows . "\n";
+        }
+
+        Log::info('QuotationAiService: stripped blank rows before sending to AI.', [
+            'kept'    => $kept,
+            'dropped' => $dropped,
+        ]);
+
+        if ($dropped > 0) {
+            $this->reportStage("Removed {$dropped} blank rows. Sending {$kept} rows…");
         }
 
         return $output;
+    }
+
+    /**
+     * True when a row carries no information worth sending to the AI.
+     *
+     * A real BOQ is mostly formatting: spacer rows, stray borders, a lone
+     * section number, a leftover cell from a merged block. They survive
+     * trimTrailingEmptyCells() because they are not *entirely* empty, then cost
+     * tokens, dilute the prompt, and inflate the number of parts a large file is
+     * split into.
+     *
+     * Deliberately conservative — a row is dropped only when nothing in it could
+     * name a product. Anything with letters is kept, because a description is
+     * the one field an item cannot do without.
+     *
+     * @param  array<int, mixed>  $row
+     */
+    private function isNoiseRow(array $row): bool
+    {
+        if (empty($row)) {
+            return true;
+        }
+
+        $joined = trim(implode('', array_map(fn($c) => trim((string) $c), $row)));
+
+        // Nothing but separators/whitespace.
+        if ($joined === '') {
+            return true;
+        }
+
+        // Ruled lines and decorative fills ("-----", "====", "___").
+        if (preg_match('/^[\-_=.*\s|]+$/u', $joined)) {
+            return true;
+        }
+
+        // Any letter — Latin or Arabic — means this could be a description.
+        if (preg_match('/\p{L}/u', $joined)) {
+            return false;
+        }
+
+        // No letters at all: numbers only. A single number is a stray row
+        // number or a dangling total; two or more could be qty/rate/amount
+        // belonging to a real line, so keep those for the AI to judge.
+        $numericCells = 0;
+        foreach ($row as $cell) {
+            if (trim((string) $cell) !== '') {
+                $numericCells++;
+            }
+        }
+
+        return $numericCells <= 1;
     }
 
     /**
