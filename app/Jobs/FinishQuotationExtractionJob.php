@@ -62,6 +62,11 @@ class FinishQuotationExtractionJob implements ShouldQueue
                 return;
             }
 
+            // Merge rows that are genuinely the same line before anything else
+            // reads the table. Runs here rather than per part: two parts can
+            // each emit the same row without either being able to see it.
+            $merged = $this->mergeDuplicateRows();
+
             $count  = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
             $failed = (int) Cache::get($this->key('boq_ai_chunks_failed'), 0);
 
@@ -83,9 +88,15 @@ class FinishQuotationExtractionJob implements ShouldQueue
                 return;
             }
 
-            $this->status('done', $this->totalChunks > 1
+            // Named explicitly: merging changes quantities, and a silent change
+            // to a number the user is about to price is not acceptable.
+            $mergedNote = $merged > 0
+                ? " {$merged} duplicate rows were merged and their quantities combined."
+                : '';
+
+            $this->status('done', ($this->totalChunks > 1
                 ? "{$count} items extracted from the BOQ file, read in {$this->totalChunks} parts."
-                : "{$count} items extracted successfully from the BOQ file.");
+                : "{$count} items extracted successfully from the BOQ file.") . $mergedNote);
         } catch (\Throwable $e) {
             Log::error('FinishQuotationExtractionJob failed.', [
                 'quotation_id' => $this->quotationId,
@@ -99,6 +110,79 @@ class FinishQuotationExtractionJob implements ShouldQueue
     public function failed(\Throwable $e): void
     {
         $this->status('failed', 'Extraction stopped unexpectedly. Please try again.');
+    }
+
+    /**
+     * Merge rows that describe the same line, summing their quantities.
+     *
+     * Two parts of a split file can emit the same row without either being able
+     * to see the other, and a re-run that overlaps an earlier one leaves the
+     * same line twice. Neither is visible until the user scrolls the table.
+     *
+     * A row is "the same" only when its description AND unit AND unit price all
+     * match. That is deliberately strict:
+     *
+     *   - description alone would merge the same beam on two floors, which are
+     *     separate lines a contractor prices and schedules separately;
+     *   - ignoring price would merge rows the supplier quoted differently.
+     *
+     * Quantities are summed rather than discarded — dropping one would silently
+     * halve the order. Returns how many rows were absorbed.
+     */
+    private function mergeDuplicateRows(): int
+    {
+        $seen   = [];
+        $absorb = [];
+
+        QuotationItem::where('quotation_request_id', $this->quotationId)
+            ->orderBy('id')
+            ->chunkById(500, function ($rows) use (&$seen, &$absorb): void {
+                foreach ($rows as $row) {
+                    // Normalised so trivial whitespace/case differences do not
+                    // read as separate products.
+                    $key = implode('|', [
+                        mb_strtolower(trim(preg_replace('/\s+/u', ' ', (string) $row->description) ?? '')),
+                        (string) ($row->unit_id ?? ''),
+                        (string) ($row->unit_price ?? ''),
+                    ]);
+
+                    // A row with no description cannot be compared meaningfully;
+                    // leave it alone rather than merging unrelated blanks.
+                    if (trim((string) $row->description) === '') {
+                        continue;
+                    }
+
+                    if (! isset($seen[$key])) {
+                        $seen[$key] = $row->id;
+                        continue;
+                    }
+
+                    $absorb[$seen[$key]] = ($absorb[$seen[$key]] ?? 0) + (float) $row->quantity;
+                    $absorb['__delete'][] = $row->id;
+                }
+            });
+
+        $toDelete = $absorb['__delete'] ?? [];
+        unset($absorb['__delete']);
+
+        if ($toDelete === []) {
+            return 0;
+        }
+
+        foreach ($absorb as $keepId => $addedQuantity) {
+            QuotationItem::where('id', $keepId)->increment('quantity', $addedQuantity);
+        }
+
+        foreach (array_chunk($toDelete, 500) as $batch) {
+            QuotationItem::whereIn('id', $batch)->delete();
+        }
+
+        Log::info('FinishQuotationExtractionJob: merged duplicate rows.', [
+            'quotation_id' => $this->quotationId,
+            'merged'       => count($toDelete),
+        ]);
+
+        return count($toDelete);
     }
 
     /**
