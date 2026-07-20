@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -31,6 +32,14 @@ class PriceAnalysisService
 
     /** Items per DeepSeek range call; kept small so calls run in parallel. */
     private const CHUNK_SIZE = 10;
+
+    /**
+     * How long a market range stays reusable.
+     *
+     * Matches the price and verdict caches, so everything the user sees about
+     * one product expires together rather than in pieces.
+     */
+    private const RANGE_CACHE_DAYS = 7;
 
     /**
      * Run the pricing-stage analysis over a set of already-priced items.
@@ -168,12 +177,59 @@ class PriceAnalysisService
             return [];
         }
 
-        $ranges = [];
-        foreach (array_chunk($indices, self::CHUNK_SIZE) as $chunk) {
-            $ranges += $this->fetchRangeChunk($items, $chunk, $apiKey);
+        // Reuse ranges already looked up for these products.
+        //
+        // This runs again on every approve/reject click, so a user working
+        // through a quotation re-asked the AI for the same market ranges over
+        // and over — and got slightly different numbers each time. The range is
+        // a property of the product, not of the current price, so it is safe to
+        // keep and safe to share across quotations.
+        $ranges  = [];
+        $pending = [];
+
+        foreach ($indices as $index) {
+            $cached = Cache::get($this->rangeCacheKey($items[$index]));
+
+            if (is_array($cached)) {
+                $ranges[$index] = $cached;
+                continue;
+            }
+
+            $pending[] = $index;
+        }
+
+        foreach (array_chunk($pending, self::CHUNK_SIZE) as $chunk) {
+            $fetched = $this->fetchRangeChunk($items, $chunk, $apiKey);
+
+            foreach ($fetched as $index => $range) {
+                Cache::put(
+                    $this->rangeCacheKey($items[$index]),
+                    $range,
+                    now()->addDays(self::RANGE_CACHE_DAYS),
+                );
+            }
+
+            $ranges += $fetched;
         }
 
         return $ranges;
+    }
+
+    /**
+     * Cache key for one product's market range.
+     *
+     * Keyed on what the model is actually asked about — description, category,
+     * brand and unit — and deliberately not on the current price, which does not
+     * change what the market charges.
+     */
+    private function rangeCacheKey(array $item): string
+    {
+        $signature = mb_strtolower(trim(preg_replace('/\s+/u', ' ', (string) ($item['description'] ?? '')) ?? ''))
+            . '|' . mb_strtolower(trim((string) ($item['category'] ?? '')))
+            . '|' . mb_strtolower(trim((string) ($item['brand'] ?? '')))
+            . '|' . mb_strtolower(trim((string) ($item['unit'] ?? '')));
+
+        return 'price_range_' . hash('sha256', $signature);
     }
 
     /**

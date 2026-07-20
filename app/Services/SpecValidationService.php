@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -31,6 +32,14 @@ class SpecValidationService
     private const CHUNK_SIZE = 10;
 
     /**
+     * How long a spec verdict stays reusable.
+     *
+     * Matches the extraction and questions caches: a verdict about a row should
+     * not outlive the rows it was reached from.
+     */
+    private const SPEC_CACHE_DAYS = 30;
+
+    /**
      * Validate an array of items.
      *
      * Each input item should carry: id, description, unit, quantity, category, brand.
@@ -53,14 +62,73 @@ class SpecValidationService
             return $items;
         }
 
-        $indices = array_keys($items);
-        $chunks  = array_chunk($indices, self::CHUNK_SIZE);
+        // Reuse a verdict already reached for this exact row.
+        //
+        // Re-validating the same BOQ re-asked the AI about every row and could
+        // reach a different conclusion each time, so the same item was flagged
+        // on one pass and cleared on the next.
+        $indices = [];
 
-        if (count($chunks) === 1) {
-            return $this->validateChunk($items, $chunks[0]);
+        foreach ($items as $index => $item) {
+            $cached = Cache::get($this->specCacheKey($item));
+
+            if (is_array($cached)) {
+                $items[$index] = array_merge($item, $cached);
+                continue;
+            }
+
+            $indices[] = $index;
         }
 
-        return $this->validateChunksParallel($items, $chunks);
+        if (empty($indices)) {
+            return $items;
+        }
+
+        $chunks = array_chunk($indices, self::CHUNK_SIZE);
+
+        $items = count($chunks) === 1
+            ? $this->validateChunk($items, $chunks[0])
+            : $this->validateChunksParallel($items, $chunks);
+
+        $this->cacheSpecVerdicts($items, $indices);
+
+        return $items;
+    }
+
+    /**
+     * Cache key for one row's spec verdict.
+     *
+     * Keyed on the fields the validator reads, so editing a description or unit
+     * re-validates while an untouched row does not.
+     */
+    private function specCacheKey(array $item): string
+    {
+        $signature = mb_strtolower(trim(preg_replace('/\s+/u', ' ', (string) ($item['description'] ?? '')) ?? ''))
+            . '|' . mb_strtolower(trim((string) ($item['unit'] ?? '')))
+            . '|' . (float) ($item['quantity'] ?? 0);
+
+        return 'spec_verdict_' . hash('sha256', $signature);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @param  list<int>  $indices
+     */
+    private function cacheSpecVerdicts(array $items, array $indices): void
+    {
+        foreach ($indices as $index) {
+            $item = $items[$index] ?? null;
+
+            if (! $item || ! isset($item['validation_status'])) {
+                continue;
+            }
+
+            Cache::put($this->specCacheKey($item), [
+                'validation_status' => $item['validation_status'],
+                'validation_note'   => $item['validation_note']   ?? null,
+                'suggested_unit'    => $item['suggested_unit']    ?? null,
+            ], now()->addDays(self::SPEC_CACHE_DAYS));
+        }
     }
 
     // -------------------------------------------------------------------------
