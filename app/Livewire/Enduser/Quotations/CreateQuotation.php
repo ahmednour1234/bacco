@@ -10,6 +10,7 @@ use App\Enums\NotificationTypeEnum;
 use App\Jobs\AuditQuotationItemsJob;
 use App\Jobs\ExtractQuotationItemsJob;
 use App\Jobs\FetchQuotationPricesJob;
+use App\Models\BoqAnswerResult;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
@@ -136,6 +137,18 @@ class CreateQuotation extends Component
 
     /** Whether the post-upload validation gate has run for the current items. */
     public bool $validationRan = false;
+
+    /**
+     * Hash of the answers the user gave, set once the gate is finished.
+     *
+     * Pricing keys its reuse cache on the file hash plus this, so the same file
+     * answered the same way returns the same prices without another AI call.
+     */
+    public string $answersHash = '';
+
+    /** The questions/answers as finalised, stored alongside the priced result. */
+    public array $answeredQuestions = [];
+    public array $givenAnswers = [];
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -291,11 +304,17 @@ class CreateQuotation extends Component
                 return;
             }
 
+            // Hash the file now, so the parse, questions and priced-answer
+            // caches can all key on the same content hash later without any of
+            // them re-reading the file to compute it.
+            $fileHash = @hash_file('sha256', Storage::disk('local')->path($storedPath)) ?: null;
+
             UploadedDocument::create([
                 'quotation_request_id' => $quotation->id,
                 'uploaded_by'          => Auth::id(),
                 'file_name'            => $fileName,
                 'file_path'            => $storedPath,
+                'file_hash'            => $fileHash,
                 'file_type'            => 'boq',
                 'file_size'            => $fileSize,
             ]);
@@ -716,7 +735,27 @@ class CreateQuotation extends Component
             $this->persistItems($quotation);
             $quotation->update(['prices_fetched_at' => null]);
 
-            FetchQuotationPricesJob::dispatch($quotation->id, Auth::id(), $quotation->uuid);
+            // The BOQ file's content hash, so pricing can reuse a result
+            // previously produced for this exact file and answer set.
+            $fileHash = $quotation->uploadedDocuments()
+                ->where('file_type', 'boq')
+                ->latest()
+                ->value('file_hash');
+
+            // No questions were raised → an empty, but stable, answer set.
+            if ($this->answersHash === '') {
+                $this->answersHash = BoqAnswerResult::hashAnswers([]);
+            }
+
+            FetchQuotationPricesJob::dispatch(
+                $quotation->id,
+                Auth::id(),
+                $quotation->uuid,
+                $fileHash,
+                $this->answersHash,
+                $this->answeredQuestions,
+                $this->givenAnswers,
+            );
 
             $this->pricingLoading = true;
             $this->showPricing    = true;
@@ -1013,6 +1052,12 @@ class CreateQuotation extends Component
 
         // Actually remove the flagged rows (duplicates / out-of-scope / unwanted).
         $this->removeRows(array_keys($rowsToRemove));
+
+        // Fingerprint the answers before clearing them, so pricing can look up a
+        // previously priced result for this exact file + answer combination.
+        $this->answersHash = BoqAnswerResult::hashAnswers($this->validationAnswers);
+        $this->answeredQuestions = $this->validationQuestions;
+        $this->givenAnswers      = $this->validationAnswers;
 
         // Clear the gate.
         $this->validationQuestions = [];

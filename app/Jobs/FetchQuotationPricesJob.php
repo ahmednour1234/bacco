@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\NotificationTypeEnum;
 use App\Mail\QuotationPricedMail;
 use App\Models\QuotationItem;
+use App\Models\BoqAnswerResult;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
 use App\Services\Pricing\ProductSpecEngine;
@@ -92,6 +93,10 @@ class FetchQuotationPricesJob implements ShouldQueue
         private readonly int    $quotationId,
         private readonly ?int   $userId,
         private readonly string $quotationUuid,
+        private readonly ?string $fileHash = null,
+        private readonly ?string $answersHash = null,
+        private readonly array   $questions = [],
+        private readonly array   $answers = [],
     ) {}
 
     public function handle(PricingService $pricingService, NotificationService $notificationService, BoqCleaningService $boqCleaner, PriceVerificationService $priceVerifier): void
@@ -113,6 +118,22 @@ class FetchQuotationPricesJob implements ShouldQueue
 
         if (! $lock->get()) {
             Log::info('FetchQuotationPricesJob: another run is already pricing this quotation; skipping.', [
+                'quotation_id' => $this->quotationId,
+            ]);
+
+            return;
+        }
+
+        // This exact file, priced with this exact answer set, has been done
+        // before — apply the stored prices instead of paying for the AI again.
+        // A different answer set is a different key and prices from scratch.
+        if ($this->fileHash && $this->answersHash
+            && $this->applyStoredAnswerResult($quotation)) {
+            $quotation->update(['prices_fetched_at' => now()]);
+            Cache::forget('boq_pricing_message_' . (string) ($this->userId ?? $this->quotationUuid));
+            $lock->release();
+
+            Log::info('FetchQuotationPricesJob: reused a stored priced result.', [
                 'quotation_id' => $this->quotationId,
             ]);
 
@@ -272,6 +293,12 @@ class FetchQuotationPricesJob implements ShouldQueue
                 QuotationItem::whereIn('id', $skippedIds)->delete();
             }
 
+            // Remember this priced result against the file + answer set, so the
+            // next identical upload answered the same way skips the AI entirely.
+            if ($this->fileHash && $this->answersHash) {
+                $this->rememberPricedResult();
+            }
+
             $remainingUnpriced = QuotationItem::where('quotation_request_id', $this->quotationId)
                 ->where('status', '!=', 'rejected')
                 ->where(function ($query) {
@@ -428,6 +455,101 @@ class FetchQuotationPricesJob implements ShouldQueue
      * @param  array<int, array<string, mixed>>  $priced
      * @return int  how many rows received a price
      */
+    /**
+     * Apply a previously stored priced result for this file + answer set.
+     *
+     * Matches the stored rows to the quotation's current rows by description and
+     * unit, writing back each price. Returns false when there is no stored
+     * result, so the caller prices normally.
+     */
+    private function applyStoredAnswerResult(QuotationRequest $quotation): bool
+    {
+        $stored = BoqAnswerResult::lookup($this->fileHash, $this->answersHash);
+
+        if (! $stored || ! is_array($stored->priced_items) || $stored->priced_items === []) {
+            return false;
+        }
+
+        // Index the stored prices by a description+unit key, so a row is matched
+        // to the right price even if row order or ids differ from last time.
+        $byKey = [];
+        foreach ($stored->priced_items as $row) {
+            $byKey[$this->rowKey($row)] = $row;
+        }
+
+        $applied = 0;
+
+        QuotationItem::where('quotation_request_id', $this->quotationId)
+            ->where('status', '!=', 'rejected')
+            ->with('unit')
+            ->chunkById(500, function ($rows) use ($byKey, &$applied) {
+                foreach ($rows as $item) {
+                    $key = $this->rowKey([
+                        'description' => $item->description,
+                        'unit'        => $item->unit?->name ?? '',
+                    ]);
+
+                    $match = $byKey[$key] ?? null;
+
+                    if (! $match || ! isset($match['unit_price']) || $match['unit_price'] <= 0) {
+                        continue;
+                    }
+
+                    $item->update([
+                        'unit_price'   => (float) $match['unit_price'],
+                        'price_source' => $match['price_source'] ?? 'reused',
+                        'price_status' => $match['price_status'] ?? 'pending',
+                    ]);
+                    $applied++;
+                }
+            });
+
+        // Nothing lined up — the rows must have changed. Fall back to real
+        // pricing rather than leaving the quotation half-priced.
+        if ($applied === 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Store the just-priced rows against this file + answer set.
+     */
+    private function rememberPricedResult(): void
+    {
+        $priced = QuotationItem::where('quotation_request_id', $this->quotationId)
+            ->where('status', '!=', 'rejected')
+            ->with('unit')
+            ->get()
+            ->map(fn(QuotationItem $item) => [
+                'description'  => (string) $item->description,
+                'unit'         => (string) ($item->unit?->name ?? ''),
+                'quantity'     => (float) $item->quantity,
+                'unit_price'   => is_numeric($item->unit_price) ? (float) $item->unit_price : null,
+                'price_source' => $item->price_source,
+                'price_status' => $item->price_status,
+            ])
+            ->toArray();
+
+        BoqAnswerResult::remember(
+            $this->fileHash,
+            $this->answersHash,
+            $priced,
+            $this->questions,
+            $this->answers,
+        );
+    }
+
+    /** Stable description+unit key for matching a stored price to a row. */
+    private function rowKey(array $row): string
+    {
+        $description = mb_strtolower(trim(preg_replace('/\s+/u', ' ', (string) ($row['description'] ?? '')) ?? ''));
+        $unit        = mb_strtolower(trim((string) ($row['unit'] ?? '')));
+
+        return $description . '|' . $unit;
+    }
+
     private function persistPrices(array $priced): int
     {
         $written = 0;
