@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Http\Client\Pool;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -27,6 +28,15 @@ class PriceVerificationService
     private const CHUNK_SIZE = 10;
 
     /**
+     * How long a verdict stays reusable.
+     *
+     * Matches PricingService::PRICE_CACHE_DAYS so the price and the judgement of
+     * that price expire together — a verdict outliving its price would be an
+     * opinion about a number no longer in use.
+     */
+    private const VERDICT_CACHE_DAYS = 7;
+
+    /**
      * Verify an array of already-priced items.
      *
      * Each input item must contain: id, description, unit, quantity, category,
@@ -40,12 +50,28 @@ class PriceVerificationService
     public function verify(array $items): array
     {
         // Only rows that actually carry a price can be verified.
+        //
+        // A row whose verdict is already cached is skipped entirely. Without
+        // this the verifier undid the price cache: the price was reused, then
+        // this pass asked the AI again, and a "corrected" verdict overwrote it
+        // with a different number — so two runs of the same BOQ disagreed on
+        // exactly the rows the model happened to correct.
         $toVerify = [];
         foreach ($items as $index => $item) {
             $price = $item['unit_price'] ?? null;
-            if (is_numeric($price) && (float) $price > 0) {
-                $toVerify[] = $index;
+
+            if (! is_numeric($price) || (float) $price <= 0) {
+                continue;
             }
+
+            $cached = Cache::get($this->verdictCacheKey($item));
+
+            if (is_array($cached)) {
+                $items[$index] = array_merge($item, $cached);
+                continue;
+            }
+
+            $toVerify[] = $index;
         }
 
         if (empty($toVerify)) {
@@ -60,11 +86,55 @@ class PriceVerificationService
 
         $chunks = array_chunk($toVerify, self::CHUNK_SIZE);
 
-        if (count($chunks) === 1) {
-            return $this->verifyChunk($items, $chunks[0]);
-        }
+        $items = count($chunks) === 1
+            ? $this->verifyChunk($items, $chunks[0])
+            : $this->verifyChunksParallel($items, $chunks);
 
-        return $this->verifyChunksParallel($items, $chunks);
+        $this->cacheVerdicts($items, $toVerify);
+
+        return $items;
+    }
+
+    /**
+     * Cache key for one row's verdict.
+     *
+     * Includes the price being judged: the same product at a different price is
+     * a different question, and reusing the old verdict would be wrong.
+     */
+    private function verdictCacheKey(array $item): string
+    {
+        $description = mb_strtolower(trim(preg_replace('/\s+/u', ' ', (string) ($item['description'] ?? '')) ?? ''));
+        $unit        = mb_strtolower(trim((string) ($item['unit'] ?? '')));
+        $price       = (float) ($item['unit_price'] ?? 0);
+
+        return 'price_verdict_' . hash('sha256', $description . '|' . $unit . '|' . $price);
+    }
+
+    /**
+     * Remember each verdict so a re-run does not re-judge — and so a "corrected"
+     * price cannot drift to a new number on every pass.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @param  list<int>  $indices
+     */
+    private function cacheVerdicts(array $items, array $indices): void
+    {
+        foreach ($indices as $index) {
+            $item = $items[$index] ?? null;
+
+            if (! $item || empty($item['price_verdict'])) {
+                continue;
+            }
+
+            // unit_price still holds the price that was sent for judging — the
+            // verifier writes its answer to verified_price and leaves the input
+            // alone — so the key matches what the next run will look up.
+            Cache::put($this->verdictCacheKey($item), [
+                'verified_price'          => $item['verified_price'] ?? null,
+                'price_verdict'           => $item['price_verdict'],
+                'price_verification_note' => $item['price_verification_note'] ?? null,
+            ], now()->addDays(self::VERDICT_CACHE_DAYS));
+        }
     }
 
     // -------------------------------------------------------------------------
