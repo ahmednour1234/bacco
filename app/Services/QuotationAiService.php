@@ -725,9 +725,18 @@ class QuotationAiService
                     return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
                 }
 
-                // No text — smalot threw and pdftotext was unavailable. We do not
-                // route PDFs to a vision model (that path needs a Gemini key we
-                // are not using), so ask for an Excel/CSV instead.
+                // No text yet — smalot threw its "$obj" bug and pdftotext is not
+                // installed. Last resort before giving up: OCR.space, a hosted
+                // reader that takes the PDF and returns its text. Needs no local
+                // binary and no vision key, and still feeds DeepSeek afterwards.
+                $ocrText = $this->extractPdfTextViaOcrSpace($absPath);
+
+                if ($ocrText !== null && mb_strlen(trim($ocrText)) > 50) {
+                    $ocrText     = $this->sanitizeUtf8($ocrText);
+                    $userContent = "BOQ PDF extracted text:\n\n" . $ocrText . "\n\n" . $this->buildDeepSeekPrompt($context, 'application/pdf');
+                    return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
+                }
+
                 return $this->failure('Could not read this PDF. It may be a scanned image, or use a format our reader cannot open. Please convert it to Excel or CSV and upload again.');
             }
 
@@ -917,6 +926,85 @@ class QuotationAiService
             // problem with the file. Fall back to the pdftotext binary, which
             // reads those documents fine.
             return $this->extractPdfTextViaBinary($absPath);
+        }
+    }
+
+    /**
+     * Extract PDF text through the OCR.space API.
+     *
+     * The fallback of last resort when smalot throws and pdftotext is not on the
+     * server. OCR.space is a hosted reader: the file is uploaded and its text
+     * comes back, so it needs nothing installed locally. The free tier caps
+     * uploads at 1 MB and 3 pages — enough for a typical BOQ, and skipped with a
+     * clear log line when the file is over that, rather than a wasted call.
+     */
+    private function extractPdfTextViaOcrSpace(string $absPath): ?string
+    {
+        $apiKey = (string) config('services.ocrspace.key', '');
+
+        if ($apiKey === '') {
+            return null;
+        }
+
+        // Free tier hard limit. Above it the call is rejected, so do not make it.
+        $size = @filesize($absPath) ?: 0;
+        if ($size > 1024 * 1024) {
+            Log::warning('QuotationAiService: PDF too large for the OCR fallback.', [
+                'bytes' => $size,
+                'limit' => 1024 * 1024,
+            ]);
+            return null;
+        }
+
+        try {
+            $response = Http::timeout(120)
+                ->attach('file', (string) file_get_contents($absPath), basename($absPath))
+                ->post('https://api.ocr.space/parse/image', [
+                    'apikey'        => $apiKey,
+                    'filetype'      => 'PDF',
+                    'language'      => 'eng',
+                    'isTable'       => 'true',   // BOQs are tabular; keep columns
+                    'OCREngine'     => '2',
+                    'scale'         => 'true',
+                ]);
+
+            if (! $response->successful()) {
+                Log::warning('QuotationAiService: OCR.space request failed.', [
+                    'status' => $response->status(),
+                ]);
+                return null;
+            }
+
+            $json = $response->json();
+
+            // OCR.space reports its own errors in the body with a 200 status.
+            if (($json['IsErroredOnProcessing'] ?? false) === true) {
+                Log::warning('QuotationAiService: OCR.space could not process the PDF.', [
+                    'message' => $json['ErrorMessage'] ?? 'unknown',
+                ]);
+                return null;
+            }
+
+            $text = '';
+            foreach ($json['ParsedResults'] ?? [] as $page) {
+                $text .= ($page['ParsedText'] ?? '') . "\n";
+            }
+
+            $text = trim((string) preg_replace('/\n{3,}/', "\n\n", $text));
+
+            if ($text !== '') {
+                Log::info('QuotationAiService: recovered PDF text via OCR.space.', [
+                    'path'  => basename($absPath),
+                    'chars' => mb_strlen($text),
+                ]);
+            }
+
+            return $text !== '' ? $text : null;
+        } catch (\Throwable $e) {
+            Log::warning('QuotationAiService: OCR.space fallback threw.', [
+                'error' => $e->getMessage(),
+            ]);
+            return null;
         }
     }
 
