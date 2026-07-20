@@ -240,7 +240,18 @@ class PricingService
               ->orWhereRaw('LOWER(TRIM(symbol)) = ?', [$unit]);
         });
 
-        $product = $query->select('unit_price')->first();
+        // Ordered explicitly. Without an ORDER BY, MySQL is free to return any
+        // of the matching rows, and it does not always pick the same one — so a
+        // keyword that matched several products priced the item differently on
+        // different runs, while items with a single match stayed stable. That is
+        // exactly the pattern that showed up: most rows identical, a few moving.
+        //
+        // Lowest price wins the tie, and the id breaks a tie on price, so the
+        // result is both deterministic and defensible to a client.
+        $product = $query->select('unit_price')
+            ->orderBy('unit_price')
+            ->orderBy('id')
+            ->first();
 
         return $product ? (float) $product->unit_price : null;
     }
