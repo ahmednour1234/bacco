@@ -56,6 +56,9 @@ class QuotationAiService
      */
     private const PDF_MEMORY_FACTOR = 8;
 
+    /** Returned by extractPdfText when it stopped for memory, not for lack of text. */
+    private const PDF_LOW_MEMORY = "\0__pdf_low_memory__";
+
     private string $baseUrl;
     private string $parseEndpoint;
     private string $apiKey;
@@ -698,6 +701,11 @@ class QuotationAiService
             // â”€â”€ PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if ($ext === 'pdf') {
                 $extracted = $this->extractPdfText($absPath);
+
+                if ($extracted === self::PDF_LOW_MEMORY) {
+                    return $this->failure('The server was low on memory while reading this PDF. Please try again in a moment, or convert it to Excel or CSV.');
+                }
+
                 if ($extracted !== null && mb_strlen(trim($extracted)) > 50) {
                     $extracted = $this->sanitizeUtf8($extracted);
 
@@ -853,6 +861,11 @@ class QuotationAiService
         $limit = $this->memoryLimitBytes();
 
         if ($limit > 0) {
+            // Try to reclaim memory a previous job left behind before deciding
+            // there is not enough. Without this, a worker sitting near its limit
+            // after a big job could refuse a tiny PDF for no real reason.
+            gc_collect_cycles();
+
             $available = $limit - memory_get_usage(true);
 
             if ($available < $size * self::PDF_MEMORY_FACTOR) {
@@ -862,7 +875,10 @@ class QuotationAiService
                     'needed'    => $size * self::PDF_MEMORY_FACTOR,
                 ]);
 
-                return null;
+                // A distinct sentinel, so the caller can tell "no memory" apart
+                // from "no text" and show the right message instead of blaming
+                // the file for being scanned.
+                return self::PDF_LOW_MEMORY;
             }
         }
 
@@ -884,7 +900,13 @@ class QuotationAiService
             $text   = trim($text);
             return $text !== '' ? $text : null;
         } catch (\Throwable $e) {
-            Log::warning('QuotationAiService: PDF parsing failed.', ['error' => $e->getMessage()]);
+            // Class, file and line, not just the message — a bare message left
+            // the actual cause of a PDF failure guessable at best.
+            Log::warning('QuotationAiService: PDF parsing failed.', [
+                'exception' => $e::class,
+                'error'     => $e->getMessage(),
+                'at'        => $e->getFile() . ':' . $e->getLine(),
+            ]);
             return null;
         }
     }
