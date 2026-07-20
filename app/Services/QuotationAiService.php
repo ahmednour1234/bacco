@@ -724,7 +724,27 @@ class QuotationAiService
                     $userContent = "BOQ PDF extracted text:\n\n" . $extracted . "\n\n" . $this->buildDeepSeekPrompt($context, 'application/pdf');
                     return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
                 }
-                return $this->failure('Could not extract text from the PDF. Please make sure it is a text-based PDF (not a scanned image), or convert it to Excel or CSV.');
+
+                // No text — smalot threw and pdftotext was missing or empty.
+                // Last resort: hand the PDF straight to a vision model, which
+                // reads it as an image and needs no local binary at all. This is
+                // what covers a server without pdftotext installed.
+                if ($this->hasVisionKey()) {
+                    Log::info('QuotationAiService: PDF text extraction failed; trying vision.', [
+                        'path' => basename($absPath),
+                    ]);
+
+                    $bytes  = @file_get_contents($absPath);
+                    $vision = $bytes !== false
+                        ? $this->callDeepSeekVision($bytes, 'application/pdf', $context)
+                        : ['success' => false];
+
+                    if ($vision['success'] ?? false) {
+                        return $vision;
+                    }
+                }
+
+                return $this->failure('Could not read this PDF. It may be a scanned image, or use a format our reader cannot open. Please convert it to Excel or CSV and upload again.');
             }
 
             // -- Word documents (docx) ---------------------------------------------------
@@ -925,6 +945,55 @@ class QuotationAiService
      * other. Returns null when the binary is absent or produces nothing, so the
      * caller drops to the vision path or a clear error.
      */
+    /**
+     * True when at least one vision provider is configured.
+     *
+     * Checked before falling back to vision, so a server with no vision key
+     * gets a clear "convert to Excel" message rather than a failed API call.
+     */
+    private function hasVisionKey(): bool
+    {
+        // Gemini only. Groq's and OpenRouter's vision endpoints expect an image
+        // in the data URL, not a raw PDF, so passing a PDF to them fails or is
+        // silently ignored. Gemini accepts application/pdf directly.
+        return ((string) config('services.gemini.key', '')) !== '';
+    }
+
+    /**
+     * Locate the pdftotext binary.
+     *
+     * On shared hosting it is rarely on the system PATH, so a user-installed
+     * copy — dropped in ~/bin, ~/.local/bin, or the project's vendor/bin — has
+     * to be found explicitly. An escaped, quoted absolute path is returned so it
+     * is safe to interpolate into the command.
+     *
+     * PDFTOTEXT_PATH in .env wins, for a copy installed somewhere non-standard.
+     */
+    private function pdftotextPath(): ?string
+    {
+        $configured = trim((string) env('PDFTOTEXT_PATH', ''));
+
+        $candidates = array_filter([
+            $configured !== '' ? $configured : null,
+            ($home = getenv('HOME')) ? $home . '/bin/pdftotext' : null,
+            $home ? $home . '/.local/bin/pdftotext' : null,
+            base_path('vendor/bin/pdftotext'),
+            '/usr/bin/pdftotext',
+            '/usr/local/bin/pdftotext',
+        ]);
+
+        foreach ($candidates as $path) {
+            if (is_file($path) && is_executable($path)) {
+                return escapeshellarg($path);
+            }
+        }
+
+        // Fall back to a bare name, in case it is on PATH after all.
+        $onPath = @shell_exec('command -v pdftotext 2>/dev/null');
+
+        return is_string($onPath) && trim($onPath) !== '' ? 'pdftotext' : null;
+    }
+
     private function extractPdfTextViaBinary(string $absPath): ?string
     {
         // shell_exec is commonly disabled on shared hosting; bail cleanly so the
@@ -934,9 +1003,18 @@ class QuotationAiService
             return null;
         }
 
+        $binary = $this->pdftotextPath();
+
+        if ($binary === null) {
+            Log::warning('QuotationAiService: pdftotext binary not found.', [
+                'looked_in' => 'PATH, PDFTOTEXT_PATH, ~/bin, ~/.local/bin, vendor/bin',
+            ]);
+            return null;
+        }
+
         // `-layout` keeps columns roughly aligned, which matters for a BOQ; the
         // trailing "-" writes to stdout instead of a file.
-        $command = sprintf('pdftotext -layout -enc UTF-8 %s - 2>/dev/null', escapeshellarg($absPath));
+        $command = sprintf('%s -layout -enc UTF-8 %s - 2>/dev/null', $binary, escapeshellarg($absPath));
 
         $output = @shell_exec($command);
 
