@@ -1075,6 +1075,7 @@ class CreateQuotation extends Component
                 $quotation = QuotationRequest::where('client_id', Auth::id())->find($this->quotationId);
                 if ($quotation) {
                     $this->persistItems($quotation);
+                    $this->storeReuseHashes($quotation);
                 }
             } catch (\Throwable $e) {
                 Log::warning('CreateQuotation::finishValidation persist failed.', ['message' => $e->getMessage()]);
@@ -1082,6 +1083,32 @@ class CreateQuotation extends Component
         }
 
         $this->dispatch('toast', message: __('app.validation_done'), type: 'success');
+    }
+
+    /**
+     * Write the reuse keys onto the quotation.
+     *
+     * The file hash and answer hash live here so every pricing dispatch site —
+     * this page, the show page, the BOQ pages, admin — and the pricing job read
+     * them from one place, instead of only the create page knowing them.
+     */
+    private function storeReuseHashes(QuotationRequest $quotation): void
+    {
+        // An empty answer set still hashes stably, so a BOQ with no questions is
+        // cacheable too.
+        if ($this->answersHash === '') {
+            $this->answersHash = BoqAnswerResult::hashAnswers([]);
+        }
+
+        $fileHash = $quotation->uploadedDocuments()
+            ->where('file_type', 'boq')
+            ->latest()
+            ->value('file_hash');
+
+        $quotation->forceFill([
+            'boq_file_hash' => $fileHash,
+            'answers_hash'  => $this->answersHash,
+        ])->save();
     }
 
     /**

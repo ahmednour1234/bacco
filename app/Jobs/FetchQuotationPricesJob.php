@@ -124,11 +124,18 @@ class FetchQuotationPricesJob implements ShouldQueue
             return;
         }
 
+        // Resolve the reuse keys. Only the create page passes them in; the other
+        // dispatch sites (show page, BOQ pages, admin) do not, so fall back to
+        // the copy stored on the quotation itself. Without this fallback those
+        // paths never hit the cache and re-priced against the AI.
+        $fileHash    = $this->fileHash    ?: $quotation->boq_file_hash;
+        $answersHash = $this->answersHash ?: $quotation->answers_hash;
+
         // This exact file, priced with this exact answer set, has been done
         // before — apply the stored prices instead of paying for the AI again.
         // A different answer set is a different key and prices from scratch.
-        if ($this->fileHash && $this->answersHash
-            && $this->applyStoredAnswerResult($quotation)) {
+        if ($fileHash && $answersHash
+            && $this->applyStoredAnswerResult($quotation, $fileHash, $answersHash)) {
             $quotation->update(['prices_fetched_at' => now()]);
             Cache::forget('boq_pricing_message_' . (string) ($this->userId ?? $this->quotationUuid));
             $lock->release();
@@ -295,8 +302,8 @@ class FetchQuotationPricesJob implements ShouldQueue
 
             // Remember this priced result against the file + answer set, so the
             // next identical upload answered the same way skips the AI entirely.
-            if ($this->fileHash && $this->answersHash) {
-                $this->rememberPricedResult();
+            if ($fileHash && $answersHash) {
+                $this->rememberPricedResult($fileHash, $answersHash);
             }
 
             $remainingUnpriced = QuotationItem::where('quotation_request_id', $this->quotationId)
@@ -462,9 +469,9 @@ class FetchQuotationPricesJob implements ShouldQueue
      * unit, writing back each price. Returns false when there is no stored
      * result, so the caller prices normally.
      */
-    private function applyStoredAnswerResult(QuotationRequest $quotation): bool
+    private function applyStoredAnswerResult(QuotationRequest $quotation, string $fileHash, string $answersHash): bool
     {
-        $stored = BoqAnswerResult::lookup($this->fileHash, $this->answersHash);
+        $stored = BoqAnswerResult::lookup($fileHash, $answersHash);
 
         if (! $stored || ! is_array($stored->priced_items) || $stored->priced_items === []) {
             return false;
@@ -516,7 +523,7 @@ class FetchQuotationPricesJob implements ShouldQueue
     /**
      * Store the just-priced rows against this file + answer set.
      */
-    private function rememberPricedResult(): void
+    private function rememberPricedResult(string $fileHash, string $answersHash): void
     {
         $priced = QuotationItem::where('quotation_request_id', $this->quotationId)
             ->where('status', '!=', 'rejected')
@@ -533,8 +540,8 @@ class FetchQuotationPricesJob implements ShouldQueue
             ->toArray();
 
         BoqAnswerResult::remember(
-            $this->fileHash,
-            $this->answersHash,
+            $fileHash,
+            $answersHash,
             $priced,
             $this->questions,
             $this->answers,
