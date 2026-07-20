@@ -49,9 +49,6 @@ class ExtractQuotationItemsJob implements ShouldQueue
     /** No retries — a second AI pass would double-charge and duplicate items. */
     public int $tries = 1;
 
-    /** Files at or above this size get their extraction cached (500 KB). */
-    private const CACHE_MIN_BYTES = 512000;
-
     /** How long a cached extraction stays reusable. */
     private const CACHE_TTL_DAYS = 30;
 

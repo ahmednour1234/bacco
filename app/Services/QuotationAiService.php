@@ -956,7 +956,7 @@ class QuotationAiService
                         ['role' => 'user',   'content' => $userContent],
                     ],
                     'max_tokens'  => 16384,
-                    'temperature' => 0.2,
+                    'temperature' => 0,
                 ]);
         } catch (ConnectionException $e) {
             return $this->failure('Vision API connection timeout or unavailable.', true);
@@ -1001,7 +1001,7 @@ class QuotationAiService
                         ['role' => 'user',   'content' => $userContent],
                     ],
                     'max_tokens'      => 32768,
-                    'temperature'     => 0.1,
+                    'temperature'     => 0,
                     'response_format' => ['type' => 'json_object'],
                     'user'            => 'Qimta_Platform',
                 ]);

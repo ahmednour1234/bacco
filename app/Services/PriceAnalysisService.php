@@ -209,7 +209,7 @@ class PriceAnalysisService
                 ->post('https://api.deepseek.com/chat/completions', [
                     'model'       => (string) config('services.deepseek.model', 'deepseek-chat'),
                     'messages'    => [['role' => 'user', 'content' => $prompt]],
-                    'temperature' => 0.2,
+                    'temperature' => 0,
                     'max_tokens'  => 8192,
                     'user'        => 'Qimta_Platform',
                 ]);

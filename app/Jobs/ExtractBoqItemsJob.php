@@ -40,13 +40,6 @@ class ExtractBoqItemsJob implements ShouldQueue
     /** No retries — a second AI pass would double-charge and duplicate items. */
     public int $tries = 1;
 
-    /**
-     * Only cache extractions for files at least this large (500 KB). Below it the
-     * parse is quick and the AI call cheap, so the hashing and lookup would cost
-     * more than they save.
-     */
-    private const CACHE_MIN_BYTES = 512000;
-
     /** How long a cached extraction stays reusable. */
     private const CACHE_TTL_DAYS = 30;
 
@@ -74,15 +67,16 @@ class ExtractBoqItemsJob implements ShouldQueue
             // Parsing a large BOQ is slow and costs an AI call per upload, and
             // the same sheet gets re-uploaded often (a retry, a second project,
             // a colleague). Key on the file's content hash, not its name, so a
-            // renamed copy still hits. Only worth caching above a size floor —
-            // small files parse fast enough that the lookup is not worth it.
-            $cacheKey = null;
+            // renamed copy still hits.
+            //
+            // Cached at every size. The AI is not deterministic, so re-parsing
+            // one document gives different rows and different questions each
+            // time — the same file uploaded twice produced two different BOQs.
+            // Speed was never the point: the same input must give the same
+            // output.
             $size     = @filesize($absPath) ?: 0;
-
-            if ($size >= self::CACHE_MIN_BYTES) {
-                $hash     = @hash_file('sha256', $absPath);
-                $cacheKey = $hash ? 'boq_extraction_' . $hash : null;
-            }
+            $hash     = @hash_file('sha256', $absPath);
+            $cacheKey = $hash ? 'boq_extraction_' . $hash : null;
 
             $items  = $cacheKey ? Cache::get($cacheKey) : null;
             $cached = is_array($items) && $items !== [];

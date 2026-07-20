@@ -156,7 +156,7 @@ class BoqValidationService
                 ->post('https://api.deepseek.com/chat/completions', [
                     'model'       => (string) config('services.deepseek.model', 'deepseek-chat'),
                     'messages'    => [['role' => 'user', 'content' => $this->buildPrompt($payload)]],
-                    'temperature' => 0.1,
+                    'temperature' => 0,
                     'max_tokens'  => 8192,
                     'user'        => 'Qimta_Platform',
                 ]);
