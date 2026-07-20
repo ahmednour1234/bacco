@@ -907,8 +907,58 @@ class QuotationAiService
                 'error'     => $e->getMessage(),
                 'at'        => $e->getFile() . ':' . $e->getLine(),
             ]);
+
+            // smalot/pdfparser throws "Invalid object reference for $obj." on
+            // some perfectly valid PDFs — a known bug in the library, not a
+            // problem with the file. Fall back to the pdftotext binary, which
+            // reads those documents fine.
+            return $this->extractPdfTextViaBinary($absPath);
+        }
+    }
+
+    /**
+     * Extract PDF text with the poppler `pdftotext` binary.
+     *
+     * A fallback for when smalot/pdfparser throws on a document it cannot handle
+     * — most often "Invalid object reference for $obj." pdftotext is a separate,
+     * more robust implementation, so a PDF that breaks one usually reads on the
+     * other. Returns null when the binary is absent or produces nothing, so the
+     * caller drops to the vision path or a clear error.
+     */
+    private function extractPdfTextViaBinary(string $absPath): ?string
+    {
+        // shell_exec is commonly disabled on shared hosting; bail cleanly so the
+        // caller falls through to the vision path or a clear error.
+        if (! function_exists('shell_exec')
+            || in_array('shell_exec', array_map('trim', explode(',', (string) ini_get('disable_functions'))), true)) {
             return null;
         }
+
+        // `-layout` keeps columns roughly aligned, which matters for a BOQ; the
+        // trailing "-" writes to stdout instead of a file.
+        $command = sprintf('pdftotext -layout -enc UTF-8 %s - 2>/dev/null', escapeshellarg($absPath));
+
+        $output = @shell_exec($command);
+
+        if (! is_string($output) || trim($output) === '') {
+            Log::warning('QuotationAiService: pdftotext fallback produced no text.', [
+                'path' => basename($absPath),
+            ]);
+            return null;
+        }
+
+        $text = (string) preg_replace('/[ \t]{2,}/', ' ', $output);
+        $text = (string) preg_replace('/\n{3,}/', "\n\n", $text);
+        $text = trim($text);
+
+        if ($text !== '') {
+            Log::info('QuotationAiService: recovered PDF text via pdftotext fallback.', [
+                'path'  => basename($absPath),
+                'chars' => mb_strlen($text),
+            ]);
+        }
+
+        return $text !== '' ? $text : null;
     }
 
     /**
