@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -31,6 +32,15 @@ class BoqValidationService
     /** Rows per DeepSeek audit call. */
     private const CHUNK_SIZE = 25;
 
+    /**
+     * How long an audit's questions stay reusable.
+     *
+     * Long enough that re-uploading the same BOQ over a working week asks the
+     * same things, which is the whole point — the questions are about the
+     * document, and the document has not changed.
+     */
+    private const QUESTIONS_CACHE_DAYS = 30;
+
     /** The gate codes DeepSeek may emit, and that the caller knows how to apply. */
     public const GATES = ['quantity', 'unit', 'specs', 'generic', 'duplicate', 'scope', 'vat'];
 
@@ -55,6 +65,20 @@ class BoqValidationService
             return ['questions' => [], 'failed' => true];
         }
 
+        // Reuse the questions for an identical set of rows.
+        //
+        // The audit is an AI call, so the same BOQ asked twice produced two
+        // different question sets — a user re-uploading one file was asked
+        // different things each time, with no way to tell which set was right.
+        // Keyed on the rows themselves, so any real change to the BOQ produces
+        // a different key and a fresh audit.
+        $cacheKey = $this->questionsCacheKey($items);
+        $cached   = Cache::get($cacheKey);
+
+        if (is_array($cached)) {
+            return ['questions' => $cached, 'failed' => false];
+        }
+
         $questions = [];
         $anyFailed = false;
 
@@ -70,8 +94,37 @@ class BoqValidationService
         // Deterministic gate the AI cannot be trusted to compute: exact duplicate keys.
         // This backstops the AI's "duplicate" gate so obvious repeats are always caught.
         $questions = $this->mergeLocalDuplicateQuestions($items, $questions);
+        $questions = array_values($questions);
 
-        return ['questions' => array_values($questions), 'failed' => $anyFailed];
+        // Only a complete audit is worth keeping: caching a partial one would
+        // pin the gaps in place for every later upload of the same file.
+        if (! $anyFailed) {
+            Cache::put($cacheKey, $questions, now()->addDays(self::QUESTIONS_CACHE_DAYS));
+        }
+
+        return ['questions' => $questions, 'failed' => $anyFailed];
+    }
+
+    /**
+     * Cache key for a set of rows' questions.
+     *
+     * Built from the fields the audit actually reads, in row order, so an
+     * unchanged BOQ hits and any real edit misses.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function questionsCacheKey(array $items): string
+    {
+        $signature = '';
+
+        foreach ($items as $item) {
+            $signature .= mb_strtolower(trim((string) ($item['description'] ?? '')))
+                . '|' . trim((string) ($item['unit'] ?? ''))
+                . '|' . (float) ($item['quantity'] ?? 0)
+                . "\n";
+        }
+
+        return 'boq_questions_' . hash('sha256', $signature);
     }
 
     // -------------------------------------------------------------------------

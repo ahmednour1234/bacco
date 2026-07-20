@@ -83,15 +83,18 @@ class ExtractQuotationItemsJob implements ShouldQueue
                 throw new \RuntimeException("Uploaded BOQ file is missing: {$this->storedPath}");
             }
 
-            // Reuse a previous parse of the same file. Keyed on content hash, so a
-            // renamed copy still hits, and shared with the BOQ flow's cache.
-            $cacheKey = null;
+            // Reuse a previous parse of the same file. Keyed on content hash, so
+            // a renamed copy still hits, and shared with the BOQ flow's cache.
+            //
+            // Cached at every size, not just large files. The AI is not
+            // deterministic, so re-parsing the same document produces different
+            // rows and therefore different validation questions — uploading one
+            // BOQ twice gave two different answers. A small file being cheap to
+            // re-parse was never the point: the same input has to give the same
+            // output.
             $size     = @filesize($absPath) ?: 0;
-
-            if ($size >= self::CACHE_MIN_BYTES) {
-                $hash     = @hash_file('sha256', $absPath);
-                $cacheKey = $hash ? 'boq_extraction_' . $hash : null;
-            }
+            $hash     = @hash_file('sha256', $absPath);
+            $cacheKey = $hash ? 'boq_extraction_' . $hash : null;
 
             $items = $cacheKey ? Cache::get($cacheKey) : null;
 
