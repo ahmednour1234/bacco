@@ -725,25 +725,9 @@ class QuotationAiService
                     return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
                 }
 
-                // No text — smalot threw and pdftotext was missing or empty.
-                // Last resort: hand the PDF straight to a vision model, which
-                // reads it as an image and needs no local binary at all. This is
-                // what covers a server without pdftotext installed.
-                if ($this->hasVisionKey()) {
-                    Log::info('QuotationAiService: PDF text extraction failed; trying vision.', [
-                        'path' => basename($absPath),
-                    ]);
-
-                    $bytes  = @file_get_contents($absPath);
-                    $vision = $bytes !== false
-                        ? $this->callDeepSeekVision($bytes, 'application/pdf', $context)
-                        : ['success' => false];
-
-                    if ($vision['success'] ?? false) {
-                        return $vision;
-                    }
-                }
-
+                // No text — smalot threw and pdftotext was unavailable. We do not
+                // route PDFs to a vision model (that path needs a Gemini key we
+                // are not using), so ask for an Excel/CSV instead.
                 return $this->failure('Could not read this PDF. It may be a scanned image, or use a format our reader cannot open. Please convert it to Excel or CSV and upload again.');
             }
 
@@ -934,29 +918,6 @@ class QuotationAiService
             // reads those documents fine.
             return $this->extractPdfTextViaBinary($absPath);
         }
-    }
-
-    /**
-     * Extract PDF text with the poppler `pdftotext` binary.
-     *
-     * A fallback for when smalot/pdfparser throws on a document it cannot handle
-     * — most often "Invalid object reference for $obj." pdftotext is a separate,
-     * more robust implementation, so a PDF that breaks one usually reads on the
-     * other. Returns null when the binary is absent or produces nothing, so the
-     * caller drops to the vision path or a clear error.
-     */
-    /**
-     * True when at least one vision provider is configured.
-     *
-     * Checked before falling back to vision, so a server with no vision key
-     * gets a clear "convert to Excel" message rather than a failed API call.
-     */
-    private function hasVisionKey(): bool
-    {
-        // Gemini only. Groq's and OpenRouter's vision endpoints expect an image
-        // in the data URL, not a raw PDF, so passing a PDF to them fails or is
-        // silently ignored. Gemini accepts application/pdf directly.
-        return ((string) config('services.gemini.key', '')) !== '';
     }
 
     /**
