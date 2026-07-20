@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\QuotationSourceTypeEnum;
+use App\Models\BoqParseResult;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Models\Unit;
@@ -95,6 +96,42 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
             $items = $cacheKey ? Cache::store('ai')->get($cacheKey) : null;
 
+            // Fall back to the permanent record.
+            //
+            // The cache can expire or be flushed; this table cannot. Without it,
+            // losing the cache meant re-parsing a file we had already parsed —
+            // and getting different rows, questions and prices for a document
+            // that had not changed.
+            if (! is_array($items) && $hash) {
+                $stored = BoqParseResult::forHash($hash);
+
+                if ($stored && is_array($stored->items) && $stored->items !== []) {
+                    $items = $stored->items;
+
+                    // Re-warm the cache so the rest of this run reads it there.
+                    if ($cacheKey !== null) {
+                        Cache::store('ai')->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
+                    }
+
+                    // The questions came from these exact rows, so they are
+                    // reusable too — and they are what the user answers next.
+                    if (is_array($stored->questions)) {
+                        Cache::store('ai')->put(
+                            $this->key('boq_ai_questions'),
+                            $stored->questions,
+                            now()->addHours(12),
+                        );
+                    }
+
+                    Log::info('ExtractQuotationItemsJob: reusing a stored parse.', [
+                        'quotation_id' => $this->quotationId,
+                        'file'         => $stored->file_name,
+                        'items'        => count($items),
+                        'seen_before'  => $stored->hit_count,
+                    ]);
+                }
+            }
+
             // Defaults for the cache-hit path: only complete parses are ever
             // cached, so a hit is by definition not partial and streams nothing.
             $result     = [];
@@ -180,6 +217,15 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
                 if ($cacheKey !== null && ! $partial) {
                     Cache::store('ai')->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
+
+                    // Also stored permanently, so this file never needs parsing
+                    // again even if the cache is lost.
+                    BoqParseResult::remember(
+                        $hash,
+                        $items,
+                        basename($this->storedPath),
+                        $size,
+                    );
                 }
             }
 
@@ -207,7 +253,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
                 $failedChunks = (int) ($result['failed_chunks'] ?? 0);
                 $totalChunks  = (int) ($result['total_chunks'] ?? 0);
 
-                $this->runValidationGate($items);
+                $this->runValidationGate($items, $hash ?: null);
                 $this->status('partial', "Extracted {$count} items, but {$failedChunks} of {$totalChunks} parts of this file could not be read, so some rows are missing. Please re-upload to try again.");
                 return;
             }
@@ -216,7 +262,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
             // batch of rows, so on a large BOQ it is every bit as slow as the
             // extraction — running it from the poll request would reintroduce
             // the timeout. The questions are cached for the component to pick up.
-            $this->runValidationGate($items);
+            $this->runValidationGate($items, $hash ?: null);
 
             // Say whether the file was split, so "one call" is distinguishable
             // from "never reported" when checking what actually happened.
@@ -245,14 +291,18 @@ class ExtractQuotationItemsJob implements ShouldQueue
      *
      * @param  array<int, array<string, mixed>>  $items
      */
-    private function runValidationGate(array $items): void
+    private function runValidationGate(array $items, ?string $fileHash = null): void
     {
         $questions = [];
+        $failed    = false;
 
         try {
             $result    = app(BoqValidationService::class)->validate($items);
             $questions = array_slice($result['questions'] ?? [], 0, self::MAX_QUESTIONS);
+            $failed    = (bool) ($result['failed'] ?? false);
         } catch (\Throwable $e) {
+            $failed = true;
+
             Log::error('ExtractQuotationItemsJob: validation gate failed.', [
                 'quotation_id' => $this->quotationId,
                 'message'      => $e->getMessage(),
@@ -260,6 +310,13 @@ class ExtractQuotationItemsJob implements ShouldQueue
         }
 
         Cache::put($this->key('boq_ai_questions'), $questions, now()->addHours(12));
+
+        // Attach the questions to the file that produced them, so the next
+        // upload of this document asks the same things. Skipped when the audit
+        // failed: storing a partial set would pin its gaps in place for good.
+        if ($fileHash !== null && ! $failed) {
+            BoqParseResult::rememberQuestions($fileHash, $questions);
+        }
     }
 
     /**
