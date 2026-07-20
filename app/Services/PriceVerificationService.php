@@ -122,7 +122,7 @@ class PriceVerificationService
             'messages'    => [
                 ['role' => 'user', 'content' => $this->buildPrompt($payload)],
             ],
-            'temperature' => 0.1,
+            'temperature' => 0,
             'max_tokens'  => 8192,
             'user'        => 'Qimta_Platform',
         ];

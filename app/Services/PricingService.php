@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Http\Client\Pool;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -23,6 +24,15 @@ class PricingService
      * rate-limited. Batching keeps the parallelism useful without that.
      */
     private const MAX_PARALLEL_CHUNKS = 4;
+
+    /**
+     * How long an AI price stays reusable.
+     *
+     * Shorter than QuotationRequest::EXPIRY_DAYS (10) on purpose: a quotation
+     * that has expired must re-price against genuinely current rates, so the
+     * cache has to have lapsed by the time the quotation does.
+     */
+    private const PRICE_CACHE_DAYS = 7;
 
     /**
      * Optional progress reporter, called as ($chunksDone, $chunksTotal).
@@ -55,6 +65,48 @@ class PricingService
      * @param  array<int, array<string, mixed>>  $items
      * @return array<int, array<string, mixed>>  Items enriched with unit_price, price_source, price_status
      */
+    /**
+     * Build the cache key for one row's price.
+     *
+     * Keyed on the product itself — description and unit — not the quotation, so
+     * the same item priced from two different BOQs agrees with itself. The unit
+     * is part of the key because a price per metre and a price per piece are
+     * different numbers for the same product.
+     */
+    private function priceCacheKey(array $item): string
+    {
+        $description = mb_strtolower(trim(preg_replace('/\s+/u', ' ', (string) ($item['description'] ?? '')) ?? ''));
+        $unit        = mb_strtolower(trim((string) ($item['unit'] ?? '')));
+
+        return 'ai_price_' . hash('sha256', $description . '|' . $unit);
+    }
+
+    /**
+     * Remember the AI's prices so a re-run returns the same numbers.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @param  list<int>  $indices  rows this pass priced
+     */
+    private function cachePrices(array $items, array $indices): void
+    {
+        foreach ($indices as $index) {
+            $item = $items[$index] ?? null;
+
+            if (! $item || empty($item['unit_price']) || $item['unit_price'] <= 0) {
+                continue;
+            }
+
+            Cache::put(
+                $this->priceCacheKey($item),
+                [
+                    'unit_price'   => (float) $item['unit_price'],
+                    'price_source' => $item['price_source'] ?? 'ai',
+                ],
+                now()->addDays(self::PRICE_CACHE_DAYS),
+            );
+        }
+    }
+
     public function fetchPrices(array $items): array
     {
         $unmatched = [];
@@ -71,12 +123,34 @@ class PricingService
                 $items[$index]['unit_price']   = $price;
                 $items[$index]['price_source'] = 'products';
                 $items[$index]['price_status'] = 'pending';
-            } else {
-                $items[$index]['unit_price']   = null;
-                $items[$index]['price_source'] = null;
-                $items[$index]['price_status'] = 'pending';
-                $unmatched[]                   = $index;
+
+                continue;
             }
+
+            // Reuse a recent AI price for the same product.
+            //
+            // Without this, re-pricing the same BOQ produced different numbers
+            // every time: the model is sampled at a non-zero temperature, so it
+            // does not return an identical figure twice. A client seeing two
+            // prices for one line on the same day has no reason to trust either.
+            //
+            // Held for PRICE_CACHE_DAYS, deliberately shorter than the
+            // quotation's own expiry window, so a re-price after expiry does
+            // fetch genuinely current rates.
+            $cached = Cache::get($this->priceCacheKey($item));
+
+            if (is_array($cached) && isset($cached['unit_price'])) {
+                $items[$index]['unit_price']   = (float) $cached['unit_price'];
+                $items[$index]['price_source'] = $cached['price_source'] ?? 'ai_cached';
+                $items[$index]['price_status'] = 'pending';
+
+                continue;
+            }
+
+            $items[$index]['unit_price']   = null;
+            $items[$index]['price_source'] = null;
+            $items[$index]['price_status'] = 'pending';
+            $unmatched[]                   = $index;
         }
 
         if (! empty($unmatched)) {
@@ -85,6 +159,7 @@ class PricingService
             if (count($chunks) === 1) {
                 // Single chunk — direct call (no pool overhead)
                 $items = $this->enrichWithDeepSeek($items, $chunks[0]);
+                $this->cachePrices($items, $chunks[0]);
             } else {
                 // Multiple chunks. Http::pool fires every request it is given at
                 // once, so a large BOQ would open thousands of concurrent calls
@@ -96,6 +171,8 @@ class PricingService
 
                 foreach ($batches as $batch) {
                     $items = $this->enrichChunksParallel($items, $batch);
+
+                    $this->cachePrices($items, array_merge(...$batch));
 
                     $done += count($batch);
                     $this->reportProgress($done, $total);
@@ -315,7 +392,7 @@ class PricingService
                 'messages'    => [
                     ['role' => 'user', 'content' => $this->buildPricingPrompt($payload)],
                 ],
-                'temperature' => 0.2,
+                'temperature' => 0,
                 'max_tokens'  => 8192,
                 'user'        => 'Qimta_Platform',
             ];
@@ -419,7 +496,7 @@ class PricingService
                     'messages'    => [
                         ['role' => 'user', 'content' => $prompt],
                     ],
-                    'temperature' => 0.2,
+                    'temperature' => 0,
                     'max_tokens'  => 8192,
                     'user'        => 'Qimta_Platform',
                 ]);
