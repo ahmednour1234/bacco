@@ -147,7 +147,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
             } elseif (($chunkCount = $this->splitToDisk($ai, $absPath)) > 0) {
                 // Large file: hand each part to its own job so they can run in
                 // parallel across workers instead of one job walking all of them.
-                $this->dispatchChunks($chunkCount);
+                $this->dispatchChunks($chunkCount, $hash ?: null);
                 return;
             } else {
                 // A very large BOQ is parsed in slices. Report each one so the
@@ -397,7 +397,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
      *
      * @param  array<int, string>  $chunks
      */
-    private function dispatchChunks(int $total): void
+    private function dispatchChunks(int $total, ?string $fileHash = null): void
     {
         QuotationItem::where('quotation_request_id', $this->quotationId)->delete();
 
@@ -435,8 +435,8 @@ class ExtractQuotationItemsJob implements ShouldQueue
             // One bad slice must not cancel the rest: partial rows plus an
             // honest "some parts could not be read" beats losing everything.
             ->allowFailures()
-            ->finally(function () use ($quotationId, $ownerKey, $total): void {
-                FinishQuotationExtractionJob::dispatch($quotationId, $ownerKey, $total);
+            ->finally(function () use ($quotationId, $ownerKey, $total, $fileHash): void {
+                FinishQuotationExtractionJob::dispatch($quotationId, $ownerKey, $total, $fileHash);
             })
             ->dispatch();
 

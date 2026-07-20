@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\QuotationSourceTypeEnum;
+use App\Models\BoqParseResult;
 use App\Models\QuotationItem;
 use App\Models\QuotationRequest;
 use App\Jobs\Concerns\MergesDuplicateQuotationRows;
@@ -45,10 +46,17 @@ class FinishQuotationExtractionJob implements ShouldQueue
      */
     private const MAX_AUDITABLE_ROWS = 1500;
 
+    /**
+     * @param  string|null  $fileHash  Content hash of the uploaded file, so the
+     *                                 rows and questions this run produces can be
+     *                                 stored against the document and reused on a
+     *                                 later upload of the same file.
+     */
     public function __construct(
         private int $quotationId,
         private string $ownerKey,
         private int $totalChunks,
+        private ?string $fileHash = null,
     ) {}
 
     public function handle(): void
@@ -106,6 +114,14 @@ class FinishQuotationExtractionJob implements ShouldQueue
             }
 
             $quotation->update(['source_type' => QuotationSourceTypeEnum::Api]);
+
+            // Store the merged rows against the document, so the next upload of
+            // this file reuses them instead of re-running every part. Only when
+            // the whole batch succeeded — a partial parse saved here would serve
+            // its missing rows to every future upload.
+            if ($this->fileHash && $failed === 0) {
+                $this->rememberParsedRows();
+            }
 
             // Gate over the complete set: a per-part gate would ask about rows
             // in isolation and miss anything that only conflicts across parts.
@@ -176,6 +192,32 @@ class FinishQuotationExtractionJob implements ShouldQueue
     }
 
     /**
+     * Save the finished rows against this document.
+     *
+     * Read back from the table rather than carried through the batch: the parts
+     * ran independently and none of them saw the complete set, and the merge
+     * pass has already run by this point.
+     */
+    private function rememberParsedRows(): void
+    {
+        $rows = QuotationItem::where('quotation_request_id', $this->quotationId)
+            ->with('unit')
+            ->get()
+            ->map(fn(QuotationItem $item) => [
+                'description'          => (string) $item->description,
+                'quantity'             => (float) $item->quantity,
+                'unit'                 => (string) ($item->unit?->name ?? ''),
+                'category'             => (string) ($item->category ?? ''),
+                'brand'                => (string) ($item->brand ?? ''),
+                'engineering_required' => (bool) $item->engineering_required,
+                'confidence'           => $item->confidence,
+            ])
+            ->toArray();
+
+        BoqParseResult::remember($this->fileHash, $rows);
+    }
+
+    /**
      * Audit the extracted rows and cache any questions for the user.
      *
      * Never throws: the gate is advisory, so an AI outage must not fail an
@@ -184,6 +226,29 @@ class FinishQuotationExtractionJob implements ShouldQueue
     private function runValidationGate(): void
     {
         $questions = [];
+
+        // Reuse the questions this document produced before.
+        //
+        // Large files take the chunked path and end here, and this job had no
+        // file hash — so it re-audited every time and the user was asked
+        // different things on each upload of an unchanged BOQ. Only the
+        // single-job path was reusing its questions.
+        if ($this->fileHash) {
+            $stored = BoqParseResult::forHash($this->fileHash);
+
+            if ($stored && is_array($stored->questions)) {
+                Cache::put($this->key('boq_ai_questions'), $stored->questions, now()->addHours(12));
+
+                Log::info('FinishQuotationExtractionJob: reusing stored questions.', [
+                    'quotation_id' => $this->quotationId,
+                    'questions'    => count($stored->questions),
+                ]);
+
+                return;
+            }
+        }
+
+        $failed = false;
 
         try {
             $rowCount = QuotationItem::where('quotation_request_id', $this->quotationId)->count();
@@ -217,7 +282,10 @@ class FinishQuotationExtractionJob implements ShouldQueue
 
             $result    = app(BoqValidationService::class)->validate($items);
             $questions = array_slice($result['questions'] ?? [], 0, self::MAX_QUESTIONS);
+            $failed    = (bool) ($result['failed'] ?? false);
         } catch (\Throwable $e) {
+            $failed = true;
+
             Log::error('FinishQuotationExtractionJob: validation gate failed.', [
                 'quotation_id' => $this->quotationId,
                 'message'      => $e->getMessage(),
@@ -225,6 +293,13 @@ class FinishQuotationExtractionJob implements ShouldQueue
         }
 
         Cache::put($this->key('boq_ai_questions'), $questions, now()->addHours(12));
+
+        // Attach to the document so the next upload asks the same things.
+        // Skipped on a failed audit — storing a partial set would pin its gaps
+        // in place for every future upload of this file.
+        if ($this->fileHash && ! $failed) {
+            BoqParseResult::rememberQuestions($this->fileHash, $questions);
+        }
     }
 
     private function status(string $status, string $message): void
