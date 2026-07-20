@@ -96,7 +96,7 @@ class PricingService
                 continue;
             }
 
-            Cache::put(
+            Cache::store('ai')->put(
                 $this->priceCacheKey($item),
                 [
                     'unit_price'   => (float) $item['unit_price'],
@@ -137,7 +137,7 @@ class PricingService
             // Held for PRICE_CACHE_DAYS, deliberately shorter than the
             // quotation's own expiry window, so a re-price after expiry does
             // fetch genuinely current rates.
-            $cached = Cache::get($this->priceCacheKey($item));
+            $cached = Cache::store('ai')->get($this->priceCacheKey($item));
 
             if (is_array($cached) && isset($cached['unit_price'])) {
                 $items[$index]['unit_price']   = (float) $cached['unit_price'];

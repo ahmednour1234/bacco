@@ -47,6 +47,25 @@ return [
             'lock_table' => env('DB_CACHE_LOCK_TABLE'),
         ],
 
+        /*
+         * AI results: extractions, prices, verdicts, market ranges, questions.
+         *
+         * A separate table on purpose. These are not ordinary cache entries —
+         * they are what makes the same BOQ produce the same quotation twice, and
+         * every one of them cost a paid API call. Kept out of the default store
+         * so `cache:clear` (and `optimize:clear`, which calls it) cannot wipe
+         * them during a routine deploy.
+         *
+         * Clear deliberately with: php artisan cache:clear --store=ai
+         */
+        'ai' => [
+            'driver' => 'database',
+            'connection' => env('DB_CACHE_CONNECTION'),
+            'table' => 'ai_cache',
+            'lock_connection' => env('DB_CACHE_LOCK_CONNECTION'),
+            'lock_table' => env('DB_CACHE_LOCK_TABLE'),
+        ],
+
         'file' => [
             'driver' => 'file',
             'path' => storage_path('framework/cache/data'),

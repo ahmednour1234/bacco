@@ -93,7 +93,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
             $hash     = @hash_file('sha256', $absPath);
             $cacheKey = $hash ? 'boq_extraction_' . $hash : null;
 
-            $items = $cacheKey ? Cache::get($cacheKey) : null;
+            $items = $cacheKey ? Cache::store('ai')->get($cacheKey) : null;
 
             // Defaults for the cache-hit path: only complete parses are ever
             // cached, so a hit is by definition not partial and streams nothing.
@@ -179,7 +179,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
                 $partial = (bool) ($result['partial'] ?? false);
 
                 if ($cacheKey !== null && ! $partial) {
-                    Cache::put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
+                    Cache::store('ai')->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
                 }
             }
 

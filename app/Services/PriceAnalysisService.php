@@ -188,7 +188,7 @@ class PriceAnalysisService
         $pending = [];
 
         foreach ($indices as $index) {
-            $cached = Cache::get($this->rangeCacheKey($items[$index]));
+            $cached = Cache::store('ai')->get($this->rangeCacheKey($items[$index]));
 
             if (is_array($cached)) {
                 $ranges[$index] = $cached;
@@ -202,7 +202,7 @@ class PriceAnalysisService
             $fetched = $this->fetchRangeChunk($items, $chunk, $apiKey);
 
             foreach ($fetched as $index => $range) {
-                Cache::put(
+                Cache::store('ai')->put(
                     $this->rangeCacheKey($items[$index]),
                     $range,
                     now()->addDays(self::RANGE_CACHE_DAYS),

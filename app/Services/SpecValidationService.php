@@ -70,7 +70,7 @@ class SpecValidationService
         $indices = [];
 
         foreach ($items as $index => $item) {
-            $cached = Cache::get($this->specCacheKey($item));
+            $cached = Cache::store('ai')->get($this->specCacheKey($item));
 
             if (is_array($cached)) {
                 $items[$index] = array_merge($item, $cached);
@@ -123,7 +123,7 @@ class SpecValidationService
                 continue;
             }
 
-            Cache::put($this->specCacheKey($item), [
+            Cache::store('ai')->put($this->specCacheKey($item), [
                 'validation_status' => $item['validation_status'],
                 'validation_note'   => $item['validation_note']   ?? null,
                 'suggested_unit'    => $item['suggested_unit']    ?? null,
