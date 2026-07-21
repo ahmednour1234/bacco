@@ -329,6 +329,13 @@ class CreateQuotation extends Component
             // the GET-only route answers 405. Dispatch instead, and let
             // checkAiStatus() poll for the result.
             Cache::put($this->cacheKeyFor('boq_ai_status'), 'pending', now()->addHours(12));
+            // A new upload answers nothing yet. These are Livewire properties,
+            // so without clearing them the previous quotation's answers — and
+            // the key derived from them — carry into this one.
+            $this->answersHash       = '';
+            $this->answeredQuestions = [];
+            $this->givenAnswers      = [];
+
             Cache::put($this->cacheKeyFor('boq_ai_message'), '', now()->addHours(12));
             Cache::put($this->cacheKeyFor('boq_ai_started_at'), now()->timestamp, now()->addHours(12));
             Cache::forget($this->cacheKeyFor('boq_ai_partial_count'));
@@ -742,18 +749,18 @@ class CreateQuotation extends Component
                 ->latest()
                 ->value('file_hash');
 
-            // No questions were raised → an empty, but stable, answer set.
-            if ($this->answersHash === '') {
-                $this->answersHash = BoqAnswerResult::hashAnswers([]);
-            }
-
-            // Record the reuse keys here as well as in finishValidation().
+            // Always derived from the answers this quotation actually carries.
             //
-            // That method only runs when the gate actually raised questions, so
-            // a BOQ that produced none never stored its file hash — and the
-            // pricing job, which needs it to look up a previous result, found
-            // nothing and re-priced every time. This path runs on every
-            // quotation.
+            // $this->answersHash is a Livewire property, so it survives between
+            // requests: a hash left over from an earlier quotation's gate leaked
+            // into the next upload and was written here. Four quotations of one
+            // file ended up with three different answer keys, none of which
+            // matched the key their prices were stored under.
+            $this->answersHash = BoqAnswerResult::hashAnswers($this->givenAnswers);
+
+            // Recorded on every quotation, not only after a gate: finishValidation()
+            // runs only when questions were raised, so a BOQ that produced none
+            // never stored its file hash at all.
             $quotation->forceFill([
                 'boq_file_hash' => $fileHash,
                 'answers_hash'  => $this->answersHash,
@@ -1106,11 +1113,9 @@ class CreateQuotation extends Component
      */
     private function storeReuseHashes(QuotationRequest $quotation): void
     {
-        // An empty answer set still hashes stably, so a BOQ with no questions is
-        // cacheable too.
-        if ($this->answersHash === '') {
-            $this->answersHash = BoqAnswerResult::hashAnswers([]);
-        }
+        // Derived, never inherited — the same rule the pricing job applies. An
+        // empty set hashes stably, so a BOQ with no questions is reusable too.
+        $this->answersHash = BoqAnswerResult::hashAnswers($this->givenAnswers);
 
         $fileHash = $quotation->uploadedDocuments()
             ->where('file_type', 'boq')
