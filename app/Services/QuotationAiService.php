@@ -737,6 +737,19 @@ class QuotationAiService
                     return $this->callDeepSeekChat($userContent, $apiKey, $this->deepSeekModel());
                 }
 
+                // Every reader failed. Which one to blame changes the advice: a
+                // missing OCR key is ours to fix and no amount of re-uploading
+                // helps, so telling the user to convert the file would send them
+                // chasing a problem they cannot solve.
+                Log::error('QuotationAiService: every PDF reader failed.', [
+                    'file'          => basename($absPath),
+                    'bytes'         => @filesize($absPath) ?: 0,
+                    'pages'         => $this->lastPdfPageCount,
+                    'pdftotext'     => $this->pdftotextPath() !== null,
+                    'ocr_key_set'   => ((string) config('services.ocrspace.key', '')) !== ''
+                                       && config('services.ocrspace.key') !== 'helloworld',
+                ]);
+
                 return $this->failure('Could not read this PDF. It may be a scanned image, or use a format our reader cannot open. Please convert it to Excel or CSV and upload again.');
             }
 
@@ -946,14 +959,24 @@ class QuotationAiService
             return null;
         }
 
-        // Free tier hard limit. Above it the call is rejected, so do not make it.
+        // The free tier caps the FILE at 3 MB (the 1 MB figure is the per-page
+        // limit). Capping at 1 MB here turned readable BOQs away without trying.
         $size = @filesize($absPath) ?: 0;
-        if ($size > 1024 * 1024) {
+        if ($size > 3 * 1024 * 1024) {
             Log::warning('QuotationAiService: PDF too large for the OCR fallback.', [
                 'bytes' => $size,
-                'limit' => 1024 * 1024,
+                'limit' => 3 * 1024 * 1024,
             ]);
             return null;
+        }
+
+        // 'helloworld' is OCR.space's public demo key, and it is the config
+        // default. It is rate-limited to near-nothing and starts rejecting real
+        // traffic almost immediately, which surfaces to the user as the generic
+        // "could not read this PDF" — indistinguishable from a genuinely
+        // unreadable file. Say so plainly instead.
+        if ($apiKey === 'helloworld') {
+            Log::warning('QuotationAiService: OCR is using the shared demo key; PDF reading will fail under any real use. Set OCRSPACE_API_KEY in .env (free at https://ocr.space/ocrapi/freekey).');
         }
 
         try {
