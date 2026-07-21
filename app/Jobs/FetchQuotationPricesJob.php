@@ -124,17 +124,15 @@ class FetchQuotationPricesJob implements ShouldQueue
             return;
         }
 
-        // Resolve the reuse keys. Only the create page passes them in; the other
-        // dispatch sites (show page, BOQ pages, admin) do not, so fall back to
-        // the copy stored on the quotation itself. Without this fallback those
-        // paths never hit the cache and re-priced against the AI.
-        // Last resort: read the hash off the uploaded document.
+        // Resolve the file hash, in order of how directly it is known.
         //
-        // Only the create page sets boq_file_hash on the quotation, and only
-        // when the validation gate ran. Every other path — the show page, the
-        // BOQ pages, admin, and any BOQ that raised no questions — left it null,
-        // so the reuse lookup was skipped entirely and the log stayed silent.
-        // The document has carried the hash since upload, so derive it there.
+        // Only the create page passes it in, and only the create page ever wrote
+        // it to the quotation — and even then only when the validation gate had
+        // raised questions. Every other route into pricing (the show page, which
+        // is where submit() lands, the BOQ pages, admin) left it null, so the
+        // reuse lookup was skipped without a word in the log. The uploaded
+        // document has carried the hash since upload, so it is the reliable
+        // source.
         $fileHash = $this->fileHash
             ?: $quotation->boq_file_hash
             ?: $quotation->uploadedDocuments()
