@@ -148,6 +148,15 @@ class ExtractQuotationItemsJob implements ShouldQueue
             } elseif (($chunkCount = $this->splitToDisk($ai, $absPath)) > 0) {
                 // Large file: hand each part to its own job so they can run in
                 // parallel across workers instead of one job walking all of them.
+                //
+                // Logged because which path a file takes decides which code
+                // stores its parse, and that has been guesswork until now.
+                Log::info('ExtractQuotationItemsJob: taking the chunked path.', [
+                    'quotation_id' => $this->quotationId,
+                    'chunks'       => $chunkCount,
+                    'has_hash'     => $hash !== false && $hash !== null,
+                ]);
+
                 $this->dispatchChunks($chunkCount, $hash ?: null);
                 return;
             } else {
@@ -228,12 +237,33 @@ class ExtractQuotationItemsJob implements ShouldQueue
             // why boq_parse_results stayed at 0 while the cache kept working.
             // remember() is an upsert, so repeating it is harmless.
             if ($hash && is_array($items) && $items !== []) {
-                BoqParseResult::remember(
-                    $hash,
-                    $items,
-                    basename($this->storedPath),
-                    $size,
-                );
+                try {
+                    BoqParseResult::remember(
+                        $hash,
+                        $items,
+                        basename($this->storedPath),
+                        $size,
+                    );
+
+                    Log::info('ExtractQuotationItemsJob: stored the parse.', [
+                        'quotation_id' => $this->quotationId,
+                        'items'        => count($items),
+                    ]);
+                } catch (\Throwable $e) {
+                    // Reuse is an optimisation; never fail an extraction for it.
+                    // Logged loudly because a silent failure here is what makes
+                    // the same BOQ re-parse and re-price forever.
+                    Log::error('ExtractQuotationItemsJob: could not store the parse.', [
+                        'quotation_id' => $this->quotationId,
+                        'message'      => $e->getMessage(),
+                    ]);
+                }
+            } else {
+                Log::warning('ExtractQuotationItemsJob: parse not stored.', [
+                    'quotation_id' => $this->quotationId,
+                    'has_hash'     => (bool) $hash,
+                    'items'        => is_array($items) ? count($items) : 0,
+                ]);
             }
 
             // Rows streamed chunk-by-chunk are already in the table — rewriting

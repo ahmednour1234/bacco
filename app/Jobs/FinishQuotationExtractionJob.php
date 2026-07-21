@@ -120,7 +120,27 @@ class FinishQuotationExtractionJob implements ShouldQueue
             // the whole batch succeeded — a partial parse saved here would serve
             // its missing rows to every future upload.
             if ($this->fileHash && $failed === 0) {
-                $this->rememberParsedRows();
+                try {
+                    $this->rememberParsedRows();
+
+                    Log::info('FinishQuotationExtractionJob: stored the parse.', [
+                        'quotation_id' => $this->quotationId,
+                        'items'        => $count,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error('FinishQuotationExtractionJob: could not store the parse.', [
+                        'quotation_id' => $this->quotationId,
+                        'message'      => $e->getMessage(),
+                    ]);
+                }
+            } else {
+                // Says exactly which condition blocked it, so this is not a
+                // guess next time.
+                Log::warning('FinishQuotationExtractionJob: parse not stored.', [
+                    'quotation_id'  => $this->quotationId,
+                    'has_hash'      => (bool) $this->fileHash,
+                    'failed_chunks' => $failed,
+                ]);
             }
 
             // Gate over the complete set: a per-part gate would ask about rows
