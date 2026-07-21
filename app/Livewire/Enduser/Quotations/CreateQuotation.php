@@ -747,6 +747,18 @@ class CreateQuotation extends Component
                 $this->answersHash = BoqAnswerResult::hashAnswers([]);
             }
 
+            // Record the reuse keys here as well as in finishValidation().
+            //
+            // That method only runs when the gate actually raised questions, so
+            // a BOQ that produced none never stored its file hash — and the
+            // pricing job, which needs it to look up a previous result, found
+            // nothing and re-priced every time. This path runs on every
+            // quotation.
+            $quotation->forceFill([
+                'boq_file_hash' => $fileHash,
+                'answers_hash'  => $this->answersHash,
+            ])->save();
+
             FetchQuotationPricesJob::dispatch(
                 $quotation->id,
                 Auth::id(),

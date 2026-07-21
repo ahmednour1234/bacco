@@ -128,7 +128,25 @@ class FetchQuotationPricesJob implements ShouldQueue
         // dispatch sites (show page, BOQ pages, admin) do not, so fall back to
         // the copy stored on the quotation itself. Without this fallback those
         // paths never hit the cache and re-priced against the AI.
-        $fileHash = $this->fileHash ?: $quotation->boq_file_hash;
+        // Last resort: read the hash off the uploaded document.
+        //
+        // Only the create page sets boq_file_hash on the quotation, and only
+        // when the validation gate ran. Every other path — the show page, the
+        // BOQ pages, admin, and any BOQ that raised no questions — left it null,
+        // so the reuse lookup was skipped entirely and the log stayed silent.
+        // The document has carried the hash since upload, so derive it there.
+        $fileHash = $this->fileHash
+            ?: $quotation->boq_file_hash
+            ?: $quotation->uploadedDocuments()
+                ->where('file_type', 'boq')
+                ->latest()
+                ->value('file_hash');
+
+        if (! $fileHash) {
+            Log::info('FetchQuotationPricesJob: no file hash; pricing without reuse.', [
+                'quotation_id' => $this->quotationId,
+            ]);
+        }
 
         // Derived from the answers this run actually carries, so lookup and
         // storage agree on the key. Falling back to the quotation's stored hash
