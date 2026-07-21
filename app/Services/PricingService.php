@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\QuotationItem;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -108,6 +109,52 @@ class PricingService
         }
     }
 
+    /**
+     * The most recent price this product was quoted at, if it is still fresh.
+     *
+     * Searched before the AI is asked, so a product already priced on another
+     * quotation keeps that price instead of being re-estimated at a different
+     * figure. Only rows priced within PRICE_CACHE_DAYS count: past that the
+     * market may genuinely have moved, and a stale number is worse than a
+     * current one.
+     *
+     * Matching ignores case and collapses whitespace — "Wooden Office Desk" and
+     * "wooden  office desk" are the same product — but nothing more. A size or
+     * spec in the description makes it a different product, and pricing it from
+     * a shorter description would quote the wrong item.
+     */
+    private function lookupRecentQuotationPrice(array $item): ?float
+    {
+        $description = trim(preg_replace('/\s+/u', ' ', (string) ($item['description'] ?? '')) ?? '');
+        $unit        = trim((string) ($item['unit'] ?? ''));
+
+        if ($description === '') {
+            return null;
+        }
+
+        // LOWER() on both sides rather than relying on the collation, which
+        // differs between servers and would make this behave inconsistently.
+        $query = QuotationItem::query()
+            ->whereRaw('LOWER(TRIM(description)) = ?', [mb_strtolower($description)])
+            ->whereNotNull('unit_price')
+            ->where('unit_price', '>', 0)
+            ->where('updated_at', '>=', now()->subDays(self::PRICE_CACHE_DAYS));
+
+        // Same product measured differently is a different price, so the unit
+        // has to agree when the row carries one.
+        if ($unit !== '') {
+            $query->whereHas('unit', function ($q) use ($unit) {
+                $q->whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower($unit)])
+                  ->orWhereRaw('LOWER(TRIM(symbol)) = ?', [mb_strtolower($unit)]);
+            });
+        }
+
+        // Newest first: if the product was re-priced, that is the figure to use.
+        $price = $query->orderByDesc('updated_at')->value('unit_price');
+
+        return $price !== null ? (float) $price : null;
+    }
+
     public function fetchPrices(array $items): array
     {
         $unmatched = [];
@@ -144,6 +191,29 @@ class PricingService
                 $items[$index]['unit_price']   = (float) $cached['unit_price'];
                 $items[$index]['price_source'] = $cached['price_source'] ?? 'ai_cached';
                 $items[$index]['price_status'] = 'pending';
+
+                continue;
+            }
+
+            // Then what this product was priced at on a previous quotation.
+            //
+            // The cache above can expire or be flushed, and when it did the same
+            // product went back to the AI and came back at a different figure.
+            // The quotation rows are permanent, so they answer the question the
+            // cache was only remembering: what did we quote this at recently?
+            $recent = $this->lookupRecentQuotationPrice($item);
+
+            if ($recent !== null) {
+                $items[$index]['unit_price']   = $recent;
+                $items[$index]['price_source'] = 'previous_quotation';
+                $items[$index]['price_status'] = 'pending';
+
+                // Re-warm the cache so the rest of this run does not re-query.
+                AiCache::store()->put(
+                    $this->priceCacheKey($item),
+                    ['unit_price' => $recent, 'price_source' => 'previous_quotation'],
+                    now()->addDays(self::PRICE_CACHE_DAYS),
+                );
 
                 continue;
             }
