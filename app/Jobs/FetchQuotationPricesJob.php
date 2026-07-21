@@ -479,6 +479,16 @@ class FetchQuotationPricesJob implements ShouldQueue
         $stored = BoqAnswerResult::lookup($fileHash, $answersHash);
 
         if (! $stored || ! is_array($stored->priced_items) || $stored->priced_items === []) {
+            // Says which half of the key missed. Both were silent before, so a
+            // lookup that found nothing was indistinguishable from one that
+            // found an empty row.
+            Log::info('FetchQuotationPricesJob: no stored result for this file + answers.', [
+                'quotation_id' => $this->quotationId,
+                'file_hash'    => substr($fileHash, 0, 12),
+                'answers_hash' => substr($answersHash, 0, 12),
+                'file_seen'    => BoqAnswerResult::where('file_hash', $fileHash)->exists(),
+            ]);
+
             return false;
         }
 
@@ -519,8 +529,32 @@ class FetchQuotationPricesJob implements ShouldQueue
         // Nothing lined up — the rows must have changed. Fall back to real
         // pricing rather than leaving the quotation half-priced.
         if ($applied === 0) {
+            // A stored result that matches no row is the most misleading
+            // failure of the three: the key was right, so the reuse looked
+            // healthy, and the prices still came back from the AI. Log a couple
+            // of keys from each side to make the mismatch obvious.
+            Log::warning('FetchQuotationPricesJob: stored result matched no rows.', [
+                'quotation_id' => $this->quotationId,
+                'stored_keys'  => array_slice(array_keys($byKey), 0, 3),
+                'row_keys'     => QuotationItem::where('quotation_request_id', $this->quotationId)
+                    ->where('status', '!=', 'rejected')
+                    ->with('unit')
+                    ->limit(3)
+                    ->get()
+                    ->map(fn($i) => $this->rowKey([
+                        'description' => $i->description,
+                        'unit'        => $i->unit?->name ?? '',
+                    ]))
+                    ->all(),
+            ]);
+
             return false;
         }
+
+        Log::info('FetchQuotationPricesJob: applied stored prices.', [
+            'quotation_id' => $this->quotationId,
+            'applied'      => $applied,
+        ]);
 
         return true;
     }
