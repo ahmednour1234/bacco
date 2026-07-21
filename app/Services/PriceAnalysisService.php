@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Support\AiCache;
 
 /**
  * Third-pass quotation analysis.
@@ -188,7 +189,7 @@ class PriceAnalysisService
         $pending = [];
 
         foreach ($indices as $index) {
-            $cached = Cache::store('ai')->get($this->rangeCacheKey($items[$index]));
+            $cached = AiCache::store()->get($this->rangeCacheKey($items[$index]));
 
             if (is_array($cached)) {
                 $ranges[$index] = $cached;
@@ -202,7 +203,7 @@ class PriceAnalysisService
             $fetched = $this->fetchRangeChunk($items, $chunk, $apiKey);
 
             foreach ($fetched as $index => $range) {
-                Cache::store('ai')->put(
+                AiCache::store()->put(
                     $this->rangeCacheKey($items[$index]),
                     $range,
                     now()->addDays(self::RANGE_CACHE_DAYS),

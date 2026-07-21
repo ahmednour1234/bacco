@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Support\AiCache;
 
 /**
  * Post-extraction BOQ validation gate.
@@ -73,7 +74,7 @@ class BoqValidationService
         // Keyed on the rows themselves, so any real change to the BOQ produces
         // a different key and a fresh audit.
         $cacheKey = $this->questionsCacheKey($items);
-        $cached   = Cache::store('ai')->get($cacheKey);
+        $cached   = AiCache::store()->get($cacheKey);
 
         if (is_array($cached)) {
             return ['questions' => $cached, 'failed' => false];
@@ -99,7 +100,7 @@ class BoqValidationService
         // Only a complete audit is worth keeping: caching a partial one would
         // pin the gaps in place for every later upload of the same file.
         if (! $anyFailed) {
-            Cache::store('ai')->put($cacheKey, $questions, now()->addDays(self::QUESTIONS_CACHE_DAYS));
+            AiCache::store()->put($cacheKey, $questions, now()->addDays(self::QUESTIONS_CACHE_DAYS));
         }
 
         return ['questions' => $questions, 'failed' => $anyFailed];

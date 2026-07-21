@@ -20,6 +20,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Support\AiCache;
 
 /**
  * Runs the AI extraction for a quotation's uploaded BOQ file in the background.
@@ -94,7 +95,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
             $hash     = @hash_file('sha256', $absPath);
             $cacheKey = $hash ? 'boq_extraction_' . $hash : null;
 
-            $items = $cacheKey ? Cache::store('ai')->get($cacheKey) : null;
+            $items = $cacheKey ? AiCache::store()->get($cacheKey) : null;
 
             // Fall back to the permanent record.
             //
@@ -110,13 +111,13 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
                     // Re-warm the cache so the rest of this run reads it there.
                     if ($cacheKey !== null) {
-                        Cache::store('ai')->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
+                        AiCache::store()->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
                     }
 
                     // The questions came from these exact rows, so they are
                     // reusable too — and they are what the user answers next.
                     if (is_array($stored->questions)) {
-                        Cache::store('ai')->put(
+                        AiCache::store()->put(
                             $this->key('boq_ai_questions'),
                             $stored->questions,
                             now()->addHours(12),
@@ -216,7 +217,7 @@ class ExtractQuotationItemsJob implements ShouldQueue
                 $partial = (bool) ($result['partial'] ?? false);
 
                 if ($cacheKey !== null && ! $partial) {
-                    Cache::store('ai')->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
+                    AiCache::store()->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
                 }
             }
 

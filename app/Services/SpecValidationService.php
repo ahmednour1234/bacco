@@ -7,6 +7,7 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Support\AiCache;
 
 /**
  * Pre-pricing spec validation.
@@ -70,7 +71,7 @@ class SpecValidationService
         $indices = [];
 
         foreach ($items as $index => $item) {
-            $cached = Cache::store('ai')->get($this->specCacheKey($item));
+            $cached = AiCache::store()->get($this->specCacheKey($item));
 
             if (is_array($cached)) {
                 $items[$index] = array_merge($item, $cached);
@@ -123,7 +124,7 @@ class SpecValidationService
                 continue;
             }
 
-            Cache::store('ai')->put($this->specCacheKey($item), [
+            AiCache::store()->put($this->specCacheKey($item), [
                 'validation_status' => $item['validation_status'],
                 'validation_note'   => $item['validation_note']   ?? null,
                 'suggested_unit'    => $item['suggested_unit']    ?? null,

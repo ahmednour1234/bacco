@@ -14,6 +14,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Support\AiCache;
 
 /**
  * Runs the AI extraction for an uploaded BOQ file in the background.
@@ -78,7 +79,7 @@ class ExtractBoqItemsJob implements ShouldQueue
             $hash     = @hash_file('sha256', $absPath);
             $cacheKey = $hash ? 'boq_extraction_' . $hash : null;
 
-            $items  = $cacheKey ? Cache::store('ai')->get($cacheKey) : null;
+            $items  = $cacheKey ? AiCache::store()->get($cacheKey) : null;
             $cached = is_array($items) && $items !== [];
 
             if ($cached) {
@@ -107,7 +108,7 @@ class ExtractBoqItemsJob implements ShouldQueue
 
                 // Only a successful, non-empty parse is worth keeping.
                 if ($cacheKey !== null) {
-                    Cache::store('ai')->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
+                    AiCache::store()->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
                 }
             }
 

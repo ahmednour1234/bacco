@@ -6,6 +6,7 @@ use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Support\AiCache;
 
 /**
  * Second-pass price validation.
@@ -64,7 +65,7 @@ class PriceVerificationService
                 continue;
             }
 
-            $cached = Cache::store('ai')->get($this->verdictCacheKey($item));
+            $cached = AiCache::store()->get($this->verdictCacheKey($item));
 
             if (is_array($cached)) {
                 $items[$index] = array_merge($item, $cached);
@@ -129,7 +130,7 @@ class PriceVerificationService
             // unit_price still holds the price that was sent for judging — the
             // verifier writes its answer to verified_price and leaves the input
             // alone — so the key matches what the next run will look up.
-            Cache::store('ai')->put($this->verdictCacheKey($item), [
+            AiCache::store()->put($this->verdictCacheKey($item), [
                 'verified_price'          => $item['verified_price'] ?? null,
                 'price_verdict'           => $item['price_verdict'],
                 'price_verification_note' => $item['price_verification_note'] ?? null,
