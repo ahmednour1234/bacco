@@ -22,18 +22,18 @@ return new class extends Migration
                 continue;
             }
 
-            Schema::table($tableName, function (Blueprint $table) use ($tableName) {
-                if (Schema::hasColumn($tableName, 'project_id')) {
-                    // SQLite has no real DROP FOREIGN KEY, and the index goes
-                    // with the column, so only MySQL needs the explicit drops.
-                    if (Schema::getConnection()->getDriverName() !== 'sqlite') {
-                        $table->dropForeign(['project_id']);
-                        $table->dropIndex(['project_id']);
-                    }
-
+            if (Schema::hasColumn($tableName, 'project_id')) {
+                // The foreign key must be dropped in the SAME Schema::table call
+                // as the column. SQLite cannot ALTER a constraint away, so
+                // Laravel rebuilds the table — but only when it sees both
+                // operations together. Dropping the column alone leaves the
+                // inline `references projects(id)` behind and SQLite rejects it.
+                Schema::table($tableName, function (Blueprint $table) {
+                    $table->dropForeign(['project_id']);
+                    $table->dropIndex(['project_id']);
                     $table->dropColumn('project_id');
-                }
-            });
+                });
+            }
 
             if (Schema::hasColumn($tableName, 'order_id')) {
                 continue;

@@ -23,7 +23,8 @@ class AiCache
 {
     private static ?Repository $store = null;
 
-    private static bool $warned = false;
+    /** @var array<string, true> Messages already logged this process. */
+    private static array $warned = [];
 
     public static function store(): Repository
     {
@@ -53,22 +54,52 @@ class AiCache
         } catch (\Throwable $e) {
             self::warn('AiCache: the [ai] store is unusable (' . $e->getMessage() . '); using the default store.');
 
-            return self::$store = Cache::store();
+            return self::$store = self::fallback();
         }
 
         self::warn('AiCache: the [ai] store is not defined; using the default store. Run `php artisan config:clear`.');
 
-        return self::$store = Cache::store();
+        return self::$store = self::fallback();
     }
 
-    /** Log once per process, so a per-row cache read cannot flood the log. */
+    /**
+     * The default store, or an in-memory one if even that fails.
+     *
+     * Cache::store() throws on a bad default driver too — an unreachable Redis,
+     * a missing cache table — so falling back to it is not by itself safe. An
+     * array store loses nothing that matters: every AI result is also written to
+     * boq_parse_results / boq_answer_results, and the cache only saves a lookup.
+     * A slow extraction beats an extraction that never runs.
+     */
+    private static function fallback(): Repository
+    {
+        try {
+            $store = Cache::store();
+            $store->get('__ai_cache_probe__');
+
+            return $store;
+        } catch (\Throwable $e) {
+            self::warn('AiCache: the default store is unusable too (' . $e->getMessage() . '); caching in memory for this job only.');
+
+            return Cache::driver('array');
+        }
+    }
+
+    /**
+     * Log once per distinct message, so a per-row cache read cannot flood the
+     * log while a second, different failure still gets reported. Keying on the
+     * message matters: the [ai] fallback always warns first, and a single flag
+     * would have hidden the more serious "default store is unusable too".
+     */
     private static function warn(string $message): void
     {
-        if (self::$warned) {
+        $key = preg_replace('/\(.*\)/', '', $message);
+
+        if (isset(self::$warned[$key])) {
             return;
         }
 
-        self::$warned = true;
+        self::$warned[$key] = true;
         Log::warning($message);
     }
 
@@ -76,6 +107,6 @@ class AiCache
     public static function flushResolved(): void
     {
         self::$store  = null;
-        self::$warned = false;
+        self::$warned = [];
     }
 }

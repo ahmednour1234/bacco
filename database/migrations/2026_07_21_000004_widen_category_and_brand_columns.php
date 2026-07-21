@@ -23,6 +23,14 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // SQLite ignores varchar lengths entirely — a 200-char value fits a
+        // "varchar(100)" column — so there is nothing to widen, and it has no
+        // MODIFY clause to do it with. Only MySQL enforces the limit that broke
+        // the insert, so only MySQL needs the change.
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         foreach (['quotation_items', 'boq_items'] as $table) {
             if (! Schema::hasTable($table)) {
                 continue;

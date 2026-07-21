@@ -308,11 +308,18 @@ class ExtractQuotationItemsJob implements ShouldQueue
                 : "{$count} items extracted successfully from the BOQ file.");
 
         } catch (\Throwable $e) {
+            // The exception class matters as much as the message: "Cache store
+            // [ai] is not defined" reads identically whether the store really is
+            // missing or the AiCache guard that handles that was never loaded,
+            // and those need opposite fixes.
             Log::error('ExtractQuotationItemsJob failed.', [
                 'quotation_id' => $this->quotationId,
+                'exception'    => $e::class,
                 'message'      => $e->getMessage(),
                 'file'         => $e->getFile(),
                 'line'         => $e->getLine(),
+                'guard_loaded' => class_exists(\App\Support\AiCache::class, false)
+                    || class_exists(\App\Support\AiCache::class),
             ]);
 
             $this->status('failed', 'Extraction failed. Please try uploading the file again.');
