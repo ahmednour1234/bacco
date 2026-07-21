@@ -217,16 +217,22 @@ class ExtractQuotationItemsJob implements ShouldQueue
 
                 if ($cacheKey !== null && ! $partial) {
                     Cache::store('ai')->put($cacheKey, $items, self::CACHE_TTL_DAYS * 86400);
-
-                    // Also stored permanently, so this file never needs parsing
-                    // again even if the cache is lost.
-                    BoqParseResult::remember(
-                        $hash,
-                        $items,
-                        basename($this->storedPath),
-                        $size,
-                    );
                 }
+            }
+
+            // Back-fill the permanent record whenever we hold rows and a hash.
+            //
+            // This used to sit inside the fresh-parse branch only, so a run that
+            // was served from the cache never wrote the table — which is exactly
+            // why boq_parse_results stayed at 0 while the cache kept working.
+            // remember() is an upsert, so repeating it is harmless.
+            if ($hash && is_array($items) && $items !== []) {
+                BoqParseResult::remember(
+                    $hash,
+                    $items,
+                    basename($this->storedPath),
+                    $size,
+                );
             }
 
             // Rows streamed chunk-by-chunk are already in the table — rewriting
@@ -293,6 +299,28 @@ class ExtractQuotationItemsJob implements ShouldQueue
      */
     private function runValidationGate(array $items, ?string $fileHash = null): void
     {
+        // Reuse the questions this document produced before.
+        //
+        // Without this the gate re-asked the AI on every upload, and since the
+        // model is not deterministic the user was asked different things about
+        // an unchanged BOQ — and different answers then produced different
+        // prices. Only the chunked path had this check; the single-job path did
+        // not, which is the one a normal-sized file takes.
+        if ($fileHash !== null) {
+            $stored = BoqParseResult::forHash($fileHash);
+
+            if ($stored && is_array($stored->questions)) {
+                Cache::put($this->key('boq_ai_questions'), $stored->questions, now()->addHours(12));
+
+                Log::info('ExtractQuotationItemsJob: reusing stored questions.', [
+                    'quotation_id' => $this->quotationId,
+                    'questions'    => count($stored->questions),
+                ]);
+
+                return;
+            }
+        }
+
         $questions = [];
         $failed    = false;
 
