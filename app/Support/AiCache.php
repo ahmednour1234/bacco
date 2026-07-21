@@ -31,19 +31,45 @@ class AiCache
             return self::$store;
         }
 
-        // config() is read rather than trusting the store to exist, because
-        // Cache::store() on an undefined name throws rather than returning null.
-        if (config('cache.stores.ai') !== null) {
-            return self::$store = Cache::store('ai');
+        // Everything here is belt-and-braces on purpose: this store is read on
+        // the first line of every extraction, so anything it throws takes the
+        // whole job down before a single row is parsed. It must degrade, never
+        // fail.
+        try {
+            // config() is read rather than trusting the store to exist, because
+            // Cache::store() on an undefined name throws rather than returning
+            // null. A server still serving a config cached from before the store
+            // was added lands here.
+            if (config('cache.stores.ai') !== null) {
+                $store = Cache::store('ai');
+
+                // Touch it once. The config can be present while the backing
+                // table is not — a deploy that pulled the config but skipped the
+                // migration — and that failure would otherwise surface mid-job.
+                $store->get('__ai_cache_probe__');
+
+                return self::$store = $store;
+            }
+        } catch (\Throwable $e) {
+            self::warn('AiCache: the [ai] store is unusable (' . $e->getMessage() . '); using the default store.');
+
+            return self::$store = Cache::store();
         }
 
-        if (! self::$warned) {
-            self::$warned = true;
-
-            Log::warning('AiCache: the [ai] store is not defined; using the default store. Run `php artisan config:clear`.');
-        }
+        self::warn('AiCache: the [ai] store is not defined; using the default store. Run `php artisan config:clear`.');
 
         return self::$store = Cache::store();
+    }
+
+    /** Log once per process, so a per-row cache read cannot flood the log. */
+    private static function warn(string $message): void
+    {
+        if (self::$warned) {
+            return;
+        }
+
+        self::$warned = true;
+        Log::warning($message);
     }
 
     /** Clears the memoised store. Only needed in tests that swap config. */
