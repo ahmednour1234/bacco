@@ -2105,8 +2105,13 @@ PROMPT;
             'description'          => $description,
             'quantity'             => $quantity,
             'unit'                 => (string) ($raw['unit'] ?? ''),
-            'category'             => (string) ($raw['core_product'] ?? $raw['category'] ?? ''),
-            'brand'                => (string) ($specs['brand'] ?? $raw['brand'] ?? ''),
+            // Clamped to the column width. The model routinely returns a whole
+            // description here — "Cocktail Unit Ice well adjacent to chopping
+            // area with waste chute…" — and a value over 100 chars made the
+            // INSERT fail with SQLSTATE[22001], which silently cost the whole
+            // chunk its rows and left the reuse tables empty.
+            'category'             => mb_substr((string) ($raw['core_product'] ?? $raw['category'] ?? ''), 0, 100),
+            'brand'                => mb_substr((string) ($specs['brand'] ?? $raw['brand'] ?? ''), 0, 100),
             'status'               => 'pending',
             'engineering_required' => $this->boqCleaner->requiresEngineering($description),
             'unit_price'           => $unitPrice,

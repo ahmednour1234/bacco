@@ -205,26 +205,39 @@ class ExtractQuotationChunkJob implements ShouldQueue
             $rawUnit     = (string) ($aiItem['unit'] ?? '');
             $fixedUnit   = $engine->normalizeUnitFor($description, $rawUnit);
 
-            QuotationItem::create([
-                'quotation_request_id' => $this->quotationId,
-                'description'          => $description,
-                'quantity'             => $this->resolveQuantity($aiItem['quantity'] ?? null),
-                'unit_id'              => $this->resolveUnitId(
-                    $fixedUnit !== null ? null : ($aiItem['unit_id'] ?? null),
-                    $fixedUnit ?? $rawUnit,
-                ),
-                'category'             => (string) ($aiItem['category'] ?? ''),
-                'brand'                => (string) ($aiItem['brand'] ?? ''),
-                'status'               => $aiItem['status'] ?? 'pending',
-                'engineering_required' => (bool) ($aiItem['engineering_required'] ?? false),
-                'confidence'           => is_numeric($aiItem['confidence'] ?? null) ? (float) $aiItem['confidence'] : null,
-                'unit_price'           => is_numeric($aiItem['unit_price'] ?? null) ? (float) $aiItem['unit_price'] : null,
-                'raw_data'             => $aiItem['raw_data'] ?? null,
-                'ai_extracted'         => true,
-                'price_status'         => 'pending',
-                'is_selected'          => true,
-            ]);
-            $written++;
+            // One bad row must not cost the slice its other rows. A single
+            // over-long value used to abort the whole loop, so a 55-part file
+            // could lose thousands of good lines to one malformed one — and
+            // nothing was ever stored for reuse.
+            try {
+                QuotationItem::create([
+                    'quotation_request_id' => $this->quotationId,
+                    'description'          => $description,
+                    'quantity'             => $this->resolveQuantity($aiItem['quantity'] ?? null),
+                    'unit_id'              => $this->resolveUnitId(
+                        $fixedUnit !== null ? null : ($aiItem['unit_id'] ?? null),
+                        $fixedUnit ?? $rawUnit,
+                    ),
+                    'category'             => mb_substr((string) ($aiItem['category'] ?? ''), 0, 100),
+                    'brand'                => mb_substr((string) ($aiItem['brand'] ?? ''), 0, 100),
+                    'status'               => $aiItem['status'] ?? 'pending',
+                    'engineering_required' => (bool) ($aiItem['engineering_required'] ?? false),
+                    'confidence'           => is_numeric($aiItem['confidence'] ?? null) ? (float) $aiItem['confidence'] : null,
+                    'unit_price'           => is_numeric($aiItem['unit_price'] ?? null) ? (float) $aiItem['unit_price'] : null,
+                    'raw_data'             => $aiItem['raw_data'] ?? null,
+                    'ai_extracted'         => true,
+                    'price_status'         => 'pending',
+                    'is_selected'          => true,
+                ]);
+                $written++;
+            } catch (\Throwable $e) {
+                Log::warning('ExtractQuotationChunkJob: skipped an unwritable row.', [
+                    'quotation_id' => $this->quotationId,
+                    'part'         => $this->part,
+                    'description'  => mb_substr($description, 0, 120),
+                    'message'      => $e->getMessage(),
+                ]);
+            }
         }
 
         return $written;
