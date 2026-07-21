@@ -128,8 +128,13 @@ class FetchQuotationPricesJob implements ShouldQueue
         // dispatch sites (show page, BOQ pages, admin) do not, so fall back to
         // the copy stored on the quotation itself. Without this fallback those
         // paths never hit the cache and re-priced against the AI.
-        $fileHash    = $this->fileHash    ?: $quotation->boq_file_hash;
-        $answersHash = $this->answersHash ?: $quotation->answers_hash;
+        $fileHash = $this->fileHash ?: $quotation->boq_file_hash;
+
+        // Derived from the answers this run actually carries, so lookup and
+        // storage agree on the key. Falling back to the quotation's stored hash
+        // was what let the two drift apart: a run with no answers looked up one
+        // key and then stored under another.
+        $answersHash = BoqAnswerResult::hashAnswers($this->answers);
 
         // This exact file, priced with this exact answer set, has been done
         // before — apply the stored prices instead of paying for the AI again.
@@ -539,9 +544,28 @@ class FetchQuotationPricesJob implements ShouldQueue
             ])
             ->toArray();
 
+        // Recomputed from the answers actually being stored, never trusted from
+        // the caller.
+        //
+        // The passed-in hash and the passed-in answers could disagree: a run
+        // that fell back to the quotation's stored hash still stored empty
+        // answers, so the row was keyed on one thing and described another. Two
+        // uploads of the same file with no questions produced two rows with
+        // different keys and identical (empty) answers, and neither could ever
+        // be found again.
+        $canonicalHash = BoqAnswerResult::hashAnswers($this->answers);
+
+        if ($canonicalHash !== $answersHash) {
+            Log::info('FetchQuotationPricesJob: answer hash recomputed from the stored answers.', [
+                'quotation_id' => $this->quotationId,
+                'passed'       => substr($answersHash, 0, 12),
+                'canonical'    => substr($canonicalHash, 0, 12),
+            ]);
+        }
+
         BoqAnswerResult::remember(
             $fileHash,
-            $answersHash,
+            $canonicalHash,
             $priced,
             $this->questions,
             $this->answers,
