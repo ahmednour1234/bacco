@@ -717,6 +717,7 @@ return [
     'import_queued'                => 'Import queued for processing.',
     'queue_started'                => 'Queue worker started. Processing will begin shortly — refresh in a moment.',
     'map_columns_first'            => 'This import has no column mapping yet. Please map the columns (Item Description is required) and confirm.',
+    'research_launched'            => 'Research started for all ready rows. Products, sources, sizes and manufacturers will appear under Product Catalog as the queue processes them. Run the queue if it is not already running.',
     'management'                    => 'Management',
     'add'                           => 'Add',
     'add_brand'                     => 'Add Brand',

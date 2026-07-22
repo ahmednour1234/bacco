@@ -32,6 +32,19 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
+            @can('catalog.research.start')
+            @if(($report['rows_ready_for_research'] ?? 0) > 0)
+            <form method="POST" action="{{ route('admin.catalog.research.imports.research', $import->uuid) }}"
+                  onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Starting…';">@csrf
+                <button class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    Start Research ({{ number_format($report['rows_ready_for_research']) }})
+                </button>
+            </form>
+            @endif
+            @endcan
             @can('catalog.import.process')
             <form method="POST" action="{{ route('admin.catalog.research.imports.reprocess', $import->uuid) }}">@csrf
                 <button class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600">Reprocess</button>

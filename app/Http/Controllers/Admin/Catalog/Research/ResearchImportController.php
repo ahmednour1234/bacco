@@ -148,6 +148,27 @@ class ResearchImportController extends Controller
     }
 
     /**
+     * Launch AI research for every "ready for research" family in this import.
+     * Fans out on the queue (LaunchImportResearchJob) so the request returns at
+     * once; each family then flows through the staged research pipeline that
+     * discovers real products, their manufacturers, sizes, approvals and the
+     * official source URLs they came from.
+     */
+    public function research(string $uuid): RedirectResponse
+    {
+        $this->authorize('catalog.research.start');
+
+        $import = $this->importService->findByUuid($uuid);
+
+        \App\Jobs\Catalog\Research\LaunchImportResearchJob::dispatch($import->id)
+            ->onQueue(config('catalog_research.queue', 'default'));
+
+        return redirect()
+            ->route('admin.catalog.research.imports.show', $import->uuid)
+            ->with('success', __('app.research_launched'));
+    }
+
+    /**
      * Re-queue a failed/finished import to run again (e.g. after fixing the
      * queue worker). Clears its counters and re-dispatches the job.
      */

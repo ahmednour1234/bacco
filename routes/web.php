@@ -344,6 +344,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('imports/{uuid}/map',     [ResearchImportController::class, 'map'])->name('imports.map');
                 Route::post('imports/{uuid}/process',  [ResearchImportController::class, 'process'])->name('imports.process');
                 Route::post('imports/{uuid}/reprocess',[ResearchImportController::class, 'reprocess'])->name('imports.reprocess');
+                Route::post('imports/{uuid}/research', [ResearchImportController::class, 'research'])->name('imports.research');
                 Route::post('queue/run',               [ResearchImportController::class, 'runQueue'])->name('queue.run');
 
                 // Product families + research controls
