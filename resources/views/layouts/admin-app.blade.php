@@ -244,7 +244,8 @@
                             ['jobs.index',     'admin.catalog.research.jobs.*',     'Research Jobs'],
                             ['review.index',   'admin.catalog.research.review.*',   'Review Queue'],
                             ['sources.index',  'admin.catalog.research.sources.*',  'Source Register'],
-                            ['pricing.index',  'admin.catalog.research.pricing.*',  'Pricing'],
+                            ['pricing.index',    'admin.catalog.research.pricing.index',  'Pricing'],
+                            ['pricing.boq.index','admin.catalog.research.pricing.boq.*',  'BOQ Matching'],
                         ];
                     @endphp
                     @foreach($subLinks as [$route, $pattern, $label])

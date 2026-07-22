@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\Catalog\Research\ResearchImportController;
 use App\Http\Controllers\Admin\Catalog\Research\ProductFamilyController as ResearchFamilyController;
 use App\Http\Controllers\Admin\Catalog\Research\ProductCatalogController as ResearchCatalogController;
 use App\Http\Controllers\Admin\Catalog\Research\ResearchJobController;
+use App\Http\Controllers\Admin\Catalog\Pricing\BoqMatchController;
 use App\Http\Controllers\Admin\Catalog\Pricing\PriceMatchReviewController;
 use App\Http\Controllers\Admin\Catalog\Pricing\PricingController;
 use App\Http\Controllers\Admin\Catalog\Pricing\SupplierController;
@@ -390,6 +391,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
                     Route::get('suppliers',        [SupplierController::class, 'index'])->name('suppliers');
                     Route::post('suppliers',       [SupplierController::class, 'store'])->name('suppliers.store');
                     Route::post('suppliers/sync',  [SupplierController::class, 'sync'])->name('suppliers.sync');
+
+                    // BOQ ↔ catalog matching: pick the product, price it inline
+                    Route::prefix('boq')->name('boq.')->group(function () {
+                        Route::get('/',                    [BoqMatchController::class, 'index'])->name('index');
+                        Route::get('{boq}',                [BoqMatchController::class, 'show'])->name('show');
+                        Route::post('{boq}/rematch',       [BoqMatchController::class, 'rematch'])->name('rematch');
+                        Route::post('match/{match}/select', [BoqMatchController::class, 'select'])->name('select');
+                        Route::post('match/{match}/reject', [BoqMatchController::class, 'reject'])->name('reject');
+                        Route::post('match/{match}/price',  [BoqMatchController::class, 'priceMatch'])->name('price');
+                    });
                 });
             });
         });
