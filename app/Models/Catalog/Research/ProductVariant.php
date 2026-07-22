@@ -129,4 +129,13 @@ class ProductVariant extends Model
     {
         return $this->hasMany(ProductSourceEvidence::class, 'product_variant_id');
     }
+
+    /**
+     * Prices live in a separate layer: this module stores no price of its own,
+     * but a variant is what a price attaches to.
+     */
+    public function prices(): HasMany
+    {
+        return $this->hasMany(\App\Models\Catalog\Pricing\ProductVariantPrice::class, 'product_variant_id');
+    }
 }

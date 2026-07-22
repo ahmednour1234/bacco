@@ -21,6 +21,9 @@ use App\Http\Controllers\Admin\Catalog\Research\ResearchImportController;
 use App\Http\Controllers\Admin\Catalog\Research\ProductFamilyController as ResearchFamilyController;
 use App\Http\Controllers\Admin\Catalog\Research\ProductCatalogController as ResearchCatalogController;
 use App\Http\Controllers\Admin\Catalog\Research\ResearchJobController;
+use App\Http\Controllers\Admin\Catalog\Pricing\PriceMatchReviewController;
+use App\Http\Controllers\Admin\Catalog\Pricing\PricingController;
+use App\Http\Controllers\Admin\Catalog\Pricing\SupplierController;
 use App\Http\Controllers\Admin\Catalog\Research\ReviewQueueController;
 use App\Http\Controllers\Admin\Catalog\Research\SourceRegisterController;
 use App\Http\Controllers\Admin\Catalog\Research\ProductExportController;
@@ -371,6 +374,23 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
                 // Excel export (no prices)
                 Route::get('exports/products',  [ProductExportController::class, 'products'])->name('exports.products');
+
+                // ── Pricing layer (separate from the catalog, which holds no prices) ──
+                Route::prefix('pricing')->name('pricing.')->group(function () {
+                    Route::get('/',                [PricingController::class, 'index'])->name('index');
+                    Route::get('variant/{uuid}',   [PricingController::class, 'show'])->name('show');
+                    Route::post('variant/{uuid}',  [PricingController::class, 'store'])->name('store');
+                    Route::delete('variant/{uuid}/price/{price}', [PricingController::class, 'destroy'])->name('destroy');
+
+                    // Review of scraped→catalog links before they become prices
+                    Route::get('matches',                 [PriceMatchReviewController::class, 'index'])->name('matches');
+                    Route::post('matches/{id}/confirm',   [PriceMatchReviewController::class, 'confirm'])->name('matches.confirm');
+                    Route::post('matches/{id}/reject',    [PriceMatchReviewController::class, 'reject'])->name('matches.reject');
+
+                    Route::get('suppliers',        [SupplierController::class, 'index'])->name('suppliers');
+                    Route::post('suppliers',       [SupplierController::class, 'store'])->name('suppliers.store');
+                    Route::post('suppliers/sync',  [SupplierController::class, 'sync'])->name('suppliers.sync');
+                });
             });
         });
     });
