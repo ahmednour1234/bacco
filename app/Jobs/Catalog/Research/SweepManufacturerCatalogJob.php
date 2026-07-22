@@ -15,6 +15,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Enumerates one page of one manufacturer's published catalog.
@@ -120,13 +121,48 @@ class SweepManufacturerCatalogJob implements ShouldQueue
         }
 
         if (! $response->valid) {
-            // A malformed page ends this sweep rather than looping on garbage.
+            // A non-JSON reply almost always means the model had nothing to
+            // list for this maker/category (very narrow or one-off products),
+            // so it answers in prose instead. That is an empty result, not an
+            // error: record it as completed so the sweep stops cleanly rather
+            // than being retried and counted as a failure.
+            $job->update([
+                'status'        => ResearchJobStatusEnum::Completed,
+                'completed_at'  => now(),
+                'error_message' => 'No enumerable catalog for this category.',
+            ]);
+
+            Log::info('Catalog sweep found nothing to enumerate.', [
+                'manufacturer' => $manufacturer->name,
+                'category'     => $this->category,
+                'page'         => $this->page,
+            ]);
+
             return;
         }
 
         // Persist through the normal pipeline, which enforces the source and
         // verification rules — expansion gets no shortcut around them.
-        ProcessResearchResultJob::dispatchSync($job->id);
+        //
+        // Wrapped: persistence can throw on a duplicate key or an over-long
+        // value, and an uncaught throw here kills the whole job (landing it in
+        // failed_jobs) even though the page itself was fetched successfully.
+        try {
+            ProcessResearchResultJob::dispatchSync($job->id);
+        } catch (\Throwable $e) {
+            Log::warning('Sweep page persisted with errors; continuing.', [
+                'manufacturer' => $manufacturer->name,
+                'category'     => $this->category,
+                'page'         => $this->page,
+                'message'      => $e->getMessage(),
+            ]);
+
+            $job->update([
+                'status'        => ResearchJobStatusEnum::PartiallyCompleted,
+                'completed_at'  => now(),
+                'error_message' => Str::limit($e->getMessage(), 500),
+            ]);
+        }
 
         $returned = count($response->data['series'] ?? []);
 
