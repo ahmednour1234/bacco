@@ -22,7 +22,8 @@ class ExpandCatalogCommand extends Command
                             {--categories=1 : Categories per manufacturer}
                             {--per-page=10 : Series requested per page}
                             {--max-pages=5 : Page cap per manufacturer/category}
-                            {--min-variants=0 : Only sweep makers with at least this many variants}
+                            {--min-variants=3 : Only sweep makers with at least this many variants}
+                            {--require-website : Skip makers with no official website}
                             {--dry-run : Show the plan without dispatching}';
 
     protected $description = 'Expand the catalog by sweeping manufacturers\' published product ranges';
@@ -54,6 +55,15 @@ class ExpandCatalogCommand extends Command
                 'variant_count'
             )
             ->where('is_active', true)
+            // A maker with an official website has a catalog to enumerate;
+            // one without is usually a name the research stage could not pin
+            // down, and sweeping it just burns API calls for nothing.
+            ->when($this->option('require-website'), fn ($q) => $q
+                ->whereNotNull('official_website')
+                ->where('official_website', '!=', ''))
+            // Generic single-word names ("Arrow", "Crane", "Frap") cannot be
+            // resolved to one real manufacturer, so the model would guess.
+            ->whereRaw('CHAR_LENGTH(name) >= 4')
             ->havingRaw('variant_count >= ?', [$minVariants])
             ->orderByDesc('variant_count')
             ->limit($limit)
@@ -63,6 +73,16 @@ class ExpandCatalogCommand extends Command
             $this->components->warn('No manufacturers matched. Lower --min-variants.');
 
             return self::SUCCESS;
+        }
+
+        // Sweeping makers that produced nothing is the main way to waste money
+        // here, so make the productive/unproductive split visible up front.
+        $weak = $makers->where('variant_count', '<', 3)->count();
+        if ($weak > 0) {
+            $this->components->warn(
+                "{$weak} of these makers have fewer than 3 known variants — they are the least " .
+                'likely to return results. Raise --min-variants to skip them.'
+            );
         }
 
         $queue      = config('catalog_research.queue', 'default');
@@ -76,11 +96,13 @@ class ExpandCatalogCommand extends Command
             }
 
             foreach ($categories as $category) {
+                // The tick marks whether we know an official site to read from.
                 $this->line(sprintf(
-                    '  %s <comment>%s</comment> — %s',
-                    str_pad(mb_substr($maker->name, 0, 28), 30),
+                    '  %s <comment>%s</comment> %s %s',
+                    str_pad(mb_substr($maker->name, 0, 26), 28),
                     str_pad((string) $maker->variant_count, 5, ' ', STR_PAD_LEFT),
-                    $category
+                    $maker->official_website ? '<info>site</info>' : '<comment>  — </comment>',
+                    mb_substr($category, 0, 34)
                 ));
 
                 if (! $dry) {
