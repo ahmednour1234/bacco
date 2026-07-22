@@ -53,16 +53,35 @@ class DefaultResearchResultPersister implements ResearchResultPersister
     {
         $accepted = $rejected = $duplicate = 0;
 
-        $manufacturer = $this->resolveManufacturer($family, $response->data['manufacturer'] ?? null);
+        // A response may carry ONE top-level manufacturer, or the manufacturer
+        // may be named per series/variant (the "discover many manufacturers"
+        // shape). Resolve a default, but always fall back to per-node names so a
+        // missing top-level node never rejects every variant.
+        $defaultManufacturer = $this->resolveManufacturer($family, $response->data['manufacturer'] ?? null);
 
         foreach ($response->series() as $seriesNode) {
+            // Manufacturer for this series: series/first-variant name, else default.
+            $manufacturer = $this->manufacturerForNode($family, $seriesNode, $defaultManufacturer);
+
             $series = $this->resolveSeries($family, $manufacturer, $seriesNode);
 
-            foreach ($seriesNode['models'] ?? [] as $modelNode) {
+            // The AI sometimes puts variants directly on the series with no
+            // "models" wrapper — synthesise a model so they still persist.
+            $modelNodes = $seriesNode['models'] ?? [];
+            if (empty($modelNodes) && ! empty($seriesNode['variants'])) {
+                $modelNodes = [['model_number' => $seriesNode['series_name'] ?? null, 'variants' => $seriesNode['variants']]];
+            }
+
+            foreach ($modelNodes as $modelNode) {
                 $model = $this->resolveModel($family, $manufacturer, $series, $modelNode);
 
                 foreach ($modelNode['variants'] ?? [] as $variantNode) {
-                    $outcome = $this->persistVariant($family, $manufacturer, $model, $series, $variantNode);
+                    // Allow a per-variant manufacturer override.
+                    $variantManufacturer = ! empty($variantNode['manufacturer'])
+                        ? ($this->lookups->manufacturer((string) $variantNode['manufacturer']) ?? $manufacturer)
+                        : $manufacturer;
+
+                    $outcome = $this->persistVariant($family, $variantManufacturer, $model, $series, $variantNode);
                     $accepted  += $outcome === 'accepted' ? 1 : 0;
                     $duplicate += $outcome === 'duplicate' ? 1 : 0;
                     $rejected  += $outcome === 'rejected' ? 1 : 0;
@@ -71,6 +90,30 @@ class DefaultResearchResultPersister implements ResearchResultPersister
         }
 
         return ['accepted' => $accepted, 'rejected' => $rejected, 'duplicate' => $duplicate];
+    }
+
+    /**
+     * Resolve the manufacturer that applies to a series node: an explicit name
+     * on the series, else on its first variant, else the response default.
+     */
+    private function manufacturerForNode(ProductFamily $family, array $seriesNode, ?Manufacturer $default): ?Manufacturer
+    {
+        $name = $seriesNode['manufacturer']
+            ?? ($seriesNode['models'][0]['variants'][0]['manufacturer'] ?? null)
+            ?? ($seriesNode['variants'][0]['manufacturer'] ?? null);
+
+        if ($name) {
+            $m = $this->lookups->manufacturer((string) $name);
+            if ($m) {
+                $family->manufacturers()->syncWithoutDetaching([
+                    $m->id => ['source_type' => 'discovered_by_research'],
+                ]);
+
+                return $m;
+            }
+        }
+
+        return $default;
     }
 
     private function resolveManufacturer(ProductFamily $family, ?array $node): ?Manufacturer

@@ -148,7 +148,12 @@ class ResearchPromptBuilder
     /** Appended to every prompt so the model returns the exact shape we validate. */
     private function schemaReminder(): string
     {
-        return "Respond with a single JSON object matching this shape exactly:\n"
+        return "IMPORTANT: The \"series\" array MUST be populated with the real "
+            . "product series/models and their variants — do NOT return an empty "
+            . "\"series\" array. Each variant MUST include at least one official "
+            . "source URL. Put the manufacturer name on each variant if several "
+            . "manufacturers are involved.\n\n"
+            . "Respond with a single JSON object matching this shape exactly:\n"
             . '{"product_family":{"name":string,"normalized_name":string},'
             . '"manufacturer":{"name":string,"official_website":string|null,"country":string|null},'
             . '"series":[{"series_name":string,"official_product_name":string|null,'
