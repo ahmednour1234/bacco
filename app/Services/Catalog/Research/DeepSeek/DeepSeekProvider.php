@@ -24,7 +24,9 @@ class DeepSeekProvider implements AiResearchProvider
 
     public function research(ResearchRequest $request): ResearchResponse
     {
-        $system = $this->prompts->systemPrompt();
+        // Expansion runs at volume, so it gets the stricter enumerate-only
+        // system prompt instead of the general discovery one.
+        $system = $this->prompts->systemPromptFor($request->type);
         $user   = $this->prompts->userPrompt($request);
 
         $result = $this->client->chat($system, $user);

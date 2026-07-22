@@ -77,8 +77,49 @@ class ResearchPromptBuilder
             ResearchJobTypeEnum::VerifyProduct,
             ResearchJobTypeEnum::VerifyApproval,
             ResearchJobTypeEnum::VerifySource          => $this->verify($request),
+            // Expansion enumerates a maker's published catalog rather than
+            // researching one Excel row; context carries the page/model.
+            ResearchJobTypeEnum::ManufacturerCatalogSweep => $this->manufacturerSweep($request),
+            ResearchJobTypeEnum::SizeRangeExpansion       => $this->sizeRange($request),
             default                                     => $this->discoverVariants($request),
         } . "\n\n" . $this->schemaReminder();
+    }
+
+    /**
+     * Expansion prompts are stricter than discovery: they run at volume, so a
+     * loose rule would multiply into thousands of invented rows.
+     */
+    public function systemPromptFor(ResearchJobTypeEnum $type): string
+    {
+        return $type->isExpansion()
+            ? (new CatalogExpansionPromptBuilder())->systemPrompt()
+            : $this->systemPrompt();
+    }
+
+    private function manufacturerSweep(ResearchRequest $r): string
+    {
+        $ctx = $r->context;
+
+        return (new CatalogExpansionPromptBuilder())->manufacturerSweep(
+            manufacturer: $r->manufacturerName ?? ($ctx['manufacturer'] ?? 'Unknown'),
+            website: $ctx['website'] ?? null,
+            category: $ctx['category'] ?? $r->familyName,
+            page: (int) ($ctx['page'] ?? 1),
+            perPage: (int) ($ctx['per_page'] ?? 10),
+            knownModels: (array) ($ctx['known_models'] ?? []),
+        );
+    }
+
+    private function sizeRange(ResearchRequest $r): string
+    {
+        $ctx = $r->context;
+
+        return (new CatalogExpansionPromptBuilder())->sizeRangeExpansion(
+            manufacturer: $r->manufacturerName ?? ($ctx['manufacturer'] ?? 'Unknown'),
+            modelNumber: (string) ($ctx['model_number'] ?? ''),
+            seriesName: $ctx['series_name'] ?? null,
+            sourceUrl: $ctx['source_url'] ?? null,
+        );
     }
 
     private function discoverManufacturers(ResearchRequest $r): string

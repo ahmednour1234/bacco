@@ -16,6 +16,13 @@ enum ResearchJobTypeEnum: string
     case DetectDuplicates       = 'detect_duplicates';
     case RefreshExistingProducts = 'refresh_existing_products';
 
+    // --- Deep Catalog Expansion ------------------------------------------
+    // Growth comes from enumerating what manufacturers actually publish, not
+    // from combining attributes. Both types below still obey the no-invention
+    // rules: every product needs a source, every size must be published.
+    case ManufacturerCatalogSweep = 'manufacturer_catalog_sweep';
+    case SizeRangeExpansion       = 'size_range_expansion';
+
     public function label(): string
     {
         return match ($this) {
@@ -29,7 +36,20 @@ enum ResearchJobTypeEnum: string
             self::EnrichMissingFields    => 'Enrich Missing Fields',
             self::DetectDuplicates       => 'Detect Duplicates',
             self::RefreshExistingProducts => 'Refresh Existing Products',
+            self::ManufacturerCatalogSweep => 'Manufacturer Catalog Sweep',
+            self::SizeRangeExpansion       => 'Official Size Range Expansion',
         };
+    }
+
+    /**
+     * Expansion jobs enumerate an existing maker's published catalog rather
+     * than researching one Excel row, so they are dispatched per manufacturer
+     * and may run without a product family.
+     */
+    public function isExpansion(): bool
+    {
+        return $this === self::ManufacturerCatalogSweep
+            || $this === self::SizeRangeExpansion;
     }
 
     public static function values(): array
