@@ -47,6 +47,11 @@ return [
         'key'          => env('DEEPSEEK_API_KEY'),
         'model'        => env('DEEPSEEK_MODEL', 'deepseek-chat'),
         'vision_model' => env('DEEPSEEK_VISION_MODEL', 'deepseek-vl2'),
+        // Catalog research client settings (see config/catalog_research.php too).
+        'base_url'     => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
+        'timeout'      => (int) env('DEEPSEEK_TIMEOUT', 120),
+        'max_retries'  => (int) env('DEEPSEEK_MAX_RETRIES', 3),
+        'rate_limit'   => (int) env('DEEPSEEK_RATE_LIMIT', 30), // requests / minute
     ],
 
     // Google Gemini — free tier at https://aistudio.google.com/apikey

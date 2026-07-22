@@ -220,6 +220,43 @@
                 </div>
             </div>
 
+            {{-- Product Research (catalog research module) --}}
+            @can('catalog.import.view')
+            @php $researchActive = request()->routeIs('admin.catalog.research.*'); @endphp
+            <div x-data="{ open: {{ $researchActive ? 'true' : 'false' }} }">
+                <button @click="open = !open"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                           {{ $researchActive ? 'text-emerald-700 bg-emerald-50' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <span class="flex-1 text-start">{{ __('app.product_research') }}</span>
+                    <svg class="w-4 h-4 shrink-0 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="open" x-cloak class="mt-0.5 ms-4 border-s border-slate-100 ps-3 space-y-0.5">
+                    @php
+                        $subLinks = [
+                            ['imports.index',  'admin.catalog.research.imports.*',  'Imports'],
+                            ['families.index', 'admin.catalog.research.families.*', 'Product Families'],
+                            ['products.index', 'admin.catalog.research.products.*', 'Product Catalog'],
+                            ['jobs.index',     'admin.catalog.research.jobs.*',     'Research Jobs'],
+                            ['review.index',   'admin.catalog.research.review.*',   'Review Queue'],
+                            ['sources.index',  'admin.catalog.research.sources.*',  'Source Register'],
+                        ];
+                    @endphp
+                    @foreach($subLinks as [$route, $pattern, $label])
+                        <a href="{{ route('admin.catalog.research.' . $route) }}" wire:navigate
+                           class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150
+                                  {{ request()->routeIs($pattern) ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                            <span>{{ $label }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            @endcan
+
             {{-- Users --}}
             <a href="{{ route('admin.users.index') }}" wire:navigate
                class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150

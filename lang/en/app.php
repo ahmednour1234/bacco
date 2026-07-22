@@ -711,6 +711,10 @@ return [
 
     // ── Admin Brands ─────────────────────────────────────────────────────────
     'catalog'                       => 'Catalog',
+    'product_research'              => 'Product Research',
+    'research_imports'             => 'Research Imports',
+    'file_uploaded_map_columns'    => 'File uploaded. Now select the sheet and map the columns.',
+    'import_queued'                => 'Import queued for processing.',
     'management'                    => 'Management',
     'add'                           => 'Add',
     'add_brand'                     => 'Add Brand',

@@ -17,6 +17,13 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\AdminUserController as AdminAdminUserController;
 use App\Http\Controllers\Admin\Catalog\CatalogImportController;
 use App\Http\Controllers\Admin\Catalog\CatalogProductController as CatalogProductListController;
+use App\Http\Controllers\Admin\Catalog\Research\ResearchImportController;
+use App\Http\Controllers\Admin\Catalog\Research\ProductFamilyController as ResearchFamilyController;
+use App\Http\Controllers\Admin\Catalog\Research\ProductCatalogController as ResearchCatalogController;
+use App\Http\Controllers\Admin\Catalog\Research\ResearchJobController;
+use App\Http\Controllers\Admin\Catalog\Research\ReviewQueueController;
+use App\Http\Controllers\Admin\Catalog\Research\SourceRegisterController;
+use App\Http\Controllers\Admin\Catalog\Research\ProductExportController;
 use App\Http\Controllers\Enduser\BoqController as EnduserBoqController;
 use App\Http\Controllers\Enduser\OrderController as EnduserOrderController;
 use App\Http\Controllers\Enduser\AuthController as EnduserAuthController;
@@ -326,6 +333,42 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             // Products
             Route::get('products', [CatalogProductListController::class, 'index'])->name('products.index');
+
+            // ── Product Catalog Research module (research layer over catalog DB) ──
+            Route::prefix('research')->name('research.')->group(function () {
+                // Excel imports: list → upload → map/preview → process → report
+                Route::get('imports',                [ResearchImportController::class, 'index'])->name('imports.index');
+                Route::get('imports/create',         [ResearchImportController::class, 'create'])->name('imports.create');
+                Route::post('imports',               [ResearchImportController::class, 'store'])->name('imports.store');
+                Route::get('imports/{uuid}',         [ResearchImportController::class, 'show'])->name('imports.show');
+                Route::get('imports/{uuid}/map',     [ResearchImportController::class, 'map'])->name('imports.map');
+                Route::post('imports/{uuid}/process',[ResearchImportController::class, 'process'])->name('imports.process');
+
+                // Product families + research controls
+                Route::get('families',                    [ResearchFamilyController::class, 'index'])->name('families.index');
+                Route::get('families/{uuid}',             [ResearchFamilyController::class, 'show'])->name('families.show');
+                Route::post('families/{uuid}/research',        [ResearchFamilyController::class, 'startResearch'])->name('families.research');
+                Route::post('families/{uuid}/pause-research',  [ResearchFamilyController::class, 'pauseResearch'])->name('families.pause');
+                Route::post('families/{uuid}/resume-research', [ResearchFamilyController::class, 'resumeResearch'])->name('families.resume');
+                Route::post('families/{uuid}/cancel-research', [ResearchFamilyController::class, 'cancelResearch'])->name('families.cancel');
+
+                // Product catalog (variants) + detail
+                Route::get('products',        [ResearchCatalogController::class, 'index'])->name('products.index');
+                Route::get('products/{uuid}', [ResearchCatalogController::class, 'show'])->name('products.show');
+
+                // Research jobs
+                Route::get('jobs',              [ResearchJobController::class, 'index'])->name('jobs.index');
+                Route::get('jobs/{uuid}',       [ResearchJobController::class, 'show'])->name('jobs.show');
+                Route::post('jobs/{uuid}/retry',[ResearchJobController::class, 'retry'])->name('jobs.retry');
+
+                // Review queue + source register
+                Route::get('review',            [ReviewQueueController::class, 'index'])->name('review.index');
+                Route::post('review/{id}/resolve',[ReviewQueueController::class, 'resolve'])->name('review.resolve');
+                Route::get('sources',           [SourceRegisterController::class, 'index'])->name('sources.index');
+
+                // Excel export (no prices)
+                Route::get('exports/products',  [ProductExportController::class, 'products'])->name('exports.products');
+            });
         });
     });
 });
