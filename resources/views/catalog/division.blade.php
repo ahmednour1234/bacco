@@ -237,7 +237,9 @@ $_itemListSchema = json_encode([
     <p class="fam-section-sub">{{ __('catalog.division.families_sub') }}</p>
     <div class="fam-grid">
         @foreach($items as $fam)
-            <a href="{{ route('catalog.item', [$slug, Str::slug($fam->item_description)]) }}" class="fam-card">
+            @php $famSlug = Str::slug($fam->item_description); @endphp
+            @continue(!$famSlug)
+            <a href="{{ route('catalog.item', [$slug, $famSlug]) }}" class="fam-card">
                 <div class="fam-en">{{ $fam->item_description }}</div>
                 <div class="fam-ar">{{ $fam->item_label ?: $fam->item_description }}</div>
                 <div class="fam-meta">
@@ -423,6 +425,8 @@ $_itemListSchema = json_encode([
 
             <div class="items-grid">
                 @forelse($items as $item)
+                @php $itemSlug = Str::slug($item->item_description); @endphp
+                @continue(!$itemSlug)
                 <div class="item-card">
                     <div class="item-card-head">
                         <h3>{{ $item->item_label ?: $item->item_description }}</h3>
@@ -432,7 +436,7 @@ $_itemListSchema = json_encode([
                         <div class="item-materials-label">{{ __('catalog.division.common_materials') }}</div>
                         <div class="item-materials-val">{{ Str::limit($item->common_materials, 80) }}</div>
                     @endif
-                    <a href="{{ route('catalog.item', [$slug, Str::slug($item->item_description)]) }}" class="item-view-btn">
+                    <a href="{{ route('catalog.item', [$slug, $itemSlug]) }}" class="item-view-btn">
                         {{ __('catalog.division.view_specs') }}
                     </a>
                 </div>

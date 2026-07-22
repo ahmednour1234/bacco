@@ -330,6 +330,7 @@ $_productSchema = json_encode([
         <h3>{{ __('catalog.item.related_title', ['division' => ($divisionLabel ?? $division)]) }}</h3>
         <div class="related-tags">
             @foreach($related as $rel)
+                @continue(!$rel->slug)
                 <a href="{{ route('catalog.item', [$divisionSlug, $rel->slug]) }}" class="related-tag">
                     {{ ($isAr ?? false) ? $rel->name : strtoupper($rel->name) }}
                 </a>
