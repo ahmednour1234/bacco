@@ -52,6 +52,13 @@
         </div>
     @endif
 
+    @if($import->status->value === 'failed' && !empty($logLines))
+        <details class="rounded-lg border border-red-200 bg-red-50/50 p-4 text-xs" open>
+            <summary class="cursor-pointer font-semibold text-red-700">Error log for this import</summary>
+            <pre class="mt-2 overflow-x-auto whitespace-pre-wrap text-red-800">{{ implode("\n", $logLines) }}</pre>
+        </details>
+    @endif
+
     @if(session('success'))
         <div class="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm">{{ session('success') }}</div>
     @endif

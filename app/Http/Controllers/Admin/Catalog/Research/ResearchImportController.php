@@ -96,8 +96,42 @@ class ResearchImportController extends Controller
 
         $import = $this->importService->findByUuid($uuid);
         $report = $this->report->forImport($import);
+        $logLines = $this->recentLogFor($import->id);
 
-        return view('admin.catalog.research.imports.show', compact('import', 'report'));
+        return view('admin.catalog.research.imports.show', compact('import', 'report', 'logLines'));
+    }
+
+    /**
+     * Best-effort tail of the Laravel log for lines mentioning this import, so
+     * the admin can see *why* an import failed without shell access. Read-only
+     * and defensive — never throws if the log is missing or huge.
+     *
+     * @return list<string>
+     */
+    private function recentLogFor(int $importId): array
+    {
+        $path = storage_path('logs/laravel.log');
+        if (! is_file($path) || ! is_readable($path)) {
+            return [];
+        }
+
+        // Read only the tail of the file (last ~256 KB) to stay cheap.
+        $size   = filesize($path);
+        $offset = max(0, $size - 262144);
+        $chunk  = (string) @file_get_contents($path, false, null, $offset);
+        if ($chunk === '') {
+            return [];
+        }
+
+        $lines = preg_split('/\r?\n/', $chunk) ?: [];
+        $hits  = array_filter($lines, fn ($l) =>
+            str_contains($l, '"import_id":' . $importId)
+            || str_contains($l, 'catalog import')
+            || str_contains($l, 'Research import')
+            || str_contains($l, 'ProcessCatalogResearchImportJob'));
+
+        // Newest last; keep the last 8 relevant lines.
+        return array_slice(array_values($hits), -8);
     }
 
     /**
