@@ -34,7 +34,7 @@ class BoqSpecParser
      * produces confident-looking nonsense, so they are excluded before any
      * matching happens.
      */
-    public function isProductLine(string $description, ?float $quantity = null): bool
+    public function isProductLine(string $description, ?float $quantity = null, ?bool $hasUnit = null): bool
     {
         $text = trim($description);
 
@@ -47,7 +47,35 @@ class BoqSpecParser
             return false;
         }
 
+        // The strongest signal available: a measurable item carries a unit
+        // (m, no, kg, set). Preliminaries and contract clauses do not, and no
+        // amount of phrase matching is as reliable as this.
+        if ($hasUnit === false) {
+            return false;
+        }
+
         $lower = mb_strtolower($text);
+
+        // Contract/preliminaries clauses read as instructions to a party, or as
+        // obligations, rather than as a thing that can be supplied.
+        $clauseSignals = [
+            'contractor shall', 'employer shall', 'engineer shall', 'consultant shall',
+            'shall be deemed', 'shall provide', 'shall submit', 'shall comply',
+            'shall maintain', 'shall ensure', 'shall allow', 'shall include',
+            'in accordance with the', 'as per the conditions', 'refer to clause',
+            'on completion of', 'prior to commencement', 'during the period',
+            'making good', 'access to site', 'site facilities', 'temporary works',
+            'insurance', 'indemnity', 'liability', 'warranty period',
+            'defects liability', 'programme of works', 'method statement',
+            'health and safety', 'quality assurance', 'as and when directed',
+            'to the satisfaction of', 'allow for all', 'rate shall',
+        ];
+
+        foreach ($clauseSignals as $phrase) {
+            if (str_contains($lower, $phrase)) {
+                return false;
+            }
+        }
 
         // Section headings and contractual boilerplate.
         $boilerplate = [

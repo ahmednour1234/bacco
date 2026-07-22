@@ -57,9 +57,13 @@ class MatchBoqCommand extends Command
             foreach ($items->take(30) as $item) {
                 $desc = (string) $item->description;
 
-                if (! $parser->isProductLine($desc, (float) $item->quantity)) {
+                if (! $parser->isProductLine($desc, (float) $item->quantity, $item->unit_id !== null)) {
                     $skipped++;
-                    $this->line(sprintf('  <comment>skip</comment> %s', mb_substr($desc, 0, 60)));
+                    $this->line(sprintf(
+                        '  <comment>skip</comment> %-58s %s',
+                        mb_substr($desc, 0, 58),
+                        $item->unit_id === null ? '<comment>(no unit)</comment>' : ''
+                    ));
                     continue;
                 }
 
@@ -73,7 +77,7 @@ class MatchBoqCommand extends Command
             }
 
             // The real product count is what matters — a BOQ is mostly prose.
-            $products = $items->filter(fn ($i) => $parser->isProductLine((string) $i->description, (float) $i->quantity))->count();
+            $products = $items->filter(fn ($i) => $parser->isProductLine((string) $i->description, (float) $i->quantity, $i->unit_id !== null))->count();
 
             $this->newLine();
             $this->line(sprintf(
@@ -124,7 +128,7 @@ class MatchBoqCommand extends Command
         // Measure against real product lines. A BOQ is mostly headings and
         // clauses, so a percentage of ALL rows understates the true coverage.
         $products = $items->filter(
-            fn ($i) => $parser->isProductLine((string) $i->description, (float) $i->quantity)
+            fn ($i) => $parser->isProductLine((string) $i->description, (float) $i->quantity, $i->unit_id !== null)
         )->count();
 
         $total = max(1, $products);

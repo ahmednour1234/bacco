@@ -42,7 +42,11 @@ class BoqMatchingService
     {
         // Headings, definitions and contract clauses are not products. Matching
         // them yields confident-looking nonsense, so they are skipped outright.
-        if (! $this->parser->isProductLine((string) $item->description, (float) $item->quantity)) {
+        if (! $this->parser->isProductLine(
+            (string) $item->description,
+            (float) $item->quantity,
+            $item->unit_id !== null,
+        )) {
             return 0;
         }
 
