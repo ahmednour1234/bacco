@@ -82,6 +82,54 @@ class DiagnoseResearchImport extends Command
             $this->line('→ The header row or sheet is probably wrong, or the file is corrupt/merged. Re-map with the correct header row.');
         }
 
+        $this->diagnoseResearch();
+
         return self::SUCCESS;
+    }
+
+    /** Summarise research jobs + results so it's clear why the catalog is empty. */
+    private function diagnoseResearch(): void
+    {
+        $this->newLine();
+        $this->info('── Research pipeline ──');
+
+        $conn = config('catalog_research.connection', 'catalog');
+        $db   = \Illuminate\Support\Facades\DB::connection($conn);
+
+        $this->line('DeepSeek API key set: ' . (config('services.deepseek.key') ? 'YES' : '<error>NO — research cannot run</error>'));
+        $this->line('Provider: ' . config('catalog_research.provider', 'deepseek'));
+        $this->line('Queue: ' . config('catalog_research.queue', 'default'));
+        $this->newLine();
+
+        foreach (['research_jobs' => 'status', 'research_job_results' => 'validation_status'] as $table => $col) {
+            if (! $db->getSchemaBuilder()->hasTable($table)) {
+                continue;
+            }
+            $counts = $db->table($table)->selectRaw("{$col}, COUNT(*) as c")->groupBy($col)->pluck('c', $col);
+            $this->line("{$table} by {$col}: " . json_encode($counts));
+        }
+
+        // Show the most recent failed/invalid result so the cause is visible.
+        if ($db->getSchemaBuilder()->hasTable('research_job_results')) {
+            $bad = $db->table('research_job_results')
+                ->where('validation_status', '!=', 'valid')
+                ->latest('id')->first();
+            if ($bad) {
+                $this->newLine();
+                $this->warn('Latest non-valid result:');
+                $this->line('  validation_errors: ' . mb_strimwidth((string) $bad->validation_errors, 0, 400, '…'));
+                $this->line('  raw_response: ' . mb_strimwidth((string) $bad->raw_response, 0, 400, '…'));
+            }
+
+            $counts = $db->table('research_job_results')->selectRaw('SUM(accepted_count) a, SUM(discovered_count) d')->first();
+            $this->newLine();
+            $this->line('Total discovered variants: ' . ($counts->d ?? 0) . ' | accepted (persisted): ' . ($counts->a ?? 0));
+        }
+
+        foreach (['product_variants', 'source_documents', 'product_models'] as $t) {
+            if ($db->getSchemaBuilder()->hasTable($t)) {
+                $this->line("{$t}: " . $db->table($t)->count());
+            }
+        }
     }
 }

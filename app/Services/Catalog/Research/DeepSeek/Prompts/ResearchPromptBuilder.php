@@ -83,12 +83,27 @@ class ResearchPromptBuilder
 
     private function discoverManufacturers(ResearchRequest $r): string
     {
-        $scope = $r->marketScope ? " Focus on the {$r->marketScope} market." : '';
+        $scope = $r->marketScope ? " Prioritise the {$r->marketScope} market." : '';
 
-        return "Stage 1 — Discover manufacturers.\n"
-            . "Find real manufacturers that produce: \"{$r->familyName}\".{$scope}\n"
-            . "Return each manufacturer with its official website and country. "
-            . "Do not include product models yet.";
+        // One comprehensive pass: real manufacturers AND their real, documented
+        // products — with SKU, size, connection, pressure, materials, approvals
+        // and the official source URL each fact came from. This fills the whole
+        // catalog in a single response so nothing is left half-discovered.
+        return "Discover REAL, documented products for the product type: \"{$r->familyName}\".{$scope}\n\n"
+            . "For each manufacturer that actually makes this product, return its "
+            . "official website and country, then its real product series/models, "
+            . "and for each model the real variants (SKUs) you can document. For "
+            . "every variant provide: manufacturer SKU or official model number, "
+            . "size (and DN size), connection type, connection standard, pressure "
+            . "rating, body/ball/seat materials, port type, pieces, operation type "
+            . "and approvals (with the exact code, e.g. UL 258 vs UL 842).\n\n"
+            . "CRITICAL: every variant MUST include at least one official source in "
+            . "its \"sources\" array — the manufacturer product page, catalog PDF, "
+            . "datasheet or certificate URL that documents it. If you cannot find a "
+            . "real source for a value, set that value to null. Never invent a SKU, "
+            . "size, approval or URL. Do not expand a size range into invented SKUs. "
+            . "Return several manufacturers and as many documented variants as you "
+            . "can confirm, following the JSON schema exactly.";
     }
 
     private function discoverSeries(ResearchRequest $r): string
