@@ -72,5 +72,30 @@ return [
         'catalog.review.view', 'catalog.review.resolve',
         'catalog.source.view', 'catalog.source.manage',
         'catalog.export',
+        'catalog.price.view', 'catalog.price.manage',
+        'catalog.price.match', 'catalog.price.review',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pricing
+    |--------------------------------------------------------------------------
+    | The catalog stores no prices of its own; this block governs the separate
+    | pricing layer that hangs off real product variants.
+    */
+    'pricing' => [
+        // A price older than this is treated as stale and must not be quoted.
+        'stale_after_days' => (int) env('CATALOG_PRICE_STALE_DAYS', 90),
+
+        // Currency assumed when a scraped row does not state one. The scraper
+        // sources are Saudi storefronts, so SAR is the safe default.
+        'default_currency' => env('CATALOG_PRICE_DEFAULT_CURRENCY', 'SAR'),
+
+        // Score (0..100) a match must reach before it may create a price
+        // without human review. Below this it waits in the review queue.
+        'auto_accept_score' => (float) env('CATALOG_PRICE_AUTO_ACCEPT_SCORE', 85),
+
+        // Scraped rows pulled per chunk during the matching sweep.
+        'match_chunk_size' => (int) env('CATALOG_PRICE_MATCH_CHUNK', 200),
     ],
 ];
