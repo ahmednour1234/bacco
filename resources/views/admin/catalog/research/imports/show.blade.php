@@ -46,6 +46,12 @@
 
     @if(session('error'))<div class="rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">{{ session('error') }}</div>@endif
 
+    @if($import->status->value === 'failed' && $import->error_message)
+        <div class="rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+            <b>Why it failed:</b> {{ $import->error_message }}
+        </div>
+    @endif
+
     @if(session('success'))
         <div class="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm">{{ session('success') }}</div>
     @endif

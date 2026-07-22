@@ -58,14 +58,15 @@ class CatalogImportRepository
     }
 
     /**
-     * Mark the import failed. The imports table has no error column by spec, so
-     * the human-readable reason is logged by the caller; status drives the UI.
+     * Mark the import failed and record a human-readable reason so the UI can
+     * show *why* it failed instead of a bare "Failed" status.
      */
-    public function markFailed(CatalogImport $import): void
+    public function markFailed(CatalogImport $import, ?string $reason = null): void
     {
         $import->update([
-            'status'       => CatalogImportStatusEnum::Failed,
-            'completed_at' => now(),
+            'status'        => CatalogImportStatusEnum::Failed,
+            'error_message' => $reason,
+            'completed_at'  => now(),
         ]);
     }
 

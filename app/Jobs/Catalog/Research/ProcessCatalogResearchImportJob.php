@@ -82,7 +82,7 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
 
         if (! $sheet || empty($map)) {
             Log::warning('Research import has no usable mapping.', ['import_id' => $import->id]);
-            $importRepo->markFailed($import);
+            $importRepo->markFailed($import, 'No column mapping was saved. Open "Map Columns", map at least Item Description, then Confirm & Import.');
 
             return;
         }
@@ -98,7 +98,7 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
                 'import_id' => $import->id,
                 'stored'    => $import->stored_file_path,
             ]);
-            $importRepo->markFailed($import);
+            $importRepo->markFailed($import, "Uploaded file not found on the server at: {$import->stored_file_path}. Re-upload the file.");
 
             return;
         }
@@ -176,7 +176,7 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
                 'message'   => $e->getMessage(),
             ]);
             $importRepo->update($import, ['total_rows' => $total]);
-            $importRepo->markFailed($import);
+            $importRepo->markFailed($import, 'Could not read the sheet "' . $sheet . '": ' . $e->getMessage());
 
             return;
         }

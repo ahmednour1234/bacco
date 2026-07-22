@@ -20,7 +20,7 @@ class CatalogImport extends Model
     protected $fillable = [
         'uuid', 'original_file_name', 'stored_file_path', 'file_type', 'file_size',
         'sheets_count', 'total_rows', 'imported_rows', 'duplicate_rows', 'failed_rows',
-        'status', 'column_mapping', 'started_at', 'completed_at', 'uploaded_by',
+        'status', 'error_message', 'column_mapping', 'started_at', 'completed_at', 'uploaded_by',
     ];
 
     protected $casts = [
