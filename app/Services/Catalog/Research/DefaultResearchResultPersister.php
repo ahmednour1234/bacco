@@ -244,21 +244,23 @@ class DefaultResearchResultPersister implements ResearchResultPersister
             ]))->id
             : null;
 
+        $clip = static fn (?string $v, int $max = 255) => $v === null ? null : mb_substr($v, 0, $max);
+
         $variant = ProductVariant::create([
             'product_model_id'         => $model->id,
             'product_family_id'        => $family->id,
             'manufacturer_id'          => $manufacturer->id,
-            'manufacturer_sku'         => $node['manufacturer_sku'] ?? null,
-            'manufacturer_part_number' => $node['manufacturer_part_number'] ?? null,
-            'variant_name'             => trim(($model->model_number ?? '') . ' ' . ($node['size'] ?? '')),
-            'normalized_variant_key'   => $key,
+            'manufacturer_sku'         => $clip($node['manufacturer_sku'] ?? null),
+            'manufacturer_part_number' => $clip($node['manufacturer_part_number'] ?? null),
+            'variant_name'             => $clip(trim(($model->model_number ?? '') . ' ' . ($node['size'] ?? ''))),
+            'normalized_variant_key'   => $clip($key, 255),
             'size_id'                  => $sizeId,
             'connection_type_id'       => $connId,
             'connection_standard_id'   => $connStdId,
             'pressure_rating_id'       => $pressureId,
             'temperature_min'          => $node['temperature_min'] ?? null,
             'temperature_max'          => $node['temperature_max'] ?? null,
-            'temperature_unit'         => $node['temperature_unit'] ?? null,
+            'temperature_unit'         => $this->safeTemperatureUnit($node['temperature_unit'] ?? null),
             'verification_level'       => $assessment['level'],
             'verification_status'      => $assessment['status'],
             'availability_status'      => $this->safeAvailability($node['availability_status'] ?? null),
@@ -365,6 +367,27 @@ class DefaultResearchResultPersister implements ResearchResultPersister
     private function resolvePort(?string $raw): ?int
     {
         return $raw ? optional($this->lookups->portType($raw))->id : null;
+    }
+
+    /**
+     * Normalise a temperature unit to a short symbol so it fits the 4-char
+     * column ("Celsius" → "C", "Fahrenheit" → "F", "Kelvin" → "K").
+     */
+    private function safeTemperatureUnit(?string $raw): ?string
+    {
+        $raw = trim((string) $raw);
+        if ($raw === '') {
+            return null;
+        }
+
+        $key = strtolower($raw);
+
+        return match (true) {
+            str_starts_with($key, 'c'), str_contains($key, 'celsius')    => 'C',
+            str_starts_with($key, 'f'), str_contains($key, 'fahrenheit') => 'F',
+            str_starts_with($key, 'k'), str_contains($key, 'kelvin')     => 'K',
+            default => mb_substr($raw, 0, 4),
+        };
     }
 
     /**
