@@ -24,6 +24,11 @@ class ResearchResponseParser
             return ResearchResponse::invalid($raw, ['Response did not contain valid JSON.']);
         }
 
+        // Reshape common alternative structures the model returns (e.g. a
+        // `manufacturer` array with series nested inside each manufacturer) into
+        // the single-object + top-level-series shape the schema expects.
+        $json = $this->normalizeShape($json);
+
         // Coerce common enum synonyms BEFORE validating so a good response with
         // real products is never thrown away over a minor label mismatch (e.g.
         // the model saying "available" instead of "current").
@@ -41,6 +46,88 @@ class ResearchResponseParser
         $json['warnings']         ??= [];
 
         return ResearchResponse::valid($json, $raw, $usage);
+    }
+
+    /**
+     * Reshape alternative response structures into the canonical one:
+     *   - `manufacturer` as an ARRAY of manufacturers, each with its own nested
+     *     `series` → flatten to a single top-level `series` array, tagging every
+     *     series/variant with its manufacturer name so persistence knows who
+     *     makes it.
+     *   - `manufacturers` (plural) treated the same way.
+     *   - a manufacturer object that itself carries `series` → lift those series
+     *     to the top level.
+     *
+     * @param  array<string,mixed>  $json
+     * @return array<string,mixed>
+     */
+    private function normalizeShape(array $json): array
+    {
+        $series = $json['series'] ?? [];
+
+        // Collect manufacturer nodes from any of the shapes we've seen.
+        $manufacturerNodes = [];
+        if (isset($json['manufacturers']) && is_array($json['manufacturers']) && array_is_list($json['manufacturers'])) {
+            $manufacturerNodes = $json['manufacturers'];
+        } elseif (isset($json['manufacturer']) && is_array($json['manufacturer']) && array_is_list($json['manufacturer'])) {
+            $manufacturerNodes = $json['manufacturer'];
+        }
+
+        if ($manufacturerNodes !== []) {
+            $firstManufacturer = null;
+
+            foreach ($manufacturerNodes as $mfr) {
+                if (! is_array($mfr)) {
+                    continue;
+                }
+                $name = $mfr['name'] ?? null;
+                $firstManufacturer ??= [
+                    'name'             => $name,
+                    'official_website' => $mfr['official_website'] ?? null,
+                    'country'          => $mfr['country'] ?? null,
+                ];
+
+                foreach ($mfr['series'] ?? [] as $s) {
+                    if (! is_array($s)) {
+                        continue;
+                    }
+                    // Tag the series and its variants with this manufacturer.
+                    $s['manufacturer'] = $name;
+                    foreach ($s['models'] ?? [] as &$m) {
+                        foreach ($m['variants'] ?? [] as &$v) {
+                            $v['manufacturer'] ??= $name;
+                        }
+                        unset($v);
+                    }
+                    unset($m);
+                    foreach ($s['variants'] ?? [] as &$v) {
+                        $v['manufacturer'] ??= $name;
+                    }
+                    unset($v);
+
+                    $series[] = $s;
+                }
+            }
+
+            // Replace the array manufacturer with a single representative object
+            // and the collected series at the top level.
+            $json['manufacturer'] = $firstManufacturer;
+            $json['series']       = $series;
+        } elseif (isset($json['manufacturer']['series']) && is_array($json['manufacturer']['series'])) {
+            // Single manufacturer object that nests its own series.
+            $name = $json['manufacturer']['name'] ?? null;
+            foreach ($json['manufacturer']['series'] as $s) {
+                if (! is_array($s)) {
+                    continue;
+                }
+                $s['manufacturer'] = $name;
+                $series[] = $s;
+            }
+            unset($json['manufacturer']['series']);
+            $json['series'] = $series;
+        }
+
+        return $json;
     }
 
     /**
