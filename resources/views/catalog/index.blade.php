@@ -151,7 +151,7 @@ $_catSchema = json_encode([
             @foreach($rows as $d)
         <a href="{{ route('catalog.category', $d->slug) }}" class="div-card" data-name="{{ strtolower($d->name) }}">
                 <div class="div-card-top">
-                    <span class="div-card-num">CAT-{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                    <span class="div-card-num">CAT-{{ str_pad($d->id, 2, '0', STR_PAD_LEFT) }}</span>
                 </div>
                 <h2>{{ $d->name }}</h2>
                 <div class="div-stats">
