@@ -54,18 +54,31 @@ class ExcelReaderService
         $highestRow    = min($sheet->getHighestDataRow(), $scan);
         $highestColIdx = min(Coordinate::columnIndexFromString($sheet->getHighestDataColumn()), self::MAX_COLUMNS);
 
-        $bestRow   = 1;
-        $bestScore = -1;
+        $bestRow   = 0;
+        $bestScore = 0;
 
         for ($row = 1; $row <= $highestRow; $row++) {
-            $nonEmpty = 0;
-            $hits     = 0;
+            $labelCells = 0; // short, label-like cells
+            $hits       = 0; // cells that look like a known header
+            $longCells  = 0; // sentence/paragraph cells (title/summary banners)
+
             for ($col = 1; $col <= $highestColIdx; $col++) {
                 $val = strtolower(trim($this->cellToString($sheet->getCell([$col, $row])->getValue())));
                 if ($val === '') {
                     continue;
                 }
-                $nonEmpty++;
+
+                $wordCount = str_word_count($val);
+
+                // A genuine header cell is short (≤ 5 words) with no sentence
+                // punctuation. Long cells are titles/summaries — penalise them.
+                if (mb_strlen($val) > 60 || $wordCount > 6 || str_contains($val, '|') || str_contains($val, ':')) {
+                    $longCells++;
+                    continue;
+                }
+
+                $labelCells++;
+
                 foreach (self::HEADER_HINTS as $hint) {
                     if (str_contains($val, $hint)) {
                         $hits++;
@@ -73,10 +86,12 @@ class ExcelReaderService
                     }
                 }
             }
-            // A header row has several short labelled cells; prefer more hits,
-            // then more filled columns.
-            $score = ($hits * 10) + $nonEmpty;
-            if ($hits >= 2 && $score > $bestScore) {
+
+            // Require several short label cells AND some keyword hits; subtract
+            // heavily for long banner cells so a title row can never win.
+            $score = ($hits * 10) + $labelCells - ($longCells * 20);
+
+            if ($labelCells >= 3 && $hits >= 2 && $score > $bestScore) {
                 $bestScore = $score;
                 $bestRow   = $row;
             }
@@ -84,7 +99,8 @@ class ExcelReaderService
 
         $spreadsheet->disconnectWorksheets();
 
-        return $bestRow;
+        // Fall back to row 1 only if nothing looked like a header.
+        return $bestRow ?: 1;
     }
 
     /**
