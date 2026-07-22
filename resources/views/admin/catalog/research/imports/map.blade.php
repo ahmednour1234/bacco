@@ -16,6 +16,20 @@
             </ul>
         </div>
     @endif
+    @if(session('error'))
+        <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">{{ session('error') }}</div>
+    @endif
+
+    {{-- Auto-detection notice --}}
+    @php $descMapped = in_array('item_description', $savedMapping, true); @endphp
+    <div class="rounded-lg border px-4 py-3 text-sm {{ $descMapped ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-800' }}">
+        Detected header row <b>{{ $headerRow }}</b> and pre-filled the column mapping automatically.
+        @if($descMapped)
+            ✓ Item Description is mapped — review the columns below and click <b>Confirm &amp; Import</b>.
+        @else
+            ⚠ Could not auto-detect <b>Item Description</b>. Adjust the header row (try 2, 3 or 4) and map it manually before importing.
+        @endif
+    </div>
 
     {{-- Sheet + header row selection (GET reloads preview) --}}
     <form method="GET" action="{{ route('admin.catalog.research.imports.map', $import->uuid) }}"

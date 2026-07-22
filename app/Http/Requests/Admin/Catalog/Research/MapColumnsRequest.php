@@ -22,6 +22,25 @@ class MapColumnsRequest extends FormRequest
         ];
     }
 
+    /**
+     * Item Description must be mapped — without it there is nothing to build a
+     * Product Family from, and the import would fail during processing.
+     */
+    public function after(): array
+    {
+        return [
+            function ($validator) {
+                $targets = array_values(array_filter((array) $this->input('mapping', [])));
+                if (! in_array('item_description', $targets, true)) {
+                    $validator->errors()->add(
+                        'mapping',
+                        'You must map a column to "Item Description" before importing.'
+                    );
+                }
+            },
+        ];
+    }
+
     public function messages(): array
     {
         return [

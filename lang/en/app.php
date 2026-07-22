@@ -716,6 +716,7 @@ return [
     'file_uploaded_map_columns'    => 'File uploaded. Now select the sheet and map the columns.',
     'import_queued'                => 'Import queued for processing.',
     'queue_started'                => 'Queue worker started. Processing will begin shortly — refresh in a moment.',
+    'map_columns_first'            => 'This import has no column mapping yet. Please map the columns (Item Description is required) and confirm.',
     'management'                    => 'Management',
     'add'                           => 'Add',
     'add_brand'                     => 'Add Brand',

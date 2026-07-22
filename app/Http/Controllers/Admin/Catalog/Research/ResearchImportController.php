@@ -156,6 +156,17 @@ class ResearchImportController extends Controller
         $this->authorize('catalog.import.process');
 
         $import = $this->importService->findByUuid($uuid);
+
+        // Reprocess only makes sense once columns are mapped. If no usable
+        // mapping was ever saved (the common cause of a "Failed" import), send
+        // the user to Map Columns instead of re-running a doomed job.
+        $map = $import->column_mapping['map'] ?? [];
+        if (empty($map) || ! in_array('item_description', $map, true)) {
+            return redirect()
+                ->route('admin.catalog.research.imports.map', $import->uuid)
+                ->with('error', __('app.map_columns_first'));
+        }
+
         $this->importService->reprocess($import);
 
         return redirect()
