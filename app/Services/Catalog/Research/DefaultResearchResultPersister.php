@@ -261,7 +261,7 @@ class DefaultResearchResultPersister implements ResearchResultPersister
             'temperature_unit'         => $node['temperature_unit'] ?? null,
             'verification_level'       => $assessment['level'],
             'verification_status'      => $assessment['status'],
-            'availability_status'      => $node['availability_status'] ?? 'unknown',
+            'availability_status'      => $this->safeAvailability($node['availability_status'] ?? null),
             'technical_notes'          => $assessment['reasons'] ? implode(' ', $assessment['reasons']) : null,
         ]);
 
@@ -365,5 +365,23 @@ class DefaultResearchResultPersister implements ResearchResultPersister
     private function resolvePort(?string $raw): ?int
     {
         return $raw ? optional($this->lookups->portType($raw))->id : null;
+    }
+
+    /**
+     * Map any availability wording onto a valid AvailabilityStatusEnum value so
+     * the DB write (and enum cast) never fails on an unexpected label.
+     */
+    private function safeAvailability(?string $raw): string
+    {
+        $map = [
+            'available' => 'current', 'in stock' => 'current', 'in production' => 'current',
+            'active' => 'current', 'stock' => 'current', 'current' => 'current',
+            'discontinued' => 'discontinued', 'obsolete' => 'discontinued', 'eol' => 'discontinued',
+            'regional' => 'regional', 'limited' => 'regional',
+        ];
+
+        $key = strtolower(trim((string) $raw));
+
+        return $map[$key] ?? 'unknown';
     }
 }

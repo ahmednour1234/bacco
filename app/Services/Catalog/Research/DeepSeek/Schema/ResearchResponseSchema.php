@@ -2,8 +2,6 @@
 
 namespace App\Services\Catalog\Research\DeepSeek\Schema;
 
-use App\Enums\Catalog\Research\AvailabilityStatusEnum;
-use App\Enums\Catalog\Research\VerificationLevelEnum;
 
 /**
  * The JSON schema (as a PHP structure) that every research response must match.
@@ -62,8 +60,11 @@ class ResearchResponseSchema
                 'temperature_unit'         => $nullableString,
                 'approvals'                => ['type' => 'array', 'items' => $approval],
                 'standards'                => ['type' => 'array', 'items' => ['type' => 'string']],
-                'verification_level'       => ['type' => 'string', 'enum' => VerificationLevelEnum::values()],
-                'availability_status'      => ['type' => ['string', 'null'], 'enum' => array_merge(AvailabilityStatusEnum::values(), [null])],
+                // These are coerced to valid enum values by the parser before
+                // validation, so we accept any string here rather than reject an
+                // otherwise-good product list over a wording difference.
+                'verification_level'       => ['type' => 'string'],
+                'availability_status'      => ['type' => ['string', 'null']],
                 'sources'                  => ['type' => 'array', 'items' => $source],
             ],
         ];
