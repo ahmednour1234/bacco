@@ -36,7 +36,6 @@ class ScraperPriceMatchingService
 
     public function __construct(
         private readonly NormalizationEngine $engine,
-        private readonly SupplierSyncService $suppliers,
     ) {}
 
     /**
@@ -112,7 +111,7 @@ class ScraperPriceMatchingService
         $name = trim((string) ($scraped->name ?? ''));
 
         // --- Tier 1: exact manufacturer SKU -------------------------------
-        if ($sku !== '') {
+        if ($sku !== '' && $this->isDistinctiveSku($sku)) {
             $normSku = $this->engine->normalizeToken($sku);
 
             $variant = ProductVariant::query()
@@ -225,6 +224,36 @@ class ScraperPriceMatchingService
                 'is_active'          => true,
             ]
         );
+    }
+
+    /**
+     * Whether a SKU string is distinctive enough to match on.
+     *
+     * Probing the live data showed the only "exact SKU matches" between the
+     * scraper and the catalog were bare numbers like 1100, 440 and 700 — these
+     * are voltages, wattages and sizes that happen to collide, not product
+     * identifiers. Matching on them would attach a cable's price to a server.
+     *
+     * A real manufacturer SKU mixes letters and digits (F5-BIG-I5800-AC,
+     * FR-5000, NL95046), so that is what we require.
+     */
+    private function isDistinctiveSku(string $sku): bool
+    {
+        $sku = trim($sku);
+
+        // Too short to identify anything.
+        if (mb_strlen($sku) < 4) {
+            return false;
+        }
+
+        // Digits only (with optional separators) — a number, not a SKU.
+        if (preg_match('/^[\d\s\-.,\/]+$/', $sku)) {
+            return false;
+        }
+
+        // Must contain at least one letter AND one digit.
+        return preg_match('/[a-zA-Z]/', $sku) === 1
+            && preg_match('/\d/', $sku) === 1;
     }
 
     /** Scraper rows are Saudi storefronts; SAR unless a column says otherwise. */

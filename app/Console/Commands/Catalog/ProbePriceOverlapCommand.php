@@ -41,21 +41,35 @@ class ProbePriceOverlapCommand extends Command
 
         $exact = $catalogSkus->intersect($scrapedSkus);
 
+        // A bare number that appears in both sets is a coincidence (a voltage,
+        // a size), not a shared product identifier. Counting those as overlap
+        // would badly overstate how much of the catalog is really priceable.
+        $distinctive = $exact->filter(fn ($sku) => $this->isDistinctiveSku($sku));
+
         $this->line("  catalog SKUs : <info>{$catalogSkus->count()}</info>");
         $this->line("  scraped SKUs : <info>{$scrapedSkus->count()}</info>");
-        $this->line('  exact matches: ' . $this->highlight($exact->count()));
+        $this->line('  raw matches  : ' . $this->highlight($exact->count()) . ' (includes coincidences)');
+        $this->line('  REAL matches : ' . $this->highlight($distinctive->count()) . ' (letters + digits)');
 
-        foreach ($exact->take($samples) as $sku) {
+        foreach ($distinctive->take($samples) as $sku) {
             $this->line("     → {$sku}");
+        }
+
+        if ($exact->count() > 0 && $distinctive->isEmpty()) {
+            $this->line('  <comment>All raw matches were bare numbers (sizes/voltages), not SKUs.</comment>');
+            foreach ($exact->take(5) as $sku) {
+                $this->line("     <comment>rejected → {$sku}</comment>");
+            }
         }
 
         // --- 2. Normalized SKU overlap -----------------------------------
         $strip = fn ($x) => preg_replace('/[^a-z0-9]/', '', strtolower((string) $x));
 
         $normalized = $catalogSkus->map($strip)->filter()->unique()
-            ->intersect($scrapedSkus->map($strip)->filter()->unique());
+            ->intersect($scrapedSkus->map($strip)->filter()->unique())
+            ->filter(fn ($sku) => $this->isDistinctiveSku($sku));
 
-        $this->line('  normalized   : ' . $this->highlight($normalized->count()) . ' (ignoring dashes/spaces)');
+        $this->line('  normalized   : ' . $this->highlight($normalized->count()) . ' (real, ignoring dashes/spaces)');
 
         foreach ($normalized->take($samples) as $sku) {
             $this->line("     → {$sku}");
@@ -70,7 +84,7 @@ class ProbePriceOverlapCommand extends Command
             ->groupBy('division_id')->orderByDesc('cnt')->limit(8)->get();
 
         foreach ($divisions as $row) {
-            $name = $catalog->table('catalog_research_divisions')
+            $name = $catalog->table('catalog_divisions')
                 ->where('id', $row->division_id)->value('name') ?? '(none)';
             $this->line('  ' . str_pad(mb_substr($name, 0, 40), 42) . $row->cnt);
         }
@@ -92,7 +106,7 @@ class ProbePriceOverlapCommand extends Command
 
         // --- Verdict ------------------------------------------------------
         $this->newLine();
-        $total = $exact->count() + $normalized->count();
+        $total = $distinctive->count() + $normalized->count();
 
         if ($total === 0) {
             $this->components->warn(
@@ -111,5 +125,19 @@ class ProbePriceOverlapCommand extends Command
     private function highlight(int $n): string
     {
         return $n > 0 ? "<info>{$n}</info>" : "<comment>{$n}</comment>";
+    }
+
+    /**
+     * Mirrors the matcher's rule: a real SKU mixes letters and digits. Bare
+     * numbers collide across unrelated products and must not count as overlap.
+     */
+    private function isDistinctiveSku(string $sku): bool
+    {
+        $sku = trim($sku);
+
+        return mb_strlen($sku) >= 4
+            && ! preg_match('/^[\d\s\-.,\/]+$/', $sku)
+            && preg_match('/[a-zA-Z]/', $sku) === 1
+            && preg_match('/\d/', $sku) === 1;
     }
 }
