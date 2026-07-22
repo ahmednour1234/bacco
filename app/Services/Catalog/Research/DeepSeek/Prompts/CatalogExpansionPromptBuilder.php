@@ -87,8 +87,13 @@ class CatalogExpansionPromptBuilder
 
         List real products this manufacturer publishes in this category.
 
-        This is page {$page} (items {$offset}+). Return at most {$perPage} product
-        series. Skip these models, already recorded: {$known}
+        This is page {$page} (items {$offset}+). Return up to {$perPage} product
+        series — return as many REAL ones as you can document, not fewer.
+        Skip these models, already recorded: {$known}
+
+        Cover the manufacturer's range broadly: different product lines, model
+        families and sub-categories within this category, not several near-copies
+        of the same series.
 
         For each series give: series_name, official_product_name, official_page_url,
         and its models. For each model give the real model_number, materials, port
