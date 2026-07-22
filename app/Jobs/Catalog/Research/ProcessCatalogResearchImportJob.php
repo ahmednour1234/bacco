@@ -162,7 +162,18 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
             }
 
             if (count($buffer) >= self::CHUNK) {
-                $flush();
+                // A flush failure must never abort the whole import — insertMany
+                // already falls back to row-by-row, but guard here too so the
+                // read loop always continues to the next chunk.
+                try {
+                    $flush();
+                } catch (\Throwable $flushErr) {
+                    \Illuminate\Support\Facades\Log::error('Chunk flush failed; continuing.', [
+                        'import_id' => $import->id,
+                        'message'   => $flushErr->getMessage(),
+                    ]);
+                    $buffer = [];
+                }
             }
             });
 
