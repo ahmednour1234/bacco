@@ -30,8 +30,8 @@ return new class extends Migration
             $table->text('review_notes')->nullable();
             $table->timestamps();
 
-            $table->index(['reviewable_type', 'reviewable_id']);
-            $table->index(['status', 'severity']);
+            $table->index(['reviewable_type', 'reviewable_id'], 'prq_reviewable_idx');
+            $table->index(['status', 'severity'], 'prq_status_severity_idx');
         });
     }
 

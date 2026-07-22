@@ -24,7 +24,7 @@ return new class extends Migration
             $table->boolean('research_enabled')->default(true)->index();
             $table->timestamps();
 
-            $table->unique(['product_family_id', 'manufacturer_id']);
+            $table->unique(['product_family_id', 'manufacturer_id'], 'pfm_family_manufacturer_unique');
         });
     }
 

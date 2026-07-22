@@ -32,7 +32,7 @@ return new class extends Migration
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
 
-            $table->index(['product_variant_id', 'field_name']);
+            $table->index(['product_variant_id', 'field_name'], 'pse_variant_field_idx');
         });
     }
 

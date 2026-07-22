@@ -39,7 +39,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['research_status', 'research_priority']);
+            $table->index(['research_status', 'research_priority'], 'pf_status_priority_idx');
         });
     }
 

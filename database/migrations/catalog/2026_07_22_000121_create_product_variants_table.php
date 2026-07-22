@@ -51,8 +51,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['manufacturer_id', 'verification_status']);
-            $table->index(['product_family_id', 'verification_level']);
+            $table->index(['manufacturer_id', 'verification_status'], 'pv_manufacturer_vstatus_idx');
+            $table->index(['product_family_id', 'verification_level'], 'pv_family_vlevel_idx');
         });
     }
 

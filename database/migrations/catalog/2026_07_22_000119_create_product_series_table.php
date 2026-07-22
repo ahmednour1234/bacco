@@ -30,7 +30,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['manufacturer_id', 'product_family_id']);
+            $table->index(['manufacturer_id', 'product_family_id'], 'ps_manufacturer_family_idx');
         });
     }
 

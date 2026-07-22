@@ -30,7 +30,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->timestamp('created_at')->nullable()->index();
 
-            $table->index(['auditable_type', 'auditable_id']);
+            $table->index(['auditable_type', 'auditable_id'], 'cal_auditable_idx');
         });
     }
 

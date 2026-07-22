@@ -29,8 +29,8 @@ return new class extends Migration
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
 
-            $table->unique(['division_id', 'slug']);
-            $table->index(['division_id', 'parent_id']);
+            $table->unique(['division_id', 'slug'], 'crc_division_slug_unique');
+            $table->index(['division_id', 'parent_id'], 'crc_division_parent_idx');
         });
     }
 

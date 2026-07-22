@@ -36,8 +36,8 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable()->index();
             $table->timestamps();
 
-            $table->index(['product_family_id', 'status']);
-            $table->index(['status', 'priority']);
+            $table->index(['product_family_id', 'status'], 'rj_family_status_idx');
+            $table->index(['status', 'priority'], 'rj_status_priority_idx');
         });
     }
 

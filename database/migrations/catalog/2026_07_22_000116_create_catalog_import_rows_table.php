@@ -47,7 +47,7 @@ return new class extends Migration
             $table->timestamps();
 
             // A given row (by hash) may only be imported once per file.
-            $table->unique(['catalog_import_id', 'row_hash']);
+            $table->unique(['catalog_import_id', 'row_hash'], 'cir_import_rowhash_unique');
         });
     }
 
