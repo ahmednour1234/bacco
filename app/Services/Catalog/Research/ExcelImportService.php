@@ -106,6 +106,34 @@ class ExcelImportService
         return $import;
     }
 
+    /**
+     * Reset a finished/failed import and re-dispatch its processing job. Clears
+     * previously-imported rows (raw source rows for this import only) and the
+     * counters so the second pass starts clean. Re-uses the saved mapping.
+     */
+    public function reprocess(CatalogImport $import): CatalogImport
+    {
+        \Illuminate\Support\Facades\DB::connection('catalog')
+            ->table('catalog_import_rows')
+            ->where('catalog_import_id', $import->id)
+            ->delete();
+
+        $this->importRepo->update($import, [
+            'status'         => CatalogImportStatusEnum::Uploaded,
+            'total_rows'     => 0,
+            'imported_rows'  => 0,
+            'duplicate_rows' => 0,
+            'failed_rows'    => 0,
+            'started_at'     => null,
+            'completed_at'   => null,
+        ]);
+
+        ProcessCatalogResearchImportJob::dispatch($import->id)
+            ->onQueue(config('catalog_research.queue', 'default'));
+
+        return $import;
+    }
+
     public function paginate(int $perPage = 20)
     {
         return $this->importRepo->paginate($perPage);

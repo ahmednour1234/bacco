@@ -31,8 +31,20 @@
                 @if($import->completed_at) · completed {{ $import->completed_at->diffForHumans() }} @endif
             </p>
         </div>
-        <a href="{{ route('admin.catalog.research.imports.index') }}" class="text-sm text-gray-500 hover:underline">← Back to imports</a>
+        <div class="flex items-center gap-3">
+            @can('catalog.import.process')
+            <form method="POST" action="{{ route('admin.catalog.research.imports.reprocess', $import->uuid) }}">@csrf
+                <button class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600">Reprocess</button>
+            </form>
+            <form method="POST" action="{{ route('admin.catalog.research.queue.run') }}">@csrf
+                <button class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Run Queue</button>
+            </form>
+            @endcan
+            <a href="{{ route('admin.catalog.research.imports.index') }}" class="text-sm text-gray-500 hover:underline">← Back to imports</a>
+        </div>
     </div>
+
+    @if(session('error'))<div class="rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">{{ session('error') }}</div>@endif
 
     @if(session('success'))
         <div class="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm">{{ session('success') }}</div>

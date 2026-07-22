@@ -39,8 +39,11 @@ return [
         'max_concurrent_jobs'      => (int) env('CATALOG_RESEARCH_MAX_CONCURRENT_JOBS', 3),
     ],
 
-    // Queue used for all research jobs (kept off the default queue).
-    'queue' => env('CATALOG_RESEARCH_QUEUE', 'catalog-research'),
+    // Queue used for all research jobs. Defaults to the application's default
+    // queue so the same worker (and the admin "Run Queue" action) processes
+    // them — set CATALOG_RESEARCH_QUEUE to isolate them onto a dedicated queue
+    // only if you run a worker for that queue name.
+    'queue' => env('CATALOG_RESEARCH_QUEUE', 'default'),
 
     // Stale-product refresh window for the optional scheduler.
     'source_refresh_days' => (int) env('CATALOG_SOURCE_REFRESH_DAYS', 180),

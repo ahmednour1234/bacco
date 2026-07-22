@@ -89,8 +89,19 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
 
         $importRepo->markProcessing($import);
 
-        $disk    = config('catalog_research.storage.disk', 'local');
-        $absPath = Storage::disk($disk)->path($import->stored_file_path);
+        // Resolve the stored file across the disk root and the Laravel 11+
+        // private path, so a mismatch in filesystem config never silently
+        // yields a zero-row "Failed" import.
+        $absPath = $this->resolveFilePath($import->stored_file_path);
+        if ($absPath === null) {
+            Log::error('Research import file not found.', [
+                'import_id' => $import->id,
+                'stored'    => $import->stored_file_path,
+            ]);
+            $importRepo->markFailed($import);
+
+            return;
+        }
 
         $seenHashes = $rowRepo->existingHashes($import->id);
         $buffer     = [];
@@ -106,7 +117,8 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
             $buffer   = [];
         };
 
-        $reader->eachRow($absPath, $sheet, $headerRow, function (array $rawRow, int $excelRow) use (
+        try {
+            $reader->eachRow($absPath, $sheet, $headerRow, function (array $rawRow, int $excelRow) use (
             &$buffer, &$total, &$imported, &$duplicate, &$failed, &$seenHashes,
             $import, $normalizer, $engine, $familyRepo, $lookups, $map, $flush
         ) {
@@ -151,12 +163,50 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
             if (count($buffer) >= self::CHUNK) {
                 $flush();
             }
-        });
+            });
 
-        $flush();
+            $flush();
+        } catch (\Throwable $e) {
+            // Persist whatever rows were buffered, then fail cleanly with a log —
+            // never let a read error kill the worker with the import stuck.
+            $flush();
+            Log::error('Research import processing failed mid-read.', [
+                'import_id' => $import->id,
+                'sheet'     => $sheet,
+                'message'   => $e->getMessage(),
+            ]);
+            $importRepo->update($import, ['total_rows' => $total]);
+            $importRepo->markFailed($import);
+
+            return;
+        }
 
         $importRepo->update($import, ['total_rows' => $total]);
         $importRepo->markCompleted($import, partial: false);
+    }
+
+    /**
+     * Resolve the stored file to an absolute path, tolerating differences in the
+     * configured disk root and the Laravel 11+ private storage location.
+     */
+    private function resolveFilePath(string $stored): ?string
+    {
+        $disk = config('catalog_research.storage.disk', 'local');
+
+        $candidates = [
+            Storage::disk($disk)->path($stored),
+            storage_path('app/' . $stored),
+            storage_path('app/private/' . $stored),
+            storage_path('app/public/' . $stored),
+        ];
+
+        foreach ($candidates as $path) {
+            if (is_file($path)) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 
     /**

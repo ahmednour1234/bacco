@@ -715,6 +715,7 @@ return [
     'research_imports'             => 'Research Imports',
     'file_uploaded_map_columns'    => 'File uploaded. Now select the sheet and map the columns.',
     'import_queued'                => 'Import queued for processing.',
+    'queue_started'                => 'Queue worker started. Processing will begin shortly — refresh in a moment.',
     'management'                    => 'Management',
     'add'                           => 'Add',
     'add_brand'                     => 'Add Brand',

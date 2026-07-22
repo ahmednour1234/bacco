@@ -50,13 +50,13 @@ class ResearchImportController extends Controller
     }
 
     /** Sheet selection + column mapping + preview screen. */
-    public function map(string $uuid, string $sheet = null): View
+    public function map(string $uuid): View
     {
         $this->authorize('catalog.import.process');
 
         $import     = $this->importService->findByUuid($uuid);
         $sheetNames = $this->importService->sheetNames($import);
-        $current    = $sheet ?: ($import->column_mapping['sheet'] ?? ($sheetNames[0] ?? null));
+        $current    = request('sheet') ?: ($import->column_mapping['sheet'] ?? ($sheetNames[0] ?? null));
         $headerRow  = (int) request('header_row', $import->column_mapping['header_row'] ?? 1);
 
         $preview = $current
@@ -98,5 +98,48 @@ class ResearchImportController extends Controller
         $report = $this->report->forImport($import);
 
         return view('admin.catalog.research.imports.show', compact('import', 'report'));
+    }
+
+    /**
+     * Re-queue a failed/finished import to run again (e.g. after fixing the
+     * queue worker). Clears its counters and re-dispatches the job.
+     */
+    public function reprocess(string $uuid): RedirectResponse
+    {
+        $this->authorize('catalog.import.process');
+
+        $import = $this->importService->findByUuid($uuid);
+        $this->importService->reprocess($import);
+
+        return redirect()
+            ->route('admin.catalog.research.imports.show', $import->uuid)
+            ->with('success', __('app.import_queued'));
+    }
+
+    /**
+     * Kick off a background queue worker (default queue) so queued imports and
+     * research jobs are processed without shell access. Mirrors the existing
+     * catalog module's "Run Queue" action.
+     */
+    public function runQueue(): RedirectResponse
+    {
+        $this->authorize('catalog.import.process');
+
+        $php     = PHP_BINARY;
+        $artisan = base_path('artisan');
+        $cmd     = escapeshellarg($php) . ' ' . escapeshellarg($artisan)
+                 . ' queue:work --stop-when-empty --timeout=10800 --memory=512';
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            pclose(popen('start /B ' . $cmd . ' > NUL 2>&1', 'r'));
+        } else {
+            $descriptors = [['pipe', 'r'], ['file', '/dev/null', 'w'], ['file', '/dev/null', 'w']];
+            $proc = @proc_open($cmd . ' &', $descriptors, $pipes);
+            if (is_resource($proc)) {
+                proc_close($proc);
+            }
+        }
+
+        return back()->with('success', __('app.queue_started'));
     }
 }

@@ -10,15 +10,28 @@
             <h1 class="text-2xl font-bold text-gray-800">Product Research — Imports</h1>
             <p class="text-sm text-gray-500 mt-1">Upload a Qimta-style workbook. Each row becomes a Product Family — no prices, no invented products.</p>
         </div>
-        @can('catalog.import.create')
-        <a href="{{ route('admin.catalog.research.imports.create') }}"
-           class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700 transition">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-            </svg>
-            New Import
-        </a>
-        @endcan
+        <div class="flex items-center gap-3">
+            @can('catalog.import.process')
+            <form method="POST" action="{{ route('admin.catalog.research.queue.run') }}">@csrf
+                <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
+                    </svg>
+                    Run Queue
+                </button>
+            </form>
+            @endcan
+            @can('catalog.import.create')
+            <a href="{{ route('admin.catalog.research.imports.create') }}"
+               class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700 transition">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                New Import
+            </a>
+            @endcan
+        </div>
     </div>
 
     @if(session('success'))
