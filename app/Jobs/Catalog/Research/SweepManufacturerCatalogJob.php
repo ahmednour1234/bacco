@@ -65,9 +65,15 @@ class SweepManufacturerCatalogJob implements ShouldQueue
         // each page returns genuinely new products instead of repeats.
         $knownModels = $this->knownModels($manufacturer->id);
 
+        // Expansion is manufacturer-scoped, but linking the family this maker
+        // serves in that category keeps the job traceable from the family page
+        // (and satisfies installs where the column is still NOT NULL).
+        $familyId = $this->familyIdFor($manufacturer->id, $this->category);
+
         $job = ResearchJob::create([
-            'uuid'            => (string) \Illuminate\Support\Str::uuid(),
-            'manufacturer_id' => $manufacturer->id,
+            'uuid'              => (string) \Illuminate\Support\Str::uuid(),
+            'product_family_id' => $familyId,
+            'manufacturer_id'   => $manufacturer->id,
             'job_type'        => ResearchJobTypeEnum::ManufacturerCatalogSweep,
             'provider'        => config('catalog_research.provider', 'deepseek'),
             'model_name'      => config('catalog_research.deepseek.model'),
@@ -143,6 +149,29 @@ class SweepManufacturerCatalogJob implements ShouldQueue
             $this->perPage,
             $this->maxPages,
         )->onQueue(config('catalog_research.queue', 'default'));
+    }
+
+    /**
+     * The family this manufacturer serves in this category, if one exists.
+     * Expansion is manufacturer-scoped so this is best-effort, not required.
+     */
+    private function familyIdFor(int $manufacturerId, string $category): ?int
+    {
+        $id = DB::connection('catalog')
+            ->table('product_family_manufacturers as pfm')
+            ->join('product_families as f', 'f.id', '=', 'pfm.product_family_id')
+            ->where('pfm.manufacturer_id', $manufacturerId)
+            ->where('f.name', $category)
+            ->value('f.id');
+
+        // Fall back to any family this maker is attached to, so the job still
+        // records where it came from.
+        $id ??= DB::connection('catalog')
+            ->table('product_family_manufacturers')
+            ->where('manufacturer_id', $manufacturerId)
+            ->value('product_family_id');
+
+        return $id ? (int) $id : null;
     }
 
     /**
