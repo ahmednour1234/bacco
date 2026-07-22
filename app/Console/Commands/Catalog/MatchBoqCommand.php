@@ -116,20 +116,23 @@ class MatchBoqCommand extends Command
 
         // --- Coverage ------------------------------------------------------
         $catalog = DB::connection('catalog');
-        $ids     = $items->pluck('id')->all();
 
-        $withMatch = $catalog->table('boq_variant_matches')
+        // Count only rows that are genuinely product lines. Counting every row
+        // with a match lets stale matches from an earlier, looser run push the
+        // figure above 100%.
+        $productItems = $items->filter(
+            fn ($i) => $parser->isProductLine((string) $i->description, (float) $i->quantity, $i->unit_id !== null)
+        );
+
+        $ids      = $productItems->pluck('id')->all();
+        $products = $productItems->count();
+
+        $withMatch = $ids === [] ? 0 : $catalog->table('boq_variant_matches')
             ->whereIn('boq_item_id', $ids)->distinct()->count('boq_item_id');
 
-        $withPrice = $catalog->table('boq_variant_matches')
+        $withPrice = $ids === [] ? 0 : $catalog->table('boq_variant_matches')
             ->whereIn('boq_item_id', $ids)->whereNotNull('unit_price')
             ->distinct()->count('boq_item_id');
-
-        // Measure against real product lines. A BOQ is mostly headings and
-        // clauses, so a percentage of ALL rows understates the true coverage.
-        $products = $items->filter(
-            fn ($i) => $parser->isProductLine((string) $i->description, (float) $i->quantity, $i->unit_id !== null)
-        )->count();
 
         $total = max(1, $products);
 

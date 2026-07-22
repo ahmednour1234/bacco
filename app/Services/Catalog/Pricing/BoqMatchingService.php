@@ -47,6 +47,11 @@ class BoqMatchingService
             (float) $item->quantity,
             $item->unit_id !== null,
         )) {
+            // Clear anything an earlier, looser run matched to this row. A
+            // heading that once picked up candidates must not keep them, or the
+            // coverage figure counts rows that are not products at all.
+            BoqVariantMatch::where('boq_item_id', $item->id)->delete();
+
             return 0;
         }
 
