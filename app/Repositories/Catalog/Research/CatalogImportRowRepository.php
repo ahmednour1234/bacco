@@ -4,17 +4,43 @@ namespace App\Repositories\Catalog\Research;
 
 use App\Models\Catalog\Research\CatalogImportRow;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CatalogImportRowRepository
 {
-    /** Bulk insert already-built row arrays on the catalog connection. */
+    /**
+     * Bulk insert row arrays on the catalog connection. If the batch insert
+     * fails (e.g. one oversized value, or max_allowed_packet on a big chunk),
+     * fall back to inserting rows one-by-one so a single bad row can never fail
+     * the whole import — the offending row is logged and skipped.
+     */
     public function insertMany(array $rows): void
     {
         if (empty($rows)) {
             return;
         }
 
-        DB::connection('catalog')->table('catalog_import_rows')->insert($rows);
+        $table = DB::connection('catalog')->table('catalog_import_rows');
+
+        try {
+            $table->insert($rows);
+        } catch (\Throwable $e) {
+            Log::warning('Bulk row insert failed; falling back to row-by-row.', [
+                'count'   => count($rows),
+                'message' => $e->getMessage(),
+            ]);
+
+            foreach ($rows as $row) {
+                try {
+                    DB::connection('catalog')->table('catalog_import_rows')->insert($row);
+                } catch (\Throwable $inner) {
+                    Log::warning('Skipped an unsaveable import row.', [
+                        'excel_row' => $row['excel_row_number'] ?? null,
+                        'message'   => $inner->getMessage(),
+                    ]);
+                }
+            }
+        }
     }
 
     /**

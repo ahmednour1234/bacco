@@ -37,8 +37,9 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
     public int $timeout = 7200;
     public int $tries   = 1;
 
-    /** Rows buffered before a bulk insert. */
-    private const CHUNK = 500;
+    /** Rows buffered before a bulk insert. Kept modest so a chunk never trips
+     *  MySQL's max_allowed_packet on wide rows. */
+    private const CHUNK = 200;
 
     public function __construct(private int $importId) {}
 
@@ -167,16 +168,33 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
 
             $flush();
         } catch (\Throwable $e) {
-            // Persist whatever rows were buffered, then fail cleanly with a log —
-            // never let a read error kill the worker with the import stuck.
-            $flush();
-            Log::error('Research import processing failed mid-read.', [
+            // Persist whatever was buffered, then record the outcome. If rows
+            // were already imported, this is a PARTIAL success (keep them) — not
+            // a total failure — so a single late problem row never discards the
+            // thousands that imported fine.
+            try {
+                $flush();
+            } catch (\Throwable $flushErr) {
+                Log::error('Final flush failed.', ['import_id' => $import->id, 'message' => $flushErr->getMessage()]);
+            }
+
+            Log::error('Research import stopped early.', [
                 'import_id' => $import->id,
                 'sheet'     => $sheet,
+                'rows_seen' => $total,
                 'message'   => $e->getMessage(),
             ]);
+
             $importRepo->update($import, ['total_rows' => $total]);
-            $importRepo->markFailed($import, 'Could not read the sheet "' . $sheet . '": ' . $e->getMessage());
+
+            if (($import->fresh()->imported_rows ?? 0) > 0) {
+                $importRepo->markCompleted($import, partial: true);
+                $importRepo->update($import->fresh(), [
+                    'error_message' => 'Stopped after ' . $total . ' rows: ' . $e->getMessage(),
+                ]);
+            } else {
+                $importRepo->markFailed($import, 'Processing failed on sheet "' . $sheet . '": ' . $e->getMessage());
+            }
 
             return;
         }
@@ -274,11 +292,15 @@ class ProcessCatalogResearchImportJob implements ShouldQueue
     ): array {
         $fields = $parsed['fields'] ?? [];
 
+        // Guard the fixed-width string columns so an oversized cell can never
+        // fail the insert (raw values still live in original_row JSON).
+        $clip = static fn (?string $v, int $max) => $v === null ? null : mb_substr($v, 0, $max);
+
         return [
             'catalog_import_id'    => $importId,
-            'sheet_name'           => $sheet,
+            'sheet_name'           => $clip($sheet, 255),
             'excel_row_number'     => $excelRow,
-            'source_code'          => $fields['qimta_code'] ?? null,
+            'source_code'          => $clip($fields['qimta_code'] ?? null, 255),
             'division_raw'         => $fields['division'] ?? null,
             'category_raw'         => $fields['category'] ?? null,
             'item_description_raw' => $fields['item_description'] ?? null,
