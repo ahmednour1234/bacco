@@ -96,7 +96,10 @@ class ResearchResponseSchema
 
         return [
             'type'       => 'object',
-            'required'   => ['series'],
+            // `series` is not required at the schema level — the parser defaults
+            // a missing/empty series to [] so a "found nothing" answer is a valid
+            // empty result, not a rejected one.
+            'required'   => [],
             'properties' => [
                 'product_family' => [
                     'type'       => ['object', 'null'],
