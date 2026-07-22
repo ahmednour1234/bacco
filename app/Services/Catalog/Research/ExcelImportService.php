@@ -70,6 +70,12 @@ class ExcelImportService
         return $this->reader->sheetNames($this->absolutePath($import));
     }
 
+    /** Best-guess header row for a sheet (Qimta files have a title banner on top). */
+    public function detectHeaderRow(CatalogImport $import, ?string $sheet = null): int
+    {
+        return $this->reader->detectHeaderRow($this->absolutePath($import), $sheet);
+    }
+
     /**
      * Preview the first $limit rows for the mapping UI.
      *

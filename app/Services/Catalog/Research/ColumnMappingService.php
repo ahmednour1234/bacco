@@ -47,6 +47,65 @@ class ColumnMappingService
         ];
     }
 
+    /**
+     * Best-effort automatic mapping: match each spreadsheet header to a target
+     * field by keyword, so the user usually only needs to confirm. Returns
+     * header => targetField. Supports English + common Arabic labels.
+     *
+     * @param  list<string>  $headers
+     * @return array<string,string>
+     */
+    public function autoMap(array $headers): array
+    {
+        // Ordered: more specific matches first so "product name" doesn't grab
+        // a plain "product" meant for something else.
+        $rules = [
+            'qimta_code'            => ['qimta', 'رمز قيمتا', 'كود', 'رمز المنتج', 'code'],
+            'item_description'      => ['item description', 'description', 'وصف', 'اسم الصنف'],
+            'product_name'          => ['product name', 'اسم المنتج'],
+            'sub_type'              => ['sub-type', 'sub type', 'النوع الفرعي'],
+            'division'              => ['division', 'القسم', 'الشعبة'],
+            'category'              => ['category', 'الفئة', 'التصنيف'],
+            'type_of_material'      => ['material', 'الخامة', 'نوع المادة', 'المادة'],
+            'connection_type'       => ['connection', 'التوصيل', 'الوصلة'],
+            'pressure_rating'       => ['pressure', 'rating', 'الضغط', 'التصنيف الضغطي'],
+            'standard_code'         => ['standard', 'المعيار', 'الكود القياسي'],
+            'color_finish'          => ['color', 'finish', 'اللون', 'التشطيب'],
+            'size'                  => ['size', 'المقاس', 'الحجم'],
+            'unit'                  => ['unit', 'الوحدة'],
+            'approval'              => ['approval', 'certification', 'الاعتماد', 'الشهادة'],
+            'local_manufacturers'   => ['local manufacturer', 'saudi', 'مصنعين محليين', 'محلي'],
+            'gcc_manufacturers'     => ['gcc manufacturer', 'خليجي', 'دول الخليج'],
+            'chinese_manufacturers' => ['chinese manufacturer', 'china', 'صيني'],
+            'global_manufacturers'  => ['global manufacturer', 'approved maker', 'maker', 'brand', 'عالمي', 'المصنعين'],
+        ];
+
+        $targets = $this->targetFields();
+        $map     = [];
+        $used    = [];
+
+        foreach ($headers as $header) {
+            $h = mb_strtolower(trim($header));
+            if ($h === '') {
+                continue;
+            }
+            foreach ($rules as $field => $needles) {
+                if (isset($used[$field]) || ! isset($targets[$field])) {
+                    continue;
+                }
+                foreach ($needles as $needle) {
+                    if (str_contains($h, mb_strtolower($needle))) {
+                        $map[$header] = $field;
+                        $used[$field] = true;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        return $map;
+    }
+
     /** Field keys that carry manufacturer lists, with their manufacturer_type. */
     public function manufacturerFields(): array
     {

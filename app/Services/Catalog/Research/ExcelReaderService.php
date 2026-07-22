@@ -17,6 +17,13 @@ class ExcelReaderService
     /** Hard cap on columns read from any sheet. */
     private const MAX_COLUMNS = 40;
 
+    /** Header-ish tokens used to auto-detect which row is the header row. */
+    private const HEADER_HINTS = [
+        'qimta', 'code', 'division', 'category', 'item', 'description', 'product',
+        'material', 'connection', 'pressure', 'rating', 'size', 'unit',
+        'manufacturer', 'maker', 'brand', 'standard', 'approval', 'type',
+    ];
+
     /** @return list<string> */
     public function sheetNames(string $absPath): array
     {
@@ -25,6 +32,59 @@ class ExcelReaderService
 
         // listWorksheetNames avoids loading cell data just to enumerate tabs.
         return $reader->listWorksheetNames($absPath);
+    }
+
+    /**
+     * Guess the header row by scanning the first $scan rows and scoring each by
+     * how many of its non-empty cells look like column labels. Qimta workbooks
+     * put a title/summary banner above the real header, so assuming row 1 is
+     * wrong — this finds the actual header row instead.
+     */
+    public function detectHeaderRow(string $absPath, ?string $sheetName = null, int $scan = 15): int
+    {
+        $reader = $this->makeReader($absPath);
+        $reader->setReadDataOnly(true);
+        if ($sheetName !== null) {
+            $reader->setLoadSheetsOnly([$sheetName]);
+        }
+        $spreadsheet = $reader->load($absPath);
+        $sheet       = ($sheetName !== null ? $spreadsheet->getSheetByName($sheetName) : $spreadsheet->getSheet(0))
+            ?? $spreadsheet->getActiveSheet();
+
+        $highestRow    = min($sheet->getHighestDataRow(), $scan);
+        $highestColIdx = min(Coordinate::columnIndexFromString($sheet->getHighestDataColumn()), self::MAX_COLUMNS);
+
+        $bestRow   = 1;
+        $bestScore = -1;
+
+        for ($row = 1; $row <= $highestRow; $row++) {
+            $nonEmpty = 0;
+            $hits     = 0;
+            for ($col = 1; $col <= $highestColIdx; $col++) {
+                $val = strtolower(trim($this->cellToString($sheet->getCell([$col, $row])->getValue())));
+                if ($val === '') {
+                    continue;
+                }
+                $nonEmpty++;
+                foreach (self::HEADER_HINTS as $hint) {
+                    if (str_contains($val, $hint)) {
+                        $hits++;
+                        break;
+                    }
+                }
+            }
+            // A header row has several short labelled cells; prefer more hits,
+            // then more filled columns.
+            $score = ($hits * 10) + $nonEmpty;
+            if ($hits >= 2 && $score > $bestScore) {
+                $bestScore = $score;
+                $bestRow   = $row;
+            }
+        }
+
+        $spreadsheet->disconnectWorksheets();
+
+        return $bestRow;
     }
 
     /**

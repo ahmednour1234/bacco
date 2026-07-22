@@ -57,11 +57,24 @@ class ResearchImportController extends Controller
         $import     = $this->importService->findByUuid($uuid);
         $sheetNames = $this->importService->sheetNames($import);
         $current    = request('sheet') ?: ($import->column_mapping['sheet'] ?? ($sheetNames[0] ?? null));
-        $headerRow  = (int) request('header_row', $import->column_mapping['header_row'] ?? 1);
+
+        // Default the header row to an auto-detected value (Qimta files have a
+        // title banner above the real header), unless the user set one or a
+        // mapping was already saved.
+        $headerRow = request()->filled('header_row')
+            ? (int) request('header_row')
+            : (int) ($import->column_mapping['header_row']
+                ?? ($current ? $this->importService->detectHeaderRow($import, $current) : 1));
 
         $preview = $current
             ? $this->importService->preview($import, $current, 20, $headerRow)
             : ['sheet' => null, 'headers' => [], 'rows' => []];
+
+        // Suggest a mapping automatically so the user rarely has to map by hand.
+        $savedMapping = $import->column_mapping['map'] ?? [];
+        if (empty($savedMapping) && ! empty($preview['headers'])) {
+            $savedMapping = $this->mappingService->autoMap($preview['headers']);
+        }
 
         return view('admin.catalog.research.imports.map', [
             'import'       => $import,
@@ -70,7 +83,7 @@ class ResearchImportController extends Controller
             'headerRow'    => $headerRow,
             'preview'      => $preview,
             'targetFields' => $this->mappingService->targetFields(),
-            'savedMapping' => $import->column_mapping['map'] ?? [],
+            'savedMapping' => $savedMapping,
         ]);
     }
 
