@@ -40,6 +40,12 @@ class BoqMatchingService
      */
     public function matchItem(BoqItem $item): int
     {
+        // Headings, definitions and contract clauses are not products. Matching
+        // them yields confident-looking nonsense, so they are skipped outright.
+        if (! $this->parser->isProductLine((string) $item->description, (float) $item->quantity)) {
+            return 0;
+        }
+
         $specs = $this->parser->parse((string) $item->description, $item->brand);
 
         $candidates = $this->findCandidates($specs);

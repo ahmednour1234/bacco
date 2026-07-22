@@ -25,6 +25,66 @@ class BoqSpecParser
      *   pressure:?string, keywords:list<string>
      * }
      */
+    /**
+     * Whether a BOQ row describes a product at all.
+     *
+     * Real BOQ files are full of headings, preamble, definitions and legal
+     * clauses ("Definitions", "The following terms shall mean:", "RIBA — Royal
+     * Institute of British Architects"). Matching those against the catalog
+     * produces confident-looking nonsense, so they are excluded before any
+     * matching happens.
+     */
+    public function isProductLine(string $description, ?float $quantity = null): bool
+    {
+        $text = trim($description);
+
+        if ($text === '' || mb_strlen($text) < 5) {
+            return false;
+        }
+
+        // A priced BOQ line has a quantity; headings and clauses do not.
+        if ($quantity !== null && $quantity <= 0) {
+            return false;
+        }
+
+        $lower = mb_strtolower($text);
+
+        // Section headings and contractual boilerplate.
+        $boilerplate = [
+            'description', 'definitions', 'general matters', 'preamble',
+            'the following terms', 'shall mean', 'contractor shall', 'employer shall',
+            'sub-total', 'subtotal', 'total carried', 'carried forward',
+            'brought forward', 'page total', 'bill no', 'section no',
+            'general conditions', 'particular conditions', 'specification',
+            'method of measurement', 'provisional sum', 'prime cost',
+            'day works', 'dayworks', 'contingency', 'nil rate', 'rate only',
+            'as described above', 'ditto', 'as above', 'continued', "cont'd",
+        ];
+
+        foreach ($boilerplate as $phrase) {
+            if (str_contains($lower, $phrase)) {
+                return false;
+            }
+        }
+
+        // A quoted acronym followed by its expansion is a definition, not a
+        // product: "UK" "United Kingdom of Great Britain".
+        if (preg_match('/^["\x{201C}]\s*[A-Z]{2,6}\s*["\x{201D}]/u', $text)) {
+            return false;
+        }
+
+        // Pure numbering ("1.2.3") or a bare clause reference.
+        if (preg_match('/^[\d.\s\-()]+$/', $text)) {
+            return false;
+        }
+
+        // Needs at least two real words to describe anything.
+        $words = preg_split('/[^\p{L}\p{N}]+/u', $text) ?: [];
+        $words = array_filter($words, fn ($w) => mb_strlen($w) >= 3);
+
+        return count($words) >= 2;
+    }
+
     public function parse(string $description, ?string $brand = null): array
     {
         $raw  = trim($description);

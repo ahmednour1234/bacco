@@ -52,15 +52,34 @@ class MatchBoqCommand extends Command
         // fault or the catalog's — they need opposite fixes.
         if ($this->option('parse-only')) {
             $this->newLine();
-            foreach ($items->take(20) as $item) {
-                $s = $parser->parse((string) $item->description, $item->brand);
+            $skipped = 0;
+
+            foreach ($items->take(30) as $item) {
+                $desc = (string) $item->description;
+
+                if (! $parser->isProductLine($desc, (float) $item->quantity)) {
+                    $skipped++;
+                    $this->line(sprintf('  <comment>skip</comment> %s', mb_substr($desc, 0, 60)));
+                    continue;
+                }
+
+                $s = $parser->parse($desc, $item->brand);
                 $this->line(sprintf(
-                    '  %-46s size=%-8s mat=%-12s conn=%-10s sku=%s',
-                    mb_substr((string) $item->description, 0, 46),
+                    '  <info>item</info> %-42s size=%-8s mat=%-11s conn=%-9s sku=%s',
+                    mb_substr($desc, 0, 42),
                     $s['size'] ?? '-', $s['material'] ?? '-',
                     $s['connection'] ?? '-', $s['sku'] ?? '-'
                 ));
             }
+
+            // The real product count is what matters — a BOQ is mostly prose.
+            $products = $items->filter(fn ($i) => $parser->isProductLine((string) $i->description, (float) $i->quantity))->count();
+
+            $this->newLine();
+            $this->line(sprintf(
+                '  Product lines: <info>%d</info> of %d (%d headings/clauses skipped)',
+                $products, $items->count(), $items->count() - $products
+            ));
 
             return self::SUCCESS;
         }
@@ -102,11 +121,19 @@ class MatchBoqCommand extends Command
             ->whereIn('boq_item_id', $ids)->whereNotNull('unit_price')
             ->distinct()->count('boq_item_id');
 
-        $total = max(1, $items->count());
+        // Measure against real product lines. A BOQ is mostly headings and
+        // clauses, so a percentage of ALL rows understates the true coverage.
+        $products = $items->filter(
+            fn ($i) => $parser->isProductLine((string) $i->description, (float) $i->quantity)
+        )->count();
+
+        $total = max(1, $products);
 
         $this->components->info('Coverage');
-        $this->line(sprintf('  Lines matched : <info>%d</info> / %d (%.1f%%)', $withMatch, $items->count(), $withMatch / $total * 100));
-        $this->line(sprintf('  Lines priced  : <info>%d</info> / %d (%.1f%%)', $withPrice, $items->count(), $withPrice / $total * 100));
+        $this->line(sprintf('  Rows in BOQ   : %d (<comment>%d</comment> headings/clauses skipped)', $items->count(), $items->count() - $products));
+        $this->line(sprintf('  Product lines : <info>%d</info>', $products));
+        $this->line(sprintf('  Lines matched : <info>%d</info> / %d (%.1f%%)', $withMatch, $products, $withMatch / $total * 100));
+        $this->line(sprintf('  Lines priced  : <info>%d</info> / %d (%.1f%%)', $withPrice, $products, $withPrice / $total * 100));
 
         $this->newLine();
 
