@@ -246,6 +246,8 @@ class CatalogController extends Controller
     public function show(Request $request, string $slug)
     {
         try {
+        $isAr = app()->getLocale() === 'ar';
+
         // Resolve slug → actual division name
         $division = DB::connection('catalog')
             ->table('catalog_products')
@@ -304,9 +306,14 @@ class CatalogController extends Controller
             $query->where('item_description', 'like', '%' . $request->q . '%');
         }
 
+        $itemLabel = $isAr
+            ? 'MAX(COALESCE(NULLIF(item_description_ar,""), item_description))'
+            : 'MAX(item_description)';
+
         $items = $query
             ->select(
                 'item_description',
+                DB::raw($itemLabel . ' as item_label'),
                 DB::raw('count(*) as products'),
                 DB::raw('GROUP_CONCAT(DISTINCT type_of_material ORDER BY type_of_material SEPARATOR ", ") as common_materials'),
                 DB::raw('MAX(lead_time) as lead_time'),
