@@ -76,7 +76,7 @@ class ResearchProductFamilyJob implements ShouldQueue
 
         if ($response->valid) {
             ProcessResearchResultJob::dispatch($job->id)
-                ->onQueue(config('catalog_research.queue', 'catalog-research'));
+                ->onQueue(config('catalog_research.queue', 'default'));
         } else {
             $family->update(['research_status' => ResearchStatusEnum::NeedsReview]);
         }

@@ -65,7 +65,7 @@ class ExpandCatalogCommand extends Command
             return self::SUCCESS;
         }
 
-        $queue      = config('catalog_research.queue', 'catalog-research');
+        $queue      = config('catalog_research.queue', 'default');
         $dispatched = 0;
 
         foreach ($makers as $maker) {

@@ -142,7 +142,7 @@ class SweepManufacturerCatalogJob implements ShouldQueue
             $this->page + 1,
             $this->perPage,
             $this->maxPages,
-        )->onQueue(config('catalog_research.queue', 'catalog-research'));
+        )->onQueue(config('catalog_research.queue', 'default'));
     }
 
     /**

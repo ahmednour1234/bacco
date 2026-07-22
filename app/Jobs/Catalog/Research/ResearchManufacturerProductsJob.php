@@ -41,6 +41,6 @@ class ResearchManufacturerProductsJob implements ShouldQueue
         ]);
 
         ResearchProductFamilyJob::dispatch($job->id)
-            ->onQueue(config('catalog_research.queue', 'catalog-research'));
+            ->onQueue(config('catalog_research.queue', 'default'));
     }
 }
