@@ -29,6 +29,13 @@ class ResearchResponseParser
         // the single-object + top-level-series shape the schema expects.
         $json = $this->normalizeShape($json);
 
+        // Numbers where the schema wants strings (e.g. dn_size: 50 instead of
+        // "50", size: 2 instead of "2") are the single biggest cause of an
+        // otherwise-real response being rejected. Coerce scalars to strings on
+        // the fields that accept string|null so a good answer is never thrown
+        // away over the JSON type of a size.
+        $json = $this->coerceScalarStrings($json);
+
         // Coerce common enum synonyms BEFORE validating so a good response with
         // real products is never thrown away over a minor label mismatch (e.g.
         // the model saying "available" instead of "current").
@@ -138,6 +145,45 @@ class ResearchResponseParser
      * @param  array<string,mixed>  $json
      * @return array<string,mixed>
      */
+    /**
+     * Recursively turn scalar numbers/booleans into strings on the fields that
+     * the schema types as string|null. The model frequently returns dn_size,
+     * size, pressure_rating and pieces as JSON numbers; that is semantically
+     * correct but trips the string validator, so it is normalised here.
+     *
+     * @param  array<string,mixed>  $json
+     * @return array<string,mixed>
+     */
+    private function coerceScalarStrings(array $json): array
+    {
+        // Keys anywhere in the tree that must be strings when present.
+        static $stringKeys = [
+            'size', 'dn_size', 'pressure_rating', 'connection', 'connection_standard',
+            'model_number', 'manufacturer_sku', 'manufacturer_part_number',
+            'body_material', 'ball_material', 'seat_material', 'port_type',
+            'operation_type', 'temperature_min', 'temperature_max', 'code',
+        ];
+
+        $walk = function (&$node) use (&$walk, $stringKeys) {
+            if (! is_array($node)) {
+                return;
+            }
+            foreach ($node as $key => &$value) {
+                if (is_array($value)) {
+                    $walk($value);
+                } elseif (in_array($key, $stringKeys, true) && (is_int($value) || is_float($value) || is_bool($value))) {
+                    // pieces stays numeric elsewhere; here we only touch the
+                    // declared string fields, converting 50 → "50".
+                    $node[$key] = is_bool($value) ? ($value ? '1' : '0') : (string) $value;
+                }
+            }
+        };
+
+        $walk($json);
+
+        return $json;
+    }
+
     private function coerceEnums(array $json): array
     {
         $availability = [
