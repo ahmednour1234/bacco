@@ -334,7 +334,6 @@ return [
     'brand'                    => 'Brand',
     'engineering'              => 'Engineering',
     'logistics'                => 'Logistics',
-    'unit_price_sar'           => 'Unit Price (SAR)',
     'total_sar'                => 'Total (SAR)',
 
     // ── Item Status Badges ───────────────────────────────────────────────
@@ -484,6 +483,7 @@ return [
     'logistics_timeline'       => 'Logistics Timeline',
     'engineering_timeline'     => 'Engineering Timeline',
     'price_sar'                => 'Price (SAR)',
+    'unit_price_sar'           => 'Unit Price (SAR)',
     'item'                     => 'Item',
     'no_items_order'           => 'No items on this order.',
     'no_updates_yet'           => 'No updates yet',

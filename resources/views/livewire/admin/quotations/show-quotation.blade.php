@@ -148,6 +148,7 @@
                                 <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-24">{{ __('app.engineering') }}</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 w-28">{{ __('app.status') }}</th>
 
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.unit_price_sar') }}</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 w-36">{{ __('app.price_sar') }}</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-44">{{ __('app.selected_product') }}</th>
                             </tr>
@@ -216,6 +217,13 @@
                                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $badgeClass }}">
                                             {{ $badgeLabel }}
                                         </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-mono text-slate-600">
+                                        @if(is_numeric($item['unit_price'] ?? null))
+                                            {{ number_format((float)$item['unit_price'], 2) }}
+                                        @else
+                                            <span class="text-xs italic text-slate-400">{{ __('app.not_priced') }}</span>
+                                        @endif
                                     </td>
                                     <td class="px-4 py-3 text-right font-mono font-medium text-slate-800">
                                         @if(is_numeric($item['unit_price'] ?? null))
