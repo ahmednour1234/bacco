@@ -10,7 +10,7 @@ class Form extends Component
 {
     use WithFileUploads;
 
-    public ?Article $article = null;
+    public ?int $articleId = null;
     public bool $isEditing = false;
 
     public string $name_en  = '';
@@ -26,7 +26,7 @@ class Form extends Component
     public function mount(?Article $article = null): void
     {
         if ($article && $article->exists) {
-            $this->article       = $article;
+            $this->articleId     = $article->id;
             $this->isEditing     = true;
             $this->name_en       = (string) ($article->name_en ?? '');
             $this->name_ar       = (string) ($article->name_ar ?? '');
@@ -81,8 +81,8 @@ class Form extends Component
             'image'    => $imagePath,
         ];
 
-        if ($this->isEditing && $this->article) {
-            $this->article->update($payload);
+        if ($this->isEditing && $this->articleId) {
+            Article::findOrFail($this->articleId)->update($payload);
             return redirect()->route('admin.articles.index')->with('success', 'Article updated successfully.');
         }
 
