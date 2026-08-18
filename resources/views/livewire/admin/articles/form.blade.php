@@ -113,7 +113,7 @@
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Lists --}}
-                <button type="button" x-on:click="exec('en','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
+                <button type="button" x-on:click="exec('en','insertUnorderedList')" class="editor-btn" title="Bullet list">• List</button>
                 <button type="button" x-on:click="exec('en','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
@@ -200,7 +200,7 @@
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" x-on:click="exec('ar','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
+                <button type="button" x-on:click="exec('ar','insertUnorderedList')" class="editor-btn" title="Bullet list">• List</button>
                 <button type="button" x-on:click="exec('ar','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
@@ -260,12 +260,12 @@
             <svg class="h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            <span class="text-sm text-slate-500">Click to upload image <span class="text-xs text-slate-400">(JPG, PNG, WebP � max 4MB)</span></span>
+            <span class="text-sm text-slate-500">Click to upload image <span class="text-xs text-slate-400">(JPG, PNG, WebP — max 4MB)</span></span>
             <input type="file" wire:model="image" accept="image/*" class="hidden">
         </label>
         @error('image') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
 
-        <div wire:loading wire:target="image" class="mt-2 text-xs text-emerald-600">Uploading�</div>
+        <div wire:loading wire:target="image" class="mt-2 text-xs text-emerald-600">Uploading…</div>
     </div>
 
     {{-- -- Status -------------------------------------------------------- --}}
@@ -294,7 +294,9 @@
         </a>
     </div>
 </form>
+</div>
 
+@assets
 <style>
 /* -- Toolbar controls ------------------------------------------------ */
 .editor-btn {
@@ -364,9 +366,8 @@
 .editor-body img:focus,
 .editor-body img.selected { outline: 2px solid #34d399; outline-offset: 2px; }
 </style>
-
 <script>
-function articleForm() {
+window.articleForm = function () {
     return {
         _timerEn: null,
         _timerAr: null,
@@ -474,10 +475,10 @@ function articleForm() {
         },
 
         syncEn() {
-            @this.setDescEn(this.$refs.editorEn.innerHTML);
+            this.$wire.setDescEn(this.$refs.editorEn.innerHTML);
         },
         syncAr() {
-            @this.setDescAr(this.$refs.editorAr.innerHTML);
+            this.$wire.setDescAr(this.$refs.editorAr.innerHTML);
         },
 
         syncEnDebounced() {
@@ -489,6 +490,6 @@ function articleForm() {
             this._timerAr = setTimeout(() => this.syncAr(), 600);
         },
     };
-}
+};
 </script>
-</div>
+@endassets

@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Articles;
 
 use App\Models\Article;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -101,7 +102,7 @@ class Form extends Component
         $this->desc_ar = $value;
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.admin.articles.form');
     }
