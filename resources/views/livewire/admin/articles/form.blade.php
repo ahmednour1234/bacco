@@ -143,6 +143,7 @@
                  x-ref="editorEn"
                  wire:ignore
                  x-on:input="syncEnDebounced()"
+                 x-on:paste="handlePaste($event, 'en')"
                  x-on:blur="syncEn()"
                  class="editor-body"
                  style="min-height:360px; resize:vertical; overflow:auto;"
@@ -226,6 +227,7 @@
                  x-ref="editorAr"
                  wire:ignore
                  x-on:input="syncArDebounced()"
+                 x-on:paste="handlePaste($event, 'ar')"
                  x-on:blur="syncAr()"
                  class="editor-body"
                  style="min-height:360px; resize:vertical; overflow:auto;"
@@ -472,6 +474,45 @@ window.articleForm = function () {
             .catch(() => {
                 alert('Media upload failed. Please try again.');
             });
+        },
+
+        /*
+         | Paste guard: browsers inline pasted/copied images as base64 data URIs.
+         | A single screenshot can add several MB to desc_en/desc_ar, which then
+         | ships on every Livewire sync and trips PayloadTooLargeException.
+         | Real image files are uploaded through the upload-media endpoint and
+         | inserted as a URL; everything else is pasted as sanitized HTML.
+         */
+        handlePaste(event, lang) {
+            const cd = event.clipboardData;
+            if (!cd) return;
+
+            // 1. Pasted image file (screenshot, copied image) -> upload, insert URL.
+            const imageItem = Array.from(cd.items || [])
+                .find(i => i.kind === 'file' && i.type.startsWith('image/'));
+            if (imageItem) {
+                event.preventDefault();
+                const file = imageItem.getAsFile();
+                if (file) {
+                    this._saveRange(lang);
+                    this._insertMediaFile(lang, file);
+                }
+                return;
+            }
+
+            // 2. Pasted rich HTML -> strip any embedded data: URIs before insert.
+            const html = cd.getData('text/html');
+            if (html && html.indexOf('data:') !== -1) {
+                event.preventDefault();
+                document.execCommand('insertHTML', false, this._stripDataUris(html));
+                lang === 'en' ? this.syncEn() : this.syncAr();
+            }
+        },
+
+        _stripDataUris(html) {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            doc.querySelectorAll('[src^="data:"], [href^="data:"]').forEach(el => el.remove());
+            return doc.body.innerHTML;
         },
 
         syncEn() {
