@@ -133,7 +133,7 @@
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Clear --}}
-                <button type="button" x-on:click="exec('en','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
+                <button type="button" x-on:click="exec('en','removeFormat')" class="editor-btn text-red-500" title="Clear formatting"><svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
 
             {{-- Editor body EN --}}
@@ -144,6 +144,7 @@
                  wire:ignore
                  x-on:input="syncEnDebounced()"
                  x-on:paste="handlePaste($event, 'en')"
+                 x-on:contextmenu.prevent="openCtx($event, 'en')"
                  x-on:blur="syncEn()"
                  class="editor-body"
                  style="min-height:360px; resize:vertical; overflow:auto;"
@@ -218,7 +219,7 @@
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" x-on:click="exec('ar','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
+                <button type="button" x-on:click="exec('ar','removeFormat')" class="editor-btn text-red-500" title="Clear formatting"><svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
 
             <div id="editor-ar"
@@ -228,6 +229,7 @@
                  wire:ignore
                  x-on:input="syncArDebounced()"
                  x-on:paste="handlePaste($event, 'ar')"
+                 x-on:contextmenu.prevent="openCtx($event, 'ar')"
                  x-on:blur="syncAr()"
                  class="editor-body"
                  style="min-height:360px; resize:vertical; overflow:auto;"
@@ -296,6 +298,40 @@
         </a>
     </div>
 </form>
+
+{{-- ================= Right-click block-format menu ================= --}}
+<div x-show="ctx.open"
+     x-cloak
+     x-transition.opacity.duration.100ms
+     x-on:click.outside="closeCtx()"
+     x-on:keydown.escape.window="closeCtx()"
+     class="editor-ctx"
+     :style="`top:${ctx.y}px; left:${ctx.x}px;`">
+
+    <div class="editor-ctx-label" x-text="ctx.currentLabel"></div>
+
+    <template x-for="item in ctxBlocks" :key="item.tag">
+        <button type="button"
+                x-on:click="applyBlock(item.tag)"
+                class="editor-ctx-item"
+                :class="ctx.current === item.tag ? 'is-active' : ''">
+            <span x-text="item.label" :style="item.style"></span>
+            <svg x-show="ctx.current === item.tag" class="h-3.5 w-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </button>
+    </template>
+
+    <div class="editor-ctx-sep"></div>
+
+    <button type="button" x-on:click="ctxExec('bold')" class="editor-ctx-item">
+        <span class="font-bold">Bold</span><span class="editor-ctx-key">Ctrl+B</span>
+    </button>
+    <button type="button" x-on:click="ctxExec('italic')" class="editor-ctx-item">
+        <span class="italic">Italic</span><span class="editor-ctx-key">Ctrl+I</span>
+    </button>
+    <button type="button" x-on:click="ctxExec('removeFormat')" class="editor-ctx-item text-red-600">
+        <span>Clear formatting</span>
+    </button>
+</div>
 </div>
 
 @assets
@@ -367,6 +403,63 @@
 /* Selected media outline */
 .editor-body img:focus,
 .editor-body img.selected { outline: 2px solid #34d399; outline-offset: 2px; }
+
+/* -- Right-click block-format menu ----------------------------------- */
+[x-cloak] { display: none !important; }
+
+.editor-ctx {
+    position: absolute;
+    z-index: 60;
+    width: 210px;
+    padding: 4px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .14), 0 2px 6px rgba(15, 23, 42, .06);
+    font-size: 13px;
+}
+
+.editor-ctx-label {
+    padding: 6px 10px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.editor-ctx-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #334155;
+    text-align: left;
+    cursor: pointer;
+    line-height: 1.2;
+}
+.editor-ctx-item:hover { background: #f1f5f9; }
+.editor-ctx-item.is-active { background: #ecfdf5; color: #047857; }
+
+.editor-ctx-key {
+    font-size: 10.5px;
+    color: #94a3b8;
+    font-family: ui-monospace, monospace;
+}
+
+.editor-ctx-sep {
+    height: 1px;
+    margin: 4px 6px;
+    background: #e2e8f0;
+}
+
+/* RTL editors: menu items read right-to-left */
+[dir="rtl"] .editor-ctx-item { text-align: right; }
 </style>
 <script>
 window.articleForm = function () {
@@ -387,6 +480,20 @@ window.articleForm = function () {
             this.$refs.editorEn.addEventListener('keyup',   () => this._saveRange('en'));
             this.$refs.editorAr.addEventListener('mouseup', () => this._saveRange('ar'));
             this.$refs.editorAr.addEventListener('keyup',   () => this._saveRange('ar'));
+
+            // Word-style block shortcuts: Ctrl+Alt+0 = paragraph, 1..4 = headings
+            [['en', this.$refs.editorEn], ['ar', this.$refs.editorAr]].forEach(([lang, el]) => {
+                el.addEventListener('keydown', (e) => {
+                    if (!e.ctrlKey || !e.altKey) return;
+                    const map = { '0': 'p', '1': 'h1', '2': 'h2', '3': 'h3', '4': 'h4' };
+                    const tag = map[e.key];
+                    if (!tag) return;
+                    e.preventDefault();
+                    this._saveRange(lang);
+                    this.ctx.lang = lang;
+                    this.applyBlock(tag);
+                });
+            });
         },
 
         _saveRange(lang) {
@@ -474,6 +581,96 @@ window.articleForm = function () {
             .catch(() => {
                 alert('Media upload failed. Please try again.');
             });
+        },
+
+        // ---- Right-click block-format menu (Word-like) ----------------
+        ctx: { open: false, x: 0, y: 0, lang: 'en', current: 'p', currentLabel: '' },
+
+        ctxBlocks: [
+            { tag: 'p',  label: 'Paragraph', style: 'font-size:14px;' },
+            { tag: 'h1', label: 'Heading 1', style: 'font-size:22px;font-weight:800;' },
+            { tag: 'h2', label: 'Heading 2', style: 'font-size:19px;font-weight:700;' },
+            { tag: 'h3', label: 'Heading 3', style: 'font-size:17px;font-weight:700;' },
+            { tag: 'h4', label: 'Heading 4', style: 'font-size:15px;font-weight:600;' },
+            { tag: 'blockquote', label: 'Quote', style: 'font-style:italic;' },
+            { tag: 'pre', label: 'Code block', style: 'font-family:monospace;font-size:13px;' },
+        ],
+
+        openCtx(event, lang) {
+            const root = lang === 'en' ? this.$refs.editorEn : this.$refs.editorAr;
+
+            // Put the caret where the user right-clicked, then remember it,
+            // so formatBlock applies to the block under the pointer.
+            const pos = this._caretFromPoint(event.clientX, event.clientY);
+            if (pos) {
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(pos);
+            }
+            this._saveRange(lang);
+
+            this.ctx.lang = lang;
+            this.ctx.current = this._currentBlock(root);
+            const match = this.ctxBlocks.find(b => b.tag === this.ctx.current);
+            this.ctx.currentLabel = match ? match.label : 'Paragraph';
+
+            // Clamp to the viewport so the menu never opens off-screen.
+            const MW = 210, MH = 330;
+            this.ctx.x = Math.min(event.clientX, window.innerWidth  - MW - 8) + window.scrollX;
+            this.ctx.y = Math.min(event.clientY, window.innerHeight - MH - 8) + window.scrollY;
+            this.ctx.open = true;
+        },
+
+        closeCtx() {
+            this.ctx.open = false;
+        },
+
+        applyBlock(tag) {
+            const lang = this.ctx.lang;
+            this.closeCtx();
+            this._restoreRange(lang);
+            // execCommand wants <h1> style tag names in most browsers.
+            document.execCommand('formatBlock', false, '<' + tag + '>');
+            lang === 'en' ? this.syncEn() : this.syncAr();
+        },
+
+        ctxExec(command) {
+            const lang = this.ctx.lang;
+            this.closeCtx();
+            this._restoreRange(lang);
+            document.execCommand(command, false, null);
+            lang === 'en' ? this.syncEn() : this.syncAr();
+        },
+
+        // Which block tag is the caret currently inside?
+        _currentBlock(root) {
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0) return 'p';
+            let node = sel.getRangeAt(0).startContainer;
+            if (node.nodeType === 3) node = node.parentNode;
+            const tags = ['p','h1','h2','h3','h4','blockquote','pre'];
+            while (node && node !== root) {
+                const t = (node.tagName || '').toLowerCase();
+                if (tags.indexOf(t) !== -1) return t;
+                node = node.parentNode;
+            }
+            return 'p';
+        },
+
+        // Cross-browser "range at these screen coordinates".
+        _caretFromPoint(x, y) {
+            if (document.caretRangeFromPoint) {
+                return document.caretRangeFromPoint(x, y);
+            }
+            if (document.caretPositionFromPoint) {
+                const p = document.caretPositionFromPoint(x, y);
+                if (!p) return null;
+                const r = document.createRange();
+                r.setStart(p.offsetNode, p.offset);
+                r.collapse(true);
+                return r;
+            }
+            return null;
         },
 
         /*
