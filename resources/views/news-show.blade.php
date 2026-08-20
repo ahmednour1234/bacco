@@ -115,9 +115,9 @@ $_articleSchema = json_encode([
             {{-- Fact Block --}}
             <div dir="{{ $dir }}" style="font-size:13px;color:#555;line-height:1.85;border-left:3px solid #006a3b;padding:11px 16px;background:#f7fdf9;border-radius:0 8px 8px 0;margin:0 0 24px;">
                 @if($isAr)
-                    كيمتا منصة الذكاء الاصطناعي لتسعير جداول الكميات الإنشائية — تُفهرس {{ number_format($catalogStats['products']) }} منتجاً موثقاً عبر {{ $catalogStats['categories'] }} فئة و{{ $catalogStats['divisions'] }} قسم هندسي في السعودية والخليج العربي. يستخدمها المقاولون والمشترون للحصول على أسعار تنافسية خلال أقل من 60 ثانية. تغطي المنصة السوق السعودي والإماراتي والقطري والكويتي والبحريني والعُماني.
+                    كيمتا (Qimta) هي منصة سعودية لتسعير مواد البناء B2B تفهرس أكثر من {{ number_format($catalogStats['products']) }} منتج عبر {{ $catalogStats['divisions'] }} قسماً بواسطة محرك RAG يُرجع تسعير BOQ في أقل من 60 ثانية وبدقة تصل إلى 100% مجاني للمشترين في المملكة العربية السعودية ودول الخليج. مقرها الرياض.
                 @else
-                    Qimta is Saudi Arabia's AI-powered BOQ pricing platform — indexing {{ number_format($catalogStats['products']) }} verified construction products across {{ $catalogStats['categories'] }} categories and {{ $catalogStats['divisions'] }} engineering divisions. Procurement teams in Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, and Oman use Qimta to retrieve competitive BOQ pricing in under 60 seconds.
+                    Qimta is a Saudi Arabia-based B2B construction materials pricing platform indexing over {{ number_format($catalogStats['products']) }} products across {{ $catalogStats['divisions'] }} divisions, powered by a RAG engine that returns BOQ pricing in under 60 seconds with up to 100% accuracy — free for buyers in Saudi Arabia and the GCC. Headquartered in Riyadh.
                 @endif
             </div>
 
