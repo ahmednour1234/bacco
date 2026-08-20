@@ -78,6 +78,16 @@
                     <option value="pre">Code</option>
                 </select>
 
+                {{-- Font family --}}
+                <select x-on:change="applyFont('en', $event.target.value); $event.target.value=''" class="editor-select" title="Font">
+                    <option value="">Font</option>
+                    <option value="">— Default (Cairo) —</option>
+                    <option value="Tajawal" style="font-family:'Tajawal',sans-serif;">Tajawal (عربي)</option>
+                    <option value="Almarai" style="font-family:'Almarai',sans-serif;">Almarai (عربي)</option>
+                    <option value="Inter" style="font-family:'Inter',sans-serif;">Inter (English)</option>
+                    <option value="Merriweather" style="font-family:'Merriweather',serif;">Merriweather (English)</option>
+                </select>
+
                 {{-- Font size --}}
                 <select x-on:change="execVal('en','fontSize',$event.target.value); $event.target.value=''" class="editor-select" title="Font size">
                     <option value="">Size</option>
@@ -169,6 +179,16 @@
                     <option value="h3">H3</option>
                     <option value="h4">H4</option>
                     <option value="pre">Code</option>
+                </select>
+
+                {{-- Font family --}}
+                <select x-on:change="applyFont('ar', $event.target.value); $event.target.value=''" class="editor-select" title="Font">
+                    <option value="">Font</option>
+                    <option value="">— Default (Cairo) —</option>
+                    <option value="Tajawal" style="font-family:'Tajawal',sans-serif;">Tajawal (عربي)</option>
+                    <option value="Almarai" style="font-family:'Almarai',sans-serif;">Almarai (عربي)</option>
+                    <option value="Inter" style="font-family:'Inter',sans-serif;">Inter (English)</option>
+                    <option value="Merriweather" style="font-family:'Merriweather',serif;">Merriweather (English)</option>
                 </select>
 
                 <select x-on:change="execVal('ar','fontSize',$event.target.value); $event.target.value=''" class="editor-select" title="Font size">
@@ -321,6 +341,15 @@
     </template>
 
     <div class="editor-ctx-sep"></div>
+    <div class="editor-ctx-label">Font</div>
+
+    <template x-for="f in ctxFonts" :key="f.name">
+        <button type="button" x-on:click="ctxFont(f.name)" class="editor-ctx-item">
+            <span x-text="f.label" :style="`font-family:${f.stack}`"></span>
+        </button>
+    </template>
+
+    <div class="editor-ctx-sep"></div>
 
     <button type="button" x-on:click="ctxExec('bold')" class="editor-ctx-item">
         <span class="font-bold">Bold</span><span class="editor-ctx-key">Ctrl+B</span>
@@ -403,6 +432,9 @@
 /* Selected media outline */
 .editor-body img:focus,
 .editor-body img.selected { outline: 2px solid #34d399; outline-offset: 2px; }
+
+/* -- Article fonts (must mirror .ns-article-body on the public page) --- */
+.editor-select option { font-size: 13px; }
 
 /* -- Right-click block-format menu ----------------------------------- */
 [x-cloak] { display: none !important; }
@@ -581,6 +613,83 @@ window.articleForm = function () {
             .catch(() => {
                 alert('Media upload failed. Please try again.');
             });
+        },
+
+        // ---- Font family --------------------------------------------------
+        // execCommand('fontName') emits deprecated <font face="..."> tags, so we
+        // wrap the selection in a span carrying an explicit font-family stack.
+        fontStacks: {
+            Tajawal:      "'Tajawal', 'Cairo', sans-serif",
+            Almarai:      "'Almarai', 'Cairo', sans-serif",
+            Inter:        "'Inter', 'Cairo', sans-serif",
+            Merriweather: "'Merriweather', Georgia, serif",
+        },
+
+        applyFont(lang, font) {
+            this._restoreRange(lang);
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0) return;
+            const range = sel.getRangeAt(0);
+
+            // Empty value = reset: unwrap any font spans inside the selection.
+            if (!font) {
+                this._clearFontSpans(range, lang);
+                lang === 'en' ? this.syncEn() : this.syncAr();
+                return;
+            }
+
+            const stack = this.fontStacks[font];
+            if (!stack) return;
+
+            if (range.collapsed) {
+                // No selection: apply to the whole block the caret sits in.
+                const root = lang === 'en' ? this.$refs.editorEn : this.$refs.editorAr;
+                let node = range.startContainer;
+                if (node.nodeType === 3) node = node.parentNode;
+                while (node && node !== root && node.parentNode !== root) node = node.parentNode;
+                if (node && node !== root) node.style.fontFamily = stack;
+            } else {
+                const span = document.createElement('span');
+                span.style.fontFamily = stack;
+                try {
+                    span.appendChild(range.extractContents());
+                    range.insertNode(span);
+                    // Re-select the wrapped content so the user sees the result.
+                    const after = document.createRange();
+                    after.selectNodeContents(span);
+                    sel.removeAllRanges();
+                    sel.addRange(after);
+                } catch (e) {
+                    return; // selection spanned incompatible nodes - leave as-is
+                }
+            }
+
+            this._saveRange(lang);
+            lang === 'en' ? this.syncEn() : this.syncAr();
+        },
+
+        _clearFontSpans(range, lang) {
+            const root = lang === 'en' ? this.$refs.editorEn : this.$refs.editorAr;
+            root.querySelectorAll('[style*="font-family"]').forEach(el => {
+                if (range.intersectsNode(el)) el.style.fontFamily = '';
+                if (el.tagName === 'SPAN' && !el.getAttribute('style')) {
+                    el.replaceWith(...el.childNodes); // drop the now-empty wrapper
+                }
+            });
+        },
+
+        ctxFonts: [
+            { name: '',             label: 'Default (Cairo)', stack: "'Cairo', sans-serif" },
+            { name: 'Tajawal',      label: 'Tajawal \u2014 \u0639\u0631\u0628\u064a',      stack: "'Tajawal', sans-serif" },
+            { name: 'Almarai',      label: 'Almarai \u2014 \u0639\u0631\u0628\u064a',      stack: "'Almarai', sans-serif" },
+            { name: 'Inter',        label: 'Inter \u2014 English',     stack: "'Inter', sans-serif" },
+            { name: 'Merriweather', label: 'Merriweather \u2014 English', stack: "'Merriweather', serif" },
+        ],
+
+        ctxFont(font) {
+            const lang = this.ctx.lang;
+            this.closeCtx();
+            this.applyFont(lang, font);
         },
 
         // ---- Right-click block-format menu (Word-like) ----------------
