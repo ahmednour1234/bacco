@@ -581,8 +581,8 @@
             <div class="s1-trust">
                 @foreach([
                     $isAr ? 'بياناتك محمية بالكامل' : 'Your data is fully protected',
-                    $isAr ? 'معالجة بالذكاء الاصطناعي' : 'AI-powered processing',
-                    $isAr ? 'تسعير خلال دقائق' : 'Pricing in minutes',
+                    $isAr ? 'معالجة بواسطة محرك RAG' : 'RAG engine processing',
+                    $isAr ? 'التسعير خلال أقل من 60 ثانية' : 'Pricing in under 60 seconds',
                     $isAr ? 'لا حاجة لبطاقة ائتمانية' : 'No credit card needed',
                 ] as $t)
                     <span class="s1-trust-item">

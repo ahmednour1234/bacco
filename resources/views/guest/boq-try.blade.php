@@ -340,8 +340,8 @@
 
             <p class="try-sub">
                 {{ $isAr
-                    ? 'ارفع ملف جدول الكميات وسيقوم الذكاء الاصطناعي بتحليله وإحضار الأسعار تلقائياً — من أكثر من 131,000 منتج موثّق في السوق السعودي.'
-                    : 'Upload any BOQ file and our AI extracts line items and fetches live market prices automatically — across 131,000+ verified products.' }}
+                    ? 'ارفع ملف جدول الكميات وسيقوم الذكاء الاصطناعي بتحليله وإحضار الأسعار تلقائياً — من أكثر من 999,542 منتج موثّق في السوق السعودي.'
+                    : 'Upload any BOQ file and our AI extracts line items and fetches live market prices automatically — across 999,542+ verified products.' }}
             </p>
 
             <div class="try-trust">
@@ -349,7 +349,7 @@
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
-                    {{ $isAr ? '131,000+ منتج موثّق' : '131,000+ verified products' }}
+                    {{ $isAr ? '999,542+ منتج موثّق' : '999,542+ verified products' }}
                 </span>
 
                 <span class="try-trust-sep">·</span>
@@ -389,13 +389,13 @@
                 $steps = $isAr
                     ? [
                         ['١', 'ارفع ملف BOQ', 'Excel أو PDF أو صورة'],
-                        ['٢', 'AI يستخرج البنود', 'تلقائياً بدون تدخل'],
+                        ['٢', 'محرك RAG يستخرج البنود', 'تلقائياً بدون تدخل'],
                         ['٣', 'تسعير فوري من السوق', 'أسعار حقيقية ومحدّثة'],
                         ['٤', 'سجّل دخول وحمّل PDF', 'احفظ وشارك عرض السعر'],
                     ]
                     : [
                         ['1', 'Upload BOQ file', 'Excel, PDF or image'],
-                        ['2', 'AI extracts items', 'Automatic, zero effort'],
+                        ['2', 'RAG engine extracts items', 'Automatic, zero effort'],
                         ['3', 'Live market pricing', 'Real, up-to-date prices'],
                         ['4', 'Sign in & download PDF', 'Save & share your quote'],
                     ];

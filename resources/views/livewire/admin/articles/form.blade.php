@@ -642,17 +642,38 @@ window.articleForm = function () {
             if (!stack) return;
 
             if (range.collapsed) {
-                // No selection: apply to the whole block the caret sits in.
+                // No selection: retarget the nearest element that already carries a
+                // font-family. Without this the block gets the new stack while an
+                // inner font span keeps overriding it, so only the first pick sticks.
                 const root = lang === 'en' ? this.$refs.editorEn : this.$refs.editorAr;
                 let node = range.startContainer;
                 if (node.nodeType === 3) node = node.parentNode;
-                while (node && node !== root && node.parentNode !== root) node = node.parentNode;
-                if (node && node !== root) node.style.fontFamily = stack;
+
+                let carrier = null;
+                for (let n = node; n && n !== root; n = n.parentNode) {
+                    if (n.style && n.style.fontFamily) { carrier = n; break; }
+                }
+
+                if (carrier) {
+                    carrier.style.fontFamily = stack;
+                } else {
+                    let block = node;
+                    while (block && block !== root && block.parentNode !== root) block = block.parentNode;
+                    if (block && block !== root) block.style.fontFamily = stack;
+                }
             } else {
                 const span = document.createElement('span');
                 span.style.fontFamily = stack;
                 try {
                     span.appendChild(range.extractContents());
+                    // Drop font-family from anything already inside the selection,
+                    // otherwise the nested stack keeps winning over the new one.
+                    span.querySelectorAll('[style*="font-family"]').forEach(el => {
+                        el.style.fontFamily = '';
+                        if (el.tagName === 'SPAN' && !el.getAttribute('style')) {
+                            el.replaceWith(...el.childNodes);
+                        }
+                    });
                     range.insertNode(span);
                     // Re-select the wrapped content so the user sees the result.
                     const after = document.createRange();
@@ -671,7 +692,8 @@ window.articleForm = function () {
         _clearFontSpans(range, lang) {
             const root = lang === 'en' ? this.$refs.editorEn : this.$refs.editorAr;
             root.querySelectorAll('[style*="font-family"]').forEach(el => {
-                if (range.intersectsNode(el)) el.style.fontFamily = '';
+                if (!range.intersectsNode(el)) return; // leave fonts outside the selection alone
+                el.style.fontFamily = '';
                 if (el.tagName === 'SPAN' && !el.getAttribute('style')) {
                     el.replaceWith(...el.childNodes); // drop the now-empty wrapper
                 }
