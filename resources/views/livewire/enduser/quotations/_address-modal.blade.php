@@ -1,5 +1,5 @@
 {{-- ---------------------------------------------------------------------------
-     Delivery Address – 3-Step Wizard (Bottom Sheet on mobile, Card on desktop)
+     Delivery Address â€“ 3-Step Wizard (Bottom Sheet on mobile, Card on desktop)
      Requires parent Livewire component to expose:
        Properties: $showAddressModal, $addressType, $deliveryStreet, $deliveryDistrict,
                    $deliveryCity, $deliveryRegion, $deliveryPostalCode, $deliveryCountry,

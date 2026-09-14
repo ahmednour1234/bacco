@@ -208,19 +208,19 @@
                                 {{-- Company --}}
                                 <td class="px-4 py-3">
                                     <span class="block max-w-[140px] truncate text-sm font-medium text-slate-700">
-                                        {{ $quotation->client?->clientProfile?->company_name ?? '—' }}
+                                        {{ $quotation->client?->clientProfile?->company_name ?? 'â€”' }}
                                     </span>
                                 </td>
 
                                 {{-- Client --}}
                                 <td class="px-4 py-3">
-                                    <span class="text-sm text-slate-600">{{ $quotation->client?->name ?? '—' }}</span>
+                                    <span class="text-sm text-slate-600">{{ $quotation->client?->name ?? 'â€”' }}</span>
                                 </td>
 
                                 {{-- Project --}}
                                 <td class="px-4 py-3">
                                     <span class="block max-w-[160px] truncate text-sm text-slate-600">
-                                        {{ $quotation->project_name ?? '—' }}
+                                        {{ $quotation->project_name ?? 'â€”' }}
                                     </span>
                                 </td>
 
@@ -231,7 +231,7 @@
 
                                 {{-- Amount --}}
                                 <td class="px-4 py-3 text-end font-mono text-sm font-semibold text-slate-700">
-                                    {{ $amount > 0 ? number_format($amount, 2) : '—' }}
+                                    {{ $amount > 0 ? number_format($amount, 2) : 'â€”' }}
                                 </td>
 
                                 {{-- Status --}}
@@ -271,7 +271,7 @@
             <p class="text-xs text-slate-400">
                 {{ __('app.showing') }}
                 <span class="font-medium text-slate-600">{{ $quotations->firstItem() }}</span>
-                –
+                â€“
                 <span class="font-medium text-slate-600">{{ $quotations->lastItem() }}</span>
                 {{ __('app.of') }}
                 <span class="font-medium text-slate-600">{{ $quotations->total() }}</span>
