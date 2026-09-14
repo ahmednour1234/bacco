@@ -69,7 +69,7 @@ class PurgeTestQuotations extends Command
             $missing = array_diff($emails, $found);
 
             foreach ($users as $u) {
-                $this->line(sprintf('  account  %-40s id=%-5d %s', $u->email, $u->id, $u->user_type));
+                $this->line(sprintf('  account  %-40s id=%-5d %s', $u->email, $u->id, $u->user_type?->value ?? ''));
             }
 
             foreach ($missing as $m) {
