@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Enduser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Enduser\RegisterRequest;
 use App\Models\Boq;
+use App\Models\Project;
+use App\Models\QuotationRequest;
 use App\Models\User;
 use App\Services\Enduser\AuthService;
 use Illuminate\Http\RedirectResponse;
@@ -105,6 +107,12 @@ class AuthController extends Controller
             return null;
         }
 
+        // Guest quotations carry the email the visitor left before pricing, so
+        // they can be reunited with their owner even when the session (and the
+        // guest token with it) is long gone. Runs regardless of the session
+        // path below, which only ever covers the same-browser case.
+        $this->claimGuestQuotationsByEmail($user);
+
         $uuid  = $request->session()->get('pending_guest_boq_uuid');
         $token = $request->session()->get('pending_guest_boq_token');
 
@@ -112,9 +120,15 @@ class AuthController extends Controller
             return null;
         }
 
+        // The BOQ may already carry this user's id: a guest whose email matched
+        // an existing account is attached at creation time, while the token is
+        // kept so they can finish the wizard. Accept that case too, otherwise
+        // the token would never be cleared and the redirect would be lost.
         $boq = Boq::where('uuid', $uuid)
             ->where('guest_token', $token)
-            ->whereNull('client_id')
+            ->where(function ($q) use ($user): void {
+                $q->whereNull('client_id')->orWhere('client_id', $user->id);
+            })
             ->first();
 
         if (! $boq) {
@@ -126,9 +140,10 @@ class AuthController extends Controller
 
         // Claim the linked guest project
         if ($boq->project_id) {
-            $boq->project()
-                ->where('is_guest', true)
-                ->whereNull('client_id')
+            Project::whereKey($boq->project_id)
+                ->where(function ($q) use ($user): void {
+                    $q->whereNull('client_id')->orWhere('client_id', $user->id);
+                })
                 ->update(['client_id' => $user->id, 'is_guest' => false]);
         }
 
@@ -140,6 +155,41 @@ class AuthController extends Controller
         $request->session()->forget(['pending_guest_boq_uuid', 'pending_guest_boq_token']);
 
         return $boq->fresh();
+    }
+
+    /**
+     * Attach any unclaimed guest quotations left under this user's email, plus
+     * the BOQ and project behind each one, so the whole record shows up in
+     * their account instead of sitting ownerless in the admin list.
+     */
+    private function claimGuestQuotationsByEmail(User $user): void
+    {
+        if (! $user->email) {
+            return;
+        }
+
+        $quotations = QuotationRequest::whereNull('client_id')
+            ->where('guest_email', mb_strtolower($user->email))
+            ->get();
+
+        foreach ($quotations as $quotation) {
+            $quotation->update(['client_id' => $user->id]);
+
+            // The token is left alone here: the session path below still needs
+            // it to resolve the BOQ this visitor was working on, and it clears
+            // it once the handover is done.
+            if ($quotation->boq_id) {
+                Boq::whereKey($quotation->boq_id)
+                    ->whereNull('client_id')
+                    ->update(['client_id' => $user->id]);
+            }
+
+            if ($quotation->project_id) {
+                Project::whereKey($quotation->project_id)
+                    ->whereNull('client_id')
+                    ->update(['client_id' => $user->id, 'is_guest' => false]);
+            }
+        }
     }
 
     // =========================================================================

@@ -214,7 +214,31 @@
 
                                 {{-- Client --}}
                                 <td class="px-4 py-3">
-                                    <span class="text-sm text-slate-600">{{ $quotation->client?->name ?? '—' }}</span>
+                                    @if($quotation->client)
+                                        <span class="text-sm text-slate-600">{{ $quotation->client->name }}</span>
+                                    @elseif($quotation->guest_email)
+                                        {{-- Guest lead: no account yet, but we have a way to reach them. --}}
+                                        <div class="flex flex-col gap-0.5">
+                                            <span class="flex items-center gap-1.5 text-sm text-slate-600">
+                                                {{ $quotation->guest_name ?: '—' }}
+                                                <span class="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-amber-200">
+                                                    {{ __('app.guest_lead') }}
+                                                </span>
+                                            </span>
+                                            <a href="mailto:{{ $quotation->guest_email }}" dir="ltr"
+                                               class="text-[11px] text-slate-400 hover:text-emerald-600 hover:underline">
+                                                {{ $quotation->guest_email }}
+                                            </a>
+                                            @if($quotation->guest_phone)
+                                                <a href="tel:{{ $quotation->guest_phone }}" dir="ltr"
+                                                   class="text-[11px] text-slate-400 hover:text-emerald-600 hover:underline">
+                                                    {{ $quotation->guest_phone }}
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-sm text-slate-600">—</span>
+                                    @endif
                                 </td>
 
                                 {{-- Project --}}

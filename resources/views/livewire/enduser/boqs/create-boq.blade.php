@@ -744,6 +744,85 @@
     @endif
 
     {{-- ══════════════════════════════════════════════════════
+         GUEST LEAD CAPTURE – بيانات التواصل قبل عرض الأسعار
+    ══════════════════════════════════════════════════════ --}}
+    @if($guestMode && $showGuestContactForm && !$guestContactCaptured)
+    @php $isAr = app()->getLocale() === 'ar'; @endphp
+    <div style="position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);padding:20px;"
+         @if($isAr) dir="rtl" @endif>
+        <div style="width:100%;max-width:440px;background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.28);padding:32px 28px;">
+
+            <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#059669,#047857);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 8px 22px rgba(5,150,105,.28);">
+                <svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+
+            <h3 style="font-size:19px;font-weight:800;color:#0f172a;margin:0 0 8px;text-align:center;">
+                {{ $isAr ? 'عرض السعر جاهز تقريبًا' : 'Your Quotation Is Almost Ready' }}
+            </h3>
+            <p style="font-size:13px;color:#64748b;margin:0 0 24px;line-height:1.65;text-align:center;">
+                {{ $isAr
+                    ? 'اترك بيانات التواصل لنتمكن من إرسال عرض السعر إليك ومتابعة طلبك.'
+                    : 'Leave your contact details so we can send you the quotation and follow up on your request.' }}
+            </p>
+
+            <form wire:submit.prevent="submitGuestContact" style="display:flex;flex-direction:column;gap:14px;">
+
+                {{-- Name --}}
+                <div>
+                    <label style="display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;">
+                        {{ $isAr ? 'الاسم' : 'Full name' }} <span style="color:#dc2626;">*</span>
+                    </label>
+                    <input type="text" wire:model.blur="guestName" autocomplete="name"
+                        placeholder="{{ $isAr ? 'محمد عبدالله' : 'John Smith' }}"
+                        style="width:100%;border-radius:11px;border:1.5px solid {{ $errors->has('guestName') ? '#fca5a5' : '#e2e8f0' }};padding:11px 14px;font-size:14px;color:#0f172a;outline:none;">
+                    @error('guestName') <p style="margin:5px 0 0;font-size:11.5px;color:#dc2626;font-weight:600;">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Email --}}
+                <div>
+                    <label style="display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;">
+                        {{ $isAr ? 'البريد الإلكتروني' : 'Email' }} <span style="color:#dc2626;">*</span>
+                    </label>
+                    <input type="email" wire:model.blur="guestEmail" autocomplete="email" dir="ltr"
+                        placeholder="name@company.com"
+                        style="width:100%;border-radius:11px;border:1.5px solid {{ $errors->has('guestEmail') ? '#fca5a5' : '#e2e8f0' }};padding:11px 14px;font-size:14px;color:#0f172a;outline:none;text-align:{{ $isAr ? 'right' : 'left' }};">
+                    @error('guestEmail') <p style="margin:5px 0 0;font-size:11.5px;color:#dc2626;font-weight:600;">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Phone --}}
+                <div>
+                    <label style="display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;">
+                        {{ $isAr ? 'رقم الجوال' : 'Mobile number' }} <span style="color:#dc2626;">*</span>
+                    </label>
+                    <input type="tel" wire:model.blur="guestPhone" autocomplete="tel" dir="ltr"
+                        placeholder="05xxxxxxxx"
+                        style="width:100%;border-radius:11px;border:1.5px solid {{ $errors->has('guestPhone') ? '#fca5a5' : '#e2e8f0' }};padding:11px 14px;font-size:14px;color:#0f172a;outline:none;text-align:{{ $isAr ? 'right' : 'left' }};">
+                    @error('guestPhone') <p style="margin:5px 0 0;font-size:11.5px;color:#dc2626;font-weight:600;">{{ $message }}</p> @enderror
+                </div>
+
+                <button type="submit" wire:loading.attr="disabled" wire:target="submitGuestContact"
+                    style="margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;border-radius:12px;background:#059669;color:#fff;padding:13px 24px;font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(5,150,105,.3);">
+                    <svg wire:loading wire:target="submitGuestContact" width="16" height="16" class="animate-spin" fill="none" viewBox="0 0 24 24"><circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span wire:loading.remove wire:target="submitGuestContact">{{ $isAr ? 'متابعة' : 'Continue' }}</span>
+                    <span wire:loading wire:target="submitGuestContact">{{ $isAr ? 'جارٍ المعالجة...' : 'Processing...' }}</span>
+                </button>
+
+                <button type="button" wire:click="$set('showGuestContactForm', false)"
+                    style="background:none;border:none;color:#94a3b8;font-size:12.5px;font-weight:600;cursor:pointer;padding:4px;">
+                    {{ $isAr ? 'رجوع' : 'Back' }}
+                </button>
+
+                <p style="font-size:11px;color:#94a3b8;text-align:center;margin:2px 0 0;line-height:1.6;">
+                    {{ $isAr
+                        ? 'نستخدم بياناتك للتواصل بشأن عرض السعر فقط.'
+                        : 'We use your details only to follow up on this quotation.' }}
+                </p>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    {{-- ══════════════════════════════════════════════════════
          STEP 2.5 – أسئلة المواصفات  (Spec clarification before pricing)
     ══════════════════════════════════════════════════════ --}}
     @if($currentStep === \App\Livewire\Enduser\Boqs\CreateBoq::STEP_QUESTIONS)

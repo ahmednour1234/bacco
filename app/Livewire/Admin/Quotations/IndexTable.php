@@ -53,6 +53,10 @@ class IndexTable extends Component
             $query->where(function ($q) use ($s): void {
                 $q->where('quotation_no', 'like', '%' . $s . '%')
                   ->orWhere('project_name', 'like', '%' . $s . '%')
+                  // Guest leads have no user row, so search their details too.
+                  ->orWhere('guest_name', 'like', '%' . $s . '%')
+                  ->orWhere('guest_email', 'like', '%' . $s . '%')
+                  ->orWhere('guest_phone', 'like', '%' . $s . '%')
                   ->orWhereHas('client', fn($q2) => $q2->where('name', 'like', '%' . $s . '%'))
                   ->orWhereHas('client.clientProfile', fn($q2) => $q2->where('company_name', 'like', '%' . $s . '%'));
             });

@@ -11,6 +11,7 @@ use App\Enums\QuotationItemStatusEnum;
 use App\Enums\QuotationRequestStatusEnum;
 use App\Enums\QuotationSourceTypeEnum;
 use App\Enums\QuotationVersionStatusEnum;
+use App\Enums\UserTypeEnum;
 use App\Jobs\ExtractBoqItemsJob;
 use App\Jobs\FetchQuotationPricesJob;
 use App\Models\Boq;
@@ -24,6 +25,7 @@ use App\Models\QuotationVersion;
 use App\Models\QuotationVersionItem;
 use App\Models\Unit;
 use App\Models\UploadedDocument;
+use App\Models\User;
 use App\Services\Catalog\SaveQuotationProductsToCatalog;
 use App\Services\NotificationService;
 use App\Services\Pricing\ProductSpecEngine;
@@ -76,6 +78,14 @@ class CreateBoq extends Component
     public bool    $guestMode              = false;
     public ?string $guestToken             = null;
     public bool    $showGuestLoginOverlay  = false;
+
+    // ── Guest lead capture (shown before prices are revealed) ─────────
+    /** True once the guest has handed over contact details for this session. */
+    public bool   $showGuestContactForm = false;
+    public bool   $guestContactCaptured = false;
+    public string $guestName            = '';
+    public string $guestEmail           = '';
+    public string $guestPhone           = '';
 
     #[Validate('required|string|max:255')]
     public string $projectName = '';
@@ -145,6 +155,22 @@ class CreateBoq extends Component
                     $this->draftBoqUuid = $existingBoq->uuid;
                     $this->projectId    = $existingBoq->project_id;
                     $this->boqType      = $existingBoq->type->value ?? $this->boqType;
+                }
+            }
+
+            // A returning guest already gave us their details on an earlier
+            // quotation under this token, so don't ask for them twice.
+            if ($this->guestToken && ! $this->guestContactCaptured) {
+                $previous = QuotationRequest::whereNotNull('guest_email')
+                    ->whereHas('boq', fn($q) => $q->where('guest_token', $this->guestToken))
+                    ->latest('id')
+                    ->first();
+
+                if ($previous) {
+                    $this->guestName            = (string) $previous->guest_name;
+                    $this->guestEmail           = (string) $previous->guest_email;
+                    $this->guestPhone           = (string) $previous->guest_phone;
+                    $this->guestContactCaptured = true;
                 }
             }
             return;
@@ -673,6 +699,51 @@ class CreateBoq extends Component
         }
     }
 
+    /**
+     * Guests must leave contact details before any pricing work is done, so
+     * an interested lead is never lost to a closed tab. Returns true when the
+     * caller should stop and let the capture form take over.
+     */
+    private function needsGuestContact(): bool
+    {
+        return $this->guestMode && ! $this->guestContactCaptured;
+    }
+
+    /**
+     * Step 2.5 (guests only): store the lead, then continue into pricing.
+     *
+     * When the email already belongs to a registered client we attach the
+     * quotation to that account directly, which keeps the lead out of the
+     * session-only claim path that currently loses them.
+     */
+    public function submitGuestContact(): void
+    {
+        if (! $this->guestMode) {
+            return;
+        }
+
+        $this->validate([
+            'guestName'  => ['required', 'string', 'min:2', 'max:255'],
+            'guestEmail' => ['required', 'email:rfc', 'max:255'],
+            'guestPhone' => ['required', 'string', 'min:9', 'max:30'],
+        ], [], [
+            'guestName'  => __('app.guest_name'),
+            'guestEmail' => __('app.guest_email'),
+            'guestPhone' => __('app.guest_phone'),
+        ]);
+
+        $this->guestName  = trim($this->guestName);
+        $this->guestEmail = mb_strtolower(trim($this->guestEmail));
+        $this->guestPhone = trim($this->guestPhone);
+
+        $this->guestContactCaptured = true;
+        $this->showGuestContactForm = false;
+
+        // confirmItems() re-runs its own item checks; the gate above is now
+        // satisfied, so it proceeds straight into creating the quotation.
+        $this->confirmItems();
+    }
+
     /** Step 2 → 3: create quotation request then fetch prices synchronously. */
     public function confirmItems(): void
     {
@@ -691,6 +762,13 @@ class CreateBoq extends Component
             return;
         }
 
+        // Gate pricing behind the lead form. The items are already validated
+        // above, so the guest is only asked once they are genuinely ready.
+        if ($this->needsGuestContact()) {
+            $this->showGuestContactForm = true;
+            return;
+        }
+
         try {
             DB::transaction(function () use ($activeItems) {
                 // Persist project + BOQ
@@ -699,15 +777,48 @@ class CreateBoq extends Component
                 $this->persistItems($boq);
 
                 // ── Create QuotationRequest ────────────────────────────────
-                $quotation = QuotationRequest::create([
-                    'client_id'    => $this->guestMode ? null : Auth::id(),
+                $clientId = $this->guestMode ? null : Auth::id();
+                $attrs    = [
+                    'client_id'    => $clientId,
                     'project_id'   => $project->id,
                     'boq_id'       => $boq->id,
                     'quotation_no' => $this->generateQuotationNo(),
                     'project_name' => $this->projectName,
                     'status'       => QuotationRequestStatusEnum::Tender,
                     'source_type'  => QuotationSourceTypeEnum::Boq,
-                ]);
+                ];
+
+                if ($this->guestMode) {
+                    $attrs['guest_name']  = $this->guestName;
+                    $attrs['guest_email'] = $this->guestEmail;
+                    $attrs['guest_phone'] = $this->guestPhone;
+
+                    // The email may already belong to a client. Attaching the
+                    // quotation now means it survives even if the session (and
+                    // with it the guest token) is lost before they sign in.
+                    $existing = User::where('email', $this->guestEmail)
+                        ->where('user_type', UserTypeEnum::Client->value)
+                        ->first();
+
+                    if ($existing) {
+                        $attrs['client_id'] = $existing->id;
+                        $clientId           = $existing->id;
+                    }
+                }
+
+                $quotation = QuotationRequest::create($attrs);
+
+                // Keep the BOQ and project in step, otherwise the quotation
+                // would show an owner while its BOQ still looks unclaimed.
+                //
+                // The guest_token is deliberately left in place: the visitor is
+                // still unauthenticated, and it is their only handle on this BOQ
+                // for the rest of the wizard. AuthController clears it once they
+                // actually sign in.
+                if ($this->guestMode && $clientId !== null) {
+                    $boq->update(['client_id' => $clientId]);
+                    $project->update(['client_id' => $clientId, 'is_guest' => false]);
+                }
 
                 $this->quotationId   = $quotation->id;
                 $this->quotationUuid = $quotation->uuid;
@@ -923,12 +1034,21 @@ class CreateBoq extends Component
         $this->pricesFetching = false;
 
         // ── Guest mode: store intent in session and show login overlay ──────
+        // Skip the overlay when the lead's email matched an existing account:
+        // the quotation is already theirs, so hiding the prices behind a
+        // sign-in wall would only punish a customer we can already identify.
         if ($this->guestMode) {
             session([
                 'pending_guest_boq_uuid'  => $this->draftBoqUuid,
                 'pending_guest_boq_token' => $this->guestToken,
             ]);
-            $this->showGuestLoginOverlay = true;
+
+            $linked = $this->quotationId !== null
+                && QuotationRequest::whereKey($this->quotationId)
+                    ->whereNotNull('client_id')
+                    ->exists();
+
+            $this->showGuestLoginOverlay = ! $linked;
         }
     }
 
