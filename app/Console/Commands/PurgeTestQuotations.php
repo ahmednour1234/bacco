@@ -32,6 +32,7 @@ class PurgeTestQuotations extends Command
     protected $signature = 'quotations:purge-tests
                             {--email=*      : Email of a test account; repeatable}
                             {--guests       : Also purge guest quotations (client_id IS NULL)}
+                            {--keep-email=* : INVERTED MODE. Purge everything EXCEPT these accounts}
                             {--before=      : Only rows created before this date (Y-m-d)}
                             {--with-orders  : Include rows that have orders/payments (NOT recommended)}
                             {--force        : Actually write. Without it this is a dry run}';
@@ -45,16 +46,37 @@ class PurgeTestQuotations extends Command
             (array) $this->option('email')
         ));
 
+        $keepEmails = array_filter(array_map(
+            fn($e) => mb_strtolower(trim((string) $e)),
+            (array) $this->option('keep-email')
+        ));
+
         $guests = (bool) $this->option('guests');
 
+        if ($keepEmails && ($emails || $guests)) {
+            $this->error('--keep-email cannot be combined with --email or --guests.');
+            $this->line('  Inverted mode already covers guests: anything not on the keep');
+            $this->line('  list is purged, and a guest row belongs to no account at all.');
+
+            return self::FAILURE;
+        }
+
+        if ($keepEmails) {
+            return $this->handleInverted($keepEmails);
+        }
+
         if (empty($emails) && ! $guests) {
-            $this->error('Nothing selected. Pass --email=… (repeatable) and/or --guests.');
+            $this->error('Nothing selected.');
             $this->line('');
-            $this->line('  Example:');
+            $this->line('  Purge named test accounts:');
             $this->line('    php artisan quotations:purge-tests \\');
-            $this->line('      --email=ahmednour5999@gmail.com --email=ss@gm.com --guests');
+            $this->line('      --email=test1@example.com --email=test2@example.com --guests');
             $this->line('');
-            $this->line('  That prints a report and changes nothing. Add --force to apply.');
+            $this->line('  Or keep the real customers and purge everything else:');
+            $this->line('    php artisan quotations:purge-tests \\');
+            $this->line('      --keep-email=real@customer.com');
+            $this->line('');
+            $this->line('  Both print a report and change nothing. Add --force to apply.');
 
             return self::FAILURE;
         }
@@ -108,6 +130,82 @@ class PurgeTestQuotations extends Command
             return self::SUCCESS;
         }
 
+        return $this->purgeTargets($targets);
+    }
+
+    /**
+     * Inverted mode: keep the named accounts, purge everything else.
+     *
+     * This is the dangerous direction — a typo here deletes a real customer
+     * rather than merely sparing a test one — so a keep-email that matches no
+     * account is a hard stop, never a warning.
+     *
+     * @param  array<int, string>  $keepEmails
+     */
+    private function handleInverted(array $keepEmails): int
+    {
+        $users = User::whereIn(DB::raw('LOWER(email)'), $keepEmails)->get();
+
+        $found   = $users->pluck('email')->map(fn($e) => mb_strtolower($e))->all();
+        $missing = array_diff($keepEmails, $found);
+
+        foreach ($users as $u) {
+            $this->line(sprintf('  KEEP   %-40s id=%-5d %s', $u->email, $u->id, $u->user_type?->value ?? ''));
+        }
+
+        if ($missing) {
+            $this->line('');
+            foreach ($missing as $m) {
+                $this->error(sprintf('  KEEP   %-40s NOT FOUND', $m));
+            }
+            $this->line('');
+            $this->error('Refusing to run: an account you asked to keep does not exist.');
+            $this->line('  In this mode an unmatched email is not spared — it is purged.');
+            $this->line('  Fix the spelling and try again.');
+
+            return self::FAILURE;
+        }
+
+        $keepIds = $users->pluck('id');
+
+        // Grouped deliberately. Left ungrouped, the OR would escape any later
+        // --before condition, and SQL's NOT IN drops NULLs on its own, so the
+        // guest rows have to be added back explicitly.
+        $query = QuotationRequest::where(function ($q) use ($keepIds): void {
+            $q->whereNull('client_id')
+              ->orWhereNotIn('client_id', $keepIds);
+        });
+
+        if ($before = $this->option('before')) {
+            $query->whereDate('created_at', '<', $before);
+        }
+
+        $targets = $query->with('client')->orderBy('id')->get();
+
+        $this->line('');
+        $this->warn(sprintf(
+            'INVERTED MODE: keeping %d account(s), purging everything else.',
+            $keepIds->count()
+        ));
+        $this->line('');
+
+        if ($targets->isEmpty()) {
+            $this->info('Nothing matched. Database unchanged.');
+
+            return self::SUCCESS;
+        }
+
+        return $this->purgeTargets($targets);
+    }
+
+    /**
+     * Shared tail of both modes: protect anything with money behind it,
+     * report what is left, and soft-delete it once --force is given.
+     *
+     * @param  \Illuminate\Support\Collection<int, QuotationRequest>  $targets
+     */
+    private function purgeTargets($targets): int
+    {
         // ── Separate out anything with money attached ────────────────────
         $orderCounts = Order::whereIn('quotation_request_id', $targets->pluck('id'))
             ->selectRaw('quotation_request_id, COUNT(*) AS c')
@@ -225,6 +323,5 @@ class PurgeTestQuotations extends Command
         $this->info(sprintf('Done. %d quotation(s) soft-deleted.', $toDelete->count()));
         $this->comment('To undo: set deleted_at back to NULL on those rows.');
 
-        return self::SUCCESS;
-    }
+        return self::SUCCESS;    }
 }
