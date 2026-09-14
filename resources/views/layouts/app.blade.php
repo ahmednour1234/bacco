@@ -30,6 +30,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', $__defaultTitle)</title>
     @include('partials.favicon')
+    {{-- Optional article fonts. Cairo stays self-hosted below and remains the
+         site default; these load only so article bodies can opt into them. --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Almarai:wght@400;700&family=Inter:wght@400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Almarai:wght@400;700&family=Inter:wght@400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet"></noscript>
     <meta name="description" content="@yield('description', $__defaultDesc)">
     @if($__seoKeywords)
     <meta name="keywords" content="{{ $__seoKeywords }}">

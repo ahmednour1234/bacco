@@ -78,6 +78,16 @@
                     <option value="pre">Code</option>
                 </select>
 
+                {{-- Font family --}}
+                <select x-on:change="applyFont('en', $event.target.value); $event.target.value=''" class="editor-select" title="Font">
+                    <option value="">Font</option>
+                    <option value="">— Default (Cairo) —</option>
+                    <option value="Tajawal" style="font-family:'Tajawal',sans-serif;">Tajawal (عربي)</option>
+                    <option value="Almarai" style="font-family:'Almarai',sans-serif;">Almarai (عربي)</option>
+                    <option value="Inter" style="font-family:'Inter',sans-serif;">Inter (English)</option>
+                    <option value="Merriweather" style="font-family:'Merriweather',serif;">Merriweather (English)</option>
+                </select>
+
                 {{-- Font size --}}
                 <select x-on:change="execVal('en','fontSize',$event.target.value); $event.target.value=''" class="editor-select" title="Font size">
                     <option value="">Size</option>
@@ -113,7 +123,7 @@
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Lists --}}
-                <button type="button" x-on:click="exec('en','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
+                <button type="button" x-on:click="exec('en','insertUnorderedList')" class="editor-btn" title="Bullet list">• List</button>
                 <button type="button" x-on:click="exec('en','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
@@ -133,7 +143,7 @@
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
                 {{-- Clear --}}
-                <button type="button" x-on:click="exec('en','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
+                <button type="button" x-on:click="exec('en','removeFormat')" class="editor-btn text-red-500" title="Clear formatting"><svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
 
             {{-- Editor body EN --}}
@@ -143,6 +153,8 @@
                  x-ref="editorEn"
                  wire:ignore
                  x-on:input="syncEnDebounced()"
+                 x-on:paste="handlePaste($event, 'en')"
+                 x-on:contextmenu.prevent="openCtx($event, 'en')"
                  x-on:blur="syncEn()"
                  class="editor-body"
                  style="min-height:360px; resize:vertical; overflow:auto;"
@@ -167,6 +179,16 @@
                     <option value="h3">H3</option>
                     <option value="h4">H4</option>
                     <option value="pre">Code</option>
+                </select>
+
+                {{-- Font family --}}
+                <select x-on:change="applyFont('ar', $event.target.value); $event.target.value=''" class="editor-select" title="Font">
+                    <option value="">Font</option>
+                    <option value="">— Default (Cairo) —</option>
+                    <option value="Tajawal" style="font-family:'Tajawal',sans-serif;">Tajawal (عربي)</option>
+                    <option value="Almarai" style="font-family:'Almarai',sans-serif;">Almarai (عربي)</option>
+                    <option value="Inter" style="font-family:'Inter',sans-serif;">Inter (English)</option>
+                    <option value="Merriweather" style="font-family:'Merriweather',serif;">Merriweather (English)</option>
                 </select>
 
                 <select x-on:change="execVal('ar','fontSize',$event.target.value); $event.target.value=''" class="editor-select" title="Font size">
@@ -200,7 +222,7 @@
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" x-on:click="exec('ar','insertUnorderedList')" class="editor-btn" title="Bullet list">� List</button>
+                <button type="button" x-on:click="exec('ar','insertUnorderedList')" class="editor-btn" title="Bullet list">• List</button>
                 <button type="button" x-on:click="exec('ar','insertOrderedList')"   class="editor-btn" title="Numbered list">1. List</button>
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
@@ -217,7 +239,7 @@
 
                 <span class="self-stretch border-l border-slate-200 mx-0.5"></span>
 
-                <button type="button" x-on:click="exec('ar','removeFormat')" class="editor-btn text-red-500" title="Clear formatting">?</button>
+                <button type="button" x-on:click="exec('ar','removeFormat')" class="editor-btn text-red-500" title="Clear formatting"><svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
 
             <div id="editor-ar"
@@ -226,6 +248,8 @@
                  x-ref="editorAr"
                  wire:ignore
                  x-on:input="syncArDebounced()"
+                 x-on:paste="handlePaste($event, 'ar')"
+                 x-on:contextmenu.prevent="openCtx($event, 'ar')"
                  x-on:blur="syncAr()"
                  class="editor-body"
                  style="min-height:360px; resize:vertical; overflow:auto;"
@@ -260,12 +284,12 @@
             <svg class="h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            <span class="text-sm text-slate-500">Click to upload image <span class="text-xs text-slate-400">(JPG, PNG, WebP � max 4MB)</span></span>
+            <span class="text-sm text-slate-500">Click to upload image <span class="text-xs text-slate-400">(JPG, PNG, WebP — max 4MB)</span></span>
             <input type="file" wire:model="image" accept="image/*" class="hidden">
         </label>
         @error('image') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
 
-        <div wire:loading wire:target="image" class="mt-2 text-xs text-emerald-600">Uploading�</div>
+        <div wire:loading wire:target="image" class="mt-2 text-xs text-emerald-600">Uploading…</div>
     </div>
 
     {{-- -- Status -------------------------------------------------------- --}}
@@ -295,6 +319,51 @@
     </div>
 </form>
 
+{{-- ================= Right-click block-format menu ================= --}}
+<div x-show="ctx.open"
+     x-cloak
+     x-transition.opacity.duration.100ms
+     x-on:click.outside="closeCtx()"
+     x-on:keydown.escape.window="closeCtx()"
+     class="editor-ctx"
+     :style="`top:${ctx.y}px; left:${ctx.x}px;`">
+
+    <div class="editor-ctx-label" x-text="ctx.currentLabel"></div>
+
+    <template x-for="item in ctxBlocks" :key="item.tag">
+        <button type="button"
+                x-on:click="applyBlock(item.tag)"
+                class="editor-ctx-item"
+                :class="ctx.current === item.tag ? 'is-active' : ''">
+            <span x-text="item.label" :style="item.style"></span>
+            <svg x-show="ctx.current === item.tag" class="h-3.5 w-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </button>
+    </template>
+
+    <div class="editor-ctx-sep"></div>
+    <div class="editor-ctx-label">Font</div>
+
+    <template x-for="f in ctxFonts" :key="f.name">
+        <button type="button" x-on:click="ctxFont(f.name)" class="editor-ctx-item">
+            <span x-text="f.label" :style="`font-family:${f.stack}`"></span>
+        </button>
+    </template>
+
+    <div class="editor-ctx-sep"></div>
+
+    <button type="button" x-on:click="ctxExec('bold')" class="editor-ctx-item">
+        <span class="font-bold">Bold</span><span class="editor-ctx-key">Ctrl+B</span>
+    </button>
+    <button type="button" x-on:click="ctxExec('italic')" class="editor-ctx-item">
+        <span class="italic">Italic</span><span class="editor-ctx-key">Ctrl+I</span>
+    </button>
+    <button type="button" x-on:click="ctxExec('removeFormat')" class="editor-ctx-item text-red-600">
+        <span>Clear formatting</span>
+    </button>
+</div>
+</div>
+
+@assets
 <style>
 /* -- Toolbar controls ------------------------------------------------ */
 .editor-btn {
@@ -363,10 +432,69 @@
 /* Selected media outline */
 .editor-body img:focus,
 .editor-body img.selected { outline: 2px solid #34d399; outline-offset: 2px; }
-</style>
 
+/* -- Article fonts (must mirror .ns-article-body on the public page) --- */
+.editor-select option { font-size: 13px; }
+
+/* -- Right-click block-format menu ----------------------------------- */
+[x-cloak] { display: none !important; }
+
+.editor-ctx {
+    position: absolute;
+    z-index: 60;
+    width: 210px;
+    padding: 4px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .14), 0 2px 6px rgba(15, 23, 42, .06);
+    font-size: 13px;
+}
+
+.editor-ctx-label {
+    padding: 6px 10px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.editor-ctx-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #334155;
+    text-align: left;
+    cursor: pointer;
+    line-height: 1.2;
+}
+.editor-ctx-item:hover { background: #f1f5f9; }
+.editor-ctx-item.is-active { background: #ecfdf5; color: #047857; }
+
+.editor-ctx-key {
+    font-size: 10.5px;
+    color: #94a3b8;
+    font-family: ui-monospace, monospace;
+}
+
+.editor-ctx-sep {
+    height: 1px;
+    margin: 4px 6px;
+    background: #e2e8f0;
+}
+
+/* RTL editors: menu items read right-to-left */
+[dir="rtl"] .editor-ctx-item { text-align: right; }
+</style>
 <script>
-function articleForm() {
+window.articleForm = function () {
     return {
         _timerEn: null,
         _timerAr: null,
@@ -384,6 +512,20 @@ function articleForm() {
             this.$refs.editorEn.addEventListener('keyup',   () => this._saveRange('en'));
             this.$refs.editorAr.addEventListener('mouseup', () => this._saveRange('ar'));
             this.$refs.editorAr.addEventListener('keyup',   () => this._saveRange('ar'));
+
+            // Word-style block shortcuts: Ctrl+Alt+0 = paragraph, 1..4 = headings
+            [['en', this.$refs.editorEn], ['ar', this.$refs.editorAr]].forEach(([lang, el]) => {
+                el.addEventListener('keydown', (e) => {
+                    if (!e.ctrlKey || !e.altKey) return;
+                    const map = { '0': 'p', '1': 'h1', '2': 'h2', '3': 'h3', '4': 'h4' };
+                    const tag = map[e.key];
+                    if (!tag) return;
+                    e.preventDefault();
+                    this._saveRange(lang);
+                    this.ctx.lang = lang;
+                    this.applyBlock(tag);
+                });
+            });
         },
 
         _saveRange(lang) {
@@ -473,11 +615,239 @@ function articleForm() {
             });
         },
 
+        // ---- Font family --------------------------------------------------
+        // execCommand('fontName') emits deprecated <font face="..."> tags, so we
+        // wrap the selection in a span carrying an explicit font-family stack.
+        fontStacks: {
+            Tajawal:      "'Tajawal', 'Cairo', sans-serif",
+            Almarai:      "'Almarai', 'Cairo', sans-serif",
+            Inter:        "'Inter', 'Cairo', sans-serif",
+            Merriweather: "'Merriweather', Georgia, serif",
+        },
+
+        applyFont(lang, font) {
+            this._restoreRange(lang);
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0) return;
+            const range = sel.getRangeAt(0);
+
+            // Empty value = reset: unwrap any font spans inside the selection.
+            if (!font) {
+                this._clearFontSpans(range, lang);
+                lang === 'en' ? this.syncEn() : this.syncAr();
+                return;
+            }
+
+            const stack = this.fontStacks[font];
+            if (!stack) return;
+
+            if (range.collapsed) {
+                // No selection: retarget the nearest element that already carries a
+                // font-family. Without this the block gets the new stack while an
+                // inner font span keeps overriding it, so only the first pick sticks.
+                const root = lang === 'en' ? this.$refs.editorEn : this.$refs.editorAr;
+                let node = range.startContainer;
+                if (node.nodeType === 3) node = node.parentNode;
+
+                let carrier = null;
+                for (let n = node; n && n !== root; n = n.parentNode) {
+                    if (n.style && n.style.fontFamily) { carrier = n; break; }
+                }
+
+                if (carrier) {
+                    carrier.style.fontFamily = stack;
+                } else {
+                    let block = node;
+                    while (block && block !== root && block.parentNode !== root) block = block.parentNode;
+                    if (block && block !== root) block.style.fontFamily = stack;
+                }
+            } else {
+                const span = document.createElement('span');
+                span.style.fontFamily = stack;
+                try {
+                    span.appendChild(range.extractContents());
+                    // Drop font-family from anything already inside the selection,
+                    // otherwise the nested stack keeps winning over the new one.
+                    span.querySelectorAll('[style*="font-family"]').forEach(el => {
+                        el.style.fontFamily = '';
+                        if (el.tagName === 'SPAN' && !el.getAttribute('style')) {
+                            el.replaceWith(...el.childNodes);
+                        }
+                    });
+                    range.insertNode(span);
+                    // Re-select the wrapped content so the user sees the result.
+                    const after = document.createRange();
+                    after.selectNodeContents(span);
+                    sel.removeAllRanges();
+                    sel.addRange(after);
+                } catch (e) {
+                    return; // selection spanned incompatible nodes - leave as-is
+                }
+            }
+
+            this._saveRange(lang);
+            lang === 'en' ? this.syncEn() : this.syncAr();
+        },
+
+        _clearFontSpans(range, lang) {
+            const root = lang === 'en' ? this.$refs.editorEn : this.$refs.editorAr;
+            root.querySelectorAll('[style*="font-family"]').forEach(el => {
+                if (!range.intersectsNode(el)) return; // leave fonts outside the selection alone
+                el.style.fontFamily = '';
+                if (el.tagName === 'SPAN' && !el.getAttribute('style')) {
+                    el.replaceWith(...el.childNodes); // drop the now-empty wrapper
+                }
+            });
+        },
+
+        ctxFonts: [
+            { name: '',             label: 'Default (Cairo)', stack: "'Cairo', sans-serif" },
+            { name: 'Tajawal',      label: 'Tajawal \u2014 \u0639\u0631\u0628\u064a',      stack: "'Tajawal', sans-serif" },
+            { name: 'Almarai',      label: 'Almarai \u2014 \u0639\u0631\u0628\u064a',      stack: "'Almarai', sans-serif" },
+            { name: 'Inter',        label: 'Inter \u2014 English',     stack: "'Inter', sans-serif" },
+            { name: 'Merriweather', label: 'Merriweather \u2014 English', stack: "'Merriweather', serif" },
+        ],
+
+        ctxFont(font) {
+            const lang = this.ctx.lang;
+            this.closeCtx();
+            this.applyFont(lang, font);
+        },
+
+        // ---- Right-click block-format menu (Word-like) ----------------
+        ctx: { open: false, x: 0, y: 0, lang: 'en', current: 'p', currentLabel: '' },
+
+        ctxBlocks: [
+            { tag: 'p',  label: 'Paragraph', style: 'font-size:14px;' },
+            { tag: 'h1', label: 'Heading 1', style: 'font-size:22px;font-weight:800;' },
+            { tag: 'h2', label: 'Heading 2', style: 'font-size:19px;font-weight:700;' },
+            { tag: 'h3', label: 'Heading 3', style: 'font-size:17px;font-weight:700;' },
+            { tag: 'h4', label: 'Heading 4', style: 'font-size:15px;font-weight:600;' },
+            { tag: 'blockquote', label: 'Quote', style: 'font-style:italic;' },
+            { tag: 'pre', label: 'Code block', style: 'font-family:monospace;font-size:13px;' },
+        ],
+
+        openCtx(event, lang) {
+            const root = lang === 'en' ? this.$refs.editorEn : this.$refs.editorAr;
+
+            // Put the caret where the user right-clicked, then remember it,
+            // so formatBlock applies to the block under the pointer.
+            const pos = this._caretFromPoint(event.clientX, event.clientY);
+            if (pos) {
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(pos);
+            }
+            this._saveRange(lang);
+
+            this.ctx.lang = lang;
+            this.ctx.current = this._currentBlock(root);
+            const match = this.ctxBlocks.find(b => b.tag === this.ctx.current);
+            this.ctx.currentLabel = match ? match.label : 'Paragraph';
+
+            // Clamp to the viewport so the menu never opens off-screen.
+            const MW = 210, MH = 330;
+            this.ctx.x = Math.min(event.clientX, window.innerWidth  - MW - 8) + window.scrollX;
+            this.ctx.y = Math.min(event.clientY, window.innerHeight - MH - 8) + window.scrollY;
+            this.ctx.open = true;
+        },
+
+        closeCtx() {
+            this.ctx.open = false;
+        },
+
+        applyBlock(tag) {
+            const lang = this.ctx.lang;
+            this.closeCtx();
+            this._restoreRange(lang);
+            // execCommand wants <h1> style tag names in most browsers.
+            document.execCommand('formatBlock', false, '<' + tag + '>');
+            lang === 'en' ? this.syncEn() : this.syncAr();
+        },
+
+        ctxExec(command) {
+            const lang = this.ctx.lang;
+            this.closeCtx();
+            this._restoreRange(lang);
+            document.execCommand(command, false, null);
+            lang === 'en' ? this.syncEn() : this.syncAr();
+        },
+
+        // Which block tag is the caret currently inside?
+        _currentBlock(root) {
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0) return 'p';
+            let node = sel.getRangeAt(0).startContainer;
+            if (node.nodeType === 3) node = node.parentNode;
+            const tags = ['p','h1','h2','h3','h4','blockquote','pre'];
+            while (node && node !== root) {
+                const t = (node.tagName || '').toLowerCase();
+                if (tags.indexOf(t) !== -1) return t;
+                node = node.parentNode;
+            }
+            return 'p';
+        },
+
+        // Cross-browser "range at these screen coordinates".
+        _caretFromPoint(x, y) {
+            if (document.caretRangeFromPoint) {
+                return document.caretRangeFromPoint(x, y);
+            }
+            if (document.caretPositionFromPoint) {
+                const p = document.caretPositionFromPoint(x, y);
+                if (!p) return null;
+                const r = document.createRange();
+                r.setStart(p.offsetNode, p.offset);
+                r.collapse(true);
+                return r;
+            }
+            return null;
+        },
+
+        /*
+         | Paste guard: browsers inline pasted/copied images as base64 data URIs.
+         | A single screenshot can add several MB to desc_en/desc_ar, which then
+         | ships on every Livewire sync and trips PayloadTooLargeException.
+         | Real image files are uploaded through the upload-media endpoint and
+         | inserted as a URL; everything else is pasted as sanitized HTML.
+         */
+        handlePaste(event, lang) {
+            const cd = event.clipboardData;
+            if (!cd) return;
+
+            // 1. Pasted image file (screenshot, copied image) -> upload, insert URL.
+            const imageItem = Array.from(cd.items || [])
+                .find(i => i.kind === 'file' && i.type.startsWith('image/'));
+            if (imageItem) {
+                event.preventDefault();
+                const file = imageItem.getAsFile();
+                if (file) {
+                    this._saveRange(lang);
+                    this._insertMediaFile(lang, file);
+                }
+                return;
+            }
+
+            // 2. Pasted rich HTML -> strip any embedded data: URIs before insert.
+            const html = cd.getData('text/html');
+            if (html && html.indexOf('data:') !== -1) {
+                event.preventDefault();
+                document.execCommand('insertHTML', false, this._stripDataUris(html));
+                lang === 'en' ? this.syncEn() : this.syncAr();
+            }
+        },
+
+        _stripDataUris(html) {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            doc.querySelectorAll('[src^="data:"], [href^="data:"]').forEach(el => el.remove());
+            return doc.body.innerHTML;
+        },
+
         syncEn() {
-            @this.setDescEn(this.$refs.editorEn.innerHTML);
+            this.$wire.setDescEn(this.$refs.editorEn.innerHTML);
         },
         syncAr() {
-            @this.setDescAr(this.$refs.editorAr.innerHTML);
+            this.$wire.setDescAr(this.$refs.editorAr.innerHTML);
         },
 
         syncEnDebounced() {
@@ -489,6 +859,6 @@ function articleForm() {
             this._timerAr = setTimeout(() => this.syncAr(), 600);
         },
     };
-}
+};
 </script>
-</div>
+@endassets

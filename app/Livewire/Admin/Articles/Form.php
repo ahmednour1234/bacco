@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Articles;
 
 use App\Models\Article;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -10,7 +11,7 @@ class Form extends Component
 {
     use WithFileUploads;
 
-    public ?Article $article = null;
+    public ?int $articleId = null;
     public bool $isEditing = false;
 
     public string $name_en  = '';
@@ -26,7 +27,7 @@ class Form extends Component
     public function mount(?Article $article = null): void
     {
         if ($article && $article->exists) {
-            $this->article       = $article;
+            $this->articleId     = $article->id;
             $this->isEditing     = true;
             $this->name_en       = (string) ($article->name_en ?? '');
             $this->name_ar       = (string) ($article->name_ar ?? '');
@@ -75,14 +76,14 @@ class Form extends Component
             'name_ar'  => $data['name_ar'],
             'title_en' => $data['title_en'],
             'title_ar' => $data['title_ar'],
-            'desc_en'  => $data['desc_en'] ?? null,
-            'desc_ar'  => $data['desc_ar'] ?? null,
+            'desc_en'  => $this->stripDataUris($data['desc_en'] ?? null),
+            'desc_ar'  => $this->stripDataUris($data['desc_ar'] ?? null),
             'active'   => $data['active'],
             'image'    => $imagePath,
         ];
 
-        if ($this->isEditing && $this->article) {
-            $this->article->update($payload);
+        if ($this->isEditing && $this->articleId) {
+            Article::findOrFail($this->articleId)->update($payload);
             return redirect()->route('admin.articles.index')->with('success', 'Article updated successfully.');
         }
 
@@ -93,15 +94,48 @@ class Form extends Component
     // Called by the JS editor via Livewire.dispatch or $wire.set
     public function setDescEn(string $value): void
     {
-        $this->desc_en = $value;
+        $this->desc_en = (string) $this->stripDataUris($value);
     }
 
     public function setDescAr(string $value): void
     {
-        $this->desc_ar = $value;
+        $this->desc_ar = (string) $this->stripDataUris($value);
     }
 
-    public function render()
+    /**
+     * Remove inline base64 payloads from editor HTML.
+     *
+     * Browsers inline pasted images as data: URIs. A single screenshot can add
+     * several MB to the description, which then ships on every Livewire sync
+     * and trips PayloadTooLargeException. The client-side paste guard already
+     * routes real images through the upload-media endpoint; this is the
+     * server-side backstop for when that guard does not run.
+     */
+    protected function stripDataUris(?string $html): ?string
+    {
+        if ($html === null || $html === '' || stripos($html, 'data:') === false) {
+            return $html;
+        }
+
+        // <a href="data:...">text</a> -> unwrap, keeping the visible text.
+        $cleaned = preg_replace('#<a\b[^>]*?href\s*=\s*[\'"]?\s*data:[^>]*>(.*?)</a\s*>#is', '$1', $html);
+
+        if ($cleaned === null) {
+            return $html; // preg failure (e.g. backtrack limit) - keep original
+        }
+
+        // Self-contained media whose src is an inline payload -> drop entirely.
+        $cleaned = preg_replace(
+            '#<(img|video|audio|source|embed|iframe)\b[^>]*?(?:src|href)\s*=\s*[\'"]?\s*data:[^>]*>(?:\s*</\1\s*>)?#is',
+            '',
+            $cleaned
+        ) ?? $cleaned;
+
+        // Neutralise any remaining base64 payload left in an attribute.
+        return preg_replace('#data:[a-z0-9.+-]+/[a-z0-9.+-]+;base64,[a-zA-Z0-9+/=\s]+#i', '', $cleaned) ?? $cleaned;
+    }
+
+    public function render(): View
     {
         return view('livewire.admin.articles.form');
     }
