@@ -46,7 +46,9 @@ use Illuminate\Support\Facades\Route;
 // ─── Guest BOQ Teaser (no auth required) ─────────────────────────────────────
 Route::get('/try', [GuestBoqController::class, 'create'])->name('guest.boq.create');
 
-Route::get('/', [\App\Http\Controllers\CatalogController::class, 'home']);
+// Named so SeoResolver can find its SeoMeta row — 'ar.home' already resolves
+// to the same canonical record, which is where the Arabic copy lives.
+Route::get('/', [\App\Http\Controllers\CatalogController::class, 'home'])->name('home');
 
 // ─── Sitemaps ─────────────────────────────────────────────────────────────────
 Route::get('/sitemap.xml',         [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');

@@ -73,6 +73,13 @@ return [
         'model'    => env('VISION_MODEL', 'google/gemini-flash-1.5-8b'),
     ],
 
+    // Anthropic (Claude) — powers AI-assisted SEO copy in the admin panel.
+    // Get a key at https://console.anthropic.com
+    'anthropic' => [
+        'key'   => env('ANTHROPIC_API_KEY', ''),
+        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+    ],
+
     'ocrspace' => [
         'key' => env('OCRSPACE_API_KEY', 'helloworld'),
     ],

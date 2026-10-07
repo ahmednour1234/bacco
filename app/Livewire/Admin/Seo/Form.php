@@ -3,7 +3,10 @@
 namespace App\Livewire\Admin\Seo;
 
 use App\Models\SeoMeta;
+use App\Services\Seo\SeoCopyGenerator;
 use App\Services\SeoResolver;
+use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -27,6 +30,20 @@ class Form extends Component
     public ?string $existingOgImage = null;
     public $og_image = null; // new upload (TemporaryUploadedFile or null)
 
+    // ── AI assist ─────────────────────────────────────────────
+    /** Optional steer: terms the business wants this page to rank for. */
+    public string $aiFocus = '';
+
+    /** Set after a generation so the admin knows the fields are unsaved. */
+    public bool $aiGenerated = false;
+
+    /** Inline feedback — the admin layout has no toast listener. */
+    public string $aiError = '';
+
+    /** Whether the key is present; the view hides the button without it. */
+    #[Locked]
+    public bool $aiAvailable = false;
+
     public function mount(SeoMeta $seo): void
     {
         $this->seo             = $seo;
@@ -41,6 +58,7 @@ class Form extends Component
         $this->schema_ar       = (string) ($seo->schema_ar ?? '');
         $this->active          = (bool) $seo->active;
         $this->existingOgImage = $seo->og_image;
+        $this->aiAvailable     = SeoCopyGenerator::isConfigured();
     }
 
     protected function rules(): array
@@ -71,6 +89,112 @@ class Form extends Component
                 $this->addError($field, __('app.seo_invalid_json'));
             }
         }
+    }
+
+    /**
+     * Ask Claude for copy and drop it into the form fields.
+     *
+     * Nothing is persisted here — the admin reviews, edits, and presses Save.
+     * Search rankings are slow to recover from bad copy, so a human stays in
+     * the loop by design rather than by omission.
+     */
+    public function generateWithAi(): void
+    {
+        $this->aiError = '';
+
+        if (! $this->aiAvailable) {
+            $this->aiError = __('app.seo_ai_unavailable');
+
+            return;
+        }
+
+        try {
+            $generated = SeoCopyGenerator::make()->generate($this->seo, [
+                'page_url'     => $this->publicUrl(),
+                'page_content' => $this->pageText(),
+                'focus'        => trim($this->aiFocus),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('SEO AI generation failed.', [
+                'route_name' => $this->seo->route_name,
+                'message'    => $e->getMessage(),
+            ]);
+
+            $this->aiError = $e->getMessage();
+
+            return;
+        }
+
+        // Only overwrite what came back, so a partial response cannot blank a
+        // field the admin had already written.
+        foreach ($generated as $field => $value) {
+            if ($value !== '' && property_exists($this, $field)) {
+                $this->{$field} = $value;
+            }
+        }
+
+        $this->aiGenerated = true;
+    }
+
+    /** Public URL of the page this record drives, for the model's context. */
+    private function publicUrl(): ?string
+    {
+        try {
+            return route($this->seo->route_name);
+        } catch (\Throwable) {
+            // Routes needing parameters (catalog.item, news.show) have no single
+            // URL; the route name alone is enough context for those.
+            return null;
+        }
+    }
+
+    /** Path portion of the page URL, for the internal sub-request. */
+    private function publicPath(): ?string
+    {
+        $url = $this->publicUrl();
+
+        if (! $url) {
+            return null;
+        }
+
+        return parse_url($url, PHP_URL_PATH) ?: '/';
+    }
+
+    /**
+     * Render the public page internally and strip it to visible text.
+     *
+     * A sub-request rather than an outbound fetch: many hosts cannot resolve
+     * their own public hostname, and this avoids depending on that.
+     */
+    private function pageText(): ?string
+    {
+        $path = $this->publicPath();
+
+        if (! $path) {
+            return null;
+        }
+
+        try {
+            $response = app()->handle(
+                \Illuminate\Http\Request::create($path, 'GET')
+            );
+
+            if ($response->getStatusCode() !== 200) {
+                return null;
+            }
+
+            $html = (string) $response->getContent();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        // Drop the parts that carry no copy before stripping tags, otherwise
+        // the model reads minified CSS as page content.
+        $html = preg_replace('#<(script|style|noscript|svg)[^>]*>.*?</>#is', ' ', $html) ?? $html;
+        $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
+
+        return $text !== '' ? mb_substr($text, 0, 6000) : null;
     }
 
     public function save()
