@@ -33,6 +33,7 @@ class SeoCopyGenerator
     public function __construct(
         private readonly string $apiKey,
         private readonly string $model,
+        private readonly string $workspace = '',
     ) {
     }
 
@@ -46,7 +47,11 @@ class SeoCopyGenerator
             );
         }
 
-        return new self($key, (string) config('services.anthropic.model', 'claude-opus-5-5'));
+        return new self(
+            $key,
+            (string) config('services.anthropic.model', 'claude-opus-5-5'),
+            (string) config('services.anthropic.workspace', ''),
+        );
     }
 
     public static function isConfigured(): bool
@@ -60,11 +65,18 @@ class SeoCopyGenerator
      */
     public function generate(SeoMeta $seo, array $context = []): array
     {
-        $response = Http::withHeaders([
-                'x-api-key'         => $this->apiKey,
-                'anthropic-version' => self::API_VERSION,
-                'content-type'      => 'application/json',
-            ])
+        $headers = [
+            'x-api-key'         => $this->apiKey,
+            'anthropic-version' => self::API_VERSION,
+            'content-type'      => 'application/json',
+        ];
+
+        // Required by workspace-scoped keys; harmless to omit otherwise.
+        if ($this->workspace !== '') {
+            $headers['anthropic-workspace-id'] = $this->workspace;
+        }
+
+        $response = Http::withHeaders($headers)
             ->timeout(120)
             ->retry(2, 1000, throw: false)
             ->post(self::ENDPOINT, [
@@ -294,7 +306,11 @@ class SeoCopyGenerator
     private function friendlyError(int $status, string $detail): string
     {
         return match (true) {
-            $status === 401 => 'The Anthropic API key was rejected. Check ANTHROPIC_API_KEY in .env.',
+            $status === 401 && $this->workspace === ''
+                => 'The Anthropic API key was rejected. Check ANTHROPIC_API_KEY in .env — '
+                 . 'and if the key starts with "sk-ant-usr-", it is workspace-scoped and also '
+                 . 'needs ANTHROPIC_WORKSPACE_ID set.',
+            $status === 401 => 'The Anthropic API key or workspace ID was rejected. Check both in .env.',
             $status === 429 => 'Anthropic rate limit reached. Wait a moment and try again.',
             $status >= 500  => 'Anthropic is unavailable right now. Please try again shortly.',
             default         => 'Could not generate SEO copy: ' . mb_substr($detail, 0, 200),

@@ -78,6 +78,9 @@ return [
     'anthropic' => [
         'key'   => env('ANTHROPIC_API_KEY', ''),
         'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+        // Workspace-scoped keys (sk-ant-usr-…) must name the workspace on
+        // every request; account-wide keys ignore this and can leave it blank.
+        'workspace' => env('ANTHROPIC_WORKSPACE_ID', ''),
     ],
 
     'ocrspace' => [
